@@ -5,6 +5,10 @@ title: Proxy
 
 This example shows how you can use the implementation of [proxy](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/upgradeability/proxy) to to implement proxy pattern for upgradeable contracts.
 
+## Disclaimer
+
+`Proxy` pattern does not currently work due to `DelegateCall` in ink! 4. We will leave it here for the past versions of OpenBrush and for the future when this will be fixed in ink!.
+
 ## Step 1: Import default implementation
 
 With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),

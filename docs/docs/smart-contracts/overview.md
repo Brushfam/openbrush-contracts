@@ -5,48 +5,38 @@ title: Overview
 
 This doc contains description of how the OpenBrush library can be imported and used. 
 
-The OpenBrush is using ink! stable release `4.0.0-beta` at the moment.
-So you should use the same version of the ink! across your project.
-If you use an old version of ink, you need to use the old version of OpenBrush.
+The OpenBrush is using ink! version `4.0.0-beta` from `main` branch from commit `4655a8b4413cb50cbc38d1b7c173ad426ab06cde` at the moment. We are not using the stable release of ink! because of changes made in [this PR](https://github.com/paritytech/ink/pull/1531) which is not in release yet.
+You will need to use the same version of the ink! in your project.
+If you use a different version of ink, you need to use a different version of OpenBrush which uses the same version of ink!.
 OpenBrush had several significant changes in API, so you check the [Wizard](https://openbrush.io)
 to study how to use different versions of OpenBrush.
 
 The documentation describes the latest available OpenBrush and how to use it.
-It doesn't contain [versioning](https://github.com/727-Ventures/openbrush-contracts/issues/127) yet.
+It doesn't contain [versioning](https://github.com/supercolony-net/openbrush-contracts/issues/127) yet.
 
 #### The default `toml` of your project with OpenBrush:
 ```toml
 [dependencies]
-# Import of all ink! crates
-ink = { version = "~4.0.0-beta", default-features = false }
+# Import ink!
+ink = { git = "https://github.com/paritytech/ink", commit = "4655a8b4413cb50cbc38d1b7c173ad426ab06cde", default-features = false}
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.3", default-features = false, features = ["derive"], optional = true }
 
 # Brush dependency
-openbrush = { version = "~3.0.0-beta", default-features = false }
+openbrush = { git = "https://github.com/727-Ventures/openbrush-contracts", version = "~3.0.0-beta", default-features = false }
 
 [features]
 default = ["std"]
 std = [
-  "ink::primitives/std",
-  "ink::metadata",
-  "ink::metadata/std",
-  "ink::env/std",
-  "ink::storage/std",
   "ink/std",
   "scale/std",
-  "scale-info",
   "scale-info/std",
-
   # Brush dependency
   "openbrush/std",
 ]
 ink-as-dependency = []
 ```
-
-To avoid unexpected compilation errors better to always import all ink! crates until resolving
-[issue](https://github.com/paritytech/ink/issues/825).
 
 By default, the `openbrush` crate provides [macros](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs)
 for simplification of the development and [traits](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/traits) of 
@@ -83,17 +73,17 @@ The name of the feature is the same as the name of the module. For example:
 
 To enable `psp22`:
 ```toml
-openbrush = { version = "~3.0.0-beta", default-features = false, features = ["psp22"] }
+openbrush = { git = "https://github.com/727-Ventures/openbrush-contracts", version = "~3.0.0-beta", default-features = false, features = ["psp22"] }
 ```
 
 To enable `ownable`:
 ```toml
-openbrush = { version = "~3.0.0-beta", default-features = false, features = ["ownable"] }
+openbrush = { git = "https://github.com/727-Ventures/openbrush-contracts", version = "~3.0.0-beta", default-features = false, features = ["ownable"] }
 ```
 
 To enable both:
 ```toml
-openbrush = { version = "~3.0.0-beta", default-features = false, features = ["psp22", "ownable"] }
+openbrush = { git = "https://github.com/727-Ventures/openbrush-contracts", version = "~3.0.0-beta", default-features = false, features = ["psp22, ownable"] }
 ```
 
 After enabling the feature and importing the corresponding module, you need to embed the module 
@@ -250,10 +240,3 @@ you can find instructions on how to work with them:
 * [PaymentSplitter](payment-splitter.md) shows how you can use the implementation of
   [payment-splitter](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/finance/payment_splitter)
   to split received native tokens between participants of the contract.
-* [Diamond](diamond/diamond.md) shows how you can use the implementation of
-  [diamond](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/upgradeability/diamond)
-  pattern to split your contract into small parts and support upgradeability.
-  * [DiamondLoupe](diamond/Extensions/loupe.md): iterating over contract's facets.
-* [Proxy](proxy.md) shows how you can use the implementation of
-  [proxy](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/upgradeability/proxy)
-  pattern to support upgradeability of your contract.

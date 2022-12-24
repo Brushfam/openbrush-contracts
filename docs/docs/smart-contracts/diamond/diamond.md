@@ -5,6 +5,10 @@ title: Diamond Standard
 
 This example shows how you can use the implementation of [diamond standard](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/upgradeability/diamond) to implement diamond standard pattern for upgradeable and unlimited contracts.
 
+## Disclaimer
+
+`Diamond` pattern does not currently work due to `DelegateCall` in ink! 4. We will leave it here for the past versions of OpenBrush and for the future when this will be fixed in ink!.
+
 ## Step 1: Import default implementation
 
 With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),

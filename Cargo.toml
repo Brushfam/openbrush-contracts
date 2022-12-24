@@ -22,7 +22,7 @@ repository = "https://github.com/727-Ventures/openbrush-contracts"
 documentation = "https://docs.openbrush.io"
 homepage = "https://727.ventures"
 description = "OpenBrush library for smart contract development on ink!."
-keywords = ["wasm", "supercolony", "smart-contracts", "blockchain", "ink"]
+keywords = ["wasm", "brushfam", "smart-contracts", "blockchain", "ink"]
 categories = ["no-std", "embedded"]
 include = ["Cargo.toml", "src/**/*.rs"]
 

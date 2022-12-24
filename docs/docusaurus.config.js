@@ -35,7 +35,7 @@ module.exports = {
           label: 'Deployment'
         },
         {
-          href: 'https://twitter.com/supercolony_vs',
+          href: 'https://twitter.com/brushfam_io',
           className: 'header-twitter-link',
           position: 'right'
         },

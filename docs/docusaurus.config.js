@@ -47,7 +47,7 @@ module.exports = {
       ]
     },
     footer: {
-      copyright: `Copyright © ${new Date().getFullYear()} OpenBrush, Brushfam.net.`
+      copyright: `Copyright © ${new Date().getFullYear()} OpenBrush, Brushfam.io.`
     },
     prism: {
       theme: lightCodeTheme,

@@ -13,7 +13,7 @@ Upgradeability allows experimenting and deploying the product at the early stage
 
 Decentralization can be achieved by providing the right to upgrade only to decentralized authority like governance, multisig, or another analog.
 
-There is also a possibility of smart contract upgradeability via `Proxy` and `Diamond` patterns, but these use `DelegateCall`, which is currently not working in ink! 4, therefore the implementation of these in OpenBrush will currently not work.
+There is also a possibility of smart contract upgradeability via `Proxy` and `Diamond` patterns, but these use `DelegateCall`. Delegate calls [were marked](https://github.com/paritytech/ink/pull/1331#discussion_r953736863) as a possible attack vector in ink! Therefore the `Proxy` and `Diamond` patterns will not work within OpenBrush until this is reimplemented in ink! 4.
 
 ## Storage layout
 
@@ -208,7 +208,7 @@ pub struct Data {
 
 ### Disclaimer
 
-The following information describes `Proxy` and `Diamond` patterns of upgradeable storage, which currently don't work in ink! 4 due to `DelegateCall`, but we will leave it here for the future updates of this feature (and also for the OpenBrush versions before `3.0.0-beta`)
+The following information describes `Proxy` and `Diamond` patterns of upgradeable storage, which currently don't work in ink! 4 due to `DelegateCall`, but we will leave it here for the future updates of this feature (and also for the OpenBrush versions before `3.0.0-beta`).
 
 Uploading your contract on the blockchain with `contract-pallet` has two phases:
 - Deploy - deploys source code to the blockchain. After deploying, the network uses the hash of the source code as an identifier for future instantiation of the contract. Now anyone can instantiate the contract by source code hash.

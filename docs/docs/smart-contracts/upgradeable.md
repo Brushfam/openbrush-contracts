@@ -94,7 +94,7 @@ With this approach, you can order your units as you wish. You can add/remove/swa
 logic units and don't worry about storage layout because each logic unit will have its space 
 in the blockchain's storage. If storage keys are unique, those spaces don't overlap.
 
-OpenBrush provides [`openbrush::upgradeable_storage`](https://github.com/Supercolony-net/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447) 
+OpenBrush provides [`openbrush::upgradeable_storage`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447) 
 attribute macro that implements all required traits with specified storage key(storage key is required input argument to macro). 
 Also, macro initializes the field with a default value if the field is not initialized before
 (it can be actual during the upgrade because new fields are not initialized yet).
@@ -188,7 +188,7 @@ and maybe you have a lot of unique structures :D
 The storage key should be unique per each logic unit. You can assign each key manually or 
 use some hash function to automate it.
 
-OpenBrush provides [`openbrush::storage_unique_key!`](https://github.com/Supercolony-net/openbrush-contracts/blob/main/lang/src/macros.rs#L25) 
+OpenBrush provides [`openbrush::storage_unique_key!`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/src/macros.rs#L25) 
 macro that generates a storage key based on the path to the structure. 
 It has one required input argument - the name of the structure.
 
@@ -531,7 +531,7 @@ You have two options for how to do that:
 ##### Cross-contract call to itself
 
 If your `FacetA` implements some trait, then you can use the 
-[wrapper around trait](https://github.com/Supercolony-net/openbrush-contracts#wrapper-around-traits) 
+[wrapper around trait](https://github.com/727-Ventures/openbrush-contracts#wrapper-around-traits) 
 feature of OpenBrush to do cross-contract call.
 
 > **Note**: The trait should be defined with `openbrush::trait_definition`.

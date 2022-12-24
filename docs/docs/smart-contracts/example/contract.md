@@ -17,7 +17,7 @@ implementation of `Lending` and `LendingPermissioned` traits defined in the `len
 [package]
 name = "lending_contract"
 version = "3.0.0-beta"
-authors = ["Supercolony <dominik.krizo@supercolony.net>"]
+authors = ["Brushfam <dominik.krizo@727.ventures>"]
 edition = "2021"
 
 [dependencies]

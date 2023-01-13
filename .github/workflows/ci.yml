@@ -216,7 +216,7 @@ jobs:
         with:
           node-version: '16.x'
       - uses: actions/checkout@v3
-      - name: Yarn install dependencies
+      - name: NPM install dependencies
         run: |
           npm i
           npm i ts-node
@@ -230,7 +230,7 @@ jobs:
 
       - name: Generate Typechain code
         run:
-          yarn build:release:no-compile
+          yarn build:release
 
       - name: Run Test Mocha
         run: |

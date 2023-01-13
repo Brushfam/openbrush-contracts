@@ -218,8 +218,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Yarn install dependencies
         run: |
-          yarn
-          yarn add ts-node
+          npm i
+          npm i ts-node
 
       - name: Cache contract artifacts
         id: cache-contract-artifacts

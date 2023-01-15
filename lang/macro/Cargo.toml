@@ -20,15 +20,15 @@ proc-macro2 = "1"
 synstructure = "0.12"
 
 [dev-dependencies]
-ink_primitives = { version = "~3.3.0", default-features = false }
-ink_metadata = { version = "~3.3.0", default-features = false, features = ["derive"] }
-ink_env = { version = "~3.3.0", default-features = false }
-ink_lang = { version = "~3.3.0", default-features = false }
-ink_storage = { version = "~3.3.0", default-features = false }
-ink_prelude = { version = "~3.3.0", default-features = false }
+ink_primitives = { version = "~3.4.0", default-features = false }
+ink_metadata = { version = "~3.4.0", default-features = false, features = ["derive"] }
+ink_env = { version = "~3.4.0", default-features = false }
+ink_lang = { version = "~3.4.0", default-features = false }
+ink_storage = { version = "~3.4.0", default-features = false }
+ink_prelude = { version = "~3.4.0", default-features = false }
 
-scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
-scale-info = { version = "2", default-features = false, features = ["derive"] }
+scale = { package = "parity-scale-codec", version = "3.2.1", default-features = false, features = ["derive"] }
+scale-info = { version = "2.3.1", default-features = false, features = ["derive"] }
 
 openbrush = { package = "openbrush_lang", path = "..", default-features = false }
 

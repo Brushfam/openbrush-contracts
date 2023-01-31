@@ -1,9 +1,9 @@
-# Updating ink! smart-contracts' storage from version ink! v3.4.0 to ink! v4.0.0-beta
+# Updating ink! smart-contracts' storage from version ink! v3.4.0 to ink! v4.0.0-beta.1
 
 ## Update ink! dependencies
 
 In your `Cargo.toml` file, remove `ink_lang`, `ink_storage`, and similar dependencies,
-add `ink = { version = "4.0.0-beta", default-features = false }` instead. Also, you need to
+add `ink = { version = "4.0.0-beta.1", default-features = false }` instead. Also, you need to
 use `ink::env`, `ink::storage` etc. instead of `ink_env`, `ink_storage` etc.
 
 ## Storage refactoring
@@ -18,7 +18,9 @@ type for your storage field, after code generation, the type of this field will 
 
 ### Traits
 
-The traits `SpreadLayout` and `PackedLayout` were substituted by the traits `Storable` and `Packed`. Methods `pull_spread` and `push_spread` were replaced with `ink::env::set_contract_storage` and `ink::env::get_contract_storage`. You can use the macro attribute `#[ink::storage_item]` to implement these traits.
+The traits `SpreadLayout` and `PackedLayout` were substituted by the traits `Storable` and `Packed`.
+Methods `pull_spread` and `push_spread` were replaced with `ink::env::set_contract_storage` and `ink::env::get_contract_storage`.
+You can use the macro attribute `#[ink::storage_item]` to implement these traits.
 
  - `Storable` is a trait derived in types that can be read and written into the contract's storage.
 Types that implement `scale::Decode` and `scale::Encode` are storable by default.
@@ -61,7 +63,9 @@ struct MyNonPackedStruct {
 The type is considered non-packed as `Mapping` always occupies its own storage cell.
 
  - `#[ink::storage_item]` macro attribute prepares your type to be fully compatible and usable with storage.
-It implements all necessary traits and calculates the storage key for types. You can set `#[ink::storage_item(derive = false)]`, which will indicate that the auto-deriving of all required traits will be disabled. Also, it will be implemented via blanket implementation for every type that implements `scale::Encode` and `scale::Decode`. The following examples show how to create
+It implements all necessary traits and calculates the storage key for types. You can set `#[ink::storage_item(derive = false)]`,
+which will indicate that the auto-deriving of all required traits will be disabled. Also, it will be implemented via blanket
+implementation for every type that implements `scale::Encode` and `scale::Decode`. The following examples show how to create
 type using `ink::storage_item`, `scale::Encode` and `scale::Decode`.
 
 ```rust
@@ -169,7 +173,8 @@ You can use packed structs for it or, as a temporary solution, set `ManualKey` a
 struct MyNonPackedStruct<D: MyTrait + ManualKey<123> = OtherStruct>
 ```
 
-But instead of `ManualKey<123>`, you should use the key generated during compilation. Packed generics work okay, you can use them like this:
+But instead of `ManualKey<123>`, you should use the key generated during compilation. Packed generics work okay, you can
+use them like this:
 ```rust
 #[ink::storage_item]
 struct MyNonPackedStruct<D: Packed> {
@@ -180,7 +185,7 @@ struct MyNonPackedStruct<D: Packed> {
 
 ## Initialization of contract
 
-In ink! v4.0.0-beta, `ink_lang::codegen::initialize_contract` was removed. Instead, you can use
+In ink! v4.0.0-beta.1, `ink_lang::codegen::initialize_contract` was removed. Instead, you can use
 `Default` trait. Example:
 
 ```rust
@@ -206,7 +211,8 @@ impl MyContract {
 
 - `ink::env::random`
 
-Function `ink::env::random` was removed. Right now, there is no known possibility of providing random entropy on-chain. You can either use a rand chain extension, or create pseudo-randomness with something like
+Function `ink::env::random` was removed. Right now, there is no known possibility of providing random entropy on-chain.
+You can either use a rand chain extension, or create pseudo-randomness with something like
 
 ```rust
 let salt = (<Self as DefaultEnv>::env().block_timestamp(), some_value).encode();
@@ -222,5 +228,5 @@ Also, you can't make `Key::new` from bytes. You can use the new method `KeyCompo
 
 ## Problems
 
- - There is a problem with the return types of messages in `trait_definition`. It was fixed in [#1531](https://github.com/paritytech/ink/pull/1531) but was not released yet. Openbrush uses the commit of ink! 4, where this issue is fixed.
- - `DelegateCall` is not supported yet because it [was marked](https://github.com/paritytech/ink/pull/1331#discussion_r953736863) as a possible attack vector.
+ - `DelegateCall` is not supported yet because it [was marked](https://github.com/paritytech/ink/pull/1331#discussion_r953736863)
+as a possible attack vector.

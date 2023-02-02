@@ -229,10 +229,7 @@ Also, you can't make `Key::new` from bytes. You can use the new method `KeyCompo
 ## Other changes
 
 - `AccountId` [does not implement](https://github.com/paritytech/ink/pull/1255) `Default` anymore.
-- `fire` method in `CallBuilder` was renamed to `invoke`, and now it but it is better to use `try_invoke` instead, so you can handle errors.
-- `instantiate` now doesn't require to do `unwrap`, as 
-
-## Problems
-
- - `DelegateCall` is not supported yet because it [was marked](https://github.com/paritytech/ink/pull/1331#discussion_r953736863)
-as a possible attack vector.
+- `fire` method in `CallBuilder` was renamed to `invoke`, and now it is better to use `try_invoke` instead, so you can handle errors, because `invoke` now unwraps errors inside.
+- `instantiate` now doesn't require to do `unwrap`, as it does it inside.
+- `callee` method in `ink::env::call::Call` and `code_hash` method in `ink::env::call::DelegateCall` were removed and now
+you should set these parts in the constructors directly.

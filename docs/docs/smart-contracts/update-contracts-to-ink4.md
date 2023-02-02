@@ -3,7 +3,7 @@
 ## Update ink! dependencies
 
 In your `Cargo.toml` file, remove `ink_lang`, `ink_storage`, and similar dependencies,
-add `ink = { version = "4.0.0-beta.1", default-features = false }` instead. Also, you need to
+add `ink = { version = "4.0.0-rc", default-features = false }` instead. Also, you need to
 use `ink::env`, `ink::storage` etc. instead of `ink_env`, `ink_storage` etc.
 
 ## Storage refactoring
@@ -225,6 +225,12 @@ let hash = xxh32(&salt, 0).to_le_bytes();
 
 You can't use `KeyPtr` now. You should use just `Key` instead.
 Also, you can't make `Key::new` from bytes. You can use the new method `KeyComposer::from_bytes` instead.
+
+## Other changes
+
+- `AccountId` [does not implement](https://github.com/paritytech/ink/pull/1255) `Default` anymore.
+- `fire` method in `CallBuilder` was renamed to `invoke`, and now it but it is better to use `try_invoke` instead, so you can handle errors.
+- `instantiate` now doesn't require to do `unwrap`, as 
 
 ## Problems
 

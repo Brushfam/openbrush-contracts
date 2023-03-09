@@ -40,6 +40,151 @@ use syn::{
     Fields,
 };
 
+/// `Storable` derive implementation for `struct` types.
+fn storable_struct_derive(storage_key: &TokenStream, s: &synstructure::Structure) -> TokenStream {
+    assert_eq!(s.variants().len(), 1, "can only operate on structs");
+    let variant: &synstructure::VariantInfo = &s.variants()[0];
+    let decode_body = variant.construct(|field, _index| {
+        let ty = &field.ty;
+        let span = ty.span();
+        quote_spanned!(span =>
+            <#ty as ::ink::storage::traits::Storable>::decode(__input)?
+        )
+    });
+    let encode_body = variant.each(|binding| {
+        let span = binding.ast().ty.span();
+        quote_spanned!(span =>
+            ::ink::storage::traits::Storable::encode(#binding, __dest);
+        )
+    });
+
+    s.gen_impl(quote! {
+        gen impl ::ink::storage::traits::Storable for @Self {
+           #[inline(always)]
+           #[allow(non_camel_case_types)]
+           fn decode<__ink_I: ::scale::Input>(__input: &mut __ink_I) -> ::core::result::Result<Self, ::scale::Error> {
+                if ::ink::env::contains_contract_storage(&#storage_key).is_some() {
+                    ::core::result::Result::Ok(#decode_body)
+                }
+                else {
+                    let mut instance = Self::default();
+                    <Self as ::openbrush::traits::Initializable>::initialize(&mut instance);
+                    ::ink::env::set_contract_storage(&#storage_key, &instance);
+                    ::core::result::Result::Ok(instance)
+                }
+           }
+
+           #[inline(always)]
+           #[allow(non_camel_case_types)]
+           fn encode<__ink_O: ::scale::Output + ?::core::marker::Sized>(&self, __dest: &mut __ink_O) {
+               match self { #encode_body }
+           }
+        }
+    })
+}
+
+/// `Storable` derive implementation for `enum` types.
+fn storable_enum_derive(storage_key: &TokenStream, s: &synstructure::Structure) -> TokenStream {
+    assert!(
+        !s.variants().is_empty(),
+        "encountered invalid empty enum type deriving Storable trait"
+    );
+
+    if s.variants().len() > 256 {
+        return syn::Error::new(
+            s.ast().span(),
+            "Currently only enums with at most 256 variants are supported.",
+        )
+        .to_compile_error()
+    }
+
+    let decode_body = s
+        .variants()
+        .iter()
+        .map(|variant| {
+            variant.construct(|field, _index| {
+                let ty = &field.ty;
+                let span = ty.span();
+                quote_spanned!(span =>
+                    <#ty as ::ink::storage::traits::Storable>::decode(__input)?
+                )
+            })
+        })
+        .enumerate()
+        .fold(quote! {}, |acc, (index, variant)| {
+            let index = index as u8;
+            quote! {
+                #acc
+                #index => #variant,
+            }
+        });
+
+    let encode_body = s.variants().iter().enumerate().map(|(index, variant)| {
+        let pat = variant.pat();
+        let index = index as u8;
+        let fields = variant.bindings().iter().map(|field| {
+            let span = field.ast().ty.span();
+            quote_spanned!(span =>
+                ::ink::storage::traits::Storable::encode(#field, __dest);
+            )
+        });
+        quote! {
+            #pat => {
+                { <::core::primitive::u8 as ::ink::storage::traits::Storable>::encode(&#index, __dest); }
+                #(
+                    { #fields }
+                )*
+            }
+        }
+    });
+    s.gen_impl(quote! {
+        gen impl ::ink::storage::traits::Storable for @Self {
+            #[inline(always)]
+            #[allow(non_camel_case_types)]
+            fn decode<__ink_I: ::scale::Input>(__input: &mut __ink_I) -> ::core::result::Result<Self, ::scale::Error> {
+                if ::ink::env::contains_contract_storage(&#storage_key).is_some() {
+                    ::core::result::Result::Ok(
+                       match <::core::primitive::u8 as ::ink::storage::traits::Storable>::decode(__input)? {
+                           #decode_body
+                           _ => unreachable!("encountered invalid enum discriminant"),
+                       }
+                   )
+                }
+                else {
+                    let mut instance = Self::default();
+                    <Self as ::openbrush::traits::Initializable>::initialize(&mut instance);
+                    ::ink::env::set_contract_storage(&#storage_key, &instance);
+                    ::core::result::Result::Ok(instance)
+                }
+           }
+
+           #[inline(always)]
+           #[allow(non_camel_case_types)]
+           fn encode<__ink_O: ::scale::Output + ?::core::marker::Sized>(&self, __dest: &mut __ink_O) {
+               match self {
+                   #(
+                       #encode_body
+                   )*
+               }
+           }
+        }
+    })
+}
+
+/// Derives `ink_storage`'s `Storable` trait for the given `struct` or `enum`.
+pub fn storable_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
+    s.bind_with(|_| synstructure::BindStyle::Move)
+        .add_bounds(synstructure::AddBounds::Fields)
+        .underscore_const(true);
+    match &s.ast().data {
+        syn::Data::Struct(_) => storable_struct_derive(storage_key, &s),
+        syn::Data::Enum(_) => storable_enum_derive(storage_key, &s),
+        _ => {
+            panic!("cannot derive `Storable` for Rust `union` items")
+        }
+    }
+}
+
 pub fn occupy_storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
     s.add_bounds(synstructure::AddBounds::None).underscore_const(true);
     let occupy_storage = s.gen_impl(quote! {
@@ -253,6 +398,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
     let occupy_storage = occupy_storage_derive(&storage_key, s.clone());
     let storage_key_derived = storage_key_derive(&storage_key, s.clone());
     let storable_hint = storable_hint_derive(&storage_key, s.clone());
+    let storable_derived = storable_derive(&storage_key, s.clone());
 
     let item = match s.ast().data.clone() {
         Data::Struct(struct_item) => generate_struct(&s, struct_item, &storage_key),
@@ -261,13 +407,13 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
     };
 
     let out = quote! {
-        #[derive(::ink::storage::traits::Storable)]
         #[cfg_attr(feature = "std", derive(
             ::scale_info::TypeInfo,
             ::ink::storage::traits::StorageLayout
         ))]
         #item
 
+        #storable_derived
         #storage_key_derived
         #storable_hint
 

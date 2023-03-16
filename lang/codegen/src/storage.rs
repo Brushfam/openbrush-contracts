@@ -42,10 +42,12 @@ use syn::{
 
 /// `Storable` derive implementation for `struct` types.
 fn storable_struct_derive(storage_key: &TokenStream, s: &synstructure::Structure) -> TokenStream {
+    let struct_ident = s.ast().ident.clone();
     assert_eq!(s.variants().len(), 1, "can only operate on structs");
     let variant: &synstructure::VariantInfo = &s.variants()[0];
-    let decode_body = variant.construct(|field, _index| {
-        let ty = &field.ty;
+    let decode_body = variant.construct(|field, index| {
+        let new_field = convert_into_storage_field(&struct_ident, None, &storage_key, index, field);
+        let ty = &new_field.ty;
         let span = ty.span();
         quote_spanned!(span =>
             <#ty as ::ink::storage::traits::Storable>::decode(__input)?
@@ -63,15 +65,7 @@ fn storable_struct_derive(storage_key: &TokenStream, s: &synstructure::Structure
            #[inline(always)]
            #[allow(non_camel_case_types)]
            fn decode<__ink_I: ::scale::Input>(__input: &mut __ink_I) -> ::core::result::Result<Self, ::scale::Error> {
-                if ::ink::env::contains_contract_storage(&#storage_key).is_some() {
-                    ::core::result::Result::Ok(#decode_body)
-                }
-                else {
-                    let mut instance = Self::default();
-                    <Self as ::openbrush::traits::Initializable>::initialize(&mut instance);
-                    ::ink::env::set_contract_storage(&#storage_key, &instance);
-                    ::core::result::Result::Ok(instance)
-                }
+               ::core::result::Result::Ok(#decode_body)
            }
 
            #[inline(always)]
@@ -98,12 +92,15 @@ fn storable_enum_derive(storage_key: &TokenStream, s: &synstructure::Structure) 
         .to_compile_error()
     }
 
+    let enum_ident = s.ast().ident.clone();
+
     let decode_body = s
         .variants()
         .iter()
         .map(|variant| {
-            variant.construct(|field, _index| {
-                let ty = &field.ty;
+            variant.construct(|field, index| {
+                let new_field = convert_into_storage_field(&enum_ident, None, &storage_key, index, field);
+                let ty = &new_field.ty;
                 let span = ty.span();
                 quote_spanned!(span =>
                     <#ty as ::ink::storage::traits::Storable>::decode(__input)?
@@ -139,23 +136,15 @@ fn storable_enum_derive(storage_key: &TokenStream, s: &synstructure::Structure) 
     });
     s.gen_impl(quote! {
         gen impl ::ink::storage::traits::Storable for @Self {
-            #[inline(always)]
-            #[allow(non_camel_case_types)]
-            fn decode<__ink_I: ::scale::Input>(__input: &mut __ink_I) -> ::core::result::Result<Self, ::scale::Error> {
-                if ::ink::env::contains_contract_storage(&#storage_key).is_some() {
-                    ::core::result::Result::Ok(
-                       match <::core::primitive::u8 as ::ink::storage::traits::Storable>::decode(__input)? {
-                           #decode_body
-                           _ => unreachable!("encountered invalid enum discriminant"),
-                       }
-                   )
-                }
-                else {
-                    let mut instance = Self::default();
-                    <Self as ::openbrush::traits::Initializable>::initialize(&mut instance);
-                    ::ink::env::set_contract_storage(&#storage_key, &instance);
-                    ::core::result::Result::Ok(instance)
-                }
+           #[inline(always)]
+           #[allow(non_camel_case_types)]
+           fn decode<__ink_I: ::scale::Input>(__input: &mut __ink_I) -> ::core::result::Result<Self, ::scale::Error> {
+               ::core::result::Result::Ok(
+                   match <::core::primitive::u8 as ::ink::storage::traits::Storable>::decode(__input)? {
+                       #decode_body
+                       _ => unreachable!("encountered invalid enum discriminant"),
+                   }
+               )
            }
 
            #[inline(always)]
@@ -357,7 +346,7 @@ fn generate_union(s: &synstructure::Structure, union_item: DataUnion, storage_ke
 fn convert_into_storage_field(
     struct_ident: &Ident,
     variant_ident: Option<&syn::Ident>,
-    stoarge_key: &TokenStream,
+    storage_key: &TokenStream,
     index: usize,
     field: &Field,
 ) -> Field {
@@ -385,26 +374,45 @@ fn convert_into_storage_field(
     let span = field.ty.span();
     let new_ty = syn::Type::Verbatim(quote_spanned!(span =>
         <#ty as ::ink::storage::traits::AutoStorableHint<
-            ::ink::storage::traits::ManualKey<#key, ::ink::storage::traits::ManualKey<#stoarge_key>>,
+            ::ink::storage::traits::ManualKey<#key, ::ink::storage::traits::ManualKey<#storage_key>>,
         >>::Type
     ));
     new_field.ty = new_ty;
     new_field
 }
 
+/// Finds the salt of a struct, enum or union.
+/// The salt is any generic that has bound `StorageKey`.
+/// In most cases it is the parent storage key or the auto-generated storage key.
+pub fn find_storage_key_salt(input: &syn::DeriveInput) -> Option<syn::TypeParam> {
+    input.generics.params.iter().find_map(|param| {
+        if let syn::GenericParam::Type(type_param) = param {
+            if let Some(syn::TypeParamBound::Trait(trait_bound)) = type_param.bounds.first() {
+                let segments = &trait_bound.path.segments;
+                if let Some(last) = segments.last() {
+                    if last.ident == "StorageKey" {
+                        return Some(type_param.clone())
+                    }
+                }
+            }
+        }
+        None
+    })
+}
+
 pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
     let storage_key = attrs.clone();
-
-    let occupy_storage = occupy_storage_derive(&storage_key, s.clone());
-    let storage_key_derived = storage_key_derive(&storage_key, s.clone());
-    let storable_hint = storable_hint_derive(&storage_key, s.clone());
-    let storable_derived = storable_derive(&storage_key, s.clone());
 
     let item = match s.ast().data.clone() {
         Data::Struct(struct_item) => generate_struct(&s, struct_item, &storage_key),
         Data::Enum(enum_item) => generate_enum(&s, enum_item, &storage_key),
         Data::Union(union_item) => generate_union(&s, union_item, &storage_key),
     };
+
+    let occupy_storage = occupy_storage_derive(&storage_key, s.clone());
+    let storage_key_derived = storage_key_derive(&storage_key, s.clone());
+    let storable_hint = storable_hint_derive(&storage_key, s.clone());
+    let storable = storable_derive(&storage_key, s.clone());
 
     let out = quote! {
         #[cfg_attr(feature = "std", derive(
@@ -413,7 +421,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
         ))]
         #item
 
-        #storable_derived
+        #storable
         #storage_key_derived
         #storable_hint
 

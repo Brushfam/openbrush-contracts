@@ -65,13 +65,31 @@ fn storable_struct_derive(storage_key: &TokenStream, s: &synstructure::Structure
            #[inline(always)]
            #[allow(non_camel_case_types)]
            fn decode<__ink_I: ::scale::Input>(__input: &mut __ink_I) -> ::core::result::Result<Self, ::scale::Error> {
-               ::core::result::Result::Ok(#decode_body)
+                //ink::env::debug_println!("here");
+                if ::ink::env::contains_contract_storage(&#storage_key).is_some() {
+                    let storage_get = ::ink::env::contains_contract_storage(&STORAGE_KEY_GET).is_some();
+
+                    if !storage_get {
+                        ::ink::env::set_contract_storage(&STORAGE_KEY_GET, &());
+                        let instance = ::ink::env::get_contract_storage::<::ink::primitives::Key, Self>(&#storage_key).unwrap().unwrap();
+                        ::ink::env::clear_contract_storage(&STORAGE_KEY_GET);
+                        return ::core::result::Result::Ok(instance);
+                    } else {
+                        return ::core::result::Result::Ok(#decode_body);
+                    }
+                }
+                else {
+                    let mut instance = Self::default();
+                    <Self as ::openbrush::traits::Initializable>::initialize(&mut instance);
+                    ::ink::env::set_contract_storage(&#storage_key, &instance);
+                    ::core::result::Result::Ok(instance)
+                }
            }
 
            #[inline(always)]
            #[allow(non_camel_case_types)]
            fn encode<__ink_O: ::scale::Output + ?::core::marker::Sized>(&self, __dest: &mut __ink_O) {
-               match self { #encode_body }
+                match self { #encode_body }
            }
         }
     })
@@ -98,8 +116,10 @@ fn storable_enum_derive(storage_key: &TokenStream, s: &synstructure::Structure) 
         .variants()
         .iter()
         .map(|variant| {
+            let variant_ident = variant.ast().ident.clone();
             variant.construct(|field, index| {
-                let new_field = convert_into_storage_field(&enum_ident, None, &storage_key, index, field);
+                let new_field =
+                    convert_into_storage_field(&enum_ident, Some(&variant_ident), &storage_key, index, field);
                 let ty = &new_field.ty;
                 let span = ty.span();
                 quote_spanned!(span =>
@@ -139,12 +159,20 @@ fn storable_enum_derive(storage_key: &TokenStream, s: &synstructure::Structure) 
            #[inline(always)]
            #[allow(non_camel_case_types)]
            fn decode<__ink_I: ::scale::Input>(__input: &mut __ink_I) -> ::core::result::Result<Self, ::scale::Error> {
-               ::core::result::Result::Ok(
-                   match <::core::primitive::u8 as ::ink::storage::traits::Storable>::decode(__input)? {
-                       #decode_body
-                       _ => unreachable!("encountered invalid enum discriminant"),
-                   }
-               )
+                if ::ink::env::contains_contract_storage(&#storage_key).is_some() {
+                    ::core::result::Result::Ok(
+                       match <::core::primitive::u8 as ::ink::storage::traits::Storable>::decode(__input)? {
+                           #decode_body
+                           _ => unreachable!("encountered invalid enum discriminant"),
+                       }
+                   )
+                }
+                else {
+                    let mut instance = Self::default();
+                    <Self as ::openbrush::traits::Initializable>::initialize(&mut instance);
+                    ::ink::env::set_contract_storage(&#storage_key, &instance);
+                    ::core::result::Result::Ok(instance)
+                }
            }
 
            #[inline(always)]
@@ -419,6 +447,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
             ::scale_info::TypeInfo,
             ::ink::storage::traits::StorageLayout
         ))]
+        #[::ink::storage_item(derive = false)]
         #item
 
         #storable

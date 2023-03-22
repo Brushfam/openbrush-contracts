@@ -65,14 +65,13 @@ fn storable_struct_derive(storage_key: &TokenStream, s: &synstructure::Structure
            #[inline(always)]
            #[allow(non_camel_case_types)]
            fn decode<__ink_I: ::scale::Input>(__input: &mut __ink_I) -> ::core::result::Result<Self, ::scale::Error> {
-                //ink::env::debug_println!("here");
                 if ::ink::env::contains_contract_storage(&#storage_key).is_some() {
-                    let storage_get = ::ink::env::contains_contract_storage(&STORAGE_KEY_GET).is_some();
+                    let storage_get = ::ink::env::contains_contract_storage(&<Self as ::openbrush::traits::StorageGetMarker>::GET_KEY).is_some();
 
                     if !storage_get {
-                        ::ink::env::set_contract_storage(&STORAGE_KEY_GET, &());
+                        ::ink::env::set_contract_storage(&<Self as ::openbrush::traits::StorageGetMarker>::GET_KEY, &());
                         let instance = ::ink::env::get_contract_storage::<::ink::primitives::Key, Self>(&#storage_key).unwrap().unwrap();
-                        ::ink::env::clear_contract_storage(&STORAGE_KEY_GET);
+                        ::ink::env::clear_contract_storage(&<Self as ::openbrush::traits::StorageGetMarker>::GET_KEY);
                         return ::core::result::Result::Ok(instance);
                     } else {
                         return ::core::result::Result::Ok(#decode_body);
@@ -160,12 +159,21 @@ fn storable_enum_derive(storage_key: &TokenStream, s: &synstructure::Structure) 
            #[allow(non_camel_case_types)]
            fn decode<__ink_I: ::scale::Input>(__input: &mut __ink_I) -> ::core::result::Result<Self, ::scale::Error> {
                 if ::ink::env::contains_contract_storage(&#storage_key).is_some() {
-                    ::core::result::Result::Ok(
-                       match <::core::primitive::u8 as ::ink::storage::traits::Storable>::decode(__input)? {
-                           #decode_body
-                           _ => unreachable!("encountered invalid enum discriminant"),
-                       }
-                   )
+                    let storage_get = ::ink::env::contains_contract_storage(&<Self as ::openbrush::traits::StorageGetMarker>::GET_KEY).is_some();
+
+                    if !storage_get {
+                        ::ink::env::set_contract_storage(&<Self as ::openbrush::traits::StorageGetMarker>::GET_KEY, &());
+                        let instance = ::ink::env::get_contract_storage::<::ink::primitives::Key, Self>(&#storage_key).unwrap().unwrap();
+                        ::ink::env::clear_contract_storage(&<Self as ::openbrush::traits::StorageGetMarker>::GET_KEY);
+                        return ::core::result::Result::Ok(instance);
+                    } else {
+                        ::core::result::Result::Ok(
+                           match <::core::primitive::u8 as ::ink::storage::traits::Storable>::decode(__input)? {
+                               #decode_body
+                               _ => unreachable!("encountered invalid enum discriminant"),
+                            }
+                        )
+                    }
                 }
                 else {
                     let mut instance = Self::default();
@@ -409,22 +417,17 @@ fn convert_into_storage_field(
     new_field
 }
 
-/// Finds the salt of a struct, enum or union.
-/// The salt is any generic that has bound `StorageKey`.
-/// In most cases it is the parent storage key or the auto-generated storage key.
-pub fn find_storage_key_salt(input: &syn::DeriveInput) -> Option<syn::TypeParam> {
-    input.generics.params.iter().find_map(|param| {
-        if let syn::GenericParam::Type(type_param) = param {
-            if let Some(syn::TypeParamBound::Trait(trait_bound)) = type_param.bounds.first() {
-                let segments = &trait_bound.path.segments;
-                if let Some(last) = segments.last() {
-                    if last.ident == "StorageKey" {
-                        return Some(type_param.clone())
-                    }
-                }
-            }
+fn storage_get_marker_derive(s: synstructure::Structure) -> TokenStream {
+    let ident = s.ast().ident.clone();
+    s.gen_impl(quote! {
+        gen impl ::openbrush::traits::StorageGetMarker for @Self {
+            const GET_KEY: u32 = ::openbrush::utils::ConstHasher::hash(::openbrush::utils::const_format::concatcp!(
+                ::core::module_path!(),
+                "::",
+                ::core::stringify!(#ident),
+                "::GET_KEY"
+            ));
         }
-        None
     })
 }
 
@@ -440,6 +443,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
     let occupy_storage = occupy_storage_derive(&storage_key, s.clone());
     let storage_key_derived = storage_key_derive(&storage_key, s.clone());
     let storable_hint = storable_hint_derive(&storage_key, s.clone());
+    let storage_get_marker = storage_get_marker_derive(s.clone());
     let storable = storable_derive(&storage_key, s.clone());
 
     let out = quote! {
@@ -453,6 +457,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
         #storable
         #storage_key_derived
         #storable_hint
+        #storage_get_marker
 
         #occupy_storage
     };

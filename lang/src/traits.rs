@@ -128,6 +128,10 @@ impl<T: StorageAsRef> StorageAsMut for T {}
 
 pub const ZERO_ADDRESS: [u8; 32] = [0; 32];
 
+pub trait StorageGetMarker {
+    const GET_KEY: u32;
+}
+
 /// The trait provides some useful methods for `AccountId` type.
 pub trait AccountIdExt {
     fn is_zero(&self) -> bool;

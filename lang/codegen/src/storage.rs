@@ -451,7 +451,6 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
             ::scale_info::TypeInfo,
             ::ink::storage::traits::StorageLayout
         ))]
-        #[::ink::storage_item(derive = false)]
         #item
 
         #storable

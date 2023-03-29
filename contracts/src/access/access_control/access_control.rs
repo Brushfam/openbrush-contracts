@@ -55,6 +55,7 @@ where
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
+    M: Default,
 {
     pub admin_roles: Mapping<RoleType, RoleType, ValueGuard<RoleType>>,
     pub members: M,
@@ -67,7 +68,7 @@ pub const DEFAULT_ADMIN_ROLE: RoleType = 0;
 #[modifier_definition]
 pub fn only_role<T, M, F, R, E>(instance: &mut T, body: F, role: RoleType) -> Result<R, E>
 where
-    M: members::MembersManager,
+    M: members::MembersManager + Default,
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
@@ -83,7 +84,7 @@ where
 
 impl<T, M> AccessControl for T
 where
-    M: members::MembersManager,
+    M: members::MembersManager + Default,
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
@@ -146,7 +147,7 @@ pub trait Internal {
 
 impl<T, M> Internal for T
 where
-    M: members::MembersManager,
+    M: members::MembersManager + Default,
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
@@ -196,7 +197,7 @@ where
 
 pub fn check_role<T, M>(instance: &T, role: RoleType, account: AccountId) -> Result<(), AccessControlError>
 where
-    M: members::MembersManager,
+    M: members::MembersManager + Default,
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
@@ -210,7 +211,7 @@ where
 
 pub fn get_role_admin<T, M>(instance: &T, role: RoleType) -> RoleType
 where
-    M: members::MembersManager,
+    M: members::MembersManager + Default,
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,

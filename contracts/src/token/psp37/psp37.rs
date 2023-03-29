@@ -65,6 +65,7 @@ where
     B: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>,
+    B: Default,
 {
     pub balances: B,
     pub operator_approvals: Mapping<
@@ -87,6 +88,7 @@ where
     B: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>,
+    B: Default,
     T: Storage<Data<B>>,
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<B>>,
 {
@@ -193,6 +195,7 @@ where
     B: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>,
+    B: Default,
     T: Storage<Data<B>>,
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<B>>,
 {
@@ -390,6 +393,7 @@ where
     B: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>,
+    B: Default,
     T: Storage<Data<B>>,
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<B>>,
 {

@@ -67,6 +67,7 @@ where
     D: Storable
         + StorableHint<ManualKey<913099263>>
         + AutoStorableHint<ManualKey<1826024066, ManualKey<{ STORAGE_KEY }>>, Type = D>,
+    D: Default,
 {
     pub selector_to_hash: Mapping<Selector, Hash>,
     // Facet mapped to all functions it supports
@@ -78,7 +79,7 @@ where
 
 impl<D, T> Diamond for T
 where
-    D: DiamondCut,
+    D: DiamondCut + Default,
     D: Storable
         + StorableHint<ManualKey<913099263>>
         + AutoStorableHint<ManualKey<1826024066, ManualKey<{ STORAGE_KEY }>>, Type = D>,
@@ -110,7 +111,7 @@ pub trait Internal {
 
 impl<D, T> Internal for T
 where
-    D: DiamondCut,
+    D: DiamondCut + Default,
     D: Storable
         + StorableHint<ManualKey<913099263>>
         + AutoStorableHint<ManualKey<1826024066, ManualKey<{ STORAGE_KEY }>>, Type = D>,

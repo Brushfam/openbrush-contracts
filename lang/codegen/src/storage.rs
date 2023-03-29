@@ -419,16 +419,19 @@ fn convert_into_storage_field(
 
 fn storage_get_marker_derive(s: synstructure::Structure) -> TokenStream {
     let ident = s.ast().ident.clone();
-    s.gen_impl(quote! {
-        gen impl ::openbrush::traits::StorageGetMarker for @Self {
-            const GET_KEY: u32 = ::openbrush::utils::ConstHasher::hash(::openbrush::utils::const_format::concatcp!(
-                ::core::module_path!(),
-                "::",
-                ::core::stringify!(#ident),
-                "::GET_KEY"
-            ));
-        }
-    })
+    let (impl_generics, ty_generics, where_clause) = s.ast().generics.split_for_impl();
+    quote! {
+        const _: () = {
+            impl #impl_generics ::openbrush::traits::StorageGetMarker for #ident #ty_generics #where_clause{
+                const GET_KEY: u32 = ::openbrush::utils::ConstHasher::hash(::openbrush::utils::const_format::concatcp!(
+                    ::core::module_path!(),
+                    "::",
+                    ::core::stringify!(#ident),
+                    "::GET_KEY"
+                ));
+            }
+        };
+    }
 }
 
 pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {

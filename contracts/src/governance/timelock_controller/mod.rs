@@ -84,7 +84,7 @@ pub struct Data {
 #[modifier_definition]
 pub fn only_role_or_open_role<T, M, F, R, E>(instance: &mut T, body: F, role: RoleType) -> Result<R, E>
 where
-    M: access_control::members::MembersManager,
+    M: access_control::members::MembersManager + Default,
     M: Storable
         + StorableHint<ManualKey<{ access_control::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
@@ -107,7 +107,7 @@ pub const DONE_TIMESTAMP: Timestamp = 1;
 
 impl<T, M> TimelockController for T
 where
-    M: access_control::members::MembersManager,
+    M: access_control::members::MembersManager + Default,
     M: Storable
         + StorableHint<ManualKey<{ access_control::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
@@ -310,7 +310,7 @@ pub trait Internal {
 
 impl<T, M> Internal for T
 where
-    M: access_control::members::MembersManager,
+    M: access_control::members::MembersManager + Default,
     M: Storable
         + StorableHint<ManualKey<{ access_control::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,

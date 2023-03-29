@@ -50,6 +50,7 @@ where
     B: Storable
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp34::STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ psp34::STORAGE_KEY }>>,
+    B: Default,
     T: Storage<psp34::Data<B>>,
     T: OccupiedStorage<{ psp34::STORAGE_KEY }, WithData = psp34::Data<B>>,
 {

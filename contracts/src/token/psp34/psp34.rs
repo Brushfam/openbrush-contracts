@@ -64,6 +64,7 @@ where
     B: Storable
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
+    B: Default,
 {
     pub token_owner: Mapping<Id, Owner>,
     pub operator_approvals: Mapping<(Owner, Operator, Option<Id>), (), ApprovalsKey>,
@@ -83,6 +84,7 @@ where
     B: Storable
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
+    B: Default,
     T: Storage<Data<B>>,
     T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
 {
@@ -146,6 +148,7 @@ where
     B: Storable
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
+    B: Default,
     T: Storage<Data<B>>,
     T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
 {
@@ -264,6 +267,7 @@ where
     B: Storable
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
+    B: Default,
     T: Storage<Data<B>>,
     T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
 {

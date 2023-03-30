@@ -434,6 +434,30 @@ fn storage_get_marker_derive(s: synstructure::Structure) -> TokenStream {
     }
 }
 
+pub fn nested_flush_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
+    s.underscore_const(true);
+    let body = s.variants()[0].each(|binding| {
+        let span = binding.ast().ty.span();
+        quote_spanned!(span =>
+            ::openbrush::traits::NestedFlush::set_nested_storage(
+                #binding
+            );
+        )
+    });
+
+    s.gen_impl(quote! {
+        gen impl ::openbrush::traits::NestedFlush for @Self {
+            fn set_nested_storage(&self) {
+                ::ink::env::set_contract_storage(&#storage_key, self);
+
+                match self {
+                    #body
+                }
+            }
+        }
+    })
+}
+
 pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
     let storage_key = attrs.clone();
 
@@ -448,6 +472,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
     let storable_hint = storable_hint_derive(&storage_key, s.clone());
     let storage_get_marker = storage_get_marker_derive(s.clone());
     let storable = storable_derive(&storage_key, s.clone());
+    let nested_flush = nested_flush_derive(&storage_key, s.clone());
 
     let out = quote! {
         #[cfg_attr(feature = "std", derive(
@@ -460,6 +485,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
         #storage_key_derived
         #storable_hint
         #storage_get_marker
+        #nested_flush
 
         #occupy_storage
     };

@@ -25,6 +25,8 @@ use syn::{
     parse2,
     spanned::Spanned,
     Data,
+    DataStruct,
+    DeriveInput,
 };
 
 pub fn storage_derive(item: TokenStream) -> TokenStream {

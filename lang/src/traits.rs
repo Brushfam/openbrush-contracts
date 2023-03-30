@@ -132,6 +132,28 @@ pub trait StorageGetMarker {
     const GET_KEY: u32;
 }
 
+pub trait NestedFlush {
+    fn set_nested_storage(&self);
+}
+
+impl<T> NestedFlush for T
+where
+    T: scale::Codec,
+{
+    #[inline(always)]
+    fn set_nested_storage(&self) {}
+}
+
+impl<T> NestedFlush for T
+where
+    T: Storable + StorageKey,
+{
+    #[inline(always)]
+    fn set_nested_storage(&self) {
+        ink::env::set_contract_storage(&Self::KEY, self);
+    }
+}
+
 /// The trait provides some useful methods for `AccountId` type.
 pub trait AccountIdExt {
     fn is_zero(&self) -> bool;
@@ -167,3 +189,9 @@ pub trait Flush: Storable + Sized + StorageKey {
 }
 
 impl<T: Storable + Sized + StorageKey> Flush for T {}
+
+impl<T: Storable + Sized + StorageKey + NestedFlush> Flush for T {
+    fn flush(&self) {
+        self.set_nested_storage();
+    }
+}

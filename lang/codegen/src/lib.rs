@@ -20,6 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub mod contract;
+pub mod getters;
 pub mod internal;
 pub mod metadata;
 pub mod modifier_definition;

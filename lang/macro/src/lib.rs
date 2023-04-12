@@ -25,6 +25,7 @@ use proc_macro::TokenStream;
 
 use openbrush_lang_codegen::{
     contract,
+    getters,
     modifier_definition,
     modifiers,
     storage,
@@ -476,4 +477,9 @@ synstructure::decl_attribute!(
 #[proc_macro_derive(Storage, attributes(storage_field))]
 pub fn storage_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     storage_derive::storage_derive(item.into()).into()
+}
+
+#[proc_macro_derive(AutoGetters, attributes(get))]
+pub fn getters(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    getters::getters(item.into()).into()
 }

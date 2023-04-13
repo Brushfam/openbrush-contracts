@@ -9,7 +9,7 @@ use syn::{
     spanned::Spanned,
 };
 
-pub fn getters(item: TokenStream) -> TokenStream {
+pub fn getters(attrs: TokenStream, item: TokenStream) -> TokenStream {
     let struct_item: syn::DeriveInput = parse2(item.clone()).expect("Expected DeriveInput");
 
     let trait_ident = attrs.clone();
@@ -40,20 +40,22 @@ pub fn getters(item: TokenStream) -> TokenStream {
 
         quote_spanned! {span =>
             default fn #field_ident(&self) -> #field_type {
-                self.data().#field_ident
+                self.#field_ident
             }
         }
     });
+
+    let (impl_generics, type_generics, where_clause) = struct_item.generics.split_for_impl();
 
     (quote! {
         #struct_item
 
         #[openbrush::trait_definition]
-        pub trait Getters {
+        pub trait #trait_ident {
             #(#trait_messages)*
         }
 
-        impl<T: Storage<#struct_ident>> Getters for T {
+        impl #impl_generics #trait_ident for #struct_ident #type_generics #where_clause {
             #(#impls)*
         }
     })
@@ -66,4 +68,55 @@ fn extract_fields(s: &syn::DataStruct) -> Vec<&syn::Field> {
         .filter(|field| field.attrs.iter().find(|a| a.path.is_ident("get")).is_some())
         .collect::<Vec<_>>()
         .clone()
+}
+
+fn generate_item(s: &syn::DeriveInput) -> TokenStream {
+    let struct_ident = s.ident.clone();
+    let vis = s.vis.clone();
+    let attrs = s.attrs.clone();
+    let types = s.generics.clone();
+
+    let (_, _, where_closure) = s.ast().generics.split_for_impl();
+
+    let fields = s
+        .data
+        .clone()
+        .into_fields()
+        .into_iter()
+        .enumerate()
+        .map(|field| extract_fields(field.clone()));
+
+    match s.data {
+        syn::Data::Struct(ref struct_item) => {
+            match struct_item.fields {
+                syn::Fields::Unnamed(_) => {
+                    quote! {
+                        #(#attrs)*
+                        #vis struct #struct_ident #types #where_closure(
+                            #(#fields),*
+                        );
+                    }
+                }
+                _ => {
+                    quote! {
+                        #(#attrs)*
+                        #vis struct #struct_ident #types #where_closure{
+                            #(#fields),*
+                        }
+                    }
+                }
+            }
+        }
+        syn::Data::Enum(_) => panic!("Enums are not supported"),
+        syn::Data::Union(_) => panic!("Unions are not supported"),
+    }
+}
+
+fn consume_getter_attrs(field: &syn::Field) -> Vec<syn::Attribute> {
+    field
+        .attrs
+        .iter()
+        .filter(|a| !a.path.is_ident("get"))
+        .cloned()
+        .collect()
 }

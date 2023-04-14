@@ -40,13 +40,8 @@ use syn::{
     Fields,
 };
 
-pub fn occupy_storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
+pub fn storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
     s.add_bounds(synstructure::AddBounds::None).underscore_const(true);
-    let occupy_storage = s.gen_impl(quote! {
-        gen impl ::openbrush::traits::OccupyStorage for @Self {
-            const KEY: ::core::primitive::u32 = #storage_key;
-        }
-    });
     let storage = s.gen_impl(quote! {
         gen impl ::openbrush::traits::Storage<Self> for @Self {
             fn get(&self) -> &Self {
@@ -58,16 +53,46 @@ pub fn occupy_storage_derive(storage_key: &TokenStream, mut s: synstructure::Str
             }
         }
     });
-    let occupied_storage = s.gen_impl(quote! {
-        gen impl ::openbrush::traits::OccupiedStorage<{ #storage_key }> for @Self {
-            type WithData = Self;
-        }
-    });
 
     quote! {
-        #occupy_storage
         #storage
-        #occupied_storage
+    }
+}
+pub fn upgradeable_occupy_storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
+    let (impl_generics, ty_generics_original, where_clause) = s.ast().generics.split_for_impl();
+    let ident = s.ast().ident.clone();
+
+    let occupy_storage_upgradeable = quote! {
+        //#[cfg(feature = "upgradeable")]
+        impl #impl_generics ::openbrush::traits::OccupyStorage for ::ink::storage::Lazy<#ident #ty_generics_original> #where_clause {
+            const KEY: ::core::primitive::u32 = #storage_key;
+        }
+    };
+
+    let storage_upgradeable = quote! {
+       // #[cfg(feature = "upgradeable")]
+        impl #impl_generics ::openbrush::traits::Storage<Lazy<#ident #ty_generics_original>> for ::ink::storage::Lazy<#ident #ty_generics_original> #where_clause {
+            fn get(&self) -> ::ink::storage::Lazy<&Self> {
+                self
+            }
+
+            fn get_mut(&mut self) -> &mut ::ink::storage::Lazy<Self> {
+                self
+            }
+        }
+    };
+
+    let occupied_storage_upgradeable = quote! {
+        //#[cfg(feature = "upgradeable")]
+        impl #impl_generics ::openbrush::traits::OccupiedStorage<{ #storage_key }> for ::ink::storage::Lazy<#ident #ty_generics_original> #where_clause{
+            type WithData = ::ink::storage::Lazy<Self>;
+        }
+    };
+
+    quote! {
+        #occupy_storage_upgradeable
+        #storage_upgradeable
+        #occupied_storage_upgradeable
     }
 }
 
@@ -250,7 +275,8 @@ fn convert_into_storage_field(
 pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
     let storage_key = attrs.clone();
 
-    let occupy_storage = occupy_storage_derive(&storage_key, s.clone());
+    let storage = storage_derive(&storage_key, s.clone());
+    let upgradeable_occupy_storage = upgradeable_occupy_storage_derive(&storage_key, s.clone());
     let storage_key_derived = storage_key_derive(&storage_key, s.clone());
     let storable_hint = storable_hint_derive(&storage_key, s.clone());
 
@@ -271,7 +297,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
         #storage_key_derived
         #storable_hint
 
-        #occupy_storage
+        #storage
     };
 
     out.into()

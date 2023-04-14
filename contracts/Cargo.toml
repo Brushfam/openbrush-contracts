@@ -39,6 +39,7 @@ std = [
     "openbrush/std",
     "pallet-assets-chain-extension/ink-std",
 ]
+upgradeable = []
 psp22 = []
 psp22_pallet = []
 psp34 = []

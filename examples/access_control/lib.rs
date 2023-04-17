@@ -38,7 +38,9 @@ pub mod my_access_control {
             let caller = instance.env().caller();
             instance._init_with_admin(caller);
             // We grant minter role to caller in constructor, so he can mint/burn tokens
-            instance.grant_role(MINTER, caller).expect("Should grant MINTER role");
+            instance
+                .grant_role(MINTER, Some(caller))
+                .expect("Should grant MINTER role");
 
             instance
         }

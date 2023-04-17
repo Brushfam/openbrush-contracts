@@ -32,7 +32,6 @@ use openbrush::{
     },
     traits::{
         AccountId,
-        AccountIdExt,
         Balance,
         Storage,
     },
@@ -167,13 +166,6 @@ impl<T: Storage<Data>> Internal for T {
         amount: Balance,
         _data: Vec<u8>,
     ) -> Result<(), PSP22Error> {
-        if from.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress)
-        }
-        if to.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         let from_balance = self._balance_of(&from);
 
         if from_balance < amount {
@@ -199,23 +191,12 @@ impl<T: Storage<Data>> Internal for T {
         spender: AccountId,
         amount: Balance,
     ) -> Result<(), PSP22Error> {
-        if owner.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress)
-        }
-        if spender.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         self.data().allowances.insert(&(&owner, &spender), &amount);
         self._emit_approval_event(owner, spender, amount);
         Ok(())
     }
 
     default fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        if account.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         self._before_token_transfer(None, Some(&account), &amount)?;
         let mut new_balance = self._balance_of(&account);
         new_balance += amount;
@@ -228,10 +209,6 @@ impl<T: Storage<Data>> Internal for T {
     }
 
     default fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        if account.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         let mut from_balance = self._balance_of(&account);
 
         if from_balance < amount {

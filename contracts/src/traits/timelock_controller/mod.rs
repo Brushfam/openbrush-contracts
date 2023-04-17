@@ -29,17 +29,16 @@ use openbrush::traits::{
     Balance,
     Hash,
     Timestamp,
-    ZERO_ADDRESS,
 };
 
 pub type OperationId = Hash;
 
 /// A Transaction is what can be executed by `executor`
-#[derive(Debug, Clone, PartialEq, scale::Encode, scale::Decode)]
+#[derive(Debug, Default, Clone, PartialEq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub struct Transaction {
     /// The `AccountId` of the contract that is called in this transaction.
-    pub callee: AccountId,
+    pub callee: Option<AccountId>,
     /// The selector bytes that identifies the function of the callee that should be called.
     pub selector: [u8; 4],
     /// The SCALE encoded parameters that are passed to the called function.
@@ -48,18 +47,6 @@ pub struct Transaction {
     pub transferred_value: Balance,
     /// Gas limit for the execution of the call.
     pub gas_limit: u64,
-}
-
-impl Default for Transaction {
-    fn default() -> Self {
-        Self {
-            callee: ZERO_ADDRESS.into(),
-            selector: Default::default(),
-            input: Default::default(),
-            transferred_value: Default::default(),
-            gas_limit: Default::default(),
-        }
-    }
 }
 
 /// TimelockController is AccessControl itself, so creating wrapper for both traits

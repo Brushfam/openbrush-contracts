@@ -21,7 +21,6 @@ use openbrush::{
         Balance,
         OccupiedStorage,
         Storage,
-        ZERO_ADDRESS,
     },
 };
 
@@ -114,14 +113,11 @@ fn accept_lending<T: Storage<data::Data>>(
 }
 
 fn disallow_lending<T: Storage<data::Data>>(instance: &mut T, asset_address: AccountId) {
-    let share_address = instance
-        .data()
-        .asset_shares
-        .get(&asset_address)
-        .unwrap_or(ZERO_ADDRESS.into());
-    instance.data().asset_shares.remove(&asset_address);
-    instance.data().shares_asset.remove(&share_address);
-    instance.data().assets_lended.remove(&asset_address);
+    if let Some(share_address) = instance.data().asset_shares.get(&asset_address) {
+        instance.data().asset_shares.remove(&asset_address);
+        instance.data().shares_asset.remove(&share_address);
+        instance.data().assets_lended.remove(&asset_address);
+    }
 }
 
 /// this function will accept `asset_address` for using as collateral

@@ -38,7 +38,7 @@ pub type AccessControlRef = dyn AccessControl;
 pub trait AccessControl {
     /// Returns `true` if `account` has been granted `role`.
     #[ink(message)]
-    fn has_role(&self, role: RoleType, address: AccountId) -> bool;
+    fn has_role(&self, role: RoleType, address: Option<AccountId>) -> bool;
 
     /// Returns the admin role that controls `role`. See `grant_role` and `revoke_role`.
     #[ink(message)]
@@ -53,7 +53,7 @@ pub trait AccessControl {
     /// Returns with `MissingRole` error if caller can't grant the role.
     /// Returns with `RoleRedundant` error `account` has `role`.
     #[ink(message)]
-    fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError>;
+    fn grant_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError>;
 
     /// Revokes `role` from `account`.
     ///
@@ -63,7 +63,7 @@ pub trait AccessControl {
     ///
     /// Returns with `MissingRole` error if caller can't grant the `role` or if `account` doesn't have `role`.
     #[ink(message)]
-    fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError>;
+    fn revoke_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError>;
 
     /// Revokes `role` from the calling account.
     /// Roles are often managed via `grant_role` and `revoke_role`: this function's
@@ -77,5 +77,5 @@ pub trait AccessControl {
     /// Returns with `InvalidCaller` error if caller is not `account`.
     /// Returns with `MissingRole` error if `account` doesn't have `role`.
     #[ink(message)]
-    fn renounce_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError>;
+    fn renounce_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError>;
 }

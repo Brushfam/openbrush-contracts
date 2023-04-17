@@ -30,10 +30,7 @@ mod ownable {
     use openbrush::{
         contracts::ownable::*,
         test_utils::change_caller,
-        traits::{
-            AccountIdExt,
-            Storage,
-        },
+        traits::Storage,
     };
 
     #[ink(event)]
@@ -121,7 +118,7 @@ mod ownable {
         let creator = my_ownable.owner();
         assert_eq!(creator, caller);
         assert!(my_ownable.renounce_ownership().is_ok());
-        assert!(my_ownable.owner().is_zero());
+        assert!(my_ownable.owner().is_none());
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(2, emitted_events.len());
         assert_ownership_transferred_event(&emitted_events[0], None, Some(creator));

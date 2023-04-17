@@ -30,10 +30,8 @@ use openbrush::{
     storage::Mapping,
     traits::{
         AccountId,
-        AccountIdExt,
         Balance,
         Storage,
-        ZERO_ADDRESS,
     },
 };
 
@@ -67,12 +65,8 @@ impl<T: Storage<Data>> PaymentSplitter for T {
         self.data().released.get(&account).unwrap_or(0)
     }
 
-    default fn payee(&self, index: u32) -> AccountId {
-        self.data()
-            .payees
-            .get(index as usize)
-            .cloned()
-            .unwrap_or(ZERO_ADDRESS.into())
+    default fn payee(&self, index: u32) -> Option<AccountId> {
+        self.data().payees.get(index as usize).cloned()
     }
 
     default fn receive(&mut self) {
@@ -146,9 +140,6 @@ impl<T: Storage<Data>> Internal for T {
     }
 
     default fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError> {
-        if payee.is_zero() {
-            return Err(PaymentSplitterError::AccountZeroAddress)
-        }
         if share == 0 {
             return Err(PaymentSplitterError::SharesAreZero)
         }

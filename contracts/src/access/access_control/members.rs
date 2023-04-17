@@ -33,34 +33,34 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
 #[derive(Default, Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Members {
-    pub members: Mapping<(RoleType, AccountId), (), MembersKey>,
+    pub members: Mapping<(RoleType, Option<AccountId>), (), MembersKey>,
     pub _reserved: Option<()>,
 }
 
 pub struct MembersKey;
 
 impl<'a> TypeGuard<'a> for MembersKey {
-    type Type = &'a (RoleType, &'a AccountId);
+    type Type = &'a (RoleType, &'a Option<AccountId>);
 }
 
 pub trait MembersManager {
-    fn has_role(&self, role: RoleType, address: &AccountId) -> bool;
+    fn has_role(&self, role: RoleType, address: &Option<AccountId>) -> bool;
 
-    fn add(&mut self, role: RoleType, member: &AccountId);
+    fn add(&mut self, role: RoleType, member: &Option<AccountId>);
 
-    fn remove(&mut self, role: RoleType, member: &AccountId);
+    fn remove(&mut self, role: RoleType, member: &Option<AccountId>);
 }
 
 impl MembersManager for Members {
-    fn has_role(&self, role: RoleType, address: &AccountId) -> bool {
+    fn has_role(&self, role: RoleType, address: &Option<AccountId>) -> bool {
         self.members.contains(&(role, address))
     }
 
-    fn add(&mut self, role: RoleType, member: &AccountId) {
+    fn add(&mut self, role: RoleType, member: &Option<AccountId>) {
         self.members.insert(&(role, member), &());
     }
 
-    fn remove(&mut self, role: RoleType, member: &AccountId) {
+    fn remove(&mut self, role: RoleType, member: &Option<AccountId>) {
         self.members.remove(&(role, member));
     }
 }

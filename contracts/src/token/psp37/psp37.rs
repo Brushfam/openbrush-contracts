@@ -49,7 +49,6 @@ use openbrush::{
     },
     traits::{
         AccountId,
-        AccountIdExt,
         Balance,
         OccupiedStorage,
         Storage,
@@ -214,9 +213,6 @@ where
     default fn _emit_approval_event(&self, _owner: AccountId, _operator: AccountId, _id: Option<Id>, _value: Balance) {}
 
     default fn _mint_to(&mut self, to: AccountId, mut ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
-        if to.is_zero() {
-            return Err(PSP37Error::TransferToZeroAddress)
-        }
         if ids_amounts.is_empty() {
             return Ok(())
         }
@@ -272,10 +268,6 @@ where
     ) -> Result<(), PSP37Error> {
         let operator = Self::env().caller();
         let ids_amounts = vec![(id.clone(), value)];
-
-        if to.is_zero() {
-            return Err(PSP37Error::TransferToZeroAddress)
-        }
 
         if from != operator && self._get_allowance(&from, &operator, &Some(&id)) < value {
             return Err(PSP37Error::NotAllowed)

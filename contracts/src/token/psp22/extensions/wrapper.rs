@@ -35,27 +35,18 @@ use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
-    ZERO_ADDRESS,
+    String,
 };
 pub use psp22::Internal as _;
 pub use wrapper::Internal as _;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
-    pub underlying: AccountId,
+    pub underlying: Option<AccountId>,
     pub _reserved: Option<()>,
-}
-
-impl Default for Data {
-    fn default() -> Self {
-        Self {
-            underlying: ZERO_ADDRESS.into(),
-            _reserved: Default::default(),
-        }
-    }
 }
 
 impl<T: Storage<psp22::Data> + Storage<Data>> PSP22Wrapper for T {
@@ -88,9 +79,6 @@ pub trait Internal {
     ///
     /// `underlying` is the token to be wrapped
     fn _init(&mut self, underlying: AccountId);
-
-    /// Getter for caller to `PSP22Wrapper` of `underlying`
-    fn _underlying(&mut self) -> &mut PSP22Ref;
 }
 
 impl<T: Storage<psp22::Data> + Storage<Data>> Internal for T {
@@ -101,32 +89,43 @@ impl<T: Storage<psp22::Data> + Storage<Data>> Internal for T {
     }
 
     default fn _deposit(&mut self, amount: Balance) -> Result<(), PSP22Error> {
-        self._underlying()
-            .transfer_from_builder(Self::env().caller(), Self::env().account_id(), amount, Vec::<u8>::new())
+        if let Some(underlying) = self.data::<Data>().underlying {
+            PSP22Ref::transfer_from_builder(
+                &underlying,
+                Self::env().caller(),
+                Self::env().account_id(),
+                amount,
+                Vec::<u8>::new(),
+            )
             .call_flags(CallFlags::default().set_allow_reentry(true))
             .try_invoke()
             .unwrap()
             .unwrap()
+        } else {
+            Err(PSP22Error::Custom(String::from("No token address")))
+        }
     }
 
     default fn _withdraw(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        self._underlying()
-            .transfer_builder(account, amount, Vec::<u8>::new())
-            .call_flags(CallFlags::default().set_allow_reentry(true))
-            .try_invoke()
-            .unwrap()
-            .unwrap()
+        if let Some(underlying) = self.data::<Data>().underlying {
+            PSP22Ref::transfer_builder(&underlying, account, amount, Vec::<u8>::new())
+                .call_flags(CallFlags::default().set_allow_reentry(true))
+                .try_invoke()
+                .unwrap()
+                .unwrap()
+        } else {
+            Err(PSP22Error::Custom(String::from("No token address")))
+        }
     }
 
     default fn _underlying_balance(&mut self) -> Balance {
-        self._underlying().balance_of(Self::env().account_id())
+        match self.data::<Data>().underlying {
+            Some(account) => PSP22Ref::balance_of(&account, Self::env().account_id()),
+            None => 0,
+        }
     }
 
     default fn _init(&mut self, underlying: AccountId) {
-        self.data::<Data>().underlying = underlying;
-    }
-
-    default fn _underlying(&mut self) -> &mut PSP22Ref {
-        &mut self.data::<Data>().underlying
+        self.data::<Data>().underlying = Some(underlying);
     }
 }

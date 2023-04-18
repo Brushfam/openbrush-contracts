@@ -30,11 +30,13 @@ pub use crate::{
 use ink::{
     env::CallFlags,
     prelude::vec::Vec,
+    storage::Lazy,
 };
 use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
+    StorageAsRef,
     ZERO_ADDRESS,
 };
 pub use psp22::Internal as _;
@@ -49,6 +51,11 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(not(feature = "upgradeable"))]
+type DataType = Data;
+#[cfg(feature = "upgradeable")]
+type DataType = Lazy<Data>;
+
 impl Default for Data {
     fn default() -> Self {
         Self {
@@ -58,7 +65,7 @@ impl Default for Data {
     }
 }
 
-impl<T: Storage<psp22::Data> + Storage<Data>> PSP22Wrapper for T {
+impl<T: Storage<psp22::DataType> + Storage<DataType>> PSP22Wrapper for T {
     default fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._deposit(amount)?;
         self._mint_to(account, amount)
@@ -93,6 +100,7 @@ pub trait Internal {
     fn _underlying(&mut self) -> &mut PSP22Ref;
 }
 
+#[cfg(not(feature = "upgradeable"))]
 impl<T: Storage<psp22::Data> + Storage<Data>> Internal for T {
     default fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error> {
         let value = self._underlying_balance() - self.total_supply();
@@ -128,5 +136,46 @@ impl<T: Storage<psp22::Data> + Storage<Data>> Internal for T {
 
     default fn _underlying(&mut self) -> &mut PSP22Ref {
         &mut self.data::<Data>().underlying
+    }
+}
+
+#[cfg(feature = "upgradeable")]
+impl<T: Storage<Lazy<psp22::Data>> + Storage<Lazy<Data>>> Internal for T {
+    default fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error> {
+        let value = self._underlying_balance() - self.total_supply();
+        self._mint_to(account, value)?;
+        Ok(value)
+    }
+
+    default fn _deposit(&mut self, amount: Balance) -> Result<(), PSP22Error> {
+        self._underlying()
+            .transfer_from_builder(Self::env().caller(), Self::env().account_id(), amount, Vec::<u8>::new())
+            .call_flags(CallFlags::default().set_allow_reentry(true))
+            .try_invoke()
+            .unwrap()
+            .unwrap()
+    }
+
+    default fn _withdraw(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+        self._underlying()
+            .transfer_builder(account, amount, Vec::<u8>::new())
+            .call_flags(CallFlags::default().set_allow_reentry(true))
+            .try_invoke()
+            .unwrap()
+            .unwrap()
+    }
+
+    default fn _underlying_balance(&mut self) -> Balance {
+        self._underlying().balance_of(Self::env().account_id())
+    }
+
+    default fn _init(&mut self, underlying: AccountId) {
+        let mut data = self.data::<Lazy<Data>>().get_or_default();
+        data.underlying = underlying;
+        self.data::<Lazy<Data>>().set(&data);
+    }
+
+    default fn _underlying(&mut self) -> &mut PSP22Ref {
+        &mut self.data::<Lazy<Data>>().get_or_default().underlying
     }
 }

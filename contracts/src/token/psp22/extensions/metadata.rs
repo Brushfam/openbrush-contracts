@@ -48,6 +48,7 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(not(feature = "upgradeable"))]
 impl<T: Storage<Data>> PSP22Metadata for T {
     default fn token_name(&self) -> Option<String> {
         self.data().name.clone()
@@ -59,5 +60,20 @@ impl<T: Storage<Data>> PSP22Metadata for T {
 
     default fn token_decimals(&self) -> u8 {
         self.data().decimals.clone()
+    }
+}
+
+#[cfg(feature = "upgradeable")]
+impl<T: Storage<Lazy<Data>>> PSP22Metadata for T {
+    default fn token_name(&self) -> Option<String> {
+        self.data().get_or_default().name.clone()
+    }
+
+    default fn token_symbol(&self) -> Option<String> {
+        self.data().get_or_default().symbol.clone()
+    }
+
+    default fn token_decimals(&self) -> u8 {
+        self.data().get_or_default().decimals.clone()
     }
 }

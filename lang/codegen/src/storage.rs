@@ -43,6 +43,7 @@ use syn::{
 pub fn storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
     s.add_bounds(synstructure::AddBounds::None).underscore_const(true);
     let storage = s.gen_impl(quote! {
+        #[cfg(not(feature = "upgradeable"))]
         gen impl ::openbrush::traits::Storage<Self> for @Self {
             fn get(&self) -> &Self {
                 self
@@ -58,41 +59,22 @@ pub fn storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure)
         #storage
     }
 }
-pub fn upgradeable_occupy_storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
-    let (impl_generics, ty_generics_original, where_clause) = s.ast().generics.split_for_impl();
-    let ident = s.ast().ident.clone();
-
-    let occupy_storage_upgradeable = quote! {
-        //#[cfg(feature = "upgradeable")]
-        impl #impl_generics ::openbrush::traits::OccupyStorage for ::ink::storage::Lazy<#ident #ty_generics_original> #where_clause {
-            const KEY: ::core::primitive::u32 = #storage_key;
-        }
-    };
-
+pub fn upgradeable_storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
     let storage_upgradeable = quote! {
-       // #[cfg(feature = "upgradeable")]
-        impl #impl_generics ::openbrush::traits::Storage<Lazy<#ident #ty_generics_original>> for ::ink::storage::Lazy<#ident #ty_generics_original> #where_clause {
-            fn get(&self) -> ::ink::storage::Lazy<&Self> {
-                self
+        #[cfg(feature = "upgradeable")]
+        gen impl ::openbrush::traits::Storage<Self> for @Self {
+            fn get(&self) -> Lazy<Self> {
+                ::ink::storage::traits::Lazy<Self, ManualKey<#storage_key>>::new()
             }
 
-            fn get_mut(&mut self) -> &mut ::ink::storage::Lazy<Self> {
-                self
+            fn get_mut(&mut self) -> Lazy<Self> {
+                ::ink::storage::traits::Lazy<Self, ManualKey<#storage_key>>::new()
             }
-        }
-    };
-
-    let occupied_storage_upgradeable = quote! {
-        //#[cfg(feature = "upgradeable")]
-        impl #impl_generics ::openbrush::traits::OccupiedStorage<{ #storage_key }> for ::ink::storage::Lazy<#ident #ty_generics_original> #where_clause{
-            type WithData = ::ink::storage::Lazy<Self>;
         }
     };
 
     quote! {
-        #occupy_storage_upgradeable
         #storage_upgradeable
-        #occupied_storage_upgradeable
     }
 }
 
@@ -237,7 +219,7 @@ fn generate_union(s: &synstructure::Structure, union_item: DataUnion, storage_ke
 fn convert_into_storage_field(
     struct_ident: &Ident,
     variant_ident: Option<&syn::Ident>,
-    stoarge_key: &TokenStream,
+    storage_key: &TokenStream,
     index: usize,
     field: &Field,
 ) -> Field {
@@ -265,7 +247,7 @@ fn convert_into_storage_field(
     let span = field.ty.span();
     let new_ty = syn::Type::Verbatim(quote_spanned!(span =>
         <#ty as ::ink::storage::traits::AutoStorableHint<
-            ::ink::storage::traits::ManualKey<#key, ::ink::storage::traits::ManualKey<#stoarge_key>>,
+            ::ink::storage::traits::ManualKey<#key, ::ink::storage::traits::ManualKey<#storage_key>>,
         >>::Type
     ));
     new_field.ty = new_ty;
@@ -276,7 +258,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
     let storage_key = attrs.clone();
 
     let storage = storage_derive(&storage_key, s.clone());
-    let upgradeable_occupy_storage = upgradeable_occupy_storage_derive(&storage_key, s.clone());
+    let upgradeable_storage = upgradeable_storage_derive(&storage_key, s.clone());
     let storage_key_derived = storage_key_derive(&storage_key, s.clone());
     let storable_hint = storable_hint_derive(&storage_key, s.clone());
 
@@ -298,6 +280,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
         #storable_hint
 
         #storage
+        #upgradeable_storage
     };
 
     out.into()

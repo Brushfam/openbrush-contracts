@@ -37,7 +37,7 @@ use openbrush::traits::{
     Storage,
 };
 
-impl<T: Storage<psp22::Data>> PSP22Burnable for T {
+impl<T: Storage<psp22::DataType>> PSP22Burnable for T {
     default fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._burn_from(account, amount)
     }

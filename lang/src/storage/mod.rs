@@ -20,10 +20,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use core::marker::PhantomData;
+mod lazy;
 mod mapping;
 mod multi_mapping;
 mod raw_mapping;
 
+pub use lazy::Lazy;
 pub use mapping::Mapping;
 pub use multi_mapping::MultiMapping;
 pub use raw_mapping::RawMapping;

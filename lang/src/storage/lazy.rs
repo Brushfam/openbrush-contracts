@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::storage::{
-    TypeGuard,
-    ValueGuard,
-};
+use crate::traits::StorageAccess;
 use core::marker::PhantomData;
 use ink::{
     primitives::Key,
@@ -34,12 +31,12 @@ use scale::{
 };
 
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-pub struct Lazy<V, TGV = ValueGuard<V>, KeyType: StorageKey = AutoKey> {
-    _marker: PhantomData<fn() -> (V, KeyType, TGV)>,
+pub struct Lazy<V, KeyType: StorageKey = AutoKey> {
+    _marker: PhantomData<fn() -> (V, KeyType)>,
 }
 
 /// We implement this manually because the derived implementation adds trait bounds.
-impl<V, TGV, KeyType> Default for Lazy<V, TGV, KeyType>
+impl<V, KeyType> Default for Lazy<V, KeyType>
 where
     KeyType: StorageKey,
 {
@@ -48,7 +45,7 @@ where
     }
 }
 
-impl<V, TGV, KeyType> Lazy<V, TGV, KeyType>
+impl<V, KeyType> Lazy<V, KeyType>
 where
     KeyType: StorageKey,
 {
@@ -58,7 +55,7 @@ where
     }
 }
 
-impl<V, TGV, KeyType> core::fmt::Debug for Lazy<V, TGV, KeyType>
+impl<V, KeyType> core::fmt::Debug for Lazy<V, KeyType>
 where
     KeyType: StorageKey,
 {
@@ -67,7 +64,7 @@ where
     }
 }
 
-impl<V, TGV, KeyType> Lazy<V, TGV, KeyType>
+impl<V, KeyType> Lazy<V, KeyType>
 where
     V: Storable,
     KeyType: StorageKey,
@@ -81,16 +78,12 @@ where
     }
 
     /// Writes the given `value` to the contract storage.
-    pub fn set<'a>(&mut self, value: &TGV::Type)
-    where
-        TGV: TypeGuard<'a>,
-        TGV::Type: Storable,
-    {
-        ink::env::set_contract_storage::<Key, TGV::Type>(&KeyType::KEY, value);
+    pub fn set(&mut self, value: &V) {
+        ink::env::set_contract_storage::<Key, V>(&KeyType::KEY, value);
     }
 }
 
-impl<V, TGV, KeyType> Lazy<V, TGV, KeyType>
+impl<V, KeyType> Lazy<V, KeyType>
 where
     V: Storable + Default,
     KeyType: StorageKey,
@@ -101,12 +94,36 @@ where
     pub fn get_or_default(&self) -> V {
         match ink::env::get_contract_storage::<Key, V>(&KeyType::KEY) {
             Ok(Some(value)) => value,
-            _ => Default::default(),
+            _ => {
+                let mut instance = Default::default();
+
+                crate::traits::Initializable::initialize(&mut instance);
+
+                instance
+            }
         }
     }
 }
 
-impl<V, TGV, KeyType> Storable for Lazy<V, TGV, KeyType>
+impl<V, KeyType> StorageAccess<V> for Lazy<V, KeyType>
+where
+    V: Storable + Default,
+    KeyType: StorageKey,
+{
+    fn get(&self) -> Option<V> {
+        self.get()
+    }
+
+    fn set(&mut self, value: V) {
+        self.set(&value)
+    }
+
+    fn get_or_default(&self) -> V {
+        self.get_or_default()
+    }
+}
+
+impl<V, KeyType> Storable for Lazy<V, KeyType>
 where
     KeyType: StorageKey,
 {
@@ -119,17 +136,17 @@ where
     }
 }
 
-impl<V, Key, TGV, InnerKey> StorableHint<Key> for Lazy<V, TGV, InnerKey>
+impl<V, Key, InnerKey> StorableHint<Key> for Lazy<V, InnerKey>
 where
     Key: StorageKey,
     InnerKey: StorageKey,
     V: StorableHint<Key>,
 {
-    type Type = Lazy<V::Type, TGV, Key>;
+    type Type = Lazy<V::Type, Key>;
     type PreferredKey = InnerKey;
 }
 
-impl<V, TGV, KeyType> StorageKey for Lazy<V, TGV, KeyType>
+impl<V, KeyType> StorageKey for Lazy<V, KeyType>
 where
     KeyType: StorageKey,
 {
@@ -138,16 +155,14 @@ where
 
 #[cfg(feature = "std")]
 const _: () = {
-    use ink::{
-        metadata::layout::{
-            Layout,
-            LayoutKey,
-            RootLayout,
-        },
-        storage::traits::StorageLayout,
+    use crate::traits::StorageLayout;
+    use ink::metadata::layout::{
+        Layout,
+        LayoutKey,
+        RootLayout,
     };
 
-    impl<V, TGV, KeyType> StorageLayout for Lazy<V, TGV, KeyType>
+    impl<V, KeyType> StorageLayout for Lazy<V, KeyType>
     where
         V: StorageLayout + scale_info::TypeInfo + 'static,
         KeyType: StorageKey + scale_info::TypeInfo + 'static,

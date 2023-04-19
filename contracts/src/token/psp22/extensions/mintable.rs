@@ -32,13 +32,15 @@ pub use psp22::{
     Transfer as _,
 };
 
+use crate::psp22::Data;
 use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
+    StorageAccess,
 };
 
-impl<T: Storage<psp22::DataType>> PSP22Mintable for T {
+impl<T: Storage<psp22::DataType> + StorageAccess<Data>> PSP22Mintable for T {
     default fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._mint_to(account, amount)
     }

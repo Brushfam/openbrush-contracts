@@ -55,28 +55,46 @@ pub fn storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure)
         }
     });
 
-    quote! {
-        #storage
-    }
-}
-pub fn upgradeable_storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
-    let storage_upgradeable = quote! {
-        #[cfg(feature = "upgradeable")]
-        gen impl ::openbrush::traits::Storage<Self> for @Self {
-            fn get(&self) -> Lazy<Self> {
-                ::ink::storage::traits::Lazy<Self, ManualKey<#storage_key>>::new()
+    let storage_access = s.gen_impl(quote! {
+        #[cfg(not(feature = "upgradeable"))]
+        gen impl ::openbrush::traits::StorageAccess<Self> for @Self {
+            fn get(&self) -> Option<Self> {
+                Some(self)
             }
 
-            fn get_mut(&mut self) -> Lazy<Self> {
-                ::ink::storage::traits::Lazy<Self, ManualKey<#storage_key>>::new()
+            fn set(&mut self, value: &Self) {
+                *self = value;
+            }
+
+            fn get_or_default(&mut self) -> Self {
+                self
             }
         }
-    };
+    });
 
     quote! {
-        #storage_upgradeable
+        #storage
+        #storage_access
     }
 }
+// pub fn upgradeable_storage_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
+//     let storage_upgradeable = s.gen_impl(quote! {
+//         #[cfg(feature = "upgradeable")]
+//         gen impl ::openbrush::traits::Storage<Self> for @Self {
+//             fn get(&self) -> Lazy<Self> {
+//                 ::ink::storage::traits::Lazy<Self, ManualKey<#storage_key>>::new()
+//             }
+//
+//             fn get_mut(&mut self) -> Lazy<Self> {
+//                 ::ink::storage::traits::Lazy<Self, ManualKey<#storage_key>>::new()
+//             }
+//         }
+//     });
+//
+//     quote! {
+//         #storage_upgradeable
+//     }
+// }
 
 pub fn storage_key_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
     s.add_bounds(synstructure::AddBounds::None).underscore_const(true);
@@ -258,7 +276,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
     let storage_key = attrs.clone();
 
     let storage = storage_derive(&storage_key, s.clone());
-    let upgradeable_storage = upgradeable_storage_derive(&storage_key, s.clone());
+    // let _upgradeable_storage = upgradeable_storage_derive(&storage_key, s.clone());
     let storage_key_derived = storage_key_derive(&storage_key, s.clone());
     let storable_hint = storable_hint_derive(&storage_key, s.clone());
 
@@ -280,7 +298,6 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
         #storable_hint
 
         #storage
-        #upgradeable_storage
     };
 
     out.into()

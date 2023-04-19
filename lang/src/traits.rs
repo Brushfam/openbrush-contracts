@@ -19,6 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::storage::Lazy;
 use ::ink::env::{
     DefaultEnvironment,
     Environment,
@@ -114,6 +115,17 @@ pub trait StorageAsMut: StorageAsRef {
 
 impl<T> StorageAsRef for T {}
 impl<T: StorageAsRef> StorageAsMut for T {}
+
+pub trait StorageAccess<V>
+where
+    V: Storable,
+{
+    fn get(&self) -> Option<V>;
+
+    fn set(&mut self, value: V);
+
+    fn get_or_default(&self) -> V;
+}
 
 pub const ZERO_ADDRESS: [u8; 32] = [0; 32];
 

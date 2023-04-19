@@ -36,6 +36,7 @@ use openbrush::{
         AccountIdExt,
         Balance,
         Storage,
+        StorageAccess,
         StorageAsRef,
     },
 };
@@ -66,7 +67,7 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-impl<T: Storage<DataType>> PSP22 for T {
+impl<T: Storage<DataType> + StorageAccess<Data>> PSP22 for T {
     default fn total_supply(&self) -> Balance {
         self._total_supply()
     }
@@ -151,115 +152,7 @@ pub trait Internal {
     fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error>;
 }
 
-#[cfg(not(feature = "upgradeable"))]
-impl<T: Storage<Data>> Internal for T {
-    default fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
-    default fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
-
-    default fn _total_supply(&self) -> Balance {
-        self.data().supply.clone()
-    }
-
-    default fn _balance_of(&self, owner: &AccountId) -> Balance {
-        self.data().balances.get(owner).unwrap_or(0)
-    }
-
-    default fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance {
-        self.data().allowances.get(&(owner, spender)).unwrap_or(0)
-    }
-
-    default fn _transfer_from_to(
-        &mut self,
-        from: AccountId,
-        to: AccountId,
-        amount: Balance,
-        _data: Vec<u8>,
-    ) -> Result<(), PSP22Error> {
-        if from.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress)
-        }
-        if to.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
-        let from_balance = self._balance_of(&from);
-
-        if from_balance < amount {
-            return Err(PSP22Error::InsufficientBalance)
-        }
-
-        self._before_token_transfer(Some(&from), Some(&to), &amount)?;
-
-        self.data().balances.insert(&from, &(from_balance - amount));
-
-        let to_balance = self._balance_of(&to);
-        self.data().balances.insert(&to, &(to_balance + amount));
-
-        self._after_token_transfer(Some(&from), Some(&to), &amount)?;
-        self._emit_transfer_event(Some(from), Some(to), amount);
-
-        Ok(())
-    }
-
-    default fn _approve_from_to(
-        &mut self,
-        owner: AccountId,
-        spender: AccountId,
-        amount: Balance,
-    ) -> Result<(), PSP22Error> {
-        if owner.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress)
-        }
-        if spender.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
-        self.data().allowances.insert(&(&owner, &spender), &amount);
-        self._emit_approval_event(owner, spender, amount);
-        Ok(())
-    }
-
-    default fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        if account.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
-        self._before_token_transfer(None, Some(&account), &amount)?;
-        let mut new_balance = self._balance_of(&account);
-        new_balance += amount;
-        self.data().balances.insert(&account, &new_balance);
-        self.data().supply += amount;
-        self._after_token_transfer(None, Some(&account), &amount)?;
-        self._emit_transfer_event(None, Some(account), amount);
-
-        Ok(())
-    }
-
-    default fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        if account.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
-        let mut from_balance = self._balance_of(&account);
-
-        if from_balance < amount {
-            return Err(PSP22Error::InsufficientBalance)
-        }
-
-        self._before_token_transfer(Some(&account), None, &amount)?;
-
-        from_balance -= amount;
-        self.data().balances.insert(&account, &from_balance);
-        self.data().supply -= amount;
-        self._after_token_transfer(Some(&account), None, &amount)?;
-        self._emit_transfer_event(Some(account), None, amount);
-
-        Ok(())
-    }
-}
-
-#[cfg(feature = "upgradeable")]
-impl<T: Storage<Lazy<Data>>> Internal for T {
+impl<T: Storage<DataType> + StorageAccess<Data>> Internal for T {
     default fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
     default fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 
@@ -351,7 +244,7 @@ impl<T: Storage<Lazy<Data>>> Internal for T {
 
         let mut data = self.data().get_or_default();
         data.supply += amount;
-        self.data().set(&data);
+        self.data().set(data.clone());
 
         self._after_token_transfer(None, Some(&account), &amount)?;
         self._emit_transfer_event(None, Some(account), amount);
@@ -377,7 +270,7 @@ impl<T: Storage<Lazy<Data>>> Internal for T {
 
         let mut data = self.data().get_or_default();
         data.supply -= amount;
-        self.data().set(&data);
+        self.data().set(data.clone());
 
         self._after_token_transfer(Some(&account), None, &amount)?;
         self._emit_transfer_event(Some(account), None, amount);

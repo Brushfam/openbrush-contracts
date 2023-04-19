@@ -31,13 +31,15 @@ pub use psp22::{
     Transfer as _,
 };
 
+use crate::psp22::Data;
 use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
+    StorageAccess,
 };
 
-impl<T: Storage<psp22::DataType>> PSP22Burnable for T {
+impl<T: Storage<psp22::DataType> + StorageAccess<Data>> PSP22Burnable for T {
     default fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._burn_from(account, amount)
     }

@@ -33,6 +33,7 @@ use ink::storage::Lazy;
 use openbrush::traits::{
     Balance,
     Storage,
+    StorageAccess,
     String,
 };
 pub use psp22::{
@@ -50,14 +51,11 @@ pub struct Data {
 }
 
 #[cfg(not(feature = "upgradeable"))]
-impl<T: Storage<Data>> PSP22Capped for T {
-    default fn cap(&self) -> Balance {
-        self.data().cap.clone()
-    }
-}
-
+pub type DataType = Data;
 #[cfg(feature = "upgradeable")]
-impl<T: Storage<Lazy<Data>>> PSP22Capped for T {
+pub type DataType = Lazy<Data>;
+
+impl<T: Storage<DataType> + StorageAccess<Data>> PSP22Capped for T {
     fn cap(&self) -> Balance {
         self.data().get_or_default().cap.clone()
     }
@@ -70,26 +68,9 @@ pub trait Internal {
     fn _is_cap_exceeded(&self, amount: &Balance) -> bool;
 }
 
-#[cfg(not(feature = "upgradeable"))]
-impl<T: Storage<Data> + Storage<psp22::Data>> Internal for T {
-    fn _init_cap(&mut self, cap: Balance) -> Result<(), PSP22Error> {
-        if cap == 0 {
-            return Err(PSP22Error::Custom(String::from("Cap must be above 0")))
-        }
-        self.data::<Data>().cap = cap;
-        Ok(())
-    }
-
-    fn _is_cap_exceeded(&self, amount: &Balance) -> bool {
-        if self.total_supply() + amount > self.cap() {
-            return true
-        }
-        false
-    }
-}
-
-#[cfg(feature = "upgradeable")]
-impl<T: Storage<Data> + Storage<psp22::Data>> Internal for T {
+impl<T: Storage<DataType> + Storage<psp22::DataType> + StorageAccess<Data> + StorageAccess<psp22::Data>> Internal
+    for T
+{
     fn _init_cap(&mut self, cap: Balance) -> Result<(), PSP22Error> {
         if cap == 0 {
             return Err(PSP22Error::Custom(String::from("Cap must be above 0")))

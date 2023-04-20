@@ -429,7 +429,6 @@ synstructure::decl_attribute!(
     /// with a specified storage key instead of the default one (All data is stored under
     /// the provided storage key).
     ///
-    /// Also, that macro adds the code to initialize the structure if it wasn't initialized.
     /// That macro requires one input argument - the storage key. It can be any Rust code that returns
     /// `u32`.
     ///

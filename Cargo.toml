@@ -60,8 +60,6 @@ payment_splitter = ["openbrush_contracts/payment_splitter"]
 reentrancy_guard = ["openbrush_contracts/reentrancy_guard"]
 pausable = ["openbrush_contracts/pausable"]
 timelock_controller = ["openbrush_contracts/timelock_controller"]
-proxy = ["openbrush_contracts/proxy"]
-diamond = ["openbrush_contracts/diamond"]
 
 test-all = [
     "psp22",
@@ -74,8 +72,6 @@ test-all = [
     "reentrancy_guard",
     "pausable",
     "timelock_controller",
-    "proxy",
-    "diamond",
 ]
 
 [profile.release]

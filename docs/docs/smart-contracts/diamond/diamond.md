@@ -4,8 +4,9 @@ title: Diamond Standard
 ---
 
 This example shows how you can use the implementation of [diamond standard](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/upgradeability/diamond) to implement diamond standard pattern for upgradeable and unlimited contracts.
+You can use this tutorial for general understanding of `Diamond` pattern.
 
-## Disclaimer
+# Disclaimer
 
 Delegate calls [were marked](https://github.com/paritytech/ink/pull/1331#discussion_r953736863) as a possible attack vector in ink! Therefore the `Diamond` pattern will not work within OpenBrush until this is reimplemented in ink! 4.
 

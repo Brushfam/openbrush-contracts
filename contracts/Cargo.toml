@@ -51,12 +51,6 @@ pausable = []
 timelock_controller = [
     "access_control",
 ]
-proxy = [
-    "ownable",
-]
-diamond = [
-    "ownable",
-]
 test-all = [
     "psp22",
     # "psp22_pallet", we ignore it during testing. It requries it own run of tests
@@ -68,6 +62,4 @@ test-all = [
     "reentrancy_guard",
     "pausable",
     "timelock_controller",
-    "proxy",
-    "diamond",
 ]

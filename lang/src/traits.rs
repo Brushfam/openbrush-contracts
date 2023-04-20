@@ -136,7 +136,6 @@ impl AccountIdExt for AccountId {
 /// This trait is automatically implemented for storage structs.
 pub trait Flush: Storable + Sized + StorageKey {
     /// Method flushes the current state of `Self` into storage.
-    /// ink! recursively calculate a key of each field.
     /// So if you want to flush the correct state of the contract,
     /// you have to this method on storage struct.
     fn flush(&self) {
@@ -144,7 +143,6 @@ pub trait Flush: Storable + Sized + StorageKey {
     }
 
     /// Method loads the current state of `Self` from storage.
-    /// ink! recursively calculate a key of each field.
     /// So if you want to load the correct state of the contract,
     /// you have to this method on storage struct.
     fn load(&mut self) {

@@ -227,20 +227,20 @@ mod timelock_controller {
             vec![accounts.bob, accounts.charlie],
             vec![accounts.eve, accounts.charlie],
         );
-        assert!(timelock.has_role(TIMELOCK_ADMIN_ROLE, accounts.alice));
-        assert!(!timelock.has_role(PROPOSER_ROLE, accounts.alice));
-        assert!(!timelock.has_role(EXECUTOR_ROLE, accounts.alice));
+        assert!(timelock.has_role(TIMELOCK_ADMIN_ROLE, Some(accounts.alice)));
+        assert!(!timelock.has_role(PROPOSER_ROLE, Some(accounts.alice)));
+        assert!(!timelock.has_role(EXECUTOR_ROLE, Some(accounts.alice)));
         assert_eq!(timelock.get_role_admin(TIMELOCK_ADMIN_ROLE), TIMELOCK_ADMIN_ROLE);
         assert_eq!(timelock.get_role_admin(PROPOSER_ROLE), PROPOSER_ROLE);
         assert_eq!(timelock.get_role_admin(EXECUTOR_ROLE), EXECUTOR_ROLE);
         assert_eq!(timelock.get_min_delay(), 10);
 
-        assert!(timelock.has_role(PROPOSER_ROLE, accounts.bob));
-        assert!(timelock.has_role(PROPOSER_ROLE, accounts.charlie));
-        assert!(!timelock.has_role(PROPOSER_ROLE, accounts.eve));
-        assert!(timelock.has_role(EXECUTOR_ROLE, accounts.eve));
-        assert!(timelock.has_role(EXECUTOR_ROLE, accounts.charlie));
-        assert!(!timelock.has_role(EXECUTOR_ROLE, accounts.bob));
+        assert!(timelock.has_role(PROPOSER_ROLE, Some(accounts.bob)));
+        assert!(timelock.has_role(PROPOSER_ROLE, Some(accounts.charlie)));
+        assert!(!timelock.has_role(PROPOSER_ROLE, Some(accounts.eve)));
+        assert!(timelock.has_role(EXECUTOR_ROLE, Some(accounts.eve)));
+        assert!(timelock.has_role(EXECUTOR_ROLE, Some(accounts.charlie)));
+        assert!(!timelock.has_role(EXECUTOR_ROLE, Some(accounts.bob)));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_min_delay_change_event(&emitted_events[0], 0, 10);
@@ -378,7 +378,7 @@ mod timelock_controller {
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_call_scheduled_event(&emitted_events[1], id, 0, Transaction::default(), None, min_delay + 1);
 
-        assert!(timelock.revoke_role(PROPOSER_ROLE, accounts.alice).is_ok());
+        assert!(timelock.revoke_role(PROPOSER_ROLE, Some(accounts.alice)).is_ok());
         assert_eq!(
             Err(TimelockControllerError::AccessControlError(
                 AccessControlError::MissingRole

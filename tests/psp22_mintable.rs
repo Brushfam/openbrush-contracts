@@ -158,18 +158,6 @@ mod psp22_mintable {
         }
     }
 
-    // Testing mintable extension
-    #[ink::test]
-    fn should_not_mint_to_zero_address() {
-        let mut psp22 = PSP22Struct::new(100);
-        let amount_to_mint = 10;
-
-        assert_eq!(
-            psp22.mint(AccountId::from([0; 32]), amount_to_mint),
-            Err(PSP22Error::ZeroRecipientAddress)
-        );
-    }
-
     #[ink::test]
     fn should_emit_transfer_event_after_mint() {
         // Constructor works.

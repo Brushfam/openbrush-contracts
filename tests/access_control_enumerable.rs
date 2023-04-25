@@ -74,14 +74,14 @@ mod access_control_enumerable {
 
         assert_eq!(access_control.get_role_member_count(PAUSER), 0);
 
-        assert!(access_control.grant_role(PAUSER, alice).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(alice)).is_ok());
         assert_eq!(access_control.get_role_member_count(PAUSER), 1);
 
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(accounts.bob)).is_ok());
         assert_eq!(access_control.get_role_member_count(PAUSER), 2);
 
-        assert!(access_control.revoke_role(PAUSER, alice).is_ok());
-        assert!(access_control.grant_role(MINTER, alice).is_ok());
+        assert!(access_control.revoke_role(PAUSER, Some(alice)).is_ok());
+        assert!(access_control.grant_role(MINTER, Some(alice)).is_ok());
         assert_eq!(access_control.get_role_member_count(PAUSER), 1);
         assert_eq!(access_control.get_role_member_count(MINTER), 1);
     }
@@ -92,9 +92,9 @@ mod access_control_enumerable {
         let alice = accounts.alice;
         let mut access_control = AccessControlStruct::new(alice);
 
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
-        assert!(access_control.grant_role(PAUSER, alice).is_ok());
-        assert!(access_control.grant_role(PAUSER, accounts.eve).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(accounts.bob)).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(alice)).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(accounts.eve)).is_ok());
 
         assert_eq!(access_control.get_role_member(PAUSER, 1), Some(alice))
     }
@@ -105,11 +105,11 @@ mod access_control_enumerable {
         let alice = accounts.alice;
         let mut access_control = AccessControlStruct::new(alice);
 
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
-        assert!(access_control.grant_role(PAUSER, alice).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(accounts.bob)).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(alice)).is_ok());
         assert_eq!(access_control.get_role_member(PAUSER, 1), Some(alice));
 
-        assert!(access_control.revoke_role(PAUSER, alice).is_ok());
+        assert!(access_control.revoke_role(PAUSER, Some(alice)).is_ok());
         assert_eq!(access_control.get_role_member(PAUSER, 1), None)
     }
 }

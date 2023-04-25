@@ -68,7 +68,7 @@ mod diamond {
         let accounts = setup();
         let diamond = DiamondContract::new(accounts.alice);
         // assert
-        assert_eq!(diamond.owner(), accounts.alice);
+        assert_eq!(diamond.owner(), Some(accounts.alice));
     }
 
     #[ink::test]

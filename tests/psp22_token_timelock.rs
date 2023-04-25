@@ -80,8 +80,8 @@ mod psp22_timelock {
         let accounts = accounts();
         let timelock = PSP22TokenTimelockStruct::new(AccountId::from([0x1; 32]), accounts.alice, day());
 
-        assert_eq!(timelock.token(), AccountId::from([0x1; 32]));
-        assert_eq!(timelock.beneficiary(), accounts.alice);
+        assert_eq!(timelock.token(), Some(AccountId::from([0x1; 32])));
+        assert_eq!(timelock.beneficiary(), Some(accounts.alice));
         assert_eq!(timelock.release_time(), day());
     }
 

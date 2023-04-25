@@ -77,7 +77,7 @@ where
             .members
             .role_members
             .get_value(role, &(index as u128))
-            .unwrap()
+            .unwrap_or_default()
     }
 
     default fn get_role_member_count(&self, role: RoleType) -> u32 {

@@ -29,11 +29,14 @@ pub use crate::{
 };
 use ink::{
     env::CallFlags,
-    prelude::vec::Vec,
+    prelude::{
+        boxed::Box,
+        vec::Vec,
+    },
+    primitives::AccountId,
     storage::Lazy,
 };
 use openbrush::traits::{
-    AccountId,
     Balance,
     Storage,
     StorageAccess,
@@ -48,7 +51,7 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 #[derive(Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
-    pub underlying: AccountId,
+    pub underlying: Box<AccountId>,
     pub _reserved: Option<()>,
 }
 #[cfg(not(feature = "upgradeable"))]
@@ -59,14 +62,16 @@ type DataType = Lazy<Data>;
 impl Default for Data {
     fn default() -> Self {
         Self {
-            underlying: ZERO_ADDRESS.into(),
+            underlying: Box::new(ZERO_ADDRESS.into()),
             _reserved: Default::default(),
         }
     }
 }
 
-impl<T: Storage<psp22::DataType> + Storage<DataType> + StorageAccess<psp22::Data> + StorageAccess<Data>> PSP22Wrapper
-    for T
+impl<T> PSP22Wrapper for T
+where
+    T: Storage<psp22::DataType> + Storage<DataType>,
+    T: StorageAccess<psp22::Data> + StorageAccess<Data>,
 {
     default fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._deposit(amount)?;
@@ -80,7 +85,7 @@ impl<T: Storage<psp22::DataType> + Storage<DataType> + StorageAccess<psp22::Data
 }
 
 pub trait Internal {
-    /// Mint wrapped token to cover any underlyingTokens that would have been transfered by mistake. Internal
+    /// Mint wrapped token to cover any underlyingTokens that would have been transferred by mistake. Internal
     /// function that can be exposed with access control if desired.
     fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error>;
 
@@ -93,16 +98,20 @@ pub trait Internal {
     /// helper function to get balance of underlying tokens in the contract
     fn _underlying_balance(&mut self) -> Balance;
 
-    /// Initalize the wrapper token with defining the underlying PSP22 token
+    /// Initialize the wrapper token with defining the underlying PSP22 token
     ///
     /// `underlying` is the token to be wrapped
     fn _init(&mut self, underlying: AccountId);
 
     /// Getter for caller to `PSP22Wrapper` of `underlying`
-    fn _underlying(&mut self) -> &mut PSP22Ref;
+    fn _underlying(&mut self) -> Box<PSP22Ref>;
 }
 
-impl<T: Storage<psp22::DataType> + Storage<Data> + StorageAccess<Data> + StorageAccess<psp22::Data>> Internal for T {
+impl<T> Internal for T
+where
+    T: Storage<psp22::DataType> + Storage<DataType>,
+    T: StorageAccess<psp22::Data> + StorageAccess<Data>,
+{
     default fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error> {
         let value = self._underlying_balance() - self.total_supply();
         self._mint_to(account, value)?;
@@ -132,12 +141,12 @@ impl<T: Storage<psp22::DataType> + Storage<Data> + StorageAccess<Data> + Storage
     }
 
     default fn _init(&mut self, underlying: AccountId) {
-        let mut data = self.data::<Lazy<Data>>().get_or_default();
-        data.underlying = underlying;
-        self.data::<Lazy<Data>>().set(&data);
+        let mut data = self.data::<DataType>().get_or_default();
+        data.underlying = Box::new(underlying);
+        self.data::<DataType>().set(&data);
     }
 
-    default fn _underlying(&mut self) -> &mut PSP22Ref {
-        &mut self.data::<Lazy<Data>>().get_or_default().underlying
+    default fn _underlying(&mut self) -> Box<PSP22Ref> {
+        self.data::<DataType>().get_or_default().underlying
     }
 }

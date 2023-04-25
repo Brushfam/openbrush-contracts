@@ -76,9 +76,9 @@ impl<T: Storage<DataType> + Storage<psp22::DataType> + StorageAccess<Data> + Sto
             return Err(PSP22Error::Custom(String::from("Cap must be above 0")))
         }
 
-        let mut data = self.data::<Lazy<Data>>().get_or_default();
+        let mut data = self.data::<DataType>().get_or_default();
         data.cap = cap;
-        self.data::<Lazy<Data>>().set(&data);
+        self.data::<DataType>().set(&data);
 
         Ok(())
     }

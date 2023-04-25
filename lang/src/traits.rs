@@ -122,7 +122,7 @@ where
 {
     fn get(&self) -> Option<V>;
 
-    fn set(&mut self, value: V);
+    fn set(&mut self, value: &V);
 
     fn get_or_default(&self) -> V;
 }

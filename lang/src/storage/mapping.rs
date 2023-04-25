@@ -64,6 +64,18 @@ where
     }
 }
 
+impl<K, V, TGK, TGV, KeyType> Clone for Mapping<K, V, TGK, TGV, KeyType>
+where
+    V: Packed,
+    KeyType: StorageKey,
+{
+    fn clone(&self) -> Self {
+        Self {
+            _marker: Default::default(),
+        }
+    }
+}
+
 impl<K, V, TGK, TGV, KeyType> core::fmt::Debug for Mapping<K, V, TGK, TGV, KeyType>
 where
     V: Packed,

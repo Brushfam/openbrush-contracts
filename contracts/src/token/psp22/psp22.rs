@@ -244,7 +244,7 @@ impl<T: Storage<DataType> + StorageAccess<Data>> Internal for T {
 
         let mut data = self.data().get_or_default();
         data.supply += amount;
-        self.data().set(data.clone());
+        self.data().set(&data);
 
         self._after_token_transfer(None, Some(&account), &amount)?;
         self._emit_transfer_event(None, Some(account), amount);
@@ -270,7 +270,7 @@ impl<T: Storage<DataType> + StorageAccess<Data>> Internal for T {
 
         let mut data = self.data().get_or_default();
         data.supply -= amount;
-        self.data().set(data.clone());
+        self.data().set(&data);
 
         self._after_token_transfer(Some(&account), None, &amount)?;
         self._emit_transfer_event(Some(account), None, amount);

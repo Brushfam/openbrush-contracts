@@ -30,13 +30,17 @@ pub use crate::{
 };
 use ink::{
     env::CallFlags,
-    prelude::vec::Vec,
+    prelude::{
+        boxed::Box,
+        vec::Vec,
+    },
     storage::Lazy,
 };
 use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
+    StorageAccess,
     StorageAsMut,
     StorageAsRef,
     Timestamp,
@@ -50,7 +54,7 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 #[derive(Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
-    token: AccountId,
+    token: Box<AccountId>,
     beneficiary: AccountId,
     release_time: Timestamp,
 }
@@ -58,7 +62,7 @@ pub struct Data {
 impl Default for Data {
     fn default() -> Self {
         Self {
-            token: ZERO_ADDRESS.into(),
+            token: Box::new(ZERO_ADDRESS.into()),
             beneficiary: ZERO_ADDRESS.into(),
             release_time: Default::default(),
         }
@@ -70,7 +74,7 @@ type DataType = Data;
 #[cfg(feature = "upgradeable")]
 type DataType = Lazy<Data>;
 
-impl<T: Storage<DataType>> PSP22TokenTimelock for T {
+impl<T: Storage<DataType> + StorageAccess<Data>> PSP22TokenTimelock for T {
     /// Returns the token address
     default fn token(&self) -> AccountId {
         self._token_address()
@@ -88,7 +92,7 @@ impl<T: Storage<DataType>> PSP22TokenTimelock for T {
 
     /// Transfers the tokens held by timelock to the beneficairy
     default fn release(&mut self) -> Result<(), PSP22TokenTimelockError> {
-        if Self::env().block_timestamp() < self.data().release_time {
+        if Self::env().block_timestamp() < self.data().get_or_default().release_time {
             return Err(PSP22TokenTimelockError::CurrentTimeIsBeforeReleaseTime)
         }
         let amount = self._contract_balance();
@@ -121,62 +125,12 @@ pub trait Internal {
     ) -> Result<(), PSP22TokenTimelockError>;
 
     /// Getter for caller to `PSP22Ref` of `token`
-    fn _token(&mut self) -> &mut PSP22Ref;
+    fn _token(&mut self) -> Box<PSP22Ref>;
 }
 
-#[cfg(not(feature = "upgradeable"))]
-impl<T: Storage<Data>> Internal for T {
+impl<T: Storage<DataType> + StorageAccess<Data>> Internal for T {
     fn _token_address(&self) -> AccountId {
-        self.data().token
-    }
-
-    fn _beneficiary(&self) -> AccountId {
-        self.data().beneficiary
-    }
-
-    fn _release_time(&self) -> Timestamp {
-        self.data().release_time
-    }
-
-    default fn _withdraw(&mut self, amount: Balance) -> Result<(), PSP22TokenTimelockError> {
-        let beneficiary = self.beneficiary();
-        self._token()
-            .transfer_builder(beneficiary, amount, Vec::<u8>::new())
-            .call_flags(CallFlags::default().set_allow_reentry(true))
-            .try_invoke()
-            .unwrap()
-            .unwrap()?;
-        Ok(())
-    }
-
-    default fn _contract_balance(&mut self) -> Balance {
-        self._token().balance_of(Self::env().account_id())
-    }
-
-    default fn _init(
-        &mut self,
-        token: AccountId,
-        beneficiary: AccountId,
-        release_time: Timestamp,
-    ) -> Result<(), PSP22TokenTimelockError> {
-        if release_time <= Self::env().block_timestamp() {
-            return Err(PSP22TokenTimelockError::ReleaseTimeIsBeforeCurrentTime)
-        }
-        self.data().token = token;
-        self.data().beneficiary = beneficiary;
-        self.data().release_time = release_time;
-        Ok(())
-    }
-
-    default fn _token(&mut self) -> &mut PSP22Ref {
-        &mut self.data().token
-    }
-}
-
-#[cfg(feature = "upgradeable")]
-impl<T: Storage<Lazy<Data>>> Internal for T {
-    fn _token_address(&self) -> AccountId {
-        self.data().get_or_default().token
+        *self.data().get_or_default().token
     }
 
     fn _beneficiary(&self) -> AccountId {
@@ -214,7 +168,7 @@ impl<T: Storage<Lazy<Data>>> Internal for T {
 
         let mut data = self.data().get_or_default();
 
-        data.token = token;
+        data.token = Box::new(token);
         data.beneficiary = beneficiary;
         data.release_time = release_time;
 
@@ -223,7 +177,7 @@ impl<T: Storage<Lazy<Data>>> Internal for T {
         Ok(())
     }
 
-    default fn _token(&mut self) -> &mut PSP22Ref {
-        &mut self.data().get_or_default().token
+    default fn _token(&mut self) -> Box<PSP22Ref> {
+        self.data().get_or_default().token
     }
 }

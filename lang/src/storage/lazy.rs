@@ -114,8 +114,8 @@ where
         self.get()
     }
 
-    fn set(&mut self, value: V) {
-        self.set(&value)
+    fn set(&mut self, value: &V) {
+        self.set(value)
     }
 
     fn get_or_default(&self) -> V {

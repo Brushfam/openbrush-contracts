@@ -425,9 +425,9 @@ pub fn wrapper(attrs: TokenStream, input: TokenStream) -> TokenStream {
 
 synstructure::decl_attribute!(
     [upgradeable_storage] =>
-    /// That macro implemented `OccupyStorage`
-    /// with a specified storage key instead of the default one (All data is stored under
-    /// the provided storage key).
+    /// That macro implements traits for the specified struct for types to be upgradeable, which means,
+    /// that all the `Lazy` and `Mapping`s inside of struct will have unchangeable and defined storage keys.
+    /// with a specified storage key instead of the default one
     ///
     /// That macro requires one input argument - the storage key. It can be any Rust code that returns
     /// `u32`.

@@ -400,7 +400,7 @@ of your contract, permission system, etc.
 ### The `Diamond` Standard
 
 #### Disclaimer
-Right now, you can't use 
+Right now, you can't use diamond standard in OpenBrush because of the problems with delegate calls.
 
 Using `Diamond` Standard you can add support for several facets(logic layers) that 
 can be upgraded. [This standard](https://eips.ethereum.org/EIPS/eip-2535) came 

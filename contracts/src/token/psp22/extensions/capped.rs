@@ -50,7 +50,7 @@ pub struct Data {
 
 impl<T: Storage<Data>> PSP22Capped for T {
     default fn cap(&self) -> Balance {
-        self.data().cap.clone()
+        self.data().cap
     }
 }
 

@@ -149,7 +149,7 @@ impl<T: Storage<Data>> Internal for T {
     default fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 
     default fn _total_supply(&self) -> Balance {
-        self.data().supply.clone()
+        self.data().supply
     }
 
     default fn _balance_of(&self, owner: &AccountId) -> Balance {

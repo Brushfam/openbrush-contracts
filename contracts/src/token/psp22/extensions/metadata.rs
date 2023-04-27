@@ -58,6 +58,6 @@ impl<T: Storage<Data>> PSP22Metadata for T {
     }
 
     default fn token_decimals(&self) -> u8 {
-        self.data().decimals.clone()
+        self.data().decimals
     }
 }

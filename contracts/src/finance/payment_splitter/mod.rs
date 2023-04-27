@@ -50,11 +50,11 @@ pub struct Data {
 
 impl<T: Storage<Data>> PaymentSplitter for T {
     default fn total_shares(&self) -> Balance {
-        self.data().total_shares.clone()
+        self.data().total_shares
     }
 
     default fn total_released(&self) -> Balance {
-        self.data().total_released.clone()
+        self.data().total_released
     }
 
     default fn shares(&self, account: AccountId) -> Balance {
@@ -74,14 +74,14 @@ impl<T: Storage<Data>> PaymentSplitter for T {
     }
 
     default fn release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
-        if !self.data().shares.get(&account).is_some() {
+        if self.data().shares.get(&account).is_none() {
             return Err(PaymentSplitterError::AccountHasNoShares)
         }
 
         let balance = Self::env().balance();
         let current_balance = balance.checked_sub(Self::env().minimum_balance()).unwrap_or_default();
         let total_received = current_balance + self.data().total_released;
-        let shares = self.data().shares.get(&account).unwrap().clone();
+        let shares = self.data().shares.get(&account).unwrap();
         let total_shares = self.data().total_shares;
         let released = self.data().released.get(&account).unwrap_or_default();
         let payment = total_received * shares / total_shares - released;
@@ -93,7 +93,7 @@ impl<T: Storage<Data>> PaymentSplitter for T {
         self.data().released.insert(&account, &(released + payment));
         self.data().total_released += payment;
 
-        let transfer_result = Self::env().transfer(account.clone(), payment);
+        let transfer_result = Self::env().transfer(account, payment);
         if transfer_result.is_err() {
             return Err(PaymentSplitterError::TransferFailed)
         }
@@ -147,7 +147,7 @@ impl<T: Storage<Data>> Internal for T {
             return Err(PaymentSplitterError::AlreadyHasShares)
         }
 
-        self.data().payees.push(payee.clone());
+        self.data().payees.push(payee);
         self.data().shares.insert(&payee, &share);
         self.data().total_shares += share;
         self._emit_payee_added_event(payee, share);

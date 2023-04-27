@@ -67,10 +67,10 @@ where
 
     // We want to flush storage before execution of inner function,
     // because ink! doesn't do it by default and `status` will not be updated in child calls
-    ink::env::set_contract_storage::<Key, Data>(&Default::default(), &instance.data());
+    ink::env::set_contract_storage::<Key, Data>(&Default::default(), instance.data());
 
     let result = body(instance);
     instance.data().status = NOT_ENTERED;
 
-    return result
+    result
 }

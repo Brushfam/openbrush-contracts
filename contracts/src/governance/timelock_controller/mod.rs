@@ -136,7 +136,7 @@ where
     }
 
     default fn get_min_delay(&self) -> Timestamp {
-        self.data::<Data>().min_delay.clone()
+        self.data::<Data>().min_delay
     }
 
     default fn hash_operation(
@@ -186,7 +186,7 @@ where
         self._schedule(id, &delay)?;
 
         for (i, transaction) in transactions.into_iter().enumerate() {
-            self._emit_call_scheduled_event(id.clone(), i as u8, transaction, predecessor.clone(), delay.clone());
+            self._emit_call_scheduled_event(id, i as u8, transaction, predecessor, delay);
         }
         Ok(())
     }
@@ -238,7 +238,7 @@ where
             return Err(TimelockControllerError::CallerMustBeTimeLock)
         }
 
-        let old_delay = self.data::<Data>().min_delay.clone();
+        let old_delay = self.data::<Data>().min_delay;
         self._emit_min_delay_change_event(old_delay, new_delay);
 
         self.data::<Data>().min_delay = new_delay;
@@ -279,7 +279,7 @@ pub trait Internal {
 
     fn _hash_operation_batch(
         &self,
-        transactions: &Vec<Transaction>,
+        transactions: &[Transaction],
         predecessor: &Option<OperationId>,
         salt: &[u8; 32],
     ) -> OperationId;
@@ -364,7 +364,7 @@ where
             .into_iter()
             .for_each(|executor| self._setup_role(Self::_executor_role(), Some(executor)));
 
-        let old_delay = self.data::<Data>().min_delay.clone();
+        let old_delay = self.data::<Data>().min_delay;
         self.data::<Data>().min_delay = min_delay;
         self._emit_min_delay_change_event(old_delay, min_delay);
     }
@@ -388,7 +388,7 @@ where
 
     default fn _hash_operation_batch(
         &self,
-        transactions: &Vec<Transaction>,
+        transactions: &[Transaction],
         predecessor: &Option<OperationId>,
         salt: &[u8; 32],
     ) -> OperationId {

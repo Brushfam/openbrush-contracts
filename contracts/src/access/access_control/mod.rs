@@ -23,6 +23,7 @@ pub mod extensions {
     pub mod enumerable;
 }
 
+#[allow(clippy::module_inception)]
 pub mod access_control;
 pub mod members;
 

@@ -56,7 +56,7 @@ impl<T: Storage<Data> + Storage<ownable::Data>> Proxy for T {
 
     #[modifiers(ownable::only_owner)]
     default fn change_delegate_code(&mut self, new_code_hash: Hash) -> Result<(), OwnableError> {
-        let old_code_hash = self.data::<Data>().forward_to.clone();
+        let old_code_hash = self.data::<Data>().forward_to;
         self.data::<Data>().forward_to = new_code_hash;
         self._emit_delegate_code_changed_event(Some(old_code_hash), Some(new_code_hash));
         Ok(())
@@ -81,7 +81,7 @@ impl<T: Storage<Data>> Internal for T {
 
     default fn _fallback(&self) -> ! {
         ink::env::call::build_call::<ink::env::DefaultEnvironment>()
-            .delegate(self.data().forward_to.clone())
+            .delegate(self.data().forward_to)
             .call_flags(
                 ink::env::CallFlags::default()
                 // We don't plan to use the input data after the delegated call, so the 

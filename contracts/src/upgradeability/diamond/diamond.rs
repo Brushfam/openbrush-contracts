@@ -93,7 +93,7 @@ where
 }
 
 pub trait Internal {
-    fn _emit_diamond_cut_event(&self, diamond_cut: &Vec<FacetCut>, init: &Option<InitCall>);
+    fn _emit_diamond_cut_event(&self, diamond_cut: &[FacetCut], init: &Option<InitCall>);
 
     fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError>;
 
@@ -117,7 +117,7 @@ where
     T: Storage<Data<D>>,
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<D>>,
 {
-    default fn _emit_diamond_cut_event(&self, _diamond_cut: &Vec<FacetCut>, _init: &Option<InitCall>) {}
+    default fn _emit_diamond_cut_event(&self, _diamond_cut: &[FacetCut], _init: &Option<InitCall>) {}
 
     default fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
         for facet_cut in diamond_cut.iter() {
@@ -126,7 +126,7 @@ where
 
         self._emit_diamond_cut_event(&diamond_cut, &init);
 
-        if init.is_some() {
+        if let Some(..) = init {
             self.flush();
             self._init_call(init.unwrap());
         }
@@ -144,9 +144,9 @@ where
             self._remove_facet(code_hash);
         } else {
             for selector in facet_cut.selectors.iter() {
-                let selector_hash = self.data().selector_to_hash.get(&selector);
+                let selector_hash = self.data().selector_to_hash.get(selector);
 
-                if selector_hash.and_then(|hash| Some(hash == code_hash)).unwrap_or(false) {
+                if selector_hash.map(|hash| hash == code_hash).unwrap_or(false) {
                     // selector already registered to this hash -> no action
                     continue
                 } else if selector_hash.is_some() {
@@ -154,7 +154,7 @@ where
                     return Err(DiamondError::ReplaceExisting(selector_hash.unwrap()))
                 } else {
                     // map selector to its facet
-                    self.data().selector_to_hash.insert(&selector, &code_hash);
+                    self.data().selector_to_hash.insert(selector, &code_hash);
                 }
             }
 
@@ -211,7 +211,7 @@ where
     default fn _remove_facet(&mut self, code_hash: Hash) {
         let vec = self.data().hash_to_selectors.get(&code_hash).unwrap();
         vec.iter().for_each(|old_selector| {
-            self.data().selector_to_hash.remove(&old_selector);
+            self.data().selector_to_hash.remove(old_selector);
         });
         self.data().hash_to_selectors.remove(&code_hash);
         self.data().handler.on_remove_facet(code_hash);
@@ -224,8 +224,8 @@ where
             .get(&facet_cut.hash)
             .unwrap_or(Vec::<Selector>::new());
         for selector in selectors.iter() {
-            if !facet_cut.selectors.contains(&selector) {
-                self.data().selector_to_hash.remove(&selector);
+            if !facet_cut.selectors.contains(selector) {
+                self.data().selector_to_hash.remove(selector);
             }
         }
     }

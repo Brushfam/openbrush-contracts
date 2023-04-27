@@ -66,11 +66,8 @@ where
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>,
 {
     pub balances: B,
-    pub operator_approvals: Mapping<
-        (AccountId, AccountId, Option<Id>),
-        Balance,
-        ApprovalsKey, // optimization
-    >,
+    #[allow(clippy::type_complexity)]
+    pub operator_approvals: Mapping<(AccountId, AccountId, Option<Id>), Balance, ApprovalsKey>,
     pub _reserved: Option<()>,
 }
 
@@ -173,7 +170,7 @@ pub trait Internal {
         owner: &AccountId,
         operator: &AccountId,
         id: &Id,
-        value: Balance,
+        value: &Balance,
     ) -> Result<(), PSP37Error>;
 
     fn _transfer_token(
@@ -182,7 +179,7 @@ pub trait Internal {
         to: &AccountId,
         id: Id,
         amount: Balance,
-        data: &Vec<u8>,
+        data: &[u8],
     ) -> Result<(), PSP37Error>;
 }
 
@@ -274,7 +271,7 @@ where
         }
 
         self._before_token_transfer(Some(&from), Some(&to), &ids_amounts)?;
-        self._decrease_allowance(&from, &operator, &id, value)?;
+        self._decrease_allowance(&from, &operator, &id, &value)?;
         self._transfer_token(&from, &to, id.clone(), value, &data)?;
         self._after_token_transfer(Some(&from), Some(&to), &ids_amounts)?;
         self._emit_transfer_event(Some(from), Some(to), id, value);
@@ -303,14 +300,12 @@ where
                     .operator_approvals
                     .insert(&(&caller, &operator, &Some(id)), &value);
             }
+        } else if value == 0 {
+            self.data().operator_approvals.remove(&(&caller, &operator, &None));
         } else {
-            if value == 0 {
-                self.data().operator_approvals.remove(&(&caller, &operator, &None));
-            } else {
-                self.data()
-                    .operator_approvals
-                    .insert(&(&caller, &operator, &None), &Balance::MAX);
-            }
+            self.data()
+                .operator_approvals
+                .insert(&(&caller, &operator, &None), &Balance::MAX);
         }
 
         self._emit_approval_event(caller, operator, id, value);
@@ -323,7 +318,7 @@ where
         owner: &AccountId,
         operator: &AccountId,
         id: &Id,
-        value: Balance,
+        value: &Balance,
     ) -> Result<(), PSP37Error> {
         if owner == operator {
             return Ok(())
@@ -335,7 +330,7 @@ where
             return Ok(())
         }
 
-        if initial_allowance < value {
+        if initial_allowance < *value {
             return Err(PSP37Error::InsufficientBalance)
         }
 
@@ -352,7 +347,7 @@ where
         to: &AccountId,
         id: Id,
         value: Balance,
-        _data: &Vec<u8>,
+        _data: &[u8],
     ) -> Result<(), PSP37Error> {
         self.data().balances.decrease_balance(from, &id, &value, false)?;
         self.data().balances.increase_balance(to, &id, &value, false)?;
@@ -365,14 +360,14 @@ pub trait Transfer {
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,
-        _ids: &Vec<(Id, Balance)>,
+        _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error>;
 
     fn _after_token_transfer(
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,
-        _ids: &Vec<(Id, Balance)>,
+        _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error>;
 }
 
@@ -389,7 +384,7 @@ where
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,
-        _ids: &Vec<(Id, Balance)>,
+        _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error> {
         Ok(())
     }
@@ -398,7 +393,7 @@ where
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,
-        _ids: &Vec<(Id, Balance)>,
+        _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error> {
         Ok(())
     }

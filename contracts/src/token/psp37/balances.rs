@@ -47,6 +47,7 @@ pub trait BalancesManager {
 #[openbrush::upgradeable_storage(BALANCES_KEY)]
 #[derive(Default, Debug)]
 pub struct Balances {
+    #[allow(clippy::type_complexity)]
     pub balances: Mapping<(AccountId, Option<Id>), Balance, BalancesKey>,
     pub supply: Mapping<Option<Id>, Balance, SupplyKey>,
     pub _reserved: Option<()>,

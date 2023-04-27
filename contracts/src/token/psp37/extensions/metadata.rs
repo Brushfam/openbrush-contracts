@@ -49,6 +49,7 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 #[derive(Default, Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
+    #[allow(clippy::type_complexity)]
     pub attributes: Mapping<(Id, Vec<u8>), Vec<u8>, AttributesKey>,
     pub _reserved: Option<()>,
 }
@@ -66,23 +67,23 @@ impl<T: Storage<Data>> PSP37Metadata for T {
 }
 
 pub trait Internal {
-    fn _emit_attribute_set_event(&self, _id: &Id, _key: &Vec<u8>, _data: &Vec<u8>);
+    fn _emit_attribute_set_event(&self, _id: &Id, _key: &[u8], _data: &[u8]);
 
-    fn _set_attribute(&mut self, id: &Id, key: &Vec<u8>, data: &Vec<u8>) -> Result<(), PSP37Error>;
+    fn _set_attribute(&mut self, id: &Id, key: &[u8], data: &[u8]) -> Result<(), PSP37Error>;
 
-    fn _get_attribute(&self, id: &Id, key: &Vec<u8>) -> Option<Vec<u8>>;
+    fn _get_attribute(&self, id: &Id, key: &[u8]) -> Option<Vec<u8>>;
 }
 
 impl<T: Storage<Data>> Internal for T {
-    default fn _emit_attribute_set_event(&self, _id: &Id, _key: &Vec<u8>, _data: &Vec<u8>) {}
+    default fn _emit_attribute_set_event(&self, _id: &Id, _key: &[u8], _data: &[u8]) {}
 
-    default fn _set_attribute(&mut self, id: &Id, key: &Vec<u8>, data: &Vec<u8>) -> Result<(), PSP37Error> {
-        self.data().attributes.insert(&(&id, &key), data);
+    default fn _set_attribute(&mut self, id: &Id, key: &[u8], data: &[u8]) -> Result<(), PSP37Error> {
+        self.data().attributes.insert(&(id, &key.to_vec()), &data.to_vec());
         self._emit_attribute_set_event(id, key, data);
         Ok(())
     }
 
-    default fn _get_attribute(&self, id: &Id, key: &Vec<u8>) -> Option<Vec<u8>> {
-        self.data().attributes.get(&(&id, &key))
+    default fn _get_attribute(&self, id: &Id, key: &[u8]) -> Option<Vec<u8>> {
+        self.data().attributes.get(&(id, &key.to_vec()))
     }
 }

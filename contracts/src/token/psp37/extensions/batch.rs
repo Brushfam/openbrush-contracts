@@ -118,7 +118,7 @@ where
         self._before_token_transfer(Some(&from), Some(&to), &ids_amounts)?;
 
         for (id, value) in &ids_amounts {
-            self._decrease_allowance(&from, &operator, id, value.clone())?;
+            self._decrease_allowance(&from, &operator, id, value)?;
 
             self.data().balances.decrease_balance(&from, id, value, false)?;
         }

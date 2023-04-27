@@ -33,6 +33,7 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
 #[derive(Default, Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Members {
+    #[allow(clippy::type_complexity)]
     pub members: Mapping<(RoleType, Option<AccountId>), (), MembersKey>,
     pub _reserved: Option<()>,
 }

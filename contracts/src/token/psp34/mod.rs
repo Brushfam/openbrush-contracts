@@ -22,6 +22,7 @@
 use openbrush::traits::AccountId;
 
 pub mod balances;
+#[allow(clippy::module_inception)]
 pub mod psp34;
 
 pub use psp34::*;

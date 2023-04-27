@@ -66,6 +66,7 @@ where
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
 {
     pub token_owner: Mapping<Id, Owner>,
+    #[allow(clippy::type_complexity)]
     pub operator_approvals: Mapping<(Owner, Operator, Option<Id>), (), ApprovalsKey>,
     pub balances: B,
     pub _reserved: Option<()>,
@@ -234,11 +235,11 @@ where
 
     default fn _allowance(&self, owner: &Owner, operator: &Operator, id: &Option<&Id>) -> bool {
         self.data().operator_approvals.get(&(owner, operator, &None)).is_some()
-            || id != &None && self.data().operator_approvals.get(&(owner, operator, id)).is_some()
+            || id.is_some() && self.data().operator_approvals.get(&(owner, operator, id)).is_some()
     }
 
     default fn _check_token_exists(&self, id: &Id) -> Result<AccountId, PSP34Error> {
-        self.data().token_owner.get(&id).ok_or(PSP34Error::TokenNotExists)
+        self.data().token_owner.get(id).ok_or(PSP34Error::TokenNotExists)
     }
 }
 

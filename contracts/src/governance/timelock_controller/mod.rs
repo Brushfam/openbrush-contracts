@@ -63,7 +63,6 @@ use openbrush::{
         OccupiedStorage,
         Storage,
         Timestamp,
-        ZERO_ADDRESS,
     },
 };
 
@@ -93,8 +92,8 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<AccessControlError>,
 {
-    if !instance.data().members.has_role(role, &(ZERO_ADDRESS.into())) {
-        access_control::check_role(instance, role, T::env().caller())?;
+    if !instance.data().members.has_role(role, &None) {
+        access_control::check_role(instance, role, Some(T::env().caller()))?;
     }
     body(instance)
 }
@@ -353,17 +352,17 @@ where
         self._set_role_admin(Self::_executor_role(), Self::_executor_role());
 
         // admin + self administration
-        self._setup_role(Self::_timelock_admin_role(), Self::env().account_id());
-        self._setup_role(Self::_timelock_admin_role(), admin);
+        self._setup_role(Self::_timelock_admin_role(), Some(Self::env().account_id()));
+        self._setup_role(Self::_timelock_admin_role(), Some(admin));
 
         // register proposers
         proposers
             .into_iter()
-            .for_each(|proposer| self._setup_role(Self::_proposal_role(), proposer));
+            .for_each(|proposer| self._setup_role(Self::_proposal_role(), Some(proposer)));
         // register executors
         executors
             .into_iter()
-            .for_each(|executor| self._setup_role(Self::_executor_role(), executor));
+            .for_each(|executor| self._setup_role(Self::_executor_role(), Some(executor)));
 
         let old_delay = self.data::<Data>().min_delay.clone();
         self.data::<Data>().min_delay = min_delay;
@@ -442,25 +441,27 @@ where
     ) -> Result<(), TimelockControllerError> {
         // Flush the state into storage before the cross call.
         // Because during cross call we cann call this contract(for example for `update_delay` method).
-        self.flush();
-        let result = build_call::<DefaultEnvironment>()
-            .call_type(
-                Call::new(transaction.callee)
-                    .gas_limit(transaction.gas_limit)
-                    .transferred_value(transaction.transferred_value),
-            )
-            .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(CallInput(&transaction.input)))
-            .returns::<()>()
-            .call_flags(CallFlags::default().set_allow_reentry(true))
-            .try_invoke()
-            .map_err(|_| TimelockControllerError::UnderlyingTransactionReverted);
-
-        // Load the sate of the contract after the cross call.
-        self.load();
-
-        result?.unwrap();
-        self._emit_call_executed_event(id, i, transaction);
-        Ok(())
+        if let Some(callee) = transaction.callee {
+            self.flush();
+            let result = build_call::<DefaultEnvironment>()
+                .call_type(
+                    Call::new(callee)
+                        .gas_limit(transaction.gas_limit)
+                        .transferred_value(transaction.transferred_value),
+                )
+                .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(CallInput(&transaction.input)))
+                .returns::<()>()
+                .call_flags(CallFlags::default().set_allow_reentry(true))
+                .try_invoke()
+                .map_err(|_| TimelockControllerError::UnderlyingTransactionReverted);
+            // Load the sate of the contract after the cross call.
+            self.load();
+            result?.unwrap();
+            self._emit_call_executed_event(id, i, transaction);
+            Ok(())
+        } else {
+            Err(TimelockControllerError::NonExistingAccount)
+        }
     }
 
     default fn _timelock_admin_role() -> RoleType {

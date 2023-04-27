@@ -149,8 +149,8 @@ mod payment_splitter {
 
         assert_eq!(100 + 200, instance.total_shares());
         assert_eq!(0, instance.total_released());
-        assert_eq!(accounts.alice, instance.payee(0));
-        assert_eq!(accounts.bob, instance.payee(1));
+        assert_eq!(Some(accounts.alice), instance.payee(0));
+        assert_eq!(Some(accounts.bob), instance.payee(1));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_payee_added_event(&emitted_events[0], accounts.alice, 100);

@@ -99,7 +99,9 @@ pub mod my_lending {
             let mut instance = Self::default();
             let caller = <Self as DefaultEnv>::env().caller();
             instance._init_with_admin(caller);
-            instance.grant_role(MANAGER, caller).expect("Can not set manager role");
+            instance
+                .grant_role(MANAGER, Some(caller))
+                .expect("Can not set manager role");
             instance.lending.shares_contract_code_hash = shares_hash;
             // instantiate NFT contract and store its account id
             let nft = LoanContractRef::new()

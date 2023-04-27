@@ -54,7 +54,7 @@ mod access_control {
         #[ink(topic)]
         role: RoleType,
         #[ink(topic)]
-        grantee: AccountId,
+        grantee: Option<AccountId>,
         #[ink(topic)]
         grantor: Option<AccountId>,
     }
@@ -64,7 +64,7 @@ mod access_control {
         #[ink(topic)]
         role: RoleType,
         #[ink(topic)]
-        account: AccountId,
+        account: Option<AccountId>,
         #[ink(topic)]
         admin: AccountId,
     }
@@ -96,11 +96,11 @@ mod access_control {
             })
         }
 
-        fn _emit_role_granted(&mut self, role: u32, grantee: AccountId, grantor: Option<AccountId>) {
+        fn _emit_role_granted(&mut self, role: u32, grantee: Option<AccountId>, grantor: Option<AccountId>) {
             self.env().emit_event(RoleGranted { role, grantee, grantor })
         }
 
-        fn _emit_role_revoked(&mut self, role: u32, account: AccountId, sender: AccountId) {
+        fn _emit_role_revoked(&mut self, role: u32, account: Option<AccountId>, sender: AccountId) {
             self.env().emit_event(RoleRevoked {
                 role,
                 account,
@@ -165,9 +165,11 @@ mod access_control {
                 role, expected_role
             );
             assert_eq!(
-                grantee, expected_grantee,
+                grantee,
+                Some(expected_grantee),
                 "Grantees were not equal: encountered grantee {:?}, expected {:?}",
-                grantee, expected_grantee
+                grantee,
+                Some(expected_grantee)
             );
             assert_eq!(
                 grantor, expected_grantor,
@@ -193,9 +195,11 @@ mod access_control {
                 role, expected_role
             );
             assert_eq!(
-                account, expected_account,
+                account,
+                Some(expected_account),
                 "Accounts were not equal: encountered account {:?}, expected {:?}",
-                account, expected_account
+                account,
+                Some(expected_account)
             );
             assert_eq!(
                 admin, expected_admin,
@@ -215,7 +219,7 @@ mod access_control {
     fn should_init_with_default_admin() {
         let accounts = setup();
         let access_control = AccessControlStruct::new(accounts.alice);
-        assert!(access_control.has_role(DEFAULT_ADMIN_ROLE, accounts.alice));
+        assert!(access_control.has_role(DEFAULT_ADMIN_ROLE, Some(accounts.alice)));
         assert_eq!(access_control.get_role_admin(DEFAULT_ADMIN_ROLE), DEFAULT_ADMIN_ROLE);
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, accounts.alice, None);
@@ -227,12 +231,12 @@ mod access_control {
         let alice = accounts.alice;
         let mut access_control = AccessControlStruct::new(alice);
 
-        assert!(access_control.grant_role(PAUSER, alice).is_ok());
-        assert!(access_control.grant_role(MINTER, alice).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(alice)).is_ok());
+        assert!(access_control.grant_role(MINTER, Some(alice)).is_ok());
 
-        assert!(access_control.has_role(DEFAULT_ADMIN_ROLE, alice));
-        assert!(access_control.has_role(PAUSER, alice));
-        assert!(access_control.has_role(MINTER, alice));
+        assert!(access_control.has_role(DEFAULT_ADMIN_ROLE, Some(alice)));
+        assert!(access_control.has_role(PAUSER, Some(alice)));
+        assert!(access_control.has_role(MINTER, Some(alice)));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, alice, None);
@@ -246,9 +250,9 @@ mod access_control {
         let alice = accounts.alice;
         let mut access_control = AccessControlStruct::new(alice);
 
-        assert_eq!(access_control.grant_role(PAUSER, alice), Ok(()));
+        assert_eq!(access_control.grant_role(PAUSER, Some(alice)), Ok(()));
         assert_eq!(
-            access_control.grant_role(PAUSER, alice),
+            access_control.grant_role(PAUSER, Some(alice)),
             Err(AccessControlError::RoleRedundant)
         );
     }
@@ -258,11 +262,11 @@ mod access_control {
         let accounts = setup();
         let mut access_control = AccessControlStruct::new(accounts.alice);
 
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
-        assert!(access_control.has_role(PAUSER, accounts.bob));
-        assert!(access_control.revoke_role(PAUSER, accounts.bob).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(accounts.bob)).is_ok());
+        assert!(access_control.has_role(PAUSER, Some(accounts.bob)));
+        assert!(access_control.revoke_role(PAUSER, Some(accounts.bob)).is_ok());
 
-        assert!(!access_control.has_role(PAUSER, accounts.bob));
+        assert!(!access_control.has_role(PAUSER, Some(accounts.bob)));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, accounts.alice, None);
@@ -276,12 +280,12 @@ mod access_control {
         let mut access_control = AccessControlStruct::new(accounts.alice);
         change_caller(accounts.alice);
 
-        assert!(access_control.grant_role(PAUSER, accounts.eve).is_ok());
-        assert!(access_control.has_role(PAUSER, accounts.eve));
+        assert!(access_control.grant_role(PAUSER, Some(accounts.eve)).is_ok());
+        assert!(access_control.has_role(PAUSER, Some(accounts.eve)));
         change_caller(accounts.eve);
-        assert!(access_control.renounce_role(PAUSER, accounts.eve).is_ok());
+        assert!(access_control.renounce_role(PAUSER, Some(accounts.eve)).is_ok());
 
-        assert!(!access_control.has_role(PAUSER, accounts.eve));
+        assert!(!access_control.has_role(PAUSER, Some(accounts.eve)));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, accounts.alice, None);
@@ -294,10 +298,10 @@ mod access_control {
         let accounts = setup();
         let mut access_control = AccessControlStruct::new(accounts.alice);
 
-        assert!(access_control.grant_role(MINTER, accounts.eve).is_ok());
+        assert!(access_control.grant_role(MINTER, Some(accounts.eve)).is_ok());
         access_control._set_role_admin(PAUSER, MINTER);
         change_caller(accounts.eve);
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(accounts.bob)).is_ok());
 
         assert_eq!(access_control.get_role_admin(MINTER), DEFAULT_ADMIN_ROLE);
         assert_eq!(access_control.get_role_admin(PAUSER), MINTER);
@@ -314,12 +318,12 @@ mod access_control {
         let accounts = setup();
         let mut access_control = AccessControlStruct::new(accounts.alice);
 
-        assert!(access_control.grant_role(MINTER, accounts.eve).is_ok());
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
+        assert!(access_control.grant_role(MINTER, Some(accounts.eve)).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(accounts.bob)).is_ok());
         access_control._set_role_admin(PAUSER, MINTER);
 
         assert_eq!(
-            access_control.grant_role(PAUSER, accounts.eve),
+            access_control.grant_role(PAUSER, Some(accounts.eve)),
             Err(AccessControlError::MissingRole)
         );
     }
@@ -329,14 +333,14 @@ mod access_control {
         let accounts = setup();
         let mut access_control = AccessControlStruct::new(accounts.alice);
 
-        assert!(access_control.grant_role(MINTER, accounts.eve).is_ok());
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
+        assert!(access_control.grant_role(MINTER, Some(accounts.eve)).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(accounts.bob)).is_ok());
         access_control._set_role_admin(PAUSER, MINTER);
 
         change_caller(accounts.bob);
 
         assert_eq!(
-            access_control.revoke_role(MINTER, accounts.bob),
+            access_control.revoke_role(MINTER, Some(accounts.bob)),
             Err(AccessControlError::MissingRole)
         );
     }
@@ -346,9 +350,9 @@ mod access_control {
         let accounts = setup();
         let mut access_control = AccessControlStruct::new(accounts.alice);
 
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
+        assert!(access_control.grant_role(PAUSER, Some(accounts.bob)).is_ok());
         assert_eq!(
-            access_control.renounce_role(PAUSER, accounts.bob),
+            access_control.renounce_role(PAUSER, Some(accounts.bob)),
             Err(AccessControlError::InvalidCaller)
         );
     }
@@ -360,7 +364,7 @@ mod access_control {
         let mut access_control = AccessControlStruct::new(accounts.alice);
 
         assert_eq!(
-            access_control.renounce_role(PAUSER, accounts.alice),
+            access_control.renounce_role(PAUSER, Some(accounts.alice)),
             Err(AccessControlError::MissingRole)
         );
     }

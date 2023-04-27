@@ -59,7 +59,7 @@ pub trait PaymentSplitter {
 
     /// Getter for the address of the payee number `index`.
     #[ink(message)]
-    fn payee(&self, index: u32) -> AccountId;
+    fn payee(&self, index: u32) -> Option<AccountId>;
 
     /// The native token received will be logged with `PaymentReceived` events.
     /// Note that these events are not fully reliable: a contract can receive a native token

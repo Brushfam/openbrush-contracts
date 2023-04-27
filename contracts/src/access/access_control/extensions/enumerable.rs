@@ -49,20 +49,20 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
 #[derive(Default, Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Members {
-    pub role_members: MultiMapping<RoleType, AccountId, ValueGuard<RoleType>>,
+    pub role_members: MultiMapping<RoleType, Option<AccountId>, ValueGuard<RoleType>>,
     pub _reserved: Option<()>,
 }
 
 impl members::MembersManager for Members {
-    fn has_role(&self, role: RoleType, address: &AccountId) -> bool {
+    fn has_role(&self, role: RoleType, address: &Option<AccountId>) -> bool {
         self.role_members.contains_value(role, address)
     }
 
-    fn add(&mut self, role: RoleType, member: &AccountId) {
+    fn add(&mut self, role: RoleType, member: &Option<AccountId>) {
         self.role_members.insert(role, member);
     }
 
-    fn remove(&mut self, role: RoleType, member: &AccountId) {
+    fn remove(&mut self, role: RoleType, member: &Option<AccountId>) {
         self.role_members.remove_value(role, member);
     }
 }
@@ -73,7 +73,11 @@ where
     T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<Members>>,
 {
     default fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
-        self.data().members.role_members.get_value(role, &(index as u128))
+        self.data()
+            .members
+            .role_members
+            .get_value(role, &(index as u128))
+            .unwrap_or_default()
     }
 
     default fn get_role_member_count(&self, role: RoleType) -> u32 {

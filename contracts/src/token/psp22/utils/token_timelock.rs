@@ -37,39 +37,28 @@ use openbrush::traits::{
     Balance,
     Storage,
     Timestamp,
-    ZERO_ADDRESS,
 };
 pub use psp22::Internal as _;
 pub use token_timelock::Internal as _;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
-    token: AccountId,
-    beneficiary: AccountId,
+    token: Option<AccountId>,
+    beneficiary: Option<AccountId>,
     release_time: Timestamp,
-}
-
-impl Default for Data {
-    fn default() -> Self {
-        Self {
-            token: ZERO_ADDRESS.into(),
-            beneficiary: ZERO_ADDRESS.into(),
-            release_time: Default::default(),
-        }
-    }
 }
 
 impl<T: Storage<Data>> PSP22TokenTimelock for T {
     /// Returns the token address
-    default fn token(&self) -> AccountId {
+    default fn token(&self) -> Option<AccountId> {
         self.data().token
     }
 
     /// Returns the beneficiary of the tokens
-    default fn beneficiary(&self) -> AccountId {
+    default fn beneficiary(&self) -> Option<AccountId> {
         self.data().beneficiary
     }
 
@@ -105,25 +94,28 @@ pub trait Internal {
         beneficiary: AccountId,
         release_time: Timestamp,
     ) -> Result<(), PSP22TokenTimelockError>;
-
-    /// Getter for caller to `PSP22Ref` of `token`
-    fn _token(&mut self) -> &mut PSP22Ref;
 }
 
 impl<T: Storage<Data>> Internal for T {
     default fn _withdraw(&mut self, amount: Balance) -> Result<(), PSP22TokenTimelockError> {
-        let beneficiary = self.beneficiary();
-        self._token()
-            .transfer_builder(beneficiary, amount, Vec::<u8>::new())
-            .call_flags(CallFlags::default().set_allow_reentry(true))
-            .try_invoke()
-            .unwrap()
-            .unwrap()?;
-        Ok(())
+        if let Some(beneficiary) = self.beneficiary() {
+            if let Some(token) = self.data().token {
+                PSP22Ref::transfer_builder(&token, beneficiary, amount, Vec::<u8>::new())
+                    .call_flags(CallFlags::default().set_allow_reentry(true))
+                    .try_invoke()
+                    .unwrap()
+                    .unwrap()?;
+                return Ok(())
+            }
+        }
+        Err(PSP22TokenTimelockError::NonExistingAccount)
     }
 
     default fn _contract_balance(&mut self) -> Balance {
-        self._token().balance_of(Self::env().account_id())
+        match self.data().token {
+            Some(token) => PSP22Ref::balance_of(&token, Self::env().account_id()),
+            None => 0,
+        }
     }
 
     default fn _init(
@@ -135,13 +127,9 @@ impl<T: Storage<Data>> Internal for T {
         if release_time <= Self::env().block_timestamp() {
             return Err(PSP22TokenTimelockError::ReleaseTimeIsBeforeCurrentTime)
         }
-        self.data().token = token;
-        self.data().beneficiary = beneficiary;
+        self.data().token = Some(token);
+        self.data().beneficiary = Some(beneficiary);
         self.data().release_time = release_time;
         Ok(())
-    }
-
-    default fn _token(&mut self) -> &mut PSP22Ref {
-        &mut self.data().token
     }
 }

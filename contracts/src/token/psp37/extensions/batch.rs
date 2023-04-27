@@ -47,7 +47,6 @@ use ink::{
 };
 use openbrush::traits::{
     AccountId,
-    AccountIdExt,
     Balance,
     OccupiedStorage,
     Storage,
@@ -111,10 +110,6 @@ where
         let operator = Self::env().caller();
 
         for (id, value) in &ids_amounts {
-            if to.is_zero() {
-                return Err(PSP37Error::TransferToZeroAddress)
-            }
-
             if from != operator && &self._get_allowance(&from, &operator, &Some(id)) < value {
                 return Err(PSP37Error::NotAllowed)
             }

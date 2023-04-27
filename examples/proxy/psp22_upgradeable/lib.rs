@@ -39,8 +39,13 @@ pub mod my_psp22_upgradeable {
         #[ink(message)]
         #[modifiers(only_owner)]
         pub fn initialize(&mut self, total_supply: Balance) -> Result<(), OwnableError> {
-            self._mint_to(self.owner(), total_supply).expect("Should mint");
-            Ok(())
+            if let Some(account) = self.owner() {
+                self._mint_to(account, total_supply).expect("Should mint");
+                Ok(())
+            } else {
+                // For the sake of this example we will just panic :)
+                panic!("Owner is not set!")
+            }
         }
     }
 }

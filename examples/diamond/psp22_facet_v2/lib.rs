@@ -29,7 +29,7 @@ pub mod my_psp22_facet_v2 {
         #[ink(message)]
         fn transfer(&mut self, to: AccountId, value: Balance, data: Vec<u8>) -> Result<(), PSP22Error> {
             let from = self.env().caller();
-            let burned = if is_tax { value / 10 } else { 0 };
+            let burned = value / 10;
             // we will burn 10% of transfer to and from non-zero accounts
             self._burn_from(from, burned)?;
             self._transfer_from_to(from, to, value - burned, data)?;

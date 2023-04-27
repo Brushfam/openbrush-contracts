@@ -28,7 +28,7 @@ use syn::parse2;
 
 pub fn generate(_: TokenStream, input: TokenStream) -> TokenStream {
     if crate::internal::skip() {
-        return (quote! {}).into()
+        return quote!()
     }
     let mut type_item: syn::ItemType = parse2(input).unwrap();
     if let syn::Type::TraitObject(traits) = &mut *type_item.ty {
@@ -78,17 +78,15 @@ pub fn generate(_: TokenStream, input: TokenStream) -> TokenStream {
             }
         }
 
-        (quote! {
+        quote! {
             #union_trait
 
             #type_item
-        })
-        .into()
+        }
     } else {
-        return (quote! {
+        quote! {
                 compile_error!(
                     "Macro accepts only form of `type Trait1and2Ref = dyn Trait1 + Trait2`");
-        })
-        .into()
+        }
     }
 }

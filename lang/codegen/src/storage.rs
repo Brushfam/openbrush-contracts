@@ -122,7 +122,7 @@ fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct, storage
         .fields
         .iter()
         .enumerate()
-        .map(|(i, field)| convert_into_storage_field(&struct_ident, None, &storage_key, i, field));
+        .map(|(i, field)| convert_into_storage_field(&struct_ident, None, storage_key, i, field));
 
     match struct_item.fields {
         Fields::Unnamed(_) => {
@@ -164,7 +164,7 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum, storage_key: 
             .fields
             .iter()
             .enumerate()
-            .map(|(i, field)| convert_into_storage_field(&enum_ident, Some(variant_ident), &storage_key, i, field))
+            .map(|(i, field)| convert_into_storage_field(&enum_ident, Some(variant_ident), storage_key, i, field))
             .collect();
 
         let fields = match variant.fields {
@@ -199,7 +199,7 @@ fn generate_union(s: &synstructure::Structure, union_item: DataUnion, storage_ke
         .named
         .iter()
         .enumerate()
-        .map(|(i, field)| convert_into_storage_field(&union_ident, None, &storage_key, i, field));
+        .map(|(i, field)| convert_into_storage_field(&union_ident, None, storage_key, i, field));
 
     quote! {
         #(#attrs)*
@@ -248,7 +248,7 @@ fn convert_into_storage_field(
 }
 
 pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
-    let storage_key = attrs.clone();
+    let storage_key = attrs;
 
     let occupy_storage = occupy_storage_derive(&storage_key, s.clone());
     let storage_key_derived = storage_key_derive(&storage_key, s.clone());
@@ -260,7 +260,7 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
         Data::Union(union_item) => generate_union(&s, union_item, &storage_key),
     };
 
-    let out = quote! {
+    quote! {
         #[derive(::ink::storage::traits::Storable)]
         #[cfg_attr(feature = "std", derive(
             ::scale_info::TypeInfo,
@@ -272,7 +272,5 @@ pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> To
         #storable_hint
 
         #occupy_storage
-    };
-
-    out.into()
+    }
 }

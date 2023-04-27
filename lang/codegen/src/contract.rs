@@ -34,11 +34,11 @@ use syn::Item;
 
 pub fn generate(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     if internal::skip() {
-        return (quote! {}).into()
+        return quote!()
     }
-    let input: TokenStream = ink_module.into();
-    let attrs: TokenStream = _attrs.into();
-    let mut module = syn::parse2::<syn::ItemMod>(input.clone()).expect("Can't parse contract module");
+    let input: TokenStream = ink_module;
+    let attrs: TokenStream = _attrs;
+    let mut module = syn::parse2::<syn::ItemMod>(input).expect("Can't parse contract module");
     let (braces, mut items) = match module.content {
         Some((brace, items)) => (brace, items),
         None => {
@@ -55,13 +55,12 @@ pub fn generate(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 
     let generated_items = generate_impls(items);
 
-    module.content = Some((braces.clone(), generated_items));
+    module.content = Some((braces, generated_items));
 
-    let result = quote! {
+    quote! {
         #[::ink::contract(#attrs)]
         #module
-    };
-    result.into()
+    }
 }
 
 fn consume_traits(items: Vec<syn::Item>) -> Vec<syn::Item> {
@@ -71,8 +70,7 @@ fn consume_traits(items: Vec<syn::Item>) -> Vec<syn::Item> {
             if is_attr(&item_trait.attrs, "trait_definition") {
                 item_trait.attrs = remove_attr(&item_trait.attrs, "trait_definition");
 
-                let stream: TokenStream =
-                    trait_definition::generate(TokenStream::new(), item_trait.to_token_stream().into()).into();
+                let stream: TokenStream = trait_definition::generate(TokenStream::new(), item_trait.to_token_stream());
                 let mod_item = syn::parse2::<syn::ItemMod>(quote! {
                     mod jora {
                         #stream

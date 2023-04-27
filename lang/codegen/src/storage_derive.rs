@@ -41,7 +41,7 @@ pub fn storage_derive(item: TokenStream) -> TokenStream {
 
     let impls = fields
         .iter()
-        .filter(|field| field.attrs.iter().find(|a| a.path.is_ident("storage_field")).is_some())
+        .filter(|field| field.attrs.iter().any(|a| a.path.is_ident("storage_field")))
         .map(|field| {
             let field_ident = field.ident.clone();
             let ty = field.ty.clone();
@@ -66,8 +66,7 @@ pub fn storage_derive(item: TokenStream) -> TokenStream {
             )
         });
 
-    (quote! {
+    quote! {
         #(#impls)*
-    })
-    .into()
+    }
 }

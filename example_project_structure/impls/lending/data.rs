@@ -97,7 +97,7 @@ where
     instance
         .data()
         .asset_shares
-        .get(&asset_address)
+        .get(asset_address)
         .ok_or(LendingError::AssetNotSupported)
 }
 

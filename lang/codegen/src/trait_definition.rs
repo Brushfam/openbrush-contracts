@@ -45,9 +45,9 @@ use syn::{
 
 pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
     if crate::internal::skip() {
-        return (quote! {}).into()
+        return quote!()
     }
-    let attrs: proc_macro2::TokenStream = _attrs.into();
+    let attrs: proc_macro2::TokenStream = _attrs;
     let mut trait_item: ItemTrait = parse2(_input).unwrap();
     let trait_without_ink_attrs;
     let ink_code;
@@ -118,14 +118,13 @@ pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
         ink_code = quote! {};
     }
 
-    let code = quote! {
+    quote! {
         // It is original trait defined by user with all features of rust.
         // We removed ink! attributes from methods.
         #trait_without_ink_attrs
 
         #ink_code
-    };
-    code.into()
+    }
 }
 
 fn transform_to_ink_trait(mut trait_item: ItemTrait) -> ItemTrait {
@@ -174,7 +173,6 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
     let mut impl_messages = vec![];
     ink_trait
         .items
-        .clone()
         .into_iter()
         .filter_map(|item| {
             if let syn::TraitItem::Method(method) = item {
@@ -196,7 +194,6 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
             let input_bindings = method
                 .sig
                 .inputs
-                .clone()
                 .iter()
                 .filter_map(|input| {
                     if let syn::FnArg::Typed(pat_typed) = input {
@@ -211,7 +208,6 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
             let input_types = method
                 .sig
                 .inputs
-                .clone()
                 .iter()
                 .filter_map(|input| {
                     if let syn::FnArg::Typed(pat_typed) = input {
@@ -222,26 +218,27 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
                 })
                 .map(|pat_type| pat_type.ty.clone())
                 .collect::<Vec<_>>();
-            let arg_list = input_types.iter().cloned().into_iter().fold(
-                quote! { ::ink::env::call::utils::EmptyArgumentList },
-                |rest, arg| {
-                    quote! {
-                        ::ink::env::call::utils::ArgumentList<::ink::env::call::utils::Argument<#arg>, #rest>
-                    }
-                },
-            );
+            let arg_list =
+                input_types
+                    .iter()
+                    .cloned()
+                    .fold(quote! { ::ink::env::call::utils::EmptyArgumentList }, |rest, arg| {
+                        quote! {
+                            ::ink::env::call::utils::ArgumentList<::ink::env::call::utils::Argument<#arg>, #rest>
+                        }
+                    });
             let panic_str = format!(
                 "encountered error while calling <AccountId as {}>::{}",
                 trait_ident, message_ident,
             );
             def_messages.push(quote! {
-                #[inline]
+                // #[inline]
                 fn #message_ident(
                     & self
                     #( , #input_bindings : #input_types )*
                 ) -> #output_ty;
 
-                #[inline]
+                // #[inline]
                 fn #message_builder_ident(
                     & self
                     #( , #input_bindings : #input_types )*

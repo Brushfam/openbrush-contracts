@@ -40,42 +40,38 @@ use syn::{
     ImplItemMethod,
 };
 
-const INSTANCE: &'static str = "__openbrush_instance_modifier";
+const INSTANCE: &str = "__openbrush_instance_modifier";
 
 pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
     let modifiers: AttributeArgs = parse2(_attrs).unwrap();
     let mut impl_item =
-        syn::parse2::<ImplItemMethod>(_input.into()).expect("Can't parse input of `modifiers` macro like a method.");
+        syn::parse2::<ImplItemMethod>(_input).expect("Can't parse input of `modifiers` macro like a method.");
 
     if impl_item.sig.inputs.is_empty() {
-        return (quote_spanned! {
+        return quote_spanned! {
             impl_item.sig.inputs.span() =>
                 compile_error!("Modifiers can only be applied to methods, which have `self` as their first argument. ");
-        })
-        .into()
+        }
     }
 
     let receiver;
     if let syn::FnArg::Receiver(rec) = impl_item.sig.inputs.first().expect("Expect at least one argument") {
         receiver = rec;
     } else {
-        return (quote_spanned! {
+        return quote_spanned! {
             impl_item.sig.inputs.first().expect("Expect at least one argument").span() =>
                 compile_error!("First argument in method must be `self`.");
-        })
-        .into()
+        }
     }
 
     // We skip every function without body(it means that it contains only `{ ; }`)
     if impl_item.block.to_token_stream().to_string() == "{ ; }" {
-        let code = quote! {
+        return quote! {
             #impl_item
-        };
-        return code.into()
+        }
     }
 
     let mut block = impl_item.block.clone();
-    let mut body_index = 0;
 
     // Code of each modifier must be added in reverse order
     // Code of first modifier {
@@ -85,13 +81,12 @@ pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
     //          }
     //      }
     // }
-    for modifier_meta in modifiers.iter().rev() {
+    for (body_index, modifier_meta) in modifiers.iter().rev().enumerate() {
         // Replace every `self` with instance variable
         block = replace_self(block);
 
         // Put the body of original function to local lambda function
-        let (final_block, body_ident) = put_into_closure(receiver, block, body_index);
-        body_index += 1;
+        let (final_block, body_ident) = put_into_closure(receiver, block, body_index as u8);
 
         // It means modifiers without arguments, we can call path method directly.
         match modifier_meta {
@@ -131,11 +126,9 @@ pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
 
     impl_item.block = block;
 
-    let code = quote! {
+    quote! {
         #impl_item
-    };
-
-    code.into()
+    }
 }
 
 fn replace_self(block: syn::Block) -> syn::Block {
@@ -148,7 +141,7 @@ fn recursive_replace_self(token_stream: TokenStream) -> TokenStream {
         .map(|token| {
             match &token {
                 TokenTree::Ident(ident) => {
-                    if ident.to_string() == "self" {
+                    if *ident == "self" {
                         TokenTree::Ident(syn::Ident::new(INSTANCE, ident.span()))
                     } else {
                         token

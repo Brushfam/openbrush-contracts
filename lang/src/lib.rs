@@ -20,7 +20,6 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-
 mod macros;
 pub mod storage;
 pub mod test_utils;

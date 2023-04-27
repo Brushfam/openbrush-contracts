@@ -108,7 +108,7 @@ impl<T: Storage<Data>> Internal for T {
                 return Ok(())
             }
         }
-        Err(PSP22TokenTimelockError::ZeroAddress)
+        Err(PSP22TokenTimelockError::NonExistingAccount)
     }
 
     default fn _contract_balance(&mut self) -> Balance {

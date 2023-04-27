@@ -460,7 +460,7 @@ where
             self._emit_call_executed_event(id, i, transaction);
             Ok(())
         } else {
-            Err(TimelockControllerError::ZeroAddress)
+            Err(TimelockControllerError::NonExistingAccount)
         }
     }
 

@@ -106,7 +106,7 @@ pub enum PSP22TokenTimelockError {
     /// Returned if the timestamp provided is before the current time
     ReleaseTimeIsBeforeCurrentTime,
     /// Returned if either the token or the beneficiary is `None`
-    ZeroAddress,
+    NonExistingAccount,
 }
 
 impl From<PSP22Error> for PSP22TokenTimelockError {

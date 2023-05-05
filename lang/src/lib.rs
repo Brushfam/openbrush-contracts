@@ -29,6 +29,7 @@ pub mod utils;
 
 pub use openbrush_lang_macro::{
     contract,
+    getters,
     modifier_definition,
     modifiers,
     trait_definition,

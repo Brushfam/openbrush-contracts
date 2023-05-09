@@ -5,7 +5,17 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
-IGNORED_DIRS=("./examples/reentrancy_guard" "./examples/test_helpers" "./examples/diamond" "./examples/alternatives" "./examples/proxy" "./examples")
+#TODO: tests for reentrancy guard, proxy, flash-borrower, wrapper, token timelock
+IGNORED_DIRS=("./examples/reentrancy_guard" 
+  "./examples/test_helpers" 
+  "./examples/diamond" 
+  "./examples/alternatives" 
+  "./examples/proxy" 
+  "./examples" 
+  "./examples/flash-borrower" 
+  "./examples/psp22_extensions/flashmint/" 
+  "./examples/psp22_extensions/wrapper/"
+  "./examples/psp22_utils/token_timelock/")
 
 ignore_dir() {
   local element
@@ -26,10 +36,10 @@ process_directory() {
     cd "$dir" || exit
 
     echo "Building contract in $dir"
-    cargo contract build || exit
+    cargo contract build --release || exit
 
     echo "Running e2e-tests in $dir"
-    cargo test --features e2e-tests || exit
+    cargo test --features e2e-tests --release || exit
 
     cd - || exit
   else

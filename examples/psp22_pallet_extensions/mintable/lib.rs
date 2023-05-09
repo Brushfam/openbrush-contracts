@@ -1,6 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(min_specialization)]
-#![feature(default_alloc_error_handler)]
 
 #[openbrush::contract]
 pub mod my_psp22_pallet_mintable {

@@ -39,3 +39,7 @@ e2e-tests = []
 [profile.dev]
 codegen-units = 16
 overflow-checks = false
+
+[profile.release]
+codegen-units = 16
+overflow-checks = false

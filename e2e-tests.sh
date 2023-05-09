@@ -5,9 +5,9 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
-IGNORED_DIRS=("./examples/reentrancy_guard/**" "./examples/test_helpers/**")
+IGNORED_DIRS=("./examples/reentrancy_guard" "./examples/test_helpers" "./examples/diamond" "./examples/alternatives" "./examples/proxy" "./examples")
 
-contains_element() {
+ignore_dir() {
   local element
   for element in "${@:2}"; do
     [[ "$element" == "$1" ]] && return 0
@@ -18,25 +18,33 @@ contains_element() {
 process_directory() {
   local dir=$1
 
-  if contains_element "$(basename "$dir")" "${IGNORED_DIRS[@]}"; then
+  if ignore_dir "$dir" "${IGNORED_DIRS[@]}"; then
     return
   fi
 
-  if [ -f "${dir}Cargo.toml" ]; then
+  if [ -f "${dir}/Cargo.toml" ]; then
     cd "$dir" || exit
 
     echo "Building contract in $dir"
-    cargo contract build || return 1
+    cargo contract build || exit
 
     echo "Running e2e-tests in $dir"
-    cargo test --features e2e-tests || return 1
+    cargo test --features e2e-tests || exit
 
     cd - || exit
+  else
+    for inner in "$dir"/*/; do
+      if [[ -d $inner ]]; then
+        process_directory "$inner"
+      fi
+  done
   fi
 }
 
 for pattern in "$@"; do
-  for dir in $pattern/*/; do
-    process_directory "$dir"
+  for dir in $pattern; do
+    if [[ -d $dir ]]; then
+      process_directory "$dir"
+    fi
   done
 done

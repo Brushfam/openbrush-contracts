@@ -23,14 +23,14 @@
 #[cfg(feature = "payment_splitter")]
 #[openbrush::contract]
 mod payment_splitter {
+    use ink::codegen::{
+        EmitEvent,
+        Env,
+    };
     use openbrush::{
         contracts::payment_splitter::*,
         test_utils::accounts,
         traits::Storage,
-    };
-    use ink::codegen::{
-        EmitEvent,
-        Env,
     };
 
     #[ink(event)]

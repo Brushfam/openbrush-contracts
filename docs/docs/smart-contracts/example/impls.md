@@ -4,12 +4,14 @@ title: Lending impls
 ---
 
 The lending contract implementation consists of two traits:
+
 - `Lending` - contains methods that can be called by anyone.
   These methods can be used to lend, borrow, liquidate assets and get some information about them.
 - `LendingPermissioned` - contains methods with restrictions. These methods can be called by a manager.
   These methods allow defining the list of allowed tokens, setting price and etc.
 
 We will define everything stuff from the previous chapter for "inheritable" contracts:
+
 - Both traits in `traits/lending.rs`
 - A data structure in `impls/lending/data.rs`
 - A generic implementation for trait `Lending` in `impls/lending/lending.rs`
@@ -24,19 +26,19 @@ That wrapper describes all methods available in the `LendingContract`.
 
 ```rust
 use openbrush::{
-  contracts::traits::{
-    access_control::*,
-    pausable::*,
-    psp22::PSP22Error,
-    psp34::{
-      Id,
-      PSP34Error,
+    contracts::traits::{
+        access_control::*,
+        pausable::*,
+        psp22::PSP22Error,
+        psp34::{
+            Id,
+            PSP34Error,
+        },
     },
-  },
-  traits::{
-    AccountId,
-    Balance,
-  },
+    traits::{
+        AccountId,
+        Balance,
+    },
 };
 
 /// Combination of all traits of the contract to simplify calls to the contract
@@ -48,101 +50,101 @@ pub type LendingRef = dyn Lending;
 
 #[openbrush::trait_definition]
 pub trait Lending {
-  /// This function will return the total amount of assets available to borrow
-  /// along with amount of the same asset borrowed
-  ///
-  /// Returns `AssetNotSupported` error if we try to get amount of asset not supported by our contract
-  #[ink(message)]
-  fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError>;
+    /// This function will return the total amount of assets available to borrow
+    /// along with amount of the same asset borrowed
+    ///
+    /// Returns `AssetNotSupported` error if we try to get amount of asset not supported by our contract
+    #[ink(message)]
+    fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError>;
 
-  /// This function will return the total amount of shares minted for an asset
-  ///
-  /// Returns `AssetNotSupported` error if we try to get shares of asset not supported by our contract
-  #[ink(message)]
-  fn total_shares(&self, asset_address: AccountId) -> Result<Balance, LendingError>;
+    /// This function will return the total amount of shares minted for an asset
+    ///
+    /// Returns `AssetNotSupported` error if we try to get shares of asset not supported by our contract
+    #[ink(message)]
+    fn total_shares(&self, asset_address: AccountId) -> Result<Balance, LendingError>;
 
-  /// This function  will return the address of shares
-  /// which is bound to `asset_address` asset token
-  #[ink(message)]
-  fn get_asset_shares(&self, asset_address: AccountId) -> Result<AccountId, LendingError>;
-  
-  /// This function will return true if the asset is accepted by the contract
-  #[ink(message)]
-  fn is_accepted_lending(&self, asset_address: AccountId) -> bool;
+    /// This function  will return the address of shares
+    /// which is bound to `asset_address` asset token
+    #[ink(message)]
+    fn get_asset_shares(&self, asset_address: AccountId) -> Result<AccountId, LendingError>;
 
-  /// This function will return true if the asset is accepted for using as collateral
-  #[ink(message)]
-  fn is_accepted_collateral(&self, asset_address: AccountId) -> bool;
+    /// This function will return true if the asset is accepted by the contract
+    #[ink(message)]
+    fn is_accepted_lending(&self, asset_address: AccountId) -> bool;
 
-  /// This function is called by a user who wants to lend tokens and gain interest
-  ///
-  /// `asset_address` is the AccountId of the PSP22 token to be deposited
-  /// `amount` is the amount to be deposited
-  ///
-  /// Returns `InsufficientAllowanceToLend` if the caller does not have enough allowance
-  /// Returns `InsufficientBalanceToLend` if the caller does not have enough balance
-  /// Returns `AssetNotSupported` if the asset is not supported for lending
-  #[ink(message)]
-  fn lend_assets(&mut self, asset_address: AccountId, amount: Balance) -> Result<(), LendingError>;
+    /// This function will return true if the asset is accepted for using as collateral
+    #[ink(message)]
+    fn is_accepted_collateral(&self, asset_address: AccountId) -> bool;
 
-  /// This function is called by a user who wants to borrow tokens. In order to do that,
-  /// they need to deposit collateral. The value of borrowed assets will be equal to 70%
-  /// of the value of deposited collateral.
-  ///
-  /// `asset_address` is the AccountId of the PSP22 token to be borrowed
-  /// `collateral_address` is the AccountId of the PSP22 token used as collateral
-  /// `amount` is the amount to be deposited
-  ///
-  /// Returns `AssetNotSupported` if `asset_address` is not supported for using as collateral
-  /// Returns `InsufficientAllowanceForCollateral` if the caller does not have enough allowance
-  /// Returns `InsufficientCollateralBalance` if the caller does not have enough balance
-  /// Returns `AssetNotSupported` if the borrowing asset is not supported for borrowing
-  /// Returns `AmountNotSupported` if the liquidation price is less than or equal to the borrowed amount
-  /// Returns `InsufficientBalanceInContract` if there is not enough amount of assets in the contract to borrow
-  #[ink(message)]
-  fn borrow_assets(
-    &mut self,
-    asset_address: AccountId,
-    collateral_address: AccountId,
-    amount: Balance,
-  ) -> Result<(), LendingError>;
+    /// This function is called by a user who wants to lend tokens and gain interest
+    ///
+    /// `asset_address` is the AccountId of the PSP22 token to be deposited
+    /// `amount` is the amount to be deposited
+    ///
+    /// Returns `InsufficientAllowanceToLend` if the caller does not have enough allowance
+    /// Returns `InsufficientBalanceToLend` if the caller does not have enough balance
+    /// Returns `AssetNotSupported` if the asset is not supported for lending
+    #[ink(message)]
+    fn lend_assets(&mut self, asset_address: AccountId, amount: Balance) -> Result<(), LendingError>;
 
-  /// This function is called by the user who borrowed some asset. User needs to deposit borrowed amount along with interest
-  /// They can either repay the full amount or just a portion of the amount. If they repay the full amount, they will get all deposited
-  /// collateral back, another way they will get back the same portion of collateral as the repay portion (eg. if they deposit 80% of
-  /// the loan + interests, they will get 80% of collateral back). If the loan was liquidated, the user does not get their collateral
-  /// back and the NFT will be burned
-  ///
-  /// `loan_id` is the id of the loan to be repaid
-  /// `repay_amount` is the amount of borrowed asset to be repaid
-  ///
-  /// Returns true if the loan was repaid successfuly, false if the loan was already liquidated and can not be repaid
-  /// Returns `NotTheOwner` error if the initiator is not the owner of the loan token
-  /// Returns `InsufficientAllowanceToRepay` error if the initiator did not give allowance to the contract
-  /// Returns `InsufficientBalanceToRepay` error if the initiator tries to repay more tokens than their balance
-  #[ink(message)]
-  fn repay(&mut self, loan_id: Id, repay_amount: Balance) -> Result<bool, LendingError>;
+    /// This function is called by a user who wants to borrow tokens. In order to do that,
+    /// they need to deposit collateral. The value of borrowed assets will be equal to 70%
+    /// of the value of deposited collateral.
+    ///
+    /// `asset_address` is the AccountId of the PSP22 token to be borrowed
+    /// `collateral_address` is the AccountId of the PSP22 token used as collateral
+    /// `amount` is the amount to be deposited
+    ///
+    /// Returns `AssetNotSupported` if `asset_address` is not supported for using as collateral
+    /// Returns `InsufficientAllowanceForCollateral` if the caller does not have enough allowance
+    /// Returns `InsufficientCollateralBalance` if the caller does not have enough balance
+    /// Returns `AssetNotSupported` if the borrowing asset is not supported for borrowing
+    /// Returns `AmountNotSupported` if the liquidation price is less than or equal to the borrowed amount
+    /// Returns `InsufficientBalanceInContract` if there is not enough amount of assets in the contract to borrow
+    #[ink(message)]
+    fn borrow_assets(
+        &mut self,
+        asset_address: AccountId,
+        collateral_address: AccountId,
+        amount: Balance,
+    ) -> Result<(), LendingError>;
 
-  /// This function is called by the user who wants to withdraw assets they deposited for lending. They will deposit their
-  /// share tokens and get back their share of the asset mapped to this share token
-  ///
-  /// `shares_address` account id of the shares token which is binded to the asset
-  /// `shares_amount` amount of shares being withdrawn
-  ///
-  /// Returns `InsufficientBalanceInContract` if there is currently not enough assets in the contract
-  #[ink(message)]
-  fn withdraw_asset(&mut self, shares_address: AccountId, shares_amount: Balance) -> Result<(), LendingError>;
+    /// This function is called by the user who borrowed some asset. User needs to deposit borrowed amount along with interest
+    /// They can either repay the full amount or just a portion of the amount. If they repay the full amount, they will get all deposited
+    /// collateral back, another way they will get back the same portion of collateral as the repay portion (eg. if they deposit 80% of
+    /// the loan + interests, they will get 80% of collateral back). If the loan was liquidated, the user does not get their collateral
+    /// back and the NFT will be burned
+    ///
+    /// `loan_id` is the id of the loan to be repaid
+    /// `repay_amount` is the amount of borrowed asset to be repaid
+    ///
+    /// Returns true if the loan was repaid successfuly, false if the loan was already liquidated and can not be repaid
+    /// Returns `NotTheOwner` error if the initiator is not the owner of the loan token
+    /// Returns `InsufficientAllowanceToRepay` error if the initiator did not give allowance to the contract
+    /// Returns `InsufficientBalanceToRepay` error if the initiator tries to repay more tokens than their balance
+    #[ink(message)]
+    fn repay(&mut self, loan_id: Id, repay_amount: Balance) -> Result<bool, LendingError>;
 
-  /// This function will liquidate the loan with `loan_id`. In this example contract the tokens will be kept in the smart
-  /// contract and the liquidator gets 1% of the liquidated assets. In a real implementation we would swap the collateral
-  /// for the borrowed asset so we would be able to cover the shares of lenders.
-  ///
-  /// `loan_id` id of loan to be liquidated
-  ///
-  /// Returns `LoanLiquidated` error if the loan was already liquidated
-  /// Returns `CanNotBeLiquidated` error if the price of collateral is not below the liquidation price
-  #[ink(message)]
-  fn liquidate_loan(&mut self, loan_id: Id) -> Result<(), LendingError>;
+    /// This function is called by the user who wants to withdraw assets they deposited for lending. They will deposit their
+    /// share tokens and get back their share of the asset mapped to this share token
+    ///
+    /// `shares_address` account id of the shares token which is binded to the asset
+    /// `shares_amount` amount of shares being withdrawn
+    ///
+    /// Returns `InsufficientBalanceInContract` if there is currently not enough assets in the contract
+    #[ink(message)]
+    fn withdraw_asset(&mut self, shares_address: AccountId, shares_amount: Balance) -> Result<(), LendingError>;
+
+    /// This function will liquidate the loan with `loan_id`. In this example contract the tokens will be kept in the smart
+    /// contract and the liquidator gets 1% of the liquidated assets. In a real implementation we would swap the collateral
+    /// for the borrowed asset so we would be able to cover the shares of lenders.
+    ///
+    /// `loan_id` id of loan to be liquidated
+    ///
+    /// Returns `LoanLiquidated` error if the loan was already liquidated
+    /// Returns `CanNotBeLiquidated` error if the price of collateral is not below the liquidation price
+    #[ink(message)]
+    fn liquidate_loan(&mut self, loan_id: Id) -> Result<(), LendingError>;
 }
 
 #[openbrush::wrapper]
@@ -150,47 +152,47 @@ pub type LendingPermissionedRef = dyn LendingPermissioned;
 
 #[openbrush::trait_definition]
 pub trait LendingPermissioned {
-  /// This function will allow an asset to be accepted by the contract
-  /// It will also create the contracts for the shares token and lended reserves token
-  #[ink(message, payable)]
-  fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError>;
+    /// This function will allow an asset to be accepted by the contract
+    /// It will also create the contracts for the shares token and lended reserves token
+    #[ink(message, payable)]
+    fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError>;
 
-  /// This function will disallow lending and borrowing of asset
-  /// To do this all assets of this asset must be repaid and all of the asset must be withdrawn
-  #[ink(message)]
-  fn disallow_lending(&mut self, asset_address: AccountId) -> Result<(), LendingError>;
+    /// This function will disallow lending and borrowing of asset
+    /// To do this all assets of this asset must be repaid and all of the asset must be withdrawn
+    #[ink(message)]
+    fn disallow_lending(&mut self, asset_address: AccountId) -> Result<(), LendingError>;
 
-  /// This function will allow an asset to be accepted as collateral
-  #[ink(message)]
-  fn allow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError>;
+    /// This function will allow an asset to be accepted as collateral
+    #[ink(message)]
+    fn allow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError>;
 
-  /// This function will disallow an asset to be accepted as collateral
-  #[ink(message)]
-  fn disallow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError>;
+    /// This function will disallow an asset to be accepted as collateral
+    #[ink(message)]
+    fn disallow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError>;
 
-  /// This function will set price of `asset_in` in `asset_out` to `amount` in our simulated oracle
-  #[ink(message)]
-  fn set_asset_price(
-    &mut self,
-    asset_in: AccountId,
-    asset_out: AccountId,
-    price: Balance,
-  ) -> Result<(), LendingError>;
+    /// This function will set price of `asset_in` in `asset_out` to `amount` in our simulated oracle
+    #[ink(message)]
+    fn set_asset_price(
+        &mut self,
+        asset_in: AccountId,
+        asset_out: AccountId,
+        price: Balance,
+    ) -> Result<(), LendingError>;
 }
 ```
 
 ## Data and storage trait
 
 In the `impls/lending/data.rs` we will define the data related to the lending contract.
-Also there we will define some helper functions. 
+Also there we will define some helper functions.
 
 In this example we will not be using price oracles, we will do
 our own simulated oracle. Since oracles are not the point of this example,
 it will be enough for us. We will store prices info in our data struct.
 
 ```rust
-// Importing everything publicly from traits allows you to import 
-// every stuff related to lending by one import
+// Importing everything publicly from traits allows you to import every stuff related to lending
+// by one import
 use crate::traits::lending::*;
 use openbrush::{
     storage::{
@@ -208,7 +210,7 @@ use openbrush::traits::Storage;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 /// define the struct with the data that our smart contract will be using
 /// this will isolate the logic of our smart contract from its storage
@@ -240,6 +242,20 @@ pub struct Data {
     pub loan_account: AccountId,
 }
 
+impl Default for Data {
+    fn default() -> Self {
+        Self {
+            assets_lended: Default::default(),
+            asset_shares: Default::default(),
+            shares_asset: Default::default(),
+            collateral_accepted: Default::default(),
+            asset_price: Default::default(),
+            shares_contract_code_hash: Hash::default(),
+            loan_account: [0u8; 32].into(),
+        }
+    }
+}
+
 pub struct AssetPriceKey;
 
 impl<'a> TypeGuard<'a> for AssetPriceKey {
@@ -267,8 +283,8 @@ where
 
 /// Internal function which will return the address of the shares token
 /// which are minted when `asset_address` is borrowed
-pub fn get_reserve_asset<T>(instance: &T, asset_address: &AccountId) -> Result<AccountId, LendingError> 
-where 
+pub fn get_reserve_asset<T>(instance: &T, asset_address: &AccountId) -> Result<AccountId, LendingError>
+where
     T: Storage<Data>,
 {
     instance
@@ -280,10 +296,10 @@ where
 
 /// internal function which will return the address of asset
 /// which is bound to `shares_address` shares token
-pub fn get_asset_from_shares<T>(instance: &T, shares_address: &AccountId) -> Result<AccountId, LendingError> 
+pub fn get_asset_from_shares<T>(instance: &T, shares_address: &AccountId) -> Result<AccountId, LendingError>
 where
     T: Storage<Data>,
-{ 
+{
     instance
         .data()
         .shares_asset
@@ -304,34 +320,33 @@ For that we also require the same restriction on the generic type.
 In the implementation of `LendingPermissioned`, we want to use methods from
 `Lending`. For that, the set of restrictions for generic in the `Lending` implementation
 should be a subset(<=) of restrictions for generic in the `LendingPermissioned` implementation.
-The `Lending` implementation requires `Storage<lending::Data>` and `Storage<pausable::Data>` to use `when_paused` 
+The `Lending` implementation requires `Storage<lending::Data>` and `Storage<pausable::Data>` to use `when_paused`
 modifier from [pausable](https://github.com/727-Ventures/openbrush-contracts/blob/main/contracts/src/security/pausable/mod.rs#L24).
 So we should have the same restriction in our generic implementation.
 
-In the logic of the trait `LendingPermissioned` we need to instantiate 
-the `SharesContract`. But we can't import `SharesContract` into `lending_project` 
-crate, because `SharesContract` also depends on `lending_project`. 
+In the logic of the trait `LendingPermissioned` we need to instantiate
+the `SharesContract`. But we can't import `SharesContract` into `lending_project`
+crate, because `SharesContract` also depends on `lending_project`.
 That will cause cyclic dependencies.
 To avoid that we will import `SharesContract` into `LendingContract` and in `LendingContract` we will define
 `_instantiate_shares_contract` method, that will instantiate `SharesCotnract`.
 
-```rust    
+```rust
 impl lending::Internal for LendingContract {
     fn _instantiate_shares_contract(&self, contract_name: &str, contract_symbol: &str) -> AccountId {
-      let code_hash = self.lending.shares_contract_code_hash;
+        let code_hash = self.lending.shares_contract_code_hash;
 
-      let salt = (<Self as DefaultEnv>::env().block_timestamp(), contract_name).encode();
+        let salt = (<Self as DefaultEnv>::env().block_timestamp(), contract_name).encode();
 
-      let hash = xxh32(&salt, 0).to_le_bytes();
+        let hash = xxh32(&salt, 0).to_le_bytes();
 
-      let contract =
-              SharesContractRef::new(Some(String::from(contract_name)), Some(String::from(contract_symbol)))
-                      .endowment(0)
-                      .code_hash(code_hash)
-                      .salt_bytes(&hash[..4])
-                      .instantiate()
-                      .unwrap();
-      contract.to_account_id()
+        let contract =
+            SharesContractRef::new(Some(String::from(contract_name)), Some(String::from(contract_symbol)))
+                .endowment(0)
+                .code_hash(code_hash)
+                .salt_bytes(&hash[..4])
+                .instantiate();
+        contract.to_account_id()
     }
 }
 ```
@@ -348,6 +363,12 @@ use super::{
     data::*,
 };
 use crate::traits::lending::*;
+use ink::storage::traits::{
+    AutoStorableHint,
+    ManualKey,
+    Storable,
+    StorableHint,
+};
 use openbrush::{
     contracts::{
         access_control::*,
@@ -360,7 +381,6 @@ use openbrush::{
         Balance,
         OccupiedStorage,
         Storage,
-        ZERO_ADDRESS,
     },
 };
 
@@ -372,6 +392,9 @@ where
     T: Storage<data::Data> + Storage<pausable::Data> + Storage<access_control::Data<M>>,
     T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<M>>,
     M: members::MembersManager,
+    M: Storable
+        + StorableHint<ManualKey<{ access_control::STORAGE_KEY }>>
+        + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
 {
     #[modifiers(only_role(MANAGER))]
     default fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
@@ -450,32 +473,30 @@ fn accept_lending<T: Storage<data::Data>>(
 }
 
 fn disallow_lending<T: Storage<data::Data>>(instance: &mut T, asset_address: AccountId) {
-    let share_address = instance
-        .data()
-        .asset_shares
-        .get(&asset_address)
-        .unwrap_or(ZERO_ADDRESS.into());
-    instance.data().asset_shares.remove(&asset_address);
-    instance.data().shares_asset.remove(&share_address);
-    instance.data().assets_lended.remove(&asset_address);
+    if let Some(share_address) = instance.data().asset_shares.get(&asset_address) {
+        instance.data().asset_shares.remove(&asset_address);
+        instance.data().shares_asset.remove(&share_address);
+        instance.data().assets_lended.remove(&asset_address);
+    }
 }
 
 /// this function will accept `asset_address` for using as collateral
 fn set_collateral_accepted<T: Storage<data::Data>>(instance: &mut T, asset_address: AccountId, accepted: bool) {
     instance.data().collateral_accepted.insert(&asset_address, &accepted);
 }
+
 ```
 
 ## A generic implementation of `Lending` trait
 
 The same logic is used during definition of the implementation for `Lending` trait.
 
-The `Storage<pausable::Data>` restriction is required to use `when_paused`, `when_not_paused` modifiers 
+The `Storage<pausable::Data>` restriction is required to use `when_paused`, `when_not_paused` modifiers
 from [pausable](https://github.com/727-Ventures/openbrush-contracts/blob/main/contracts/src/security/pausable/mod.rs#L24).
 
 ```rust
-// Importing everything publicly from traits allows you to import 
-// every stuff related to lending by one import
+// Importing everything publicly from traits allows you to import every stuff related to lending
+// by one import
 pub use crate::{
     impls::lending::{
         data,
@@ -509,11 +530,9 @@ use openbrush::{
     modifiers,
     traits::{
         AccountId,
-        AccountIdExt,
         Balance,
         Storage,
         Timestamp,
-        ZERO_ADDRESS,
     },
 };
 
@@ -521,51 +540,35 @@ pub const YEAR: Timestamp = 60 * 60 * 24 * 365;
 
 impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
     default fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
-        // get asset from mapping
-        let mapped_asset = self
-            .data::<data::Data>()
-            .assets_lended
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into());
         // return error if the asset is not supported
-        if mapped_asset.is_zero() {
-            return Err(LendingError::AssetNotSupported)
+        if let Some(mapped_asset) = self.data::<data::Data>().assets_lended.get(&asset_address) {
+            let contract = Self::env().account_id();
+            let available = PSP22Ref::balance_of(&asset_address, contract);
+            let unavailable = PSP22Ref::balance_of(&mapped_asset, contract);
+            Ok(available + unavailable)
+        } else {
+            Err(LendingError::AssetNotSupported)
         }
-        let contract = Self::env().account_id();
-        let available = PSP22Ref::balance_of(&asset_address, contract);
-        let unavailable = PSP22Ref::balance_of(&mapped_asset, contract);
-        Ok(available + unavailable)
     }
 
     default fn total_shares(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
-        let mapped_asset = self
-            .data::<data::Data>()
-            .asset_shares
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into());
-        // return error if the asset is not supported
-        if mapped_asset.is_zero() {
-            return Err(LendingError::AssetNotSupported)
+        if let Some(mapped_asset) = self.data::<data::Data>().asset_shares.get(&asset_address) {
+            Ok(PSP22Ref::total_supply(&mapped_asset))
+        } else {
+            Err(LendingError::AssetNotSupported)
         }
-        Ok(PSP22Ref::total_supply(&mapped_asset))
     }
-  
+
     default fn get_asset_shares(&self, asset_address: AccountId) -> Result<AccountId, LendingError> {
-        self
-            .data::<data::Data>()
+        self.data::<data::Data>()
             .asset_shares
             .get(&asset_address)
             .ok_or(LendingError::AssetNotSupported)
     }
-  
+
     default fn is_accepted_lending(&self, asset_address: AccountId) -> bool {
-        !self
-            .data::<data::Data>()
-            .asset_shares
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into())
-            .is_zero()
+        self.data::<data::Data>().asset_shares.get(&asset_address).is_some()
     }
 
     default fn is_accepted_collateral(&self, asset_address: AccountId) -> bool {
@@ -592,10 +595,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         // if the asset is not accepted by the contract, this function will return an error
         let total_asset = self.total_asset(asset_address)?;
         // transfer the assets from user to the contract|
-        PSP22Ref::transfer_from_builder(&asset_address, lender, contract, amount, Vec::<u8>::new())
-            .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
-            .try_invoke()
-            .unwrap()?;
+        PSP22Ref::transfer_from(&asset_address, lender, contract, amount, Vec::<u8>::new())?;
         // if no assets were deposited yet we will mint the same amount of shares as deposited `amount`
         let new_shares = if total_asset == 0 {
             amount
@@ -648,10 +648,8 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
             return Err(LendingError::InsufficientBalanceInContract)
         }
         // we will transfer the collateral to the contract
-        PSP22Ref::transfer_from_builder(&collateral_address, borrower, contract, amount, Vec::<u8>::new())
-            .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
-            .try_invoke()
-            .unwrap()?;
+        PSP22Ref::transfer_from(&collateral_address, borrower, contract, amount, Vec::<u8>::new())?;
+
         // create loan info
         let loan_info = LoanInfo {
             borrower,
@@ -680,8 +678,9 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         let loan_account = self.data::<data::Data>().loan_account;
         let apy = 1000;
         // initiator must own the nft
-        if LoanRef::owner_of(&loan_account, loan_id.clone()).unwrap_or(ZERO_ADDRESS.into()) != initiator {
-            return Err(LendingError::NotTheOwner)
+        match LoanRef::owner_of(&loan_account, loan_id.clone()) {
+            Some(account) if account == initiator => (),
+            _ => return Err(LendingError::NotTheOwner),
         }
         let loan_info = LoanRef::get_loan_info(&loan_account, loan_id.clone())?;
         if loan_info.liquidated {
@@ -702,10 +701,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         let to_repay = (((loan_info.borrow_amount) * (10000 + total_apy)) / 10000) + 1;
         let reserve_asset = get_reserve_asset(self, &loan_info.borrow_token)?;
         if repay_amount >= to_repay {
-            PSP22Ref::transfer_from_builder(&loan_info.borrow_token, initiator, contract, to_repay, Vec::<u8>::new())
-                .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
-                .try_invoke()
-                .unwrap()?;
+            PSP22Ref::transfer_from(&loan_info.borrow_token, initiator, contract, to_repay, Vec::<u8>::new())?;
             PSP22Ref::transfer(
                 &loan_info.collateral_token,
                 initiator,
@@ -715,23 +711,16 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
             LoanRef::delete_loan(&loan_account, initiator, loan_id)?;
             SharesRef::burn(&reserve_asset, Self::env().caller(), loan_info.borrow_amount)?;
         } else {
-            PSP22Ref::transfer_from_builder(
+            PSP22Ref::transfer_from(
                 &loan_info.borrow_token,
                 initiator,
                 contract,
                 repay_amount,
                 Vec::<u8>::new(),
-            )
-            .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
-            .try_invoke()
-            .unwrap()?;
+            )?;
             let to_return = (repay_amount * loan_info.collateral_amount) / to_repay;
             PSP22Ref::transfer(&loan_info.collateral_token, initiator, to_return, Vec::<u8>::new())?;
-            SharesRef::mint(
-                &reserve_asset,
-                contract,
-                to_repay - repay_amount,
-            )?;
+            SharesRef::mint(&reserve_asset, contract, to_repay - repay_amount)?;
             LoanRef::update_loan(
                 &loan_account,
                 loan_id.clone(),

@@ -28,13 +28,9 @@ mod payment_splitter {
         test_utils::accounts,
         traits::Storage,
     };
-
-    use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
-        storage::traits::StorageKey,
+    use ink::codegen::{
+        EmitEvent,
+        Env,
     };
 
     #[ink(event)]
@@ -70,13 +66,6 @@ mod payment_splitter {
             instance._init(payees_and_shares).unwrap();
 
             instance
-        }
-
-        #[ink(message)]
-        pub fn print_keys(&self) {
-            println!("{}", self.splitter.key());
-            println!("{}", self.splitter.released.key());
-            println!("{}", self.splitter.shares.key());
         }
     }
 
@@ -165,8 +154,6 @@ mod payment_splitter {
         ink::env::test::set_account_balance::<ink::env::DefaultEnvironment>(accounts.bob, 0);
         let amount = 1000000;
         add_funds(instance.env().account_id(), amount);
-
-        instance.print_keys();
 
         assert_eq!(100 + 200, instance.total_shares());
         assert!(instance.release(accounts.charlie).is_ok());

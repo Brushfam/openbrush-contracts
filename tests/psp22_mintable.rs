@@ -33,7 +33,6 @@ mod psp22_mintable {
         traits::{
             Storage,
             String,
-            ZERO_ADDRESS,
         },
     };
 

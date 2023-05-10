@@ -56,6 +56,11 @@ pub mod ownable {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
+        use super::*;
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
         use openbrush::contracts::{
             ownable::ownable_external::Ownable,
             psp37::{
@@ -63,12 +68,6 @@ pub mod ownable {
                 psp37_external::PSP37,
             },
         };
-
-        #[rustfmt::skip]
-        use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
         use test_helpers::address_of;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;

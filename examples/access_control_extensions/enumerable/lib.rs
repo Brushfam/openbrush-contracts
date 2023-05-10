@@ -44,16 +44,15 @@ pub mod my_access_control {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
+        use super::*;
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
         use openbrush::contracts::access_control::{
             accesscontrol_external::AccessControl,
             extensions::enumerable::accesscontrolenumerable_external::AccessControlEnumerable,
         };
-
-        #[rustfmt::skip]
-        use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
         use test_helpers::{
             address_of,
             get_role_member,

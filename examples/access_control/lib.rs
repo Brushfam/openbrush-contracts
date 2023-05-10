@@ -68,8 +68,16 @@ pub mod my_access_control {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
+        use super::*;
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
         use openbrush::contracts::{
-            access_control::accesscontrol_external::AccessControl,
+            access_control::{
+                accesscontrol_external::AccessControl,
+                DEFAULT_ADMIN_ROLE,
+            },
             psp34::{
                 extensions::{
                     burnable::psp34burnable_external::PSP34Burnable,
@@ -78,14 +86,6 @@ pub mod my_access_control {
                 psp34_external::PSP34,
             },
         };
-
-        #[rustfmt::skip]
-        use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
-        use openbrush::contracts::access_control::DEFAULT_ADMIN_ROLE;
-
         use test_helpers::{
             address_of,
             grant_role,

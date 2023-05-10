@@ -42,12 +42,9 @@ pub mod my_psp22 {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::psp22::extensions::metadata::psp22metadata_external::PSP22Metadata;
-
-        #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
         use ink_e2e::build_message;
+        use openbrush::contracts::psp22::extensions::metadata::psp22metadata_external::PSP22Metadata;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

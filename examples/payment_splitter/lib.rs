@@ -37,13 +37,12 @@ pub mod my_payment_splitter {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::payment_splitter::paymentsplitter_external::PaymentSplitter;
-
-        #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
+        use openbrush::contracts::payment_splitter::paymentsplitter_external::PaymentSplitter;
         use test_helpers::{
             address_of,
             get_shares,

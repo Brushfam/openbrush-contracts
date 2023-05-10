@@ -40,16 +40,15 @@ pub mod my_psp37 {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
+        use super::*;
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
         use openbrush::contracts::psp37::{
             extensions::metadata::psp37metadata_external::PSP37Metadata,
             psp37_external::PSP37,
         };
-
-        #[rustfmt::skip]
-        use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
         use test_helpers::address_of;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;

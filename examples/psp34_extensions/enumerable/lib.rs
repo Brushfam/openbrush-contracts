@@ -36,17 +36,16 @@ pub mod my_psp34_enumerable {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
+        use super::*;
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
         use openbrush::contracts::psp34::extensions::{
             burnable::psp34burnable_external::PSP34Burnable,
             enumerable::psp34enumerable_external::PSP34Enumerable,
             mintable::psp34mintable_external::PSP34Mintable,
         };
-
-        #[rustfmt::skip]
-        use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
         use test_helpers::address_of;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;

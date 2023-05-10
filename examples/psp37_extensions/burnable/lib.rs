@@ -35,16 +35,15 @@ pub mod my_psp37 {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
+        use super::*;
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
         use openbrush::contracts::psp37::{
             extensions::burnable::psp37burnable_external::PSP37Burnable,
             psp37_external::PSP37,
         };
-
-        #[rustfmt::skip]
-        use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
         use test_helpers::{
             address_of,
             balance_of_37,

@@ -37,16 +37,15 @@ pub mod my_psp22_mintable {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
+        use super::*;
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
         use openbrush::contracts::psp22::{
             extensions::mintable::psp22mintable_external::PSP22Mintable,
             psp22_external::PSP22,
         };
-
-        #[rustfmt::skip]
-        use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
         use test_helpers::{
             address_of,
             balance_of,

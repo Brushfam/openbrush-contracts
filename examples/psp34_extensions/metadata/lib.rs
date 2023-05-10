@@ -41,14 +41,12 @@ pub mod my_psp34_metadata {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::psp34::extensions::metadata::psp34metadata_external::PSP34Metadata;
-
-        #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
         use ink_e2e::build_message;
-
-        use openbrush::traits::String;
+        use openbrush::{
+            contracts::psp34::extensions::metadata::psp34metadata_external::PSP34Metadata,
+            traits::String,
+        };
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

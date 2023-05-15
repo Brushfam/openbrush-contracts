@@ -1,17 +1,29 @@
 use proc_macro2::TokenStream;
-use quote::{
-    quote,
-    quote_spanned,
-};
-use syn::{
-    spanned::Spanned,
-    Data,
-    DataStruct,
-    Fields,
-};
+use quote::{quote, quote_spanned, ToTokens};
+use syn::{spanned::Spanned, Data, DataStruct, Fields, Field};
+use syn::parse::Parse;
+
+struct Args {
+    first: syn::Ident,
+    second: syn::Ident,
+}
+
+impl Parse for Args {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let first: syn::Ident = input.parse()?;
+        input.parse::<syn::Token![,]>()?;
+        let second: syn::Ident = input.parse()?;
+
+        Ok(Args { first, second })
+    }
+}
 
 pub fn getters(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
-    let trait_ident = attrs.clone();
+    let trait_idents: Args = syn::parse2(attrs).expect("Failed to parse args");
+
+    let trait_ident = trait_idents.first.clone();
+    let contract_ident = trait_idents.second.clone();
+
     let struct_ident = s.ast().ident.clone();
 
     let item = match s.ast().data.clone() {
@@ -54,9 +66,11 @@ pub fn getters(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
             #(#trait_messages)*
         }
 
-        impl #impl_generics #trait_ident for #struct_ident #type_generics #where_clause {
+        impl<T: Storage<#struct_ident>> #trait_ident for T {
             #(#impls)*
         }
+
+        // impl #impl_generics #trait_ident for #contract_ident #type_generics #where_clause {}
     })
     .into()
 }
@@ -72,7 +86,7 @@ fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct) -> Toke
         .clone()
         .fields
         .into_iter()
-        .map(|field| consume_getter_attrs(&field));
+        .map(|field| consume_getter_attrs(&mut field.clone()));
 
     match struct_item.fields {
         Fields::Unnamed(_) => {
@@ -94,16 +108,20 @@ fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct) -> Toke
     }
 }
 
-fn consume_getter_attrs(field: &syn::Field) -> Vec<syn::Attribute> {
-    field
+fn consume_getter_attrs(field: &mut syn::Field) -> Field {
+    let attr = field
         .attrs
         .iter()
         .filter(|a| !a.path.is_ident("get"))
         .cloned()
-        .collect()
+        .collect();
+
+    field.attrs = attr;
+
+    field.clone()
 }
 
-fn extract_fields(s: synstructure::Structure) -> Vec<&syn::Field> {
+fn extract_fields(s: synstructure::Structure) -> Vec<Field> {
     let struct_item = match s.ast().data.clone() {
         Data::Struct(struct_item) => struct_item,
         _ => panic!("Only structs are supported"),
@@ -113,6 +131,6 @@ fn extract_fields(s: synstructure::Structure) -> Vec<&syn::Field> {
         .fields
         .iter()
         .filter(|field| field.attrs.iter().find(|a| a.path.is_ident("get")).is_some())
+        .cloned()
         .collect::<Vec<_>>()
-        .clone()
 }

@@ -1,28 +1,20 @@
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Data, DataStruct, Fields, Field};
-use syn::parse::Parse;
-
-struct Args {
-    first: syn::Ident,
-    second: syn::Ident,
-}
-
-impl Parse for Args {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let first: syn::Ident = input.parse()?;
-        input.parse::<syn::Token![,]>()?;
-        let second: syn::Ident = input.parse()?;
-
-        Ok(Args { first, second })
-    }
-}
+use quote::{
+    quote,
+    quote_spanned,
+    ToTokens,
+};
+use syn::{
+    parse::Parse,
+    spanned::Spanned,
+    Data,
+    DataStruct,
+    Field,
+    Fields,
+};
 
 pub fn getters(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
-    let trait_idents: Args = syn::parse2(attrs).expect("Failed to parse args");
-
-    let trait_ident = trait_idents.first.clone();
-    let contract_ident = trait_idents.second.clone();
+    let trait_ident = attrs.clone();
 
     let struct_ident = s.ast().ident.clone();
 
@@ -36,6 +28,7 @@ pub fn getters(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
     let trait_messages = fields.iter().map(|field| {
         let field_ident = field.ident.clone().unwrap();
         let field_type = field.ty.clone();
+        let span = field.span();
         let span = field.span();
 
         quote_spanned! {span =>
@@ -56,8 +49,6 @@ pub fn getters(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
         }
     });
 
-    let (impl_generics, type_generics, where_clause) = s.ast().generics.split_for_impl();
-
     (quote! {
         #item
 
@@ -69,8 +60,6 @@ pub fn getters(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
         impl<T: Storage<#struct_ident>> #trait_ident for T {
             #(#impls)*
         }
-
-        // impl #impl_generics #trait_ident for #contract_ident #type_generics #where_clause {}
     })
     .into()
 }

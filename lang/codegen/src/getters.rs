@@ -2,10 +2,8 @@ use proc_macro2::TokenStream;
 use quote::{
     quote,
     quote_spanned,
-    ToTokens,
 };
 use syn::{
-    parse::Parse,
     spanned::Spanned,
     Data,
     DataStruct,

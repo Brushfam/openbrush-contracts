@@ -33,7 +33,6 @@ use openbrush_lang_codegen::{
     trait_definition,
     wrapper,
 };
-use synstructure::Structure;
 
 /// Entry point for use openbrush's macros in ink! smart contracts.
 ///

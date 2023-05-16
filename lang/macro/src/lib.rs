@@ -483,6 +483,7 @@ synstructure::decl_attribute!(
     /// Macro that automatically implements getters for struct fields, that implements scale::Encode
     /// and scale::Decode traits. You should specify the getters trait naming in the macro's attribute.
     /// Also, fields that you want getters to be generated, should be marked by `#[get]` attribute.
+    /// The name of the getter message will be the same as field's name.
     ///
     /// # Example:
     /// ```

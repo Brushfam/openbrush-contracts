@@ -25,12 +25,6 @@ pub mod my_access_control {
 
     impl AccessControlEnumerable for Contract {}
 
-    impl PSP22 for Contract {}
-
-    impl PSP22Mintable for Contract {}
-
-    impl Ownable for Contract {}
-
     impl Contract {
         #[ink(constructor)]
         pub fn new() -> Self {

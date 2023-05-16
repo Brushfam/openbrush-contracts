@@ -480,5 +480,37 @@ pub fn storage_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
 synstructure::decl_attribute!(
     [getters] =>
+    /// Macro that automatically implements getters for struct fields, that implements scale::Encode
+    /// and scale::Decode traits. You should specify the getters trait naming in the macro's attribute.
+    /// Also, fields that you want getters to be generated, should be marked by `#[get]` attribute.
+    ///
+    /// # Example:
+    /// ```
+    /// {
+    ///     use openbrush::traits::Storage;
+    ///
+    ///     #[ink(storage)]
+    ///     #[derive(Storage, Default)]
+    ///     pub struct Contract {
+    ///         #[storage_field]
+    ///         some_struct: SomeStruct,
+    ///     }
+    ///
+    ///     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(SomeStruct);
+    ///
+    ///     #[openbrush::upgradeable_storage(STORAGE_KEY)]
+    ///     #[openbrush::getters(SomeStructGetters)]
+    ///     #[derive(Default)]
+    ///     pub struct SomeStruct {
+    ///         #[get]
+    ///         a: u32,
+    ///         b: u32,
+    ///         #[get]
+    ///         c: u32,
+    ///     }
+    ///
+    ///     impl SomeStructGetters for Contract {}
+    /// }
+    /// ```
     getters::getters
 );

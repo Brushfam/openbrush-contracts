@@ -29,7 +29,6 @@ pub fn getters(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
         let field_ident = field.ident.clone().unwrap();
         let field_type = field.ty.clone();
         let span = field.span();
-        let span = field.span();
 
         quote_spanned! {span =>
             #[ink(message)]

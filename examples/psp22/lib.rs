@@ -25,16 +25,17 @@ pub mod my_psp22 {
     }
 
     #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    #[openbrush::getters(HatedLogicGetters)]
+    #[openbrush::accessors(HatedLogicAccessors)]
     #[derive(Debug)]
     pub struct HatedLogic {
         #[get]
+        #[set]
         hated_account: AccountId,
     }
 
     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedLogic);
 
-    impl HatedLogicGetters for Contract {}
+    impl HatedLogicAccessors for Contract {}
 
     impl Transfer for Contract {
         // Let's override method to reject transactions to bad account
@@ -68,11 +69,6 @@ pub mod my_psp22 {
                 .expect("Should mint");
 
             instance
-        }
-
-        #[ink(message)]
-        pub fn set_hated_account(&mut self, hated: AccountId) {
-            self.data::<HatedLogic>().hated_account = hated;
         }
     }
 

@@ -28,8 +28,8 @@ pub mod traits;
 pub mod utils;
 
 pub use openbrush_lang_macro::{
+    accessors,
     contract,
-    getters,
     modifier_definition,
     modifiers,
     trait_definition,

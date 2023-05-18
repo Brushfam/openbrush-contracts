@@ -42,7 +42,7 @@ jobs:
           RUSTFLAGS="-D warnings" cargo +nightly-2023-01-01 test --workspace --features test-all -- --test-threads=10
       - name: Build & Run pallet unit tests
         run: |
-          RUSTFLAGS="-D warnings" cargo +nightly-2023-03-19 test --workspace --features psp22_pallet -- --test-threads=10
+          RUSTFLAGS="-D warnings" cargo +nightly-2023-01-01 test --workspace --features psp22_pallet -- --test-threads=10
   examples-builds:
     concurrency:
       group: examples-builds-${{ github.ref }}

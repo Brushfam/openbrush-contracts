@@ -235,7 +235,7 @@ pub mod ownable {
                     .await
             }.return_value();
 
-            assert_eq!(owner, AccountId::from([0x00; 32]));
+            assert_eq!(owner, AccountId::from([0xff; 32]));
 
             Ok(())
         }

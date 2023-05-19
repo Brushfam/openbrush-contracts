@@ -25,12 +25,9 @@ use ::ink::env::{
     Environment,
 };
 use core::mem::ManuallyDrop;
-use ink::{
-    prelude::vec::Vec,
-    storage::traits::{
-        Storable,
-        StorageKey,
-    },
+use ink::storage::traits::{
+    Storable,
+    StorageKey,
 };
 pub use openbrush_lang_macro::Storage;
 
@@ -42,7 +39,7 @@ pub type Timestamp = <DefaultEnvironment as Environment>::Timestamp;
 pub type BlockNumber = <DefaultEnvironment as Environment>::BlockNumber;
 pub type ChainExtension = <DefaultEnvironment as Environment>::ChainExtension;
 pub type EnvAccess = ::ink::EnvAccess<'static, DefaultEnvironment>;
-pub type String = Vec<u8>;
+pub type String = ink::prelude::string::String;
 
 /// Each object has access to default environment via `Self::env()`.
 /// It can be used for interaction with host functions of the blockchain.
@@ -116,6 +113,7 @@ pub trait StorageAsMut: StorageAsRef {
 impl<T> StorageAsRef for T {}
 impl<T: StorageAsRef> StorageAsMut for T {}
 
+pub const ZERO_ADDRESS: [u8; 32] = [255; 32];
 pub trait StorageAccess<V>
 where
     V: Storable,
@@ -126,8 +124,6 @@ where
 
     fn get_or_default(&self) -> V;
 }
-
-pub const ZERO_ADDRESS: [u8; 32] = [0; 32];
 
 /// The trait provides some useful methods for `AccountId` type.
 pub trait AccountIdExt {

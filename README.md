@@ -183,17 +183,17 @@ OpenBrush participates in the Web3 Grants, you can find the roadmap [here](https
 </details>
 
 ## Installation & Testing
-To work with project you need to install a specific rust nightly-2023-03-19 toolchain, ink! toolchain and NodeJS's dependencies.
+To work with project you need to install a specific rust nightly-2023-01-01 toolchain, ink! toolchain and NodeJS's dependencies.
 
 
-1. Before installing a specific rust nightly-2023-03-19 toolchain, you'll need an actual installer [rustup](https://www.rust-lang.org/tools/install).
+1. Before installing a specific rust nightly-2023-01-01 toolchain, you'll need an actual installer [rustup](https://www.rust-lang.org/tools/install).
 2. Then install a toolchain:
 ```
-$ rustup toolchain install nightly-2023-03-19
+$ rustup toolchain install nightly-2023-01-01
 ```
 3. Set the toolchain as default:
 ```
-$ rustup default nightly-2023-03-19
+$ rustup default nightly-2023-01-01
 ```
 4. [ink! toolchain](https://use.ink/getting-started/setup)
 5. NodeJS deps you can install via `yarn` command

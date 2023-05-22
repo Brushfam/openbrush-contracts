@@ -222,5 +222,51 @@ pub mod my_psp22 {
 
             Ok(())
         }
+
+        #[ink_e2e::test]
+        async fn  only_set() -> E2EResult<()> {
+            let constructor = ContractRef::new(0);
+            let address = client
+                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
+                .await
+                .expect("instantiate failed")
+                .account_id;
+
+            let result = {
+                let _msg = build_message::<ContractRef>(address.clone())
+                    .call(|contract| contract.return_dumb_s());
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("return_dumb_s failed")
+            };
+
+            assert!(matches!(result.return_value(), 0));
+
+            let result = {
+                let _msg = build_message::<ContractRef>(address.clone())
+                    .call(|contract| contract.set_dumb_s_only(10));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("set_dumb_s_only failed")
+            };
+
+            assert!(matches!(result.return_value(), ()));
+
+            let result = {
+                let _msg = build_message::<ContractRef>(address.clone())
+                    .call(|contract| contract.return_dumb_s());
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("return_dumb_s failed")
+            };
+
+            assert!(matches!(result.return_value(), 10));
+
+            Ok(())
+        }
+
     }
 }

@@ -101,13 +101,13 @@ The callee contract should implement that trait.
 
 ### Additional stuff
 
-- You can use [`test_utils`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/src/test_utils.rs#L39)
+- You can use [`test_utils`](https://github.com/Brushfam/openbrush-contracts/blob/main/lang/src/test_utils.rs#L39)
 to simplify unit testing of you code.
-- You can use [`traits`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/src/traits.rs) that provides some additional
+- You can use [`traits`](https://github.com/Brushfam/openbrush-contracts/blob/main/lang/src/traits.rs) that provides some additional
 functionality for your code.
-- Read our **documentation** in [doc](https://727-Ventures.github.io/openbrush-contracts).
+- Read our **documentation** in [doc](https://learn.brushfam.io/docs/openbrush).
 - Go through our **examples** in [examples](examples) to check hot to use the library and ink!.
-- Check the [**example of project struct**](https://github.com/727-Ventures/openbrush-contracts/tree/main/example_project_structure) and [according documentation](https://docs.openbrush.io/smart-contracts/example/overview).
+- Check the [**example of project struct**](https://github.com/Brushfam/openbrush-contracts/tree/main/example_project_structure) and [according documentation](https://docs.openbrush.io/smart-contracts/example/overview).
 
 Not sure where to start? Use [the interactive generator](https://openbrush.io) to bootstrap your contract and learn about the components offered in OpenBrush.
 
@@ -118,14 +118,14 @@ The identifiers of events must be based on the name of the trait. At the moment,
 but it must be fixed with this [issue](https://github.com/paritytech/ink/issues/809).
 
 ### Issues to be resolved before the library becomes production-ready:
-* [Standard token naming convention](https://github.com/727-Ventures/openbrush-contracts/issues/1)
-* [Event's identifiers are based on the naming of the storage structure](https://github.com/727-Ventures/openbrush-contracts/issues/2)
+* [Standard token naming convention](https://github.com/Brushfam/openbrush-contracts/issues/1)
+* [Event's identifiers are based on the naming of the storage structure](https://github.com/Brushfam/openbrush-contracts/issues/2)
 
 ### Other Issues open:
 
-* [#[ink::trait_definition] doesn't support generics and default implementation](https://github.com/727-Ventures/openbrush-contracts/issues/4)
-* [Library provides implementation in Rust level instead of ink! level](https://github.com/727-Ventures/openbrush-contracts/issues/5)
-* [List of issues, solving each of them can simplify usage of library](https://github.com/727-Ventures/openbrush-contracts/issues/8)
+* [#[ink::trait_definition] doesn't support generics and default implementation](https://github.com/Brushfam/openbrush-contracts/issues/4)
+* [Library provides implementation in Rust level instead of ink! level](https://github.com/Brushfam/openbrush-contracts/issues/5)
+* [List of issues, solving each of them can simplify usage of library](https://github.com/Brushfam/openbrush-contracts/issues/8)
 * After [Storage rework](https://github.com/paritytech/ink/pull/1217) we need to refactor upgradeable contracts.
 
 ## Roadmap 🚗
@@ -183,17 +183,17 @@ OpenBrush participates in the Web3 Grants, you can find the roadmap [here](https
 </details>
 
 ## Installation & Testing
-To work with project you need to install a specific rust nightly-2023-03-19 toolchain, ink! toolchain and NodeJS's dependencies.
+To work with project you need to install a specific rust nightly-2023-01-01 toolchain, ink! toolchain and NodeJS's dependencies.
 
 
-1. Before installing a specific rust nightly-2023-03-19 toolchain, you'll need an actual installer [rustup](https://www.rust-lang.org/tools/install).
+1. Before installing a specific rust nightly-2023-01-01 toolchain, you'll need an actual installer [rustup](https://www.rust-lang.org/tools/install).
 2. Then install a toolchain:
 ```
-$ rustup toolchain install nightly-2023-03-19
+$ rustup toolchain install nightly-2023-01-01
 ```
 3. Set the toolchain as default:
 ```
-$ rustup default nightly-2023-03-19
+$ rustup default nightly-2023-01-01
 ```
 4. [ink! toolchain](https://use.ink/getting-started/setup)
 5. NodeJS deps you can install via `yarn` command

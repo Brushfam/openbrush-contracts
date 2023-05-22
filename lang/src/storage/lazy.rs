@@ -155,11 +155,13 @@ where
 
 #[cfg(feature = "std")]
 const _: () = {
-    use crate::traits::StorageLayout;
-    use ink::metadata::layout::{
-        Layout,
-        LayoutKey,
-        RootLayout,
+    use ink::{
+        metadata::layout::{
+            Layout,
+            LayoutKey,
+            RootLayout,
+        },
+        storage::traits::StorageLayout,
     };
 
     impl<V, KeyType> StorageLayout for Lazy<V, KeyType>

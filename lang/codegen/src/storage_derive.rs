@@ -87,18 +87,17 @@ pub fn storage_derive(item: TokenStream) -> TokenStream {
                     }
                 }
 
-                #[cfg(feature = "upgradeable")]
-                impl #impls ::openbrush::traits::StorageAccess<<#ty as StorableHint>::Type> for #struct_ident #types #where_clause {
+                impl #impls ::openbrush::traits::StorageAccess<#ty> for #struct_ident #types #where_clause {
                     fn get(&self) -> Option<#ty> {
-                        self.#field_ident.get()
+                        ::openbrush::traits::StorageAccess::<#ty>::get(&self.#field_ident)
                     }
 
-                    fn set(&mut self, value: &Self) {
-                        self.#field_ident.set(value)
+                    fn set(&mut self, value: &#ty) {
+                        ::openbrush::traits::StorageAccess::<#ty>::set(&mut self.#field_ident, value);
                     }
 
                     fn get_or_default(&self) -> #ty {
-                        self.#field_ident.get_or_default()
+                        ::openbrush::traits::StorageAccess::<#ty>::get_or_default(&self.#field_ident)
                     }
                 }
             )

@@ -26,11 +26,16 @@ pub mod my_psp22 {
 
     #[openbrush::upgradeable_storage(STORAGE_KEY)]
     #[openbrush::accessors(HatedLogicAccessors)]
+    #[derive(Storage)]
     #[derive(Debug)]
     pub struct HatedLogic {
         #[get]
         #[set]
         hated_account: AccountId,
+        #[get]
+        dumb_g_only: u32,
+        #[set]
+        dumb_s_only: u32,
     }
 
     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedLogic);
@@ -61,6 +66,8 @@ pub mod my_psp22 {
                 psp22: Default::default(),
                 hated_logic: HatedLogic {
                     hated_account: [255; 32].into(),
+                    dumb_g_only: 0,
+                    dumb_s_only: 0
                 },
             };
 
@@ -70,11 +77,20 @@ pub mod my_psp22 {
 
             instance
         }
+        #[ink(message)]
+        pub fn update_dumb_g(&mut self, value: u32) {
+            self.hated_logic.dumb_g_only = value
+        }
+        #[ink(message)]
+        pub fn return_dumb_s(&self) -> u32 {
+            self.hated_logic.dumb_s_only
+        }
     }
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
         use openbrush::contracts::psp22::psp22_external::PSP22;
+        use crate::my_psp22::hatedlogicaccessors_external::HatedLogicAccessors;
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]

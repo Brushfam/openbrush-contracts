@@ -32,10 +32,6 @@ pub mod my_psp22 {
         #[get]
         #[set]
         hated_account: AccountId,
-        #[get]
-        dumb_g_only: u32,
-        #[set]
-        dumb_s_only: u32,
     }
 
     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedLogic);
@@ -66,8 +62,6 @@ pub mod my_psp22 {
                 psp22: Default::default(),
                 hated_logic: HatedLogic {
                     hated_account: [255; 32].into(),
-                    dumb_g_only: 0,
-                    dumb_s_only: 0
                 },
             };
 
@@ -76,14 +70,6 @@ pub mod my_psp22 {
                 .expect("Should mint");
 
             instance
-        }
-        #[ink(message)]
-        pub fn update_dumb_g(&mut self, value: u32) {
-            self.hated_logic.dumb_g_only = value
-        }
-        #[ink(message)]
-        pub fn return_dumb_s(&self) -> u32 {
-            self.hated_logic.dumb_s_only
         }
     }
 
@@ -219,96 +205,6 @@ pub mod my_psp22 {
             let balance_of_bob = balance_of!(client, address, bob);
 
             assert!(matches!(balance_of_bob, 10));
-
-            Ok(())
-        }
-
-        #[ink_e2e::test]
-        async fn  only_set() -> E2EResult<()> {
-            let constructor = ContractRef::new(0);
-            let address = client
-                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("instantiate failed")
-                .account_id;
-
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.return_dumb_s());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("return_dumb_s failed")
-            };
-
-            assert!(matches!(result.return_value(), 0));
-
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.set_dumb_s_only(10));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("set_dumb_s_only failed")
-            };
-
-            assert!(matches!(result.return_value(), ()));
-
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.return_dumb_s());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("return_dumb_s failed")
-            };
-
-            assert!(matches!(result.return_value(), 10));
-
-            Ok(())
-        }
-
-        #[ink_e2e::test]
-        async fn  only_get() -> E2EResult<()> {
-            let constructor = ContractRef::new(0);
-            let address = client
-                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("instantiate failed")
-                .account_id;
-
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.get_dumb_g_only());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("get_dumb_g_only failed")
-            };
-
-            assert!(matches!(result.return_value(), 0));
-
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.update_dumb_g(10));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("update_dumb_g_only failed")
-            };
-
-            assert!(matches!(result.return_value(), ()));
-
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.get_dumb_g_only());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("get_dumb_g_only failed")
-            };
-
-            assert!(matches!(result.return_value(), 10));
 
             Ok(())
         }

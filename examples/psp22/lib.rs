@@ -9,7 +9,6 @@ pub mod my_psp22 {
         contracts::psp22::*,
         traits::{
             Storage,
-            StorageAsMut,
             String,
         },
     };
@@ -19,24 +18,24 @@ pub mod my_psp22 {
     pub struct Contract {
         #[storage_field]
         psp22: psp22::Data,
-        // fields for hater logic
+        // fields for hater storage
         #[storage_field]
-        hated_logic: HatedLogic,
+        hated_storage: HatedStorage,
     }
 
     #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    #[openbrush::accessors(HatedLogicAccessors)]
+    #[openbrush::accessors(HatedStorageAccessors)]
     #[derive(Storage)]
     #[derive(Debug)]
-    pub struct HatedLogic {
+    pub struct HatedStorage {
         #[get]
         #[set]
         hated_account: AccountId,
     }
 
-    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedLogic);
+    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
 
-    impl HatedLogicAccessors for Contract {}
+    impl HatedStorageAccessors for Contract {}
 
     impl Transfer for Contract {
         // Let's override method to reject transactions to bad account
@@ -46,7 +45,7 @@ pub mod my_psp22 {
             to: Option<&AccountId>,
             _amount: &Balance,
         ) -> Result<(), PSP22Error> {
-            if to == Some(&self.data::<HatedLogic>().hated_account) {
+            if to == Some(&self.hated_storage.hated_account) {
                 return Err(PSP22Error::Custom(String::from("I hate this account!")))
             }
             Ok(())
@@ -60,7 +59,7 @@ pub mod my_psp22 {
         pub fn new(total_supply: Balance) -> Self {
             let mut instance = Self {
                 psp22: Default::default(),
-                hated_logic: HatedLogic {
+                hated_storage: HatedStorage {
                     hated_account: [255; 32].into(),
                 },
             };
@@ -76,7 +75,7 @@ pub mod my_psp22 {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
         use openbrush::contracts::psp22::psp22_external::PSP22;
-        use crate::my_psp22::hatedlogicaccessors_external::HatedLogicAccessors;
+        use crate::my_psp22::hatedstorageaccessors_external::HatedStorageAccessors;
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]

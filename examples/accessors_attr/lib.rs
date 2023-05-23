@@ -8,7 +8,6 @@ pub mod accessors_attr {
     use openbrush::{
         traits::{
             Storage,
-            String,
         },
     };
 
@@ -17,14 +16,14 @@ pub mod accessors_attr {
     pub struct Contract {
         // fields for hater logic
         #[storage_field]
-        hated_logic: HatedLogic,
+        hated_logic: DumbData,
     }
 
     #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    #[openbrush::accessors(HatedLogicAccessors)]
+    #[openbrush::accessors(DumbDataAccessors)]
     #[derive(Storage)]
     #[derive(Debug)]
-    pub struct HatedLogic {
+    pub struct DumbData {
         #[get]
         #[set]
         dumb_g_s: u32,
@@ -34,15 +33,15 @@ pub mod accessors_attr {
         dumb_s_only: u32,
     }
 
-    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedLogic);
+    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(DumbData);
 
-    impl HatedLogicAccessors for Contract {}
+    impl DumbDataAccessors for Contract {}
 
     impl Contract {
         #[ink(constructor)]
         pub fn new() -> Self {
             let instance = Self {
-                hated_logic: HatedLogic {
+                hated_logic: DumbData {
                     dumb_g_s: 0,
                     dumb_g_only: 0,
                     dumb_s_only: 0
@@ -62,11 +61,11 @@ pub mod accessors_attr {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use crate::accessors_attr::hatedlogicaccessors_external::HatedLogicAccessors;
+        use crate::accessors_attr::dumbdataaccessors_external::DumbDataAccessors;
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
+        use ink_e2e::{build_message};
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

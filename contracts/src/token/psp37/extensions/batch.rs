@@ -49,7 +49,6 @@ use openbrush::traits::{
     AccountId,
     AccountIdExt,
     Balance,
-    OccupiedStorage,
     Storage,
 };
 
@@ -60,7 +59,6 @@ where
         + StorableHint<ManualKey<{ psp37::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp37::STORAGE_KEY }>>, Type = B>,
     T: Storage<psp37::Data<B>>,
-    T: OccupiedStorage<{ psp37::STORAGE_KEY }, WithData = psp37::Data<B>>,
 {
     default fn batch_transfer(
         &mut self,
@@ -99,7 +97,6 @@ where
         + StorableHint<ManualKey<{ psp37::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp37::STORAGE_KEY }>>, Type = B>,
     T: Storage<psp37::Data<B>>,
-    T: OccupiedStorage<{ psp37::STORAGE_KEY }, WithData = psp37::Data<B>>,
 {
     default fn _batch_transfer_from(
         &mut self,

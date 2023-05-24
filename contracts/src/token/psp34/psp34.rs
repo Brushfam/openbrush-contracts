@@ -262,7 +262,6 @@ where
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
     T: Storage<Data<B>>,
-    T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
 {
     default fn _before_token_transfer(
         &mut self,

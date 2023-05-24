@@ -52,7 +52,6 @@ use openbrush::{
     storage::Mapping,
     traits::{
         Hash,
-        OccupiedStorage,
         Storage,
     },
 };
@@ -84,7 +83,6 @@ where
         + AutoStorableHint<ManualKey<1826024066, ManualKey<{ STORAGE_KEY }>>, Type = D>,
     T: Storage<ownable::Data>,
     T: Storage<Data<D>>,
-    T: OccupiedStorage<STORAGE_KEY, WithData = Data<D>>,
 {
     #[modifiers(ownable::only_owner)]
     default fn diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
@@ -115,7 +113,6 @@ where
         + StorableHint<ManualKey<913099263>>
         + AutoStorableHint<ManualKey<1826024066, ManualKey<{ STORAGE_KEY }>>, Type = D>,
     T: Storage<Data<D>>,
-    T: OccupiedStorage<STORAGE_KEY, WithData = Data<D>>,
 {
     default fn _emit_diamond_cut_event(&self, _diamond_cut: &Vec<FacetCut>, _init: &Option<InitCall>) {}
 

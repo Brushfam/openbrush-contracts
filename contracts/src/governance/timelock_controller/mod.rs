@@ -60,7 +60,6 @@ use openbrush::{
     traits::{
         AccountId,
         Hash,
-        OccupiedStorage,
         Storage,
         Timestamp,
         ZERO_ADDRESS,
@@ -89,7 +88,6 @@ where
         + StorableHint<ManualKey<{ access_control::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
     T: Storage<access_control::Data<M>>,
-    T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<M>>,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<AccessControlError>,
 {
@@ -113,7 +111,6 @@ where
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
     T: Storage<Data>,
     T: Storage<access_control::Data<M>>,
-    T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<M>>,
 {
     default fn is_operation(&self, id: OperationId) -> bool {
         self.get_timestamp(id) > Timestamp::default()
@@ -316,7 +313,6 @@ where
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
     T: Storage<Data>,
     T: Storage<access_control::Data<M>>,
-    T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<M>>,
 {
     default fn _emit_min_delay_change_event(&self, _old_delay: Timestamp, _new_delay: Timestamp) {}
     default fn _emit_call_scheduled_event(

@@ -40,7 +40,6 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        OccupiedStorage,
         Storage,
     },
 };
@@ -91,7 +90,6 @@ impl balances::BalancesManager for Balances {
 impl<T> PSP34Enumerable for T
 where
     T: Storage<psp34::Data<Balances>>,
-    T: OccupiedStorage<{ psp34::STORAGE_KEY }, WithData = psp34::Data<Balances>>,
 {
     default fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Result<Id, PSP34Error> {
         self.data()

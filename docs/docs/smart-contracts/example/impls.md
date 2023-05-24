@@ -358,7 +358,6 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        OccupiedStorage,
         Storage,
         ZERO_ADDRESS,
     },
@@ -370,7 +369,6 @@ impl<T, M> LendingPermissioned for T
 where
     T: Internal,
     T: Storage<data::Data> + Storage<pausable::Data> + Storage<access_control::Data<M>>,
-    T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<M>>,
     M: members::MembersManager,
 {
     #[modifiers(only_role(MANAGER))]

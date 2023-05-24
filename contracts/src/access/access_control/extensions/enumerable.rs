@@ -39,7 +39,6 @@ use openbrush::{
     },
     traits::{
         AccountId,
-        OccupiedStorage,
         Storage,
     },
 };
@@ -70,7 +69,6 @@ impl members::MembersManager for Members {
 impl<T> AccessControlEnumerable for T
 where
     T: Storage<access_control::Data<Members>>,
-    T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<Members>>,
 {
     default fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
         self.data().members.role_members.get_value(role, &(index as u128))

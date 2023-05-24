@@ -51,7 +51,6 @@ use openbrush::{
         AccountId,
         AccountIdExt,
         Balance,
-        OccupiedStorage,
         Storage,
     },
 };
@@ -88,7 +87,6 @@ where
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>,
     T: Storage<Data<B>>,
-    T: OccupiedStorage<STORAGE_KEY, WithData = Data<B>>,
 {
     default fn balance_of(&self, owner: AccountId, id: Option<Id>) -> Balance {
         self.data().balances.balance_of(&owner, &id.as_ref())
@@ -194,7 +192,6 @@ where
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>,
     T: Storage<Data<B>>,
-    T: OccupiedStorage<STORAGE_KEY, WithData = Data<B>>,
 {
     default fn _emit_transfer_event(
         &self,
@@ -391,7 +388,6 @@ where
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>,
     T: Storage<Data<B>>,
-    T: OccupiedStorage<STORAGE_KEY, WithData = Data<B>>,
 {
     default fn _before_token_transfer(
         &mut self,

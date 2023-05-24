@@ -464,7 +464,7 @@ synstructure::decl_attribute!(
     storage::upgradeable_storage
 );
 
-/// The macro implements `openbrush::traits::Storage` and `openbrush::traits::OccupiedStorage`
+/// The macro implements `openbrush::traits::Storage`
 /// traits for each field marked by `#[storage_field]` attribute. Each field's type should implement
 /// the `openbrush::traits::OccupyStorage` trait with a unique storage key. Each occupied storage
 /// key should be unique for each type otherwise compilation will fail.

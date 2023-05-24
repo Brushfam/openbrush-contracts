@@ -44,7 +44,6 @@ use ink::{
 use openbrush::traits::{
     AccountId,
     Balance,
-    OccupiedStorage,
     Storage,
 };
 
@@ -55,7 +54,6 @@ where
         + StorableHint<ManualKey<{ psp37::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp37::STORAGE_KEY }>>, Type = B>,
     T: Storage<psp37::Data<B>>,
-    T: OccupiedStorage<{ psp37::STORAGE_KEY }, WithData = psp37::Data<B>>,
 {
     default fn mint(&mut self, to: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
         self._mint_to(to, ids_amounts)

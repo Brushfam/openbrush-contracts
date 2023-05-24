@@ -41,7 +41,6 @@ use openbrush::{
     },
     traits::{
         AccountId,
-        OccupiedStorage,
         Storage,
     },
 };
@@ -88,7 +87,6 @@ where
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
     T: Storage<Data<M>>,
-    T: OccupiedStorage<STORAGE_KEY, WithData = Data<M>>,
 {
     default fn has_role(&self, role: RoleType, address: AccountId) -> bool {
         self.data().members.has_role(role, &address)
@@ -151,7 +149,6 @@ where
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
     T: Storage<Data<M>>,
-    T: OccupiedStorage<STORAGE_KEY, WithData = Data<M>>,
 {
     default fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {}
     default fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {}

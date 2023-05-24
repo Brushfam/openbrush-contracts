@@ -149,7 +149,7 @@ fn extract_get_fields(s: synstructure::Structure) -> Vec<Field> {
     struct_item
         .fields
         .iter()
-        .filter(|field| field.attrs.iter().find(|a| a.path.is_ident("get")).is_some())
+        .filter(|field| field.attrs.iter().any(|a| a.path.is_ident("get")))
         .cloned()
         .collect::<Vec<_>>()
 }
@@ -163,7 +163,7 @@ fn extract_set_fields(s: synstructure::Structure) -> Vec<Field> {
     struct_item
         .fields
         .iter()
-        .filter(|field| field.attrs.iter().find(|a| a.path.is_ident("set")).is_some())
+        .filter(|field| field.attrs.iter().any(|a| a.path.is_ident("set")))
         .cloned()
         .collect::<Vec<_>>()
 }

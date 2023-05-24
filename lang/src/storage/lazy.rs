@@ -181,6 +181,10 @@ const _: () = {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::storage::{
+        Lazy,
+        ValueGuard,
+    };
     use ink::storage::traits::ManualKey;
 
     #[test]
@@ -200,7 +204,6 @@ mod tests {
         ink::env::test::run_test::<ink::env::DefaultEnvironment, _>(|_| {
             let mut storage: Lazy<u8, ValueGuard<u8>, ManualKey<123>> = Lazy::new();
             storage.set(&2);
-
             let storage2: Lazy<u8, ValueGuard<u8>, ManualKey<123>> = Lazy::new();
             assert_eq!(storage2.get(), Some(2));
 

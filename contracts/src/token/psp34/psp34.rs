@@ -50,7 +50,6 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        OccupiedStorage,
         Storage,
     },
 };
@@ -84,7 +83,6 @@ where
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
     T: Storage<Data<B>>,
-    T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
 {
     default fn collection_id(&self) -> Id {
         let account_id = Self::env().account_id();
@@ -147,7 +145,6 @@ where
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
     T: Storage<Data<B>>,
-    T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
 {
     default fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id) {}
     default fn _emit_approval_event(&self, _from: AccountId, _to: AccountId, _id: Option<Id>, _approved: bool) {}

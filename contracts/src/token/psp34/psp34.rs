@@ -56,7 +56,7 @@ use openbrush::{
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 #[derive(Default, Debug)]
 pub struct Data<B = balances::Balances>
 where

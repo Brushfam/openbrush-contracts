@@ -31,7 +31,8 @@ Which Standard tokens & useful contracts does it provide?
 - **Access Control** Define set of roles and restrict access to action by roles
 - **Reentrancy guard** Prevent reentrant calls to a function
 - **Pausable** Pause/Unpause the contract to disable/enable some operations
-- **Timelock Controller** Execute transactions with some delay
+- **Timelock Controller** Execute transactions w
+    .into()ith some delay
 - **Payment Splitter** Split amount of native tokens between participants
 
 ### Default implementation in ink! traits

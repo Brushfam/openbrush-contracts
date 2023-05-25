@@ -18,7 +18,7 @@ use openbrush::traits::Storage;
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 /// define the struct with the data that our smart contract will be using
 /// this will isolate the logic of our smart contract from its storage
 pub struct Data {

@@ -254,7 +254,7 @@ fn convert_into_storage_field(
     new_field
 }
 
-pub fn upgradeable_storage(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
+pub fn storage_item(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
     let storage_key = attrs.clone();
 
     let storage = storage_derive(s.clone());

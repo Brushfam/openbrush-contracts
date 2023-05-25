@@ -60,7 +60,7 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 // TODO: Add support of Erc165
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 pub struct Data<D = ()>
 where
     D: Storable

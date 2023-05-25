@@ -91,7 +91,7 @@ With this approach, you can order your units as you wish. You can add/remove/swa
 logic units and don't worry about storage layout because each logic unit will have its space 
 in the blockchain's storage. If storage keys are unique, those spaces don't overlap.
 
-OpenBrush provides [`openbrush::upgradeable_storage`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
+OpenBrush provides [`openbrush::storage_item`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
 attribute macro that implements some of the required traits with specified storage key(storage key is required input argument to macro).
 This way, macro will define the storage key for this struct, but WILL NOT set this struct by it's storage key automatically.
 So, you will need to perform such actions manually, or use `Lazy` wrapper. All of the `Lazy` and `Mapping` units that are defined inside of the type
@@ -109,7 +109,7 @@ key several times, which is a collision.
 
 You can include all fields into logic unit, like this:
 ```rust
-#[openbrush::upgradeable_storage(0x123)]
+#[openbrush::storage_item(0x123)]
 pub struct Data {
     balances: Mapping<Owner, Balance>,
     total_owners: u128,
@@ -129,7 +129,7 @@ But you can add new fields. For that, you can reserve one field with empty type 
 in your contract for future type.
 
 ```rust
-#[openbrush::upgradeable_storage(0x123)]
+#[openbrush::storage_item(0x123)]
 pub struct Data {
     balances: Mapping<Owner, Balance>,
     total_owners: u128,
@@ -140,7 +140,7 @@ pub struct Data {
 The default value of that field is `None`. But in the future, you can init it with some useful type and value.
 
 ```rust
-#[openbrush::upgradeable_storage(0x123)]
+#[openbrush::storage_item(0x123)]
 pub struct Data {
     balances: Mapping<Owner, Balance>,
     total_owners: u128,
@@ -171,10 +171,10 @@ or add a new field into the current.
 You can create a unique type for each field like:
 
 ```rust
-#[openbrush::upgradeable_storage(0x123)]
+#[openbrush::storage_item(0x123)]
 pub struct Balances(openbrush::storage::Mapping<AccountId, Balance>);
 
-#[openbrush::upgradeable_storage(0x124)]
+#[openbrush::storage_item(0x124)]
 pub struct TotalOwners(u128);
 ```
 
@@ -191,7 +191,7 @@ macro that generates a storage key based on the path to the structure.
 It has one required input argument - the name of the structure.
 
 ```rust
-#[openbrush::upgradeable_storage(openbrush::storage_unique_key!(Data))]
+#[openbrush::storage_item(openbrush::storage_unique_key!(Data))]
 pub struct Data {
     balances: Mapping<Owner, Balance>,
     total_owners: u128,
@@ -204,7 +204,7 @@ or
 ```rust
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 pub struct Data {
     balances: Mapping<Owner, Balance>,
     total_owners: u128,
@@ -439,7 +439,7 @@ As an example, we will define logic units for `PSP22` and `Ownable` facets.
 
 ```rust
 // OpenBrush uses the same logic unit for the default implementation of the `PSP22` trait.
-#[openbrush::upgradeable_storage(openbrush::storage_unique_key!(PSP22Data))]
+#[openbrush::storage_item(openbrush::storage_unique_key!(PSP22Data))]
 pub struct PSP22Data {
     // Total supply of the `PSP22`
     pub supply: Balance,
@@ -453,7 +453,7 @@ pub struct PSP22Data {
 
 // OpenBrush uses the same logic unit for the default implementation of the `Ownable` trait.
 // It simply stores the `AccountId` of the owner of the contract.
-#[openbrush::upgradeable_storage(openbrush::storage_unique_key!(OwnableData))]
+#[openbrush::storage_item(openbrush::storage_unique_key!(OwnableData))]
 pub struct OwnableData {
     // Owner of the contract
     pub owner: AccountId,

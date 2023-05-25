@@ -111,7 +111,7 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///     const STORAGE_KEY: u32 = 123;
 ///
 ///     #[derive(Default, Debug)]
-///     #[openbrush::upgradeable_storage(STORAGE_KEY)]
+///     #[openbrush::storage_item(STORAGE_KEY)]
 ///     pub struct Data {
 ///         pub supply: Balance,
 ///         pub balances: BTreeMap<AccountId, Balance>,
@@ -424,7 +424,7 @@ pub fn wrapper(attrs: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 synstructure::decl_attribute!(
-    [upgradeable_storage] =>
+    [storage_item] =>
     /// That macro implemented `OccupyStorage`
     ///
     /// Also, that macro adds the code to initialize the structure if it wasn't initialized.
@@ -438,7 +438,7 @@ synstructure::decl_attribute!(
     /// pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(OwnableData);
     ///
     /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(STORAGE_KEY)]
+    /// #[openbrush::storage_item(STORAGE_KEY)]
     /// pub struct OwnableData {
     ///    pub owner: AccountId,
     ///    pub _reserved: Option<()>,
@@ -447,21 +447,21 @@ synstructure::decl_attribute!(
     /// const PROXY_KEY : u32 = openbrush::storage_unique_key!(ProxyData);
     ///
     /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(PROXY_KEY)]
+    /// #[openbrush::storage_item(PROXY_KEY)]
     /// pub struct ProxyData {
     ///    pub forward: AccountId,
     ///    pub _reserved: Option<()>,
     /// }
     ///
     /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(123)]
+    /// #[openbrush::storage_item(123)]
     /// pub struct SomeData {
     ///    pub _reserved: Option<()>,
     /// }
     ///
     /// }
     /// ```
-    storage::upgradeable_storage
+    storage::storage_item
 );
 
 /// The macro implements `openbrush::traits::Storage`
@@ -470,7 +470,7 @@ synstructure::decl_attribute!(
 /// key should be unique for each type otherwise compilation will fail.
 ///
 /// `OccupyStorage` can be implemented for the type manually or automatically via
-/// [`#[openbrush::upgradeable_storage]`](`macro@crate::upgradeable_storage`) macro.
+/// [`#[openbrush::storage_item]`](`macro@crate::storage_item`) macro.
 #[proc_macro_derive(Storage, attributes(storage_field))]
 pub fn storage_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     storage_derive::storage_derive(item.into()).into()

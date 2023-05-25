@@ -37,7 +37,7 @@ pub trait BalancesManager {
     fn total_supply(&self) -> Balance;
 }
 
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 #[derive(Default, Debug)]
 pub struct Balances {
     owned_tokens_count: Mapping<Owner, u32>,

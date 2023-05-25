@@ -31,7 +31,7 @@ pub use openbrush_lang_macro::{
     contract,
     modifier_definition,
     modifiers,
+    storage_item,
     trait_definition,
-    upgradeable_storage,
     wrapper,
 };

@@ -51,7 +51,7 @@ pub use psp34::{
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Balances);
 
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 pub struct Balances {
     pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey /* optimization */>,
     pub _reserved: Option<()>,

@@ -11,9 +11,9 @@ RUN npm install -g n && \
     npm install -g yarn && \
     n stable
 
-RUN curl -sSf https://sh.rustup.rs/ | sh -s -- --default-toolchain nightly -y
+RUN curl -sSf https://sh.rustup.rs/ | sh -s -- --default-toolchain nightly-2023-03-19 -y
 
-RUN rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+RUN rustup component add rust-src --toolchain nightly-2023-01-01-x86_64-unknown-linux-gnu
 RUN rustup target add wasm32-unknown-unknown
 
 RUN cargo install cargo-dylint dylint-link

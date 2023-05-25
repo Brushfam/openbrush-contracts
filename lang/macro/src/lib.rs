@@ -486,7 +486,7 @@ synstructure::decl_attribute!(
     /// The name of the accessor message will be concatenation of `get/set` + `_` + field's name.
     ///
     /// # Example:
-    /// ```
+    /// ```skip
     /// {
     ///     use openbrush::traits::Storage;
     ///

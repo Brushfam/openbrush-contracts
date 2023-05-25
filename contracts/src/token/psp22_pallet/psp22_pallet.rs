@@ -31,6 +31,7 @@ use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
+    StorageAccess,
     String,
 };
 pub use pallet_assets_chain_extension::{
@@ -53,7 +54,12 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
-impl<T: Storage<Data>> PSP22 for T {
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
+impl<T: Storage<DataType> + StorageAccess<Data>> PSP22 for T {
     default fn total_supply(&self) -> Balance {
         let self_ = self.data();
         self_.pallet_assets.total_supply(self_.asset_id)
@@ -179,7 +185,7 @@ pub trait Internal {
     fn _sender(&self) -> AccountId;
 }
 
-impl<T: Storage<Data>> Internal for T {
+impl<T: Storage<DataType> + StorageAccess<Data>> Internal for T {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 

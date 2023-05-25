@@ -41,6 +41,7 @@ pub use psp34::{
 use openbrush::traits::{
     AccountId,
     Storage,
+    StorageAccess,
 };
 
 impl<B, T> PSP34Mintable for T
@@ -49,7 +50,8 @@ where
     B: Storable
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp34::STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ psp34::STORAGE_KEY }>>,
-    T: Storage<psp34::Data<B>>,
+    T: Storage<psp34::DataType<B>>,
+    T: StorageAccess<psp34::Data<B>>,
 {
     default fn mint(&mut self, account: AccountId, id: Id) -> Result<(), PSP34Error> {
         self._mint_to(account, id)

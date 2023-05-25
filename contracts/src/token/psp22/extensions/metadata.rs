@@ -55,7 +55,6 @@ pub type DataType = Data;
 #[cfg(feature = "upgradeable")]
 pub type DataType = Lazy<Data>;
 
-#[cfg(feature = "upgradeable")]
 impl<T: Storage<DataType> + StorageAccess<Data>> PSP22Metadata for T {
     default fn token_name(&self) -> Option<String> {
         self.data().get_or_default().name.clone()

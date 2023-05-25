@@ -44,6 +44,7 @@ use openbrush::{
     },
     traits::{
         Storage,
+        StorageAccess,
         String,
     },
 };
@@ -57,13 +58,22 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
 pub struct AttributesKey;
 
 impl<'a> TypeGuard<'a> for AttributesKey {
     type Type = &'a (&'a Id, &'a String);
 }
 
-impl<T: Storage<Data>> PSP34Metadata for T {
+impl<T> PSP34Metadata for T
+where
+    T: Storage<DataType>,
+    T: StorageAccess<Data>,
+{
     default fn get_attribute(&self, id: Id, key: String) -> Option<String> {
         self.data().attributes.get(&(&id, &key))
     }
@@ -78,7 +88,8 @@ pub trait Internal {
 
 impl<T> Internal for T
 where
-    T: Storage<Data>,
+    T: Storage<DataType>,
+    T: StorageAccess<Data>,
 {
     default fn _emit_attribute_set_event(&self, _id: Id, _key: String, _data: String) {}
 

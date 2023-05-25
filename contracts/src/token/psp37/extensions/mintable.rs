@@ -45,6 +45,7 @@ use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
+    StorageAccess,
 };
 
 impl<B, T> PSP37Mintable for T
@@ -53,7 +54,8 @@ where
     B: Storable
         + StorableHint<ManualKey<{ psp37::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp37::STORAGE_KEY }>>, Type = B>,
-    T: Storage<psp37::Data<B>>,
+    T: Storage<psp37::DataType<B>>,
+    T: StorageAccess<psp37::Data<B>>,
 {
     default fn mint(&mut self, to: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
         self._mint_to(to, ids_amounts)

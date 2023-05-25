@@ -41,6 +41,11 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
 const NOT_ENTERED: u8 = 0;
 const ENTERED: u8 = 1;
 

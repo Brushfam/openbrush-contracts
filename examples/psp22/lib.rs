@@ -18,15 +18,13 @@ pub mod my_psp22 {
     pub struct Contract {
         #[storage_field]
         psp22: psp22::Data,
-        // fields for hater storage
         #[storage_field]
         hated_storage: HatedStorage,
     }
 
     #[openbrush::upgradeable_storage(STORAGE_KEY)]
     #[openbrush::accessors(HatedStorageAccessors)]
-    #[derive(Storage)]
-    #[derive(Debug)]
+    #[derive(Storage, Debug)]
     pub struct HatedStorage {
         #[get]
         #[set]
@@ -74,8 +72,8 @@ pub mod my_psp22 {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::psp22::psp22_external::PSP22;
         use crate::my_psp22::hatedstorageaccessors_external::HatedStorageAccessors;
+        use openbrush::contracts::psp22::psp22_external::PSP22;
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]

@@ -10,7 +10,6 @@ ink = { version = "4.2.0", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.3", default-features = false, features = ["derive"], optional = true }
 
-# These dependencies
 openbrush = { path = "../..", default-features = false }
 
 [dev-dependencies]
@@ -31,7 +30,6 @@ std = [
     "ink/std",
     "scale/std",
     "scale-info/std",
-    # These dependencies
     "openbrush/std",
 ]
 ink-as-dependency = []

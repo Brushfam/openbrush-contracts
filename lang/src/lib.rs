@@ -25,8 +25,6 @@ mod macros;
 pub mod storage;
 pub mod test_utils;
 pub mod traits;
-#[cfg(feature = "upgradeable")]
-pub mod upgradeable;
 pub mod utils;
 
 pub use openbrush_lang_macro::{

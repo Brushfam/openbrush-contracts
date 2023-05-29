@@ -24,7 +24,7 @@ pub mod my_psp22 {
 
     #[openbrush::upgradeable_storage(STORAGE_KEY)]
     #[openbrush::accessors(HatedStorageAccessors)]
-    #[derive(Storage, Debug)]
+    #[derive(Debug)]
     pub struct HatedStorage {
         #[get]
         #[set]

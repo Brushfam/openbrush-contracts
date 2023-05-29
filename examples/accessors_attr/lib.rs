@@ -1,36 +1,28 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(min_specialization)]
 
-pub use accessors_attr::*;
-
 #[openbrush::contract]
 pub mod accessors_attr {
-    use openbrush::{
-        traits::{
-            Storage,
-        },
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
-    #[derive(Storage)]
+    #[derive(Storage, Default)]
     pub struct Contract {
-        // fields for hater logic
         #[storage_field]
         hated_logic: DumbData,
     }
 
     #[openbrush::upgradeable_storage(STORAGE_KEY)]
     #[openbrush::accessors(DumbDataAccessors)]
-    #[derive(Storage)]
-    #[derive(Debug)]
+    #[derive(Default, Debug)]
     pub struct DumbData {
         #[get]
         #[set]
-        dumb_g_s: u32,
+        read_write: u32,
         #[get]
-        dumb_g_only: u32,
+        read_only: u32,
         #[set]
-        dumb_s_only: u32,
+        write_only: u32,
     }
 
     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(DumbData);
@@ -40,22 +32,15 @@ pub mod accessors_attr {
     impl Contract {
         #[ink(constructor)]
         pub fn new() -> Self {
-            let instance = Self {
-                hated_logic: DumbData {
-                    dumb_g_s: 0,
-                    dumb_g_only: 0,
-                    dumb_s_only: 0
-                },
-            };
-            instance
+            Default::default()
         }
         #[ink(message)]
-        pub fn update_dumb_g(&mut self, value: u32) {
-            self.hated_logic.dumb_g_only = value
+        pub fn set_read_only(&mut self, value: u32) {
+            self.hated_logic.read_only = value
         }
         #[ink(message)]
-        pub fn return_dumb_s(&self) -> u32 {
-            self.hated_logic.dumb_s_only
+        pub fn get_write_only(&self) -> u32 {
+            self.hated_logic.write_only
         }
     }
 
@@ -70,7 +55,7 @@ pub mod accessors_attr {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn  get_and_set() -> E2EResult<()> {
+        async fn get_and_set() -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("accessors_attr", &ink_e2e::alice(), constructor, 0, None)
@@ -79,34 +64,31 @@ pub mod accessors_attr {
                 .account_id;
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.get_dumb_g_s());
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_read_write());
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
-                    .expect("get_dumb_g_s failed")
+                    .expect("get_read_write failed")
             };
 
             assert!(matches!(result.return_value(), 0));
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.set_dumb_g_s(10));
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.set_read_write(10));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
-                    .expect("update_dumb_g_only failed")
+                    .expect("update_read_only failed")
             };
 
             assert!(matches!(result.return_value(), ()));
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.get_dumb_g_s());
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_read_write());
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
-                    .expect("get_dumb_g_only failed")
+                    .expect("get_read_only failed")
             };
 
             assert!(matches!(result.return_value(), 10));
@@ -115,7 +97,7 @@ pub mod accessors_attr {
         }
 
         #[ink_e2e::test]
-        async fn  only_set() -> E2EResult<()> {
+        async fn only_set() -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("accessors_attr", &ink_e2e::alice(), constructor, 0, None)
@@ -124,34 +106,31 @@ pub mod accessors_attr {
                 .account_id;
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.return_dumb_s());
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_write_only());
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
-                    .expect("return_dumb_s failed")
+                    .expect("get_write_only failed")
             };
 
             assert!(matches!(result.return_value(), 0));
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.set_dumb_s_only(10));
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.set_write_only(10));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
-                    .expect("set_dumb_s_only failed")
+                    .expect("set_write_only failed")
             };
 
             assert!(matches!(result.return_value(), ()));
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.return_dumb_s());
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_write_only());
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
-                    .expect("return_dumb_s failed")
+                    .expect("get_write_only failed")
             };
 
             assert!(matches!(result.return_value(), 10));
@@ -160,7 +139,7 @@ pub mod accessors_attr {
         }
 
         #[ink_e2e::test]
-        async fn  only_get() -> E2EResult<()> {
+        async fn only_get() -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("accessors_attr", &ink_e2e::alice(), constructor, 0, None)
@@ -169,34 +148,31 @@ pub mod accessors_attr {
                 .account_id;
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.get_dumb_g_only());
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_read_only());
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
-                    .expect("get_dumb_g_only failed")
+                    .expect("get_read_only failed")
             };
 
             assert!(matches!(result.return_value(), 0));
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.update_dumb_g(10));
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.set_read_only(10));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
-                    .expect("update_dumb_g_only failed")
+                    .expect("set_read_only failed")
             };
 
             assert!(matches!(result.return_value(), ()));
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.get_dumb_g_only());
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_read_only());
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
-                    .expect("get_dumb_g_only failed")
+                    .expect("get_read_only failed")
             };
 
             assert!(matches!(result.return_value(), 10));

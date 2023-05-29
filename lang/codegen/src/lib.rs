@@ -25,6 +25,6 @@ pub mod metadata;
 pub mod modifier_definition;
 pub mod modifiers;
 pub mod storage;
-pub mod storage_derive;
+pub mod storage_item;
 pub mod trait_definition;
 pub mod wrapper;

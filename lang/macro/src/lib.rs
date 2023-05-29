@@ -28,7 +28,7 @@ use openbrush_lang_codegen::{
     modifier_definition,
     modifiers,
     storage,
-    storage_derive,
+    storage_item,
     trait_definition,
     wrapper,
 };
@@ -461,17 +461,14 @@ synstructure::decl_attribute!(
     ///
     /// }
     /// ```
-    storage::storage_item
+    storage_item::storage_item
 );
 
-/// The macro implements `openbrush::traits::Storage`
-/// traits for each field marked by `#[storage_field]` attribute. Each field's type should implement
-/// the `openbrush::traits::OccupyStorage` trait with a unique storage key. Each occupied storage
-/// key should be unique for each type otherwise compilation will fail.
-///
-/// `OccupyStorage` can be implemented for the type manually or automatically via
-/// [`#[openbrush::storage_item]`](`macro@crate::storage_item`) macro.
-#[proc_macro_derive(Storage, attributes(storage_field))]
-pub fn storage_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    storage_derive::storage_derive(item.into()).into()
-}
+synstructure::decl_attribute!(
+    [storage] =>
+    /// The macro implements `openbrush::traits::Storage` and `openbrush::traits::StorageAccess` traits
+    /// traits for each field marked by `#[storage_field]` or `#[upgradeable_storage_field]` attribute.
+    ///
+    /// Fields that are marked by `#[upgradeable_storage_field]` attribute will be wrapped in `openbrush::traits::Lazy`
+    storage::storage
+);

@@ -29,7 +29,6 @@ use ink::storage::traits::{
     Storable,
     StorageKey,
 };
-pub use openbrush_lang_macro::Storage;
 
 /// Aliases for types of the default environment
 pub type AccountId = <DefaultEnvironment as Environment>::AccountId;

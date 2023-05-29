@@ -27,6 +27,8 @@ use proc_macro2::TokenStream;
 use quote::{
     format_ident,
     quote,
+    quote_spanned,
+    ToTokens,
 };
 use std::collections::HashMap;
 use syn::{
@@ -36,6 +38,7 @@ use syn::{
         Parse,
         ParseStream,
     },
+    spanned::Spanned,
     ItemImpl,
 };
 
@@ -319,4 +322,152 @@ pub(crate) const INK_PREFIX: &str = "ink=";
 #[inline]
 pub(crate) fn skip() -> bool {
     std::env::args().find(|arg| arg.contains(INK_PREFIX)).is_none()
+}
+
+pub(crate) fn generate_struct(
+    s: &synstructure::Structure,
+    struct_item: syn::DataStruct,
+    storage_key: &TokenStream,
+) -> TokenStream {
+    let struct_ident = s.ast().ident.clone();
+    let vis = s.ast().vis.clone();
+    let types = s.ast().generics.clone();
+    let attrs = s.ast().attrs.clone();
+    let (_, _, where_closure) = s.ast().generics.split_for_impl();
+
+    let fields = struct_item
+        .fields
+        .iter()
+        .enumerate()
+        .map(|(i, field)| convert_into_storage_field(&struct_ident, None, &storage_key, i, field));
+
+    match struct_item.fields {
+        syn::Fields::Unnamed(_) => {
+            quote! {
+                #(#attrs)*
+                #vis struct #struct_ident #types #where_closure (
+                    #(#fields),*
+                );
+            }
+        }
+        _ => {
+            quote! {
+                #(#attrs)*
+                #vis struct #struct_ident #types #where_closure {
+                    #(#fields),*
+                }
+            }
+        }
+    }
+}
+
+pub(crate) fn generate_enum(
+    s: &synstructure::Structure,
+    enum_item: syn::DataEnum,
+    storage_key: &TokenStream,
+) -> TokenStream {
+    let enum_ident = s.ast().ident.clone();
+    let vis = s.ast().vis.clone();
+    let attrs = s.ast().attrs.clone();
+    let types = s.ast().generics.clone();
+    let (_, _, where_closure) = s.ast().generics.split_for_impl();
+
+    let variants = enum_item.variants.into_iter().map(|variant| {
+        let attrs = variant.attrs;
+        let variant_ident = &variant.ident;
+        let discriminant = if let Some((eq, expr)) = variant.discriminant {
+            quote! { #eq #expr}
+        } else {
+            quote! {}
+        };
+
+        let fields: Vec<_> = variant
+            .fields
+            .iter()
+            .enumerate()
+            .map(|(i, field)| convert_into_storage_field(&enum_ident, Some(variant_ident), &storage_key, i, field))
+            .collect();
+
+        let fields = match variant.fields {
+            syn::Fields::Named(_) => quote! { { #(#fields),* } },
+            syn::Fields::Unnamed(_) => quote! { ( #(#fields),* ) },
+            syn::Fields::Unit => quote! {},
+        };
+
+        quote! {
+            #(#attrs)*
+            #variant_ident #fields #discriminant
+        }
+    });
+
+    quote! {
+        #(#attrs)*
+        #vis enum #enum_ident #types #where_closure {
+            #(#variants),*
+        }
+    }
+}
+
+pub(crate) fn generate_union(
+    s: &synstructure::Structure,
+    union_item: syn::DataUnion,
+    storage_key: &TokenStream,
+) -> TokenStream {
+    let union_ident = s.ast().ident.clone();
+    let vis = s.ast().vis.clone();
+    let attrs = s.ast().attrs.clone();
+    let types = s.ast().generics.clone();
+    let (_, _, where_closure) = s.ast().generics.split_for_impl();
+
+    let fields = union_item
+        .fields
+        .named
+        .iter()
+        .enumerate()
+        .map(|(i, field)| convert_into_storage_field(&union_ident, None, &storage_key, i, field));
+
+    quote! {
+        #(#attrs)*
+        #vis union #union_ident #types #where_closure {
+            #(#fields),*
+        }
+    }
+}
+
+pub(crate) fn convert_into_storage_field(
+    struct_ident: &syn::Ident,
+    variant_ident: Option<&syn::Ident>,
+    storage_key: &TokenStream,
+    index: usize,
+    field: &syn::Field,
+) -> syn::Field {
+    let field_name = if let Some(field_ident) = &field.ident {
+        field_ident.to_string()
+    } else {
+        index.to_string()
+    };
+
+    let variant_name = if let Some(variant_ident) = variant_ident {
+        variant_ident.to_string()
+    } else {
+        "".to_string()
+    };
+
+    let key = ::ink_primitives::KeyComposer::compute_key(
+        struct_ident.to_string().as_str(),
+        variant_name.as_str(),
+        field_name.as_str(),
+    )
+    .expect("unable to compute the storage key for the field");
+
+    let mut new_field = field.clone();
+    let ty = field.ty.clone().to_token_stream();
+    let span = field.ty.span();
+    let new_ty = syn::Type::Verbatim(quote_spanned!(span =>
+        <#ty as ::ink::storage::traits::AutoStorableHint<
+            ::ink::storage::traits::ManualKey<#key, ::ink::storage::traits::ManualKey<#storage_key>>,
+        >>::Type
+    ));
+    new_field.ty = new_ty;
+    new_field
 }

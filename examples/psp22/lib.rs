@@ -13,9 +13,8 @@ pub mod my_psp22 {
         },
     };
 
-
     #[ink(storage)]
-    #[derive(Storage)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         psp22: psp22::Data,
@@ -76,7 +75,7 @@ pub mod my_psp22 {
 
         use test_helpers::{
             address_of,
-            balance_of
+            balance_of,
         };
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
@@ -84,7 +83,8 @@ pub mod my_psp22 {
         #[ink_e2e::test]
         async fn assigns_initial_balance(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(100);
-            let address = client.instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -103,7 +103,8 @@ pub mod my_psp22 {
         #[ink_e2e::test]
         async fn transfer_adds_amount_to_destination_account(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(100);
-            let address = client.instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -111,7 +112,8 @@ pub mod my_psp22 {
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.transfer(address_of!(bob), 50, vec![]));
-                client.call(&ink_e2e::alice(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
                     .expect("transfer failed")
             };
@@ -131,7 +133,8 @@ pub mod my_psp22 {
         #[ink_e2e::test]
         async fn cannot_transfer_above_the_amount(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(100);
-            let address = client.instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -139,8 +142,7 @@ pub mod my_psp22 {
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.transfer(address_of!(bob), 101, vec![]));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             };
 
             assert!(matches!(result.return_value(), Err(PSP22Error::InsufficientBalance)));
@@ -151,7 +153,8 @@ pub mod my_psp22 {
         #[ink_e2e::test]
         async fn cannot_transfer_to_hated_account(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(100);
-            let address = client.instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -159,7 +162,8 @@ pub mod my_psp22 {
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.transfer(address_of!(bob), 10, vec![]));
-                client.call(&ink_e2e::alice(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
                     .expect("transfer failed")
             };
@@ -173,7 +177,8 @@ pub mod my_psp22 {
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.set_hated_account(address_of!(bob)));
-                client.call(&ink_e2e::alice(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
                     .expect("set_hated_account failed")
             };
@@ -183,8 +188,7 @@ pub mod my_psp22 {
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.transfer(address_of!(bob), 10, vec![]));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             };
 
             assert!(matches!(result.return_value(), Err(PSP22Error::Custom(_))));

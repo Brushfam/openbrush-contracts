@@ -19,120 +19,171 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use proc_macro2::{
-    Ident,
-    TokenStream,
+use crate::internal::{
+    convert_into_storage_field,
+    is_attr,
+    remove_attr,
 };
+use proc_macro2::TokenStream;
 use quote::{
-    format_ident,
     quote,
     quote_spanned,
     ToTokens,
 };
 use syn::{
-    parse2,
     spanned::Spanned,
     Data,
-    DataEnum,
-    DataStruct,
-    DataUnion,
+    DeriveInput,
     Field,
     Fields,
+    Type,
 };
 
-pub fn storage_derive(mut s: synstructure::Structure) -> TokenStream {
-    s.add_bounds(synstructure::AddBounds::None).underscore_const(true);
-    let storage = s.gen_impl(quote! {
-        #[cfg(not(feature = "upgradeable"))]
-        gen impl ::openbrush::traits::Storage<Self> for @Self {
-            fn get(&self) -> &Self {
-                self
-            }
+pub fn storage(_attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
+    let fields = generate_fields(s.clone());
+    let impls = generate_storage_impls(s.clone(), fields);
 
-            fn get_mut(&mut self) -> &mut Self {
-                self
-            }
+    let item = match s.ast().data.clone() {
+        Data::Struct(struct_item) => generate_struct(&s, struct_item),
+        Data::Enum(enum_item) => generate_enum(&s, enum_item),
+        Data::Union(union_item) => generate_union(&s, union_item),
+    };
+
+    (quote! {
+        #item
+
+        #impls
+    })
+    .into()
+}
+
+fn generate_fields(s: synstructure::Structure) -> Vec<Field> {
+    let key_salt = salt(&s.ast().clone());
+    let struct_ident = s.ast().ident.clone();
+
+    match &s.ast().data {
+        Data::Struct(st) => {
+            st.fields
+                .iter()
+                .enumerate()
+                .map(|(i, field)| convert_into_storage_field(&struct_ident, None, &key_salt, i, field))
+                .collect()
         }
-    });
-
-    let storage_access = s.gen_impl(quote! {
-        #[cfg(not(feature = "upgradeable"))]
-        gen impl ::openbrush::traits::StorageAccess<Self> for @Self {
-            fn get(&self) -> Option<Self> {
-                Some(self.clone())
-            }
-
-            fn set(&mut self, value: &Self) {
-                *self = value.clone();
-            }
-
-            fn get_or_default(&self) -> Self {
-                self.clone()
-            }
+        Data::Enum(en) => {
+            en.variants
+                .iter()
+                .flat_map(|v| {
+                    v.fields.iter().enumerate().map(|(i, field)| {
+                        convert_into_storage_field(&struct_ident, Some(&v.ident), &key_salt, i, field)
+                    })
+                })
+                .collect()
         }
-    });
-
-    quote! {
-        #storage
-        #storage_access
+        Data::Union(un) => {
+            un.fields
+                .named
+                .iter()
+                .enumerate()
+                .map(|(i, field)| convert_into_storage_field(&struct_ident, None, &key_salt, i, field))
+                .collect()
+        }
     }
 }
 
-pub fn storage_key_derive(storage_key: &TokenStream, mut s: synstructure::Structure) -> TokenStream {
-    s.add_bounds(synstructure::AddBounds::None).underscore_const(true);
+fn generate_storage_impls(s: synstructure::Structure, fields: Vec<Field>) -> TokenStream {
+    let struct_ident = s.ast().ident.clone();
+    let (impls, types, where_clause) = s.ast().generics.split_for_impl();
 
-    s.gen_impl(quote! {
-        gen impl ::ink::storage::traits::StorageKey for @Self {
-            const KEY: ::ink::primitives::Key = #storage_key;
+    let impls = fields
+        .iter()
+        .filter(|field| field.attrs.iter().find(|a| a.path.is_ident("storage_field")).is_some())
+        .map(|field| {
+            let field_ident = field.ident.clone();
+            let ty = field.ty.clone();
+
+            let storage_ty = if is_attr(&field.attrs, "upgradeable_storage_field") {
+                quote! { ::openbrush::traits::Lazy<#ty> }
+            } else {
+                quote! { #ty }
+            };
+
+            let span = field.span();
+
+            quote_spanned!(span=>
+                impl #impls ::openbrush::traits::Storage<#storage_ty> for #struct_ident #types #where_clause {
+                    fn get(&self) -> &#storage_ty {
+                        &self.#field_ident
+                    }
+
+                    fn get_mut(&mut self) -> &mut #storage_ty {
+                        &mut self.#field_ident
+                    }
+                }
+
+                impl #impls ::openbrush::traits::StorageAccess<#ty> for #struct_ident #types #where_clause {
+                    fn get(&self) -> Option<#ty> {
+                        ::openbrush::traits::StorageAccess::<#ty>::get(&self.#field_ident)
+                    }
+
+                    fn set(&mut self, value: &#ty) {
+                        ::openbrush::traits::StorageAccess::<#ty>::set(&mut self.#field_ident, value);
+                    }
+
+                    fn get_or_default(&self) -> #ty {
+                        ::openbrush::traits::StorageAccess::<#ty>::get_or_default(&self.#field_ident)
+                    }
+                }
+            )
+        });
+
+    quote! {
+        #(#impls)*
+    }
+}
+
+fn salt(s: &DeriveInput) -> TokenStream {
+    if let Some(param) = find_storage_key_salt(&s) {
+        param.ident.to_token_stream()
+    } else {
+        quote! { () }
+    }
+}
+
+fn find_storage_key_salt(input: &DeriveInput) -> Option<syn::TypeParam> {
+    input.generics.params.iter().find_map(|param| {
+        if let syn::GenericParam::Type(type_param) = param {
+            if let Some(syn::TypeParamBound::Trait(trait_bound)) = type_param.bounds.first() {
+                let segments = &trait_bound.path.segments;
+                if let Some(last) = segments.last() {
+                    if last.ident == "StorageKey" {
+                        return Some(type_param.clone())
+                    }
+                }
+            }
         }
+        None
     })
 }
 
-fn storable_hint_inner(storage_key: &TokenStream, s: synstructure::Structure) -> TokenStream {
-    let ident = s.ast().ident.clone();
-    let salt_ident = format_ident!("__ink_generic_salt");
-
-    let mut generics = s.ast().generics.clone();
-    generics
-        .params
-        .push(parse2(quote! { #salt_ident : ::ink::storage::traits::StorageKey }).unwrap());
-
-    let (impl_generics, _, where_clause) = generics.split_for_impl();
-    let (_, ty_generics_original, _) = s.ast().generics.split_for_impl();
-
-    quote! {
-        impl #impl_generics ::ink::storage::traits::StorableHint<#salt_ident> for #ident #ty_generics_original #where_clause {
-            type Type = #ident #ty_generics_original;
-            type PreferredKey = ::ink::storage::traits::ManualKey<#storage_key>;
-        }
-    }
-}
-
-pub fn storable_hint_derive(storage_key: &TokenStream, s: synstructure::Structure) -> TokenStream {
-    let derive = storable_hint_inner(storage_key, s);
-
-    quote! {
-        const _ : () = {
-            #derive
-        };
-    }
-}
-
-fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct, storage_key: &TokenStream) -> TokenStream {
+pub fn generate_struct(s: &synstructure::Structure, struct_item: syn::DataStruct) -> TokenStream {
     let struct_ident = s.ast().ident.clone();
     let vis = s.ast().vis.clone();
     let types = s.ast().generics.clone();
     let attrs = s.ast().attrs.clone();
     let (_, _, where_closure) = s.ast().generics.split_for_impl();
 
-    let fields = struct_item
-        .fields
+    let fields = wrap_upgradeable_fields(struct_item.fields.clone())
         .iter()
-        .enumerate()
-        .map(|(i, field)| convert_into_storage_field(&struct_ident, None, &storage_key, i, field));
+        .map(|field| {
+            let mut new_field = field.clone();
+            new_field.attrs = remove_attr(&new_field.attrs, "upgradeable_storage_field");
+            new_field.attrs = remove_attr(&new_field.attrs, "storage_field");
+            new_field
+        })
+        .collect::<Vec<_>>();
 
     match struct_item.fields {
-        Fields::Unnamed(_) => {
+        syn::Fields::Unnamed(_) => {
             quote! {
                 #(#attrs)*
                 #vis struct #struct_ident #types #where_closure (
@@ -151,7 +202,7 @@ fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct, storage
     }
 }
 
-fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum, storage_key: &TokenStream) -> TokenStream {
+pub fn generate_enum(s: &synstructure::Structure, enum_item: syn::DataEnum) -> TokenStream {
     let enum_ident = s.ast().ident.clone();
     let vis = s.ast().vis.clone();
     let attrs = s.ast().attrs.clone();
@@ -167,17 +218,20 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum, storage_key: 
             quote! {}
         };
 
-        let fields: Vec<_> = variant
-            .fields
+        let fields: Vec<_> = wrap_upgradeable_fields(variant.fields.clone())
             .iter()
-            .enumerate()
-            .map(|(i, field)| convert_into_storage_field(&enum_ident, Some(variant_ident), &storage_key, i, field))
-            .collect();
+            .map(|field| {
+                let mut new_field = field.clone();
+                new_field.attrs = remove_attr(&new_field.attrs, "upgradeable_storage_field");
+                new_field.attrs = remove_attr(&new_field.attrs, "storage_field");
+                new_field
+            })
+            .collect::<Vec<_>>();
 
         let fields = match variant.fields {
-            Fields::Named(_) => quote! { { #(#fields),* } },
-            Fields::Unnamed(_) => quote! { ( #(#fields),* ) },
-            Fields::Unit => quote! {},
+            syn::Fields::Named(_) => quote! { { #(#fields),* } },
+            syn::Fields::Unnamed(_) => quote! { ( #(#fields),* ) },
+            syn::Fields::Unit => quote! {},
         };
 
         quote! {
@@ -194,19 +248,22 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum, storage_key: 
     }
 }
 
-fn generate_union(s: &synstructure::Structure, union_item: DataUnion, storage_key: &TokenStream) -> TokenStream {
+pub fn generate_union(s: &synstructure::Structure, union_item: syn::DataUnion) -> TokenStream {
     let union_ident = s.ast().ident.clone();
     let vis = s.ast().vis.clone();
     let attrs = s.ast().attrs.clone();
     let types = s.ast().generics.clone();
     let (_, _, where_closure) = s.ast().generics.split_for_impl();
 
-    let fields = union_item
-        .fields
-        .named
-        .iter()
-        .enumerate()
-        .map(|(i, field)| convert_into_storage_field(&union_ident, None, &storage_key, i, field));
+    let upgradeable_fields = wrap_upgradeable_fields(syn::Fields::Named(union_item.fields.clone()));
+
+    let fields = upgradeable_fields.iter().map(|field| {
+        let ty = &field.ty.clone();
+        let new_ty = quote! { ::openbrush::traits::Lazy<#ty> };
+        let mut new_field = field.clone();
+        new_field.ty = Type::Verbatim(new_ty);
+        new_field
+    });
 
     quote! {
         #(#attrs)*
@@ -216,70 +273,22 @@ fn generate_union(s: &synstructure::Structure, union_item: DataUnion, storage_ke
     }
 }
 
-fn convert_into_storage_field(
-    struct_ident: &Ident,
-    variant_ident: Option<&syn::Ident>,
-    storage_key: &TokenStream,
-    index: usize,
-    field: &Field,
-) -> Field {
-    let field_name = if let Some(field_ident) = &field.ident {
-        field_ident.to_string()
-    } else {
-        index.to_string()
-    };
-
-    let variant_name = if let Some(variant_ident) = variant_ident {
-        variant_ident.to_string()
-    } else {
-        "".to_string()
-    };
-
-    let key = ::ink_primitives::KeyComposer::compute_key(
-        struct_ident.to_string().as_str(),
-        variant_name.as_str(),
-        field_name.as_str(),
-    )
-    .expect("unable to compute the storage key for the field");
-
-    let mut new_field = field.clone();
-    let ty = field.ty.clone().to_token_stream();
-    let span = field.ty.span();
-    let new_ty = syn::Type::Verbatim(quote_spanned!(span =>
-        <#ty as ::ink::storage::traits::AutoStorableHint<
-            ::ink::storage::traits::ManualKey<#key, ::ink::storage::traits::ManualKey<#storage_key>>,
-        >>::Type
-    ));
-    new_field.ty = new_ty;
-    new_field
-}
-
-pub fn storage_item(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
-    let storage_key = attrs.clone();
-
-    let storage = storage_derive(s.clone());
-    let storage_key_derived = storage_key_derive(&storage_key, s.clone());
-    let storable_hint = storable_hint_derive(&storage_key, s.clone());
-
-    let item = match s.ast().data.clone() {
-        Data::Struct(struct_item) => generate_struct(&s, struct_item, &storage_key),
-        Data::Enum(enum_item) => generate_enum(&s, enum_item, &storage_key),
-        Data::Union(union_item) => generate_union(&s, union_item, &storage_key),
-    };
-
-    let out = quote! {
-        #[derive(::ink::storage::traits::Storable, Clone)]
-        #[cfg_attr(feature = "std", derive(
-            ::scale_info::TypeInfo,
-            ::ink::storage::traits::StorageLayout
-        ))]
-        #item
-
-        #storage_key_derived
-        #storable_hint
-
-        #storage
-    };
-
-    out.into()
+fn wrap_upgradeable_fields(fields: Fields) -> Vec<syn::Field> {
+    fields
+        .iter()
+        .map(|field| {
+            if is_attr(&field.attrs, "upgradeable_storage_field") {
+                let mut new_field = field.clone();
+                let ty = field.ty.clone().to_token_stream();
+                let span = field.ty.span();
+                let new_ty = syn::Type::Verbatim(quote_spanned!(span =>
+                    ::openbrush::traits::Lazy<#ty>
+                ));
+                new_field.ty = new_ty;
+                new_field
+            } else {
+                field.clone()
+            }
+        })
+        .collect::<Vec<_>>()
 }

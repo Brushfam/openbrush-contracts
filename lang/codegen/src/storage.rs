@@ -39,7 +39,13 @@ use syn::{
     Type,
 };
 
-pub fn storage(_attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
+pub fn storage(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
+    let storage_key = if attrs.is_empty() {
+        quote! { 0 }
+    } else {
+        attrs.clone()
+    };
+
     let fields = generate_fields(s.clone());
     let impls = generate_storage_impls(s.clone(), fields);
 

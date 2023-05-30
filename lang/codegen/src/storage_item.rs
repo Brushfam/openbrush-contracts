@@ -37,10 +37,14 @@ pub fn storage_item(attrs: TokenStream, s: synstructure::Structure) -> TokenStre
     let storage_key_derived = storage_key_derive(&storage_key, s.clone());
     let storable_hint = storable_hint_derive(&storage_key, s.clone());
 
+    let storage_key_ts = quote! {
+        ::ink::storage::traits::ManualKey<#storage_key>
+    };
+
     let item = match s.ast().data.clone() {
-        Data::Struct(struct_item) => internal::generate_struct(&s, struct_item, &storage_key),
-        Data::Enum(enum_item) => internal::generate_enum(&s, enum_item, &storage_key),
-        Data::Union(union_item) => internal::generate_union(&s, union_item, &storage_key),
+        Data::Struct(struct_item) => internal::generate_struct(&s, struct_item, &storage_key_ts),
+        Data::Enum(enum_item) => internal::generate_enum(&s, enum_item, &storage_key_ts),
+        Data::Union(union_item) => internal::generate_union(&s, union_item, &storage_key_ts),
     };
 
     (quote! {

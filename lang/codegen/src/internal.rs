@@ -465,7 +465,7 @@ pub(crate) fn convert_into_storage_field(
     let span = field.ty.span();
     let new_ty = syn::Type::Verbatim(quote_spanned!(span =>
         <#ty as ::ink::storage::traits::AutoStorableHint<
-            ::ink::storage::traits::ManualKey<#key, ::ink::storage::traits::ManualKey<#storage_key>>,
+            ::ink::storage::traits::ManualKey<#key, #storage_key>,
         >>::Type
     ));
     new_field.ty = new_ty;

@@ -33,7 +33,6 @@ Customize it by adding flipper logic. We will implement `flip` method marked wit
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_pausable {

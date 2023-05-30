@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 /// This contract will represent the loan of a user
 #[openbrush::contract]

@@ -13,7 +13,6 @@ Import **everything** from `openbrush::contracts::psp37::extensions::enumerable`
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_psp37 {
@@ -49,7 +48,6 @@ impl PSP37Enumerable for Contract {}
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_psp37_enumerable {

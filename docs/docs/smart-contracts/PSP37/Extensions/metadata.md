@@ -13,7 +13,6 @@ Import **everything** from `openbrush::contracts::psp37::extensions::metadata`.
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_psp37 {
@@ -68,7 +67,6 @@ impl Contract {
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_psp37 {

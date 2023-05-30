@@ -55,7 +55,6 @@ we also need these imports:
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 /// This contract will be used to represent the shares of a user
 /// and other instance of this contract will be used to represent

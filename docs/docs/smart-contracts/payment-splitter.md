@@ -43,7 +43,6 @@ function (i.e. `#[ink(message)]`) called `release_all` and have it call the inte
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_payment_splitter {

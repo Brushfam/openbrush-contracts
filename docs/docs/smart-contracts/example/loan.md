@@ -112,7 +112,6 @@ so we will add these to our contract. We will add a `openbrush::contract` macro 
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 /// This contract will represent the loan of a user
 #[openbrush::contract]

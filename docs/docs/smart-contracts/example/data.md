@@ -102,7 +102,6 @@ pub trait Point: PointStorage {
 ```
 or a generic implementation:
 ```rust
-#![feature(min_specialization)]
 
 pub trait Point {
     fn x(&self) -> u32;
@@ -145,7 +144,6 @@ pub trait Point: openbrush::traits::Storage<PointData> {
 ```
 or a generic implementation with `openbrush::traits::Storage`:
 ```rust
-#![feature(min_specialization)]
 
 pub trait Point {
     fn x(&self) -> u32;

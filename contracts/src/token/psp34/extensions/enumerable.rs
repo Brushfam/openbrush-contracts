@@ -93,7 +93,7 @@ where
     T: Storage<psp34::Data<Balances>>,
     T: OccupiedStorage<{ psp34::STORAGE_KEY }, WithData = psp34::Data<Balances>>,
 {
-    default fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Result<Id, PSP34Error> {
+    fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Result<Id, PSP34Error> {
         self.data()
             .balances
             .enumerable
@@ -101,7 +101,7 @@ where
             .ok_or(PSP34Error::TokenNotExists)
     }
 
-    default fn token_by_index(&self, index: u128) -> Result<Id, PSP34Error> {
+    fn token_by_index(&self, index: u128) -> Result<Id, PSP34Error> {
         self.data()
             .balances
             .enumerable

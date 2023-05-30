@@ -90,16 +90,16 @@ where
     T: Storage<Data<M>>,
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<M>>,
 {
-    default fn has_role(&self, role: RoleType, address: AccountId) -> bool {
+    fn has_role(&self, role: RoleType, address: AccountId) -> bool {
         self.data().members.has_role(role, &address)
     }
 
-    default fn get_role_admin(&self, role: RoleType) -> RoleType {
+    fn get_role_admin(&self, role: RoleType) -> RoleType {
         get_role_admin(self, role)
     }
 
     #[modifiers(only_role(get_role_admin(self, role)))]
-    default fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+    fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
         if self.data().members.has_role(role, &account) {
             return Err(AccessControlError::RoleRedundant)
         }
@@ -109,13 +109,13 @@ where
     }
 
     #[modifiers(only_role(get_role_admin(self, role)))]
-    default fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+    fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
         check_role(self, role, account)?;
         self._do_revoke_role(role, account);
         Ok(())
     }
 
-    default fn renounce_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+    fn renounce_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
         if Self::env().caller() != account {
             return Err(AccessControlError::InvalidCaller)
         }
@@ -153,24 +153,24 @@ where
     T: Storage<Data<M>>,
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<M>>,
 {
-    default fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {}
-    default fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {}
-    default fn _emit_role_revoked(&mut self, _role: RoleType, _account: AccountId, _sender: AccountId) {}
+    fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {}
+    fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {}
+    fn _emit_role_revoked(&mut self, _role: RoleType, _account: AccountId, _sender: AccountId) {}
 
-    default fn _default_admin() -> RoleType {
+    fn _default_admin() -> RoleType {
         DEFAULT_ADMIN_ROLE
     }
 
-    default fn _init_with_caller(&mut self) {
+    fn _init_with_caller(&mut self) {
         let caller = Self::env().caller();
         self._init_with_admin(caller);
     }
 
-    default fn _init_with_admin(&mut self, admin: AccountId) {
+    fn _init_with_admin(&mut self, admin: AccountId) {
         self._setup_role(Self::_default_admin(), admin);
     }
 
-    default fn _setup_role(&mut self, role: RoleType, member: AccountId) {
+    fn _setup_role(&mut self, role: RoleType, member: AccountId) {
         if !self.data().members.has_role(role, &member) {
             self.data().members.add(role, &member);
 
@@ -178,12 +178,12 @@ where
         }
     }
 
-    default fn _do_revoke_role(&mut self, role: RoleType, account: AccountId) {
+    fn _do_revoke_role(&mut self, role: RoleType, account: AccountId) {
         self.data().members.remove(role, &account);
         self._emit_role_revoked(role, account, Self::env().caller());
     }
 
-    default fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType) {
+    fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType) {
         let mut entry = self.data().admin_roles.get(role);
         if entry.is_none() {
             entry = Some(Self::_default_admin());

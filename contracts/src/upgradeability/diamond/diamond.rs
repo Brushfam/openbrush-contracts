@@ -87,7 +87,7 @@ where
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<D>>,
 {
     #[modifiers(ownable::only_owner)]
-    default fn diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
+    fn diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
         self._diamond_cut(diamond_cut, init)
     }
 }
@@ -117,9 +117,9 @@ where
     T: Storage<Data<D>>,
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<D>>,
 {
-    default fn _emit_diamond_cut_event(&self, _diamond_cut: &Vec<FacetCut>, _init: &Option<InitCall>) {}
+    fn _emit_diamond_cut_event(&self, _diamond_cut: &Vec<FacetCut>, _init: &Option<InitCall>) {}
 
-    default fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
+    fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
         for facet_cut in diamond_cut.iter() {
             self._diamond_cut_facet(facet_cut)?;
         }
@@ -134,7 +134,7 @@ where
         Ok(())
     }
 
-    default fn _diamond_cut_facet(&mut self, facet_cut: &FacetCut) -> Result<(), DiamondError> {
+    fn _diamond_cut_facet(&mut self, facet_cut: &FacetCut) -> Result<(), DiamondError> {
         let code_hash = facet_cut.hash;
         if code_hash.is_clear() {
             return Err(DiamondError::EmptyCodeHash)
@@ -169,7 +169,7 @@ where
         Ok(())
     }
 
-    default fn _fallback(&self) -> ! {
+    fn _fallback(&self) -> ! {
         let selector = ink::env::decode_input::<Selector>().unwrap_or_else(|_| panic!("Calldata error"));
 
         let delegate_code = self.data().selector_to_hash.get(&selector);
@@ -194,7 +194,7 @@ where
         unreachable!("the _fallback call will never return since `tail_call` was set");
     }
 
-    default fn _init_call(&self, call: InitCall) -> ! {
+    fn _init_call(&self, call: InitCall) -> ! {
         ink::env::call::build_call::<ink::env::DefaultEnvironment>()
             .delegate(call.hash)
             .exec_input(ExecutionInput::new(InkSelector::new(call.selector)).push_arg(call.input))
@@ -208,7 +208,7 @@ where
         unreachable!("the _init_call call will never return since `tail_call` was set");
     }
 
-    default fn _remove_facet(&mut self, code_hash: Hash) {
+    fn _remove_facet(&mut self, code_hash: Hash) {
         let vec = self.data().hash_to_selectors.get(&code_hash).unwrap();
         vec.iter().for_each(|old_selector| {
             self.data().selector_to_hash.remove(&old_selector);
@@ -217,7 +217,7 @@ where
         self.data().handler.on_remove_facet(code_hash);
     }
 
-    default fn _remove_selectors(&mut self, facet_cut: &FacetCut) {
+    fn _remove_selectors(&mut self, facet_cut: &FacetCut) {
         let selectors = self
             .data()
             .hash_to_selectors

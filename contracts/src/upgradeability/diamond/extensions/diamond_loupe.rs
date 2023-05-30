@@ -85,7 +85,7 @@ impl diamond::DiamondCut for Loupe {
 }
 
 impl<T: Storage<diamond::Data<Loupe>>> DiamondLoupe for T {
-    default fn facets(&self) -> Vec<FacetCut> {
+    fn facets(&self) -> Vec<FacetCut> {
         let mut out_vec = Vec::new();
         let data = &self.data().handler;
         for i in 0..data.code_hashes {
@@ -96,14 +96,14 @@ impl<T: Storage<diamond::Data<Loupe>>> DiamondLoupe for T {
         out_vec
     }
 
-    default fn facet_function_selectors(&self, facet: Hash) -> Vec<Selector> {
+    fn facet_function_selectors(&self, facet: Hash) -> Vec<Selector> {
         self.data()
             .hash_to_selectors
             .get(&facet)
             .unwrap_or(Vec::<Selector>::new())
     }
 
-    default fn facet_code_hashes(&self) -> Vec<Hash> {
+    fn facet_code_hashes(&self) -> Vec<Hash> {
         let mut out_vec = Vec::new();
         for i in 0..self.data().handler.code_hashes {
             out_vec.push(self.data().handler.id_to_hash.get(i).unwrap())
@@ -111,7 +111,7 @@ impl<T: Storage<diamond::Data<Loupe>>> DiamondLoupe for T {
         out_vec
     }
 
-    default fn facet_code_hash(&self, selector: Selector) -> Option<Hash> {
+    fn facet_code_hash(&self, selector: Selector) -> Option<Hash> {
         self.data().selector_to_hash.get(&selector)
     }
 }

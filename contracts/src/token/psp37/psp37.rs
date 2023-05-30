@@ -90,30 +90,30 @@ where
     T: Storage<Data<B>>,
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<B>>,
 {
-    default fn balance_of(&self, owner: AccountId, id: Option<Id>) -> Balance {
+    fn balance_of(&self, owner: AccountId, id: Option<Id>) -> Balance {
         self.data().balances.balance_of(&owner, &id.as_ref())
     }
 
-    default fn total_supply(&self, id: Option<Id>) -> Balance {
+    fn total_supply(&self, id: Option<Id>) -> Balance {
         self.data().balances.total_supply(&id.as_ref())
     }
 
-    default fn allowance(&self, owner: AccountId, operator: AccountId, id: Option<Id>) -> Balance {
+    fn allowance(&self, owner: AccountId, operator: AccountId, id: Option<Id>) -> Balance {
         match id {
             None => self._get_allowance(&owner, &operator, &None),
             Some(id) => self._get_allowance(&owner, &operator, &Some(&id)),
         }
     }
 
-    default fn approve(&mut self, operator: AccountId, id: Option<Id>, value: Balance) -> Result<(), PSP37Error> {
+    fn approve(&mut self, operator: AccountId, id: Option<Id>, value: Balance) -> Result<(), PSP37Error> {
         self._approve_for(operator, id, value)
     }
 
-    default fn transfer(&mut self, to: AccountId, id: Id, value: Balance, data: Vec<u8>) -> Result<(), PSP37Error> {
+    fn transfer(&mut self, to: AccountId, id: Id, value: Balance, data: Vec<u8>) -> Result<(), PSP37Error> {
         self._transfer_from(Self::env().caller(), to, id, value, data)
     }
 
-    default fn transfer_from(
+    fn transfer_from(
         &mut self,
         from: AccountId,
         to: AccountId,
@@ -196,7 +196,7 @@ where
     T: Storage<Data<B>>,
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<B>>,
 {
-    default fn _emit_transfer_event(
+    fn _emit_transfer_event(
         &self,
         _from: Option<AccountId>,
         _to: Option<AccountId>,
@@ -204,16 +204,16 @@ where
         _amount: Balance,
     ) {
     }
-    default fn _emit_transfer_batch_event(
+    fn _emit_transfer_batch_event(
         &self,
         _from: Option<AccountId>,
         _to: Option<AccountId>,
         _ids_amounts: Vec<(Id, Balance)>,
     ) {
     }
-    default fn _emit_approval_event(&self, _owner: AccountId, _operator: AccountId, _id: Option<Id>, _value: Balance) {}
+    fn _emit_approval_event(&self, _owner: AccountId, _operator: AccountId, _id: Option<Id>, _value: Balance) {}
 
-    default fn _mint_to(&mut self, to: AccountId, mut ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
+    fn _mint_to(&mut self, to: AccountId, mut ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
         if to.is_zero() {
             return Err(PSP37Error::TransferToZeroAddress)
         }
@@ -239,7 +239,7 @@ where
         Ok(())
     }
 
-    default fn _burn_from(&mut self, from: AccountId, mut ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
+    fn _burn_from(&mut self, from: AccountId, mut ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
         self._before_token_transfer(Some(&from), None, &ids_amounts)?;
 
         if ids_amounts.is_empty() {
@@ -262,7 +262,7 @@ where
         Ok(())
     }
 
-    default fn _transfer_from(
+    fn _transfer_from(
         &mut self,
         from: AccountId,
         to: AccountId,
@@ -289,7 +289,7 @@ where
         Ok(())
     }
 
-    default fn _get_allowance(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Balance {
+    fn _get_allowance(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Balance {
         return match self.data().operator_approvals.get(&(owner, operator, &None)) {
             None => self.data().operator_approvals.get(&(owner, operator, id)).unwrap_or(0),
             _ => Balance::MAX,
@@ -393,7 +393,7 @@ where
     T: Storage<Data<B>>,
     T: OccupiedStorage<STORAGE_KEY, WithData = Data<B>>,
 {
-    default fn _before_token_transfer(
+    fn _before_token_transfer(
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,
@@ -402,7 +402,7 @@ where
         Ok(())
     }
 
-    default fn _after_token_transfer(
+    fn _after_token_transfer(
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,

@@ -62,7 +62,7 @@ impl<'a> TypeGuard<'a> for AttributesKey {
 }
 
 impl<T: Storage<Data>> PSP37Metadata for T {
-    default fn get_attribute(&self, id: Id, key: String) -> Option<String> {
+    fn get_attribute(&self, id: Id, key: String) -> Option<String> {
         self.data().attributes.get(&(&id, &key))
     }
 }
@@ -76,15 +76,15 @@ pub trait Internal {
 }
 
 impl<T: Storage<Data>> Internal for T {
-    default fn _emit_attribute_set_event(&self, _id: &Id, _key: &String, _data: &String) {}
+    fn _emit_attribute_set_event(&self, _id: &Id, _key: &String, _data: &String) {}
 
-    default fn _set_attribute(&mut self, id: &Id, key: &String, data: &String) -> Result<(), PSP37Error> {
+    fn _set_attribute(&mut self, id: &Id, key: &String, data: &String) -> Result<(), PSP37Error> {
         self.data().attributes.insert(&(&id, &key), data);
         self._emit_attribute_set_event(id, key, data);
         Ok(())
     }
 
-    default fn _get_attribute(&self, id: &Id, key: &String) -> Option<String> {
+    fn _get_attribute(&self, id: &Id, key: &String) -> Option<String> {
         self.data().attributes.get(&(&id, &key))
     }
 }

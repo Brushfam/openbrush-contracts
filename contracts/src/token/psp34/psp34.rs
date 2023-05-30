@@ -86,33 +86,33 @@ where
     T: Storage<Data<B>>,
     T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
 {
-    default fn collection_id(&self) -> Id {
+    fn collection_id(&self) -> Id {
         let account_id = Self::env().account_id();
         Id::Bytes(<_ as AsRef<[u8; 32]>>::as_ref(&account_id).to_vec())
     }
 
-    default fn balance_of(&self, owner: AccountId) -> u32 {
+    fn balance_of(&self, owner: AccountId) -> u32 {
         self.data().balances.balance_of(&owner)
     }
 
-    default fn owner_of(&self, id: Id) -> Option<AccountId> {
+    fn owner_of(&self, id: Id) -> Option<AccountId> {
         self._owner_of(&id)
     }
 
-    default fn allowance(&self, owner: AccountId, operator: AccountId, id: Option<Id>) -> bool {
+    fn allowance(&self, owner: AccountId, operator: AccountId, id: Option<Id>) -> bool {
         self._allowance(&owner, &operator, &id.as_ref())
     }
 
-    default fn approve(&mut self, operator: AccountId, id: Option<Id>, approved: bool) -> Result<(), PSP34Error> {
+    fn approve(&mut self, operator: AccountId, id: Option<Id>, approved: bool) -> Result<(), PSP34Error> {
         let _a = &self.data().balances;
         self._approve_for(operator, id, approved)
     }
 
-    default fn transfer(&mut self, to: AccountId, id: Id, data: Vec<u8>) -> Result<(), PSP34Error> {
+    fn transfer(&mut self, to: AccountId, id: Id, data: Vec<u8>) -> Result<(), PSP34Error> {
         self._transfer_token(to, id, data)
     }
 
-    default fn total_supply(&self) -> Balance {
+    fn total_supply(&self) -> Balance {
         self.data().balances.total_supply()
     }
 }
@@ -149,10 +149,10 @@ where
     T: Storage<Data<B>>,
     T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
 {
-    default fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id) {}
-    default fn _emit_approval_event(&self, _from: AccountId, _to: AccountId, _id: Option<Id>, _approved: bool) {}
+    fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id) {}
+    fn _emit_approval_event(&self, _from: AccountId, _to: AccountId, _id: Option<Id>, _approved: bool) {}
 
-    default fn _approve_for(&mut self, to: AccountId, id: Option<Id>, approved: bool) -> Result<(), PSP34Error> {
+    fn _approve_for(&mut self, to: AccountId, id: Option<Id>, approved: bool) -> Result<(), PSP34Error> {
         let mut caller = Self::env().caller();
 
         if let Some(id) = &id {
@@ -180,11 +180,11 @@ where
         Ok(())
     }
 
-    default fn _owner_of(&self, id: &Id) -> Option<AccountId> {
+    fn _owner_of(&self, id: &Id) -> Option<AccountId> {
         self.data().token_owner.get(id)
     }
 
-    default fn _transfer_token(&mut self, to: AccountId, id: Id, _data: Vec<u8>) -> Result<(), PSP34Error> {
+    fn _transfer_token(&mut self, to: AccountId, id: Id, _data: Vec<u8>) -> Result<(), PSP34Error> {
         let owner = self._check_token_exists(&id)?;
         let caller = Self::env().caller();
 
@@ -206,7 +206,7 @@ where
         Ok(())
     }
 
-    default fn _mint_to(&mut self, to: AccountId, id: Id) -> Result<(), PSP34Error> {
+    fn _mint_to(&mut self, to: AccountId, id: Id) -> Result<(), PSP34Error> {
         if self.data().token_owner.get(&id).is_some() {
             return Err(PSP34Error::TokenExists)
         }
@@ -220,7 +220,7 @@ where
         Ok(())
     }
 
-    default fn _burn_from(&mut self, from: AccountId, id: Id) -> Result<(), PSP34Error> {
+    fn _burn_from(&mut self, from: AccountId, id: Id) -> Result<(), PSP34Error> {
         self._check_token_exists(&id)?;
 
         self._before_token_transfer(Some(&from), None, &id)?;
@@ -232,12 +232,12 @@ where
         Ok(())
     }
 
-    default fn _allowance(&self, owner: &Owner, operator: &Operator, id: &Option<&Id>) -> bool {
+    fn _allowance(&self, owner: &Owner, operator: &Operator, id: &Option<&Id>) -> bool {
         self.data().operator_approvals.get(&(owner, operator, &None)).is_some()
             || id != &None && self.data().operator_approvals.get(&(owner, operator, id)).is_some()
     }
 
-    default fn _check_token_exists(&self, id: &Id) -> Result<AccountId, PSP34Error> {
+    fn _check_token_exists(&self, id: &Id) -> Result<AccountId, PSP34Error> {
         self.data().token_owner.get(&id).ok_or(PSP34Error::TokenNotExists)
     }
 }
@@ -267,7 +267,7 @@ where
     T: Storage<Data<B>>,
     T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
 {
-    default fn _before_token_transfer(
+    fn _before_token_transfer(
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,
@@ -276,7 +276,7 @@ where
         Ok(())
     }
 
-    default fn _after_token_transfer(
+    fn _after_token_transfer(
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,

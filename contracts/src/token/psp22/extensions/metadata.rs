@@ -49,15 +49,15 @@ pub struct Data {
 }
 
 impl<T: Storage<Data>> PSP22Metadata for T {
-    default fn token_name(&self) -> Option<String> {
+    fn token_name(&self) -> Option<String> {
         self.data().name.clone()
     }
 
-    default fn token_symbol(&self) -> Option<String> {
+    fn token_symbol(&self) -> Option<String> {
         self.data().symbol.clone()
     }
 
-    default fn token_decimals(&self) -> u8 {
+    fn token_decimals(&self) -> u8 {
         self.data().decimals.clone()
     }
 }

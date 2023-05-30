@@ -57,7 +57,7 @@ where
     T: Storage<psp37::Data<B>>,
     T: OccupiedStorage<{ psp37::STORAGE_KEY }, WithData = psp37::Data<B>>,
 {
-    default fn mint(&mut self, to: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
+    fn mint(&mut self, to: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
         self._mint_to(to, ids_amounts)
     }
 }

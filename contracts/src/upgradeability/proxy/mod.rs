@@ -50,12 +50,12 @@ pub struct Data {
 }
 
 impl<T: Storage<Data> + Storage<ownable::Data>> Proxy for T {
-    default fn get_delegate_code(&self) -> Hash {
+    fn get_delegate_code(&self) -> Hash {
         self.data::<Data>().forward_to
     }
 
     #[modifiers(ownable::only_owner)]
-    default fn change_delegate_code(&mut self, new_code_hash: Hash) -> Result<(), OwnableError> {
+    fn change_delegate_code(&mut self, new_code_hash: Hash) -> Result<(), OwnableError> {
         let old_code_hash = self.data::<Data>().forward_to.clone();
         self.data::<Data>().forward_to = new_code_hash;
         self._emit_delegate_code_changed_event(Some(old_code_hash), Some(new_code_hash));
@@ -72,14 +72,14 @@ pub trait Internal {
 }
 
 impl<T: Storage<Data>> Internal for T {
-    default fn _emit_delegate_code_changed_event(&self, _previous: Option<Hash>, _new: Option<Hash>) {}
+    fn _emit_delegate_code_changed_event(&self, _previous: Option<Hash>, _new: Option<Hash>) {}
 
-    default fn _init_with_forward_to(&mut self, forward_to: Hash) {
+    fn _init_with_forward_to(&mut self, forward_to: Hash) {
         self.data().forward_to = forward_to;
         self._emit_delegate_code_changed_event(None, Some(forward_to));
     }
 
-    default fn _fallback(&self) -> ! {
+    fn _fallback(&self) -> ! {
         ink::env::call::build_call::<ink::env::DefaultEnvironment>()
             .delegate(self.data().forward_to.clone())
             .call_flags(

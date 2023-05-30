@@ -59,12 +59,12 @@ impl Default for Data {
 }
 
 impl<T: Storage<psp22::Data> + Storage<Data>> PSP22Wrapper for T {
-    default fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+    fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._deposit(amount)?;
         self._mint_to(account, amount)
     }
 
-    default fn withdraw_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+    fn withdraw_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._burn_from(Self::env().caller(), amount)?;
         self._withdraw(account, amount)
     }
@@ -94,13 +94,13 @@ pub trait Internal {
 }
 
 impl<T: Storage<psp22::Data> + Storage<Data>> Internal for T {
-    default fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error> {
+    fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error> {
         let value = self._underlying_balance() - self.total_supply();
         self._mint_to(account, value)?;
         Ok(value)
     }
 
-    default fn _deposit(&mut self, amount: Balance) -> Result<(), PSP22Error> {
+    fn _deposit(&mut self, amount: Balance) -> Result<(), PSP22Error> {
         self._underlying()
             .transfer_from_builder(Self::env().caller(), Self::env().account_id(), amount, Vec::<u8>::new())
             .call_flags(CallFlags::default().set_allow_reentry(true))
@@ -109,7 +109,7 @@ impl<T: Storage<psp22::Data> + Storage<Data>> Internal for T {
             .unwrap()
     }
 
-    default fn _withdraw(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+    fn _withdraw(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._underlying()
             .transfer_builder(account, amount, Vec::<u8>::new())
             .call_flags(CallFlags::default().set_allow_reentry(true))
@@ -118,15 +118,15 @@ impl<T: Storage<psp22::Data> + Storage<Data>> Internal for T {
             .unwrap()
     }
 
-    default fn _underlying_balance(&mut self) -> Balance {
+    fn _underlying_balance(&mut self) -> Balance {
         self._underlying().balance_of(Self::env().account_id())
     }
 
-    default fn _init(&mut self, underlying: AccountId) {
+    fn _init(&mut self, underlying: AccountId) {
         self.data::<Data>().underlying = underlying;
     }
 
-    default fn _underlying(&mut self) -> &mut PSP22Ref {
+    fn _underlying(&mut self) -> &mut PSP22Ref {
         &mut self.data::<Data>().underlying
     }
 }

@@ -38,7 +38,7 @@ pub use pallet_assets_chain_extension::traits::{
 pub use psp22_pallet::Internal as _;
 
 impl<T: Storage<psp22_pallet::Data>> PSP22Metadata for T {
-    default fn token_name(&self) -> Option<String> {
+    fn token_name(&self) -> Option<String> {
         let self_ = self.data();
         let name = self_.pallet_assets.metadata_name(self_.asset_id);
 
@@ -49,7 +49,7 @@ impl<T: Storage<psp22_pallet::Data>> PSP22Metadata for T {
         }
     }
 
-    default fn token_symbol(&self) -> Option<String> {
+    fn token_symbol(&self) -> Option<String> {
         let self_ = self.data();
         let symbol = self_.pallet_assets.metadata_symbol(self_.asset_id);
 
@@ -60,7 +60,7 @@ impl<T: Storage<psp22_pallet::Data>> PSP22Metadata for T {
         }
     }
 
-    default fn token_decimals(&self) -> u8 {
+    fn token_decimals(&self) -> u8 {
         let self_ = self.data();
         self_.pallet_assets.metadata_decimals(self_.asset_id)
     }

@@ -62,7 +62,7 @@ where
     T: Storage<psp37::Data<B>>,
     T: OccupiedStorage<{ psp37::STORAGE_KEY }, WithData = psp37::Data<B>>,
 {
-    default fn batch_transfer(
+    fn batch_transfer(
         &mut self,
         to: AccountId,
         ids_amounts: Vec<(Id, Balance)>,
@@ -71,7 +71,7 @@ where
         self._batch_transfer_from(Self::env().caller(), to, ids_amounts, data)
     }
 
-    default fn batch_transfer_from(
+    fn batch_transfer_from(
         &mut self,
         from: AccountId,
         to: AccountId,
@@ -101,7 +101,7 @@ where
     T: Storage<psp37::Data<B>>,
     T: OccupiedStorage<{ psp37::STORAGE_KEY }, WithData = psp37::Data<B>>,
 {
-    default fn _batch_transfer_from(
+    fn _batch_transfer_from(
         &mut self,
         from: AccountId,
         to: AccountId,

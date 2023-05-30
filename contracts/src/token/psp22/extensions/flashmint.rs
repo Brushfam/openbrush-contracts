@@ -45,7 +45,7 @@ use openbrush::traits::{
 };
 
 impl<T: Storage<psp22::Data>> FlashLender for T {
-    default fn max_flashloan(&mut self, token: AccountId) -> Balance {
+    fn max_flashloan(&mut self, token: AccountId) -> Balance {
         if token == Self::env().account_id() {
             Balance::MAX - self.total_supply()
         } else {
@@ -53,14 +53,14 @@ impl<T: Storage<psp22::Data>> FlashLender for T {
         }
     }
 
-    default fn flash_fee(&self, token: AccountId, amount: Balance) -> Result<Balance, FlashLenderError> {
+    fn flash_fee(&self, token: AccountId, amount: Balance) -> Result<Balance, FlashLenderError> {
         if token != Self::env().account_id() {
             return Err(FlashLenderError::WrongTokenAddress)
         }
         Ok(self._get_fee(amount))
     }
 
-    default fn flashloan(
+    fn flashloan(
         &mut self,
         receiver_account: AccountId,
         token: AccountId,
@@ -95,11 +95,11 @@ pub trait Internal {
 }
 
 impl<T: Storage<psp22::Data>> Internal for T {
-    default fn _get_fee(&self, _amount: Balance) -> Balance {
+    fn _get_fee(&self, _amount: Balance) -> Balance {
         0
     }
 
-    default fn _on_flashloan(
+    fn _on_flashloan(
         &mut self,
         receiver_account: AccountId,
         token: AccountId,

@@ -54,22 +54,22 @@ pub struct Data {
 }
 
 impl<T: Storage<Data>> PSP22 for T {
-    default fn total_supply(&self) -> Balance {
+    fn total_supply(&self) -> Balance {
         let self_ = self.data();
         self_.pallet_assets.total_supply(self_.asset_id)
     }
 
-    default fn balance_of(&self, owner: AccountId) -> Balance {
+    fn balance_of(&self, owner: AccountId) -> Balance {
         let self_ = self.data();
         self_.pallet_assets.balance_of(self_.asset_id, owner)
     }
 
-    default fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance {
+    fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance {
         let self_ = self.data();
         self_.pallet_assets.allowance(self_.asset_id, owner, spender)
     }
 
-    default fn transfer(&mut self, to: AccountId, value: Balance, _data: Vec<u8>) -> Result<(), PSP22Error> {
+    fn transfer(&mut self, to: AccountId, value: Balance, _data: Vec<u8>) -> Result<(), PSP22Error> {
         if value == 0 {
             return Ok(())
         }
@@ -82,7 +82,7 @@ impl<T: Storage<Data>> PSP22 for T {
         Ok(())
     }
 
-    default fn transfer_from(
+    fn transfer_from(
         &mut self,
         from: AccountId,
         to: AccountId,
@@ -101,7 +101,7 @@ impl<T: Storage<Data>> PSP22 for T {
         Ok(())
     }
 
-    default fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
+    fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
         if value == 0 {
             return Ok(())
         }
@@ -122,7 +122,7 @@ impl<T: Storage<Data>> PSP22 for T {
         Ok(())
     }
 
-    default fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
+    fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         if delta_value == 0 {
             return Ok(())
         }
@@ -139,7 +139,7 @@ impl<T: Storage<Data>> PSP22 for T {
         Ok(())
     }
 
-    default fn decrease_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
+    fn decrease_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         if delta_value == 0 {
             return Ok(())
         }

@@ -115,32 +115,32 @@ where
     T: Storage<access_control::Data<M>>,
     T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<M>>,
 {
-    default fn is_operation(&self, id: OperationId) -> bool {
+    fn is_operation(&self, id: OperationId) -> bool {
         self.get_timestamp(id) > Timestamp::default()
     }
 
-    default fn is_operation_pending(&self, id: OperationId) -> bool {
+    fn is_operation_pending(&self, id: OperationId) -> bool {
         self.get_timestamp(id) > Self::_done_timestamp()
     }
 
-    default fn is_operation_ready(&self, id: OperationId) -> bool {
+    fn is_operation_ready(&self, id: OperationId) -> bool {
         let timestamp = self.get_timestamp(id);
         timestamp > Self::_done_timestamp() && timestamp <= Self::env().block_timestamp()
     }
 
-    default fn is_operation_done(&self, id: OperationId) -> bool {
+    fn is_operation_done(&self, id: OperationId) -> bool {
         self.get_timestamp(id) == Self::_done_timestamp()
     }
 
-    default fn get_timestamp(&self, id: OperationId) -> Timestamp {
+    fn get_timestamp(&self, id: OperationId) -> Timestamp {
         self.data::<Data>().timestamps.get(&id).unwrap_or(Timestamp::default())
     }
 
-    default fn get_min_delay(&self) -> Timestamp {
+    fn get_min_delay(&self) -> Timestamp {
         self.data::<Data>().min_delay.clone()
     }
 
-    default fn hash_operation(
+    fn hash_operation(
         &self,
         transaction: Transaction,
         predecessor: Option<OperationId>,
@@ -149,7 +149,7 @@ where
         self._hash_operation(&transaction, &predecessor, &salt)
     }
 
-    default fn hash_operation_batch(
+    fn hash_operation_batch(
         &self,
         transactions: Vec<Transaction>,
         predecessor: Option<OperationId>,
@@ -159,7 +159,7 @@ where
     }
 
     #[modifiers(access_control::only_role(Self::_proposal_role()))]
-    default fn schedule(
+    fn schedule(
         &mut self,
         transaction: Transaction,
         predecessor: Option<OperationId>,
@@ -175,7 +175,7 @@ where
     }
 
     #[modifiers(access_control::only_role(Self::_proposal_role()))]
-    default fn schedule_batch(
+    fn schedule_batch(
         &mut self,
         transactions: Vec<Transaction>,
         predecessor: Option<OperationId>,
@@ -193,7 +193,7 @@ where
     }
 
     #[modifiers(access_control::only_role(Self::_proposal_role()))]
-    default fn cancel(&mut self, id: OperationId) -> Result<(), TimelockControllerError> {
+    fn cancel(&mut self, id: OperationId) -> Result<(), TimelockControllerError> {
         if !self.is_operation_pending(id) {
             return Err(TimelockControllerError::OperationCannonBeCanceled)
         }
@@ -204,7 +204,7 @@ where
     }
 
     #[modifiers(only_role_or_open_role(Self::_executor_role()))]
-    default fn execute(
+    fn execute(
         &mut self,
         transaction: Transaction,
         predecessor: Option<OperationId>,
@@ -218,7 +218,7 @@ where
     }
 
     #[modifiers(only_role_or_open_role(Self::_executor_role()))]
-    default fn execute_batch(
+    fn execute_batch(
         &mut self,
         transactions: Vec<Transaction>,
         predecessor: Option<OperationId>,
@@ -234,7 +234,7 @@ where
         self._after_call(id)
     }
 
-    default fn update_delay(&mut self, new_delay: Timestamp) -> Result<(), TimelockControllerError> {
+    fn update_delay(&mut self, new_delay: Timestamp) -> Result<(), TimelockControllerError> {
         if Self::env().account_id() != Self::env().caller() {
             return Err(TimelockControllerError::CallerMustBeTimeLock)
         }
@@ -318,8 +318,8 @@ where
     T: Storage<access_control::Data<M>>,
     T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<M>>,
 {
-    default fn _emit_min_delay_change_event(&self, _old_delay: Timestamp, _new_delay: Timestamp) {}
-    default fn _emit_call_scheduled_event(
+    fn _emit_min_delay_change_event(&self, _old_delay: Timestamp, _new_delay: Timestamp) {}
+    fn _emit_call_scheduled_event(
         &self,
         _id: OperationId,
         _index: u8,
@@ -328,10 +328,10 @@ where
         _delay: Timestamp,
     ) {
     }
-    default fn _emit_cancelled_event(&self, _id: OperationId) {}
-    default fn _emit_call_executed_event(&self, _id: OperationId, _index: u8, _transaction: Transaction) {}
+    fn _emit_cancelled_event(&self, _id: OperationId) {}
+    fn _emit_call_executed_event(&self, _id: OperationId, _index: u8, _transaction: Transaction) {}
 
-    default fn _init_with_caller(
+    fn _init_with_caller(
         &mut self,
         min_delay: Timestamp,
         proposers: Vec<AccountId>,
@@ -341,7 +341,7 @@ where
         Internal::_init_with_admin(self, caller, min_delay, proposers, executors);
     }
 
-    default fn _init_with_admin(
+    fn _init_with_admin(
         &mut self,
         admin: AccountId,
         min_delay: Timestamp,
@@ -370,7 +370,7 @@ where
         self._emit_min_delay_change_event(old_delay, min_delay);
     }
 
-    default fn _hash_operation(
+    fn _hash_operation(
         &self,
         transaction: &Transaction,
         predecessor: &Option<OperationId>,
@@ -387,7 +387,7 @@ where
         Hash::try_from(Self::env().hash_bytes::<Blake2x256>(&hash_data).as_ref()).unwrap()
     }
 
-    default fn _hash_operation_batch(
+    fn _hash_operation_batch(
         &self,
         transactions: &Vec<Transaction>,
         predecessor: &Option<OperationId>,
@@ -404,7 +404,7 @@ where
         Hash::try_from(Self::env().hash_bytes::<Blake2x256>(&hash_data).as_ref()).unwrap()
     }
 
-    default fn _schedule(&mut self, id: OperationId, delay: &Timestamp) -> Result<(), TimelockControllerError> {
+    fn _schedule(&mut self, id: OperationId, delay: &Timestamp) -> Result<(), TimelockControllerError> {
         if self.is_operation(id) {
             return Err(TimelockControllerError::OperationAlreadyScheduled)
         }
@@ -418,14 +418,14 @@ where
         Ok(())
     }
 
-    default fn _before_call(&self, predecessor: Option<OperationId>) -> Result<(), TimelockControllerError> {
+    fn _before_call(&self, predecessor: Option<OperationId>) -> Result<(), TimelockControllerError> {
         if predecessor.is_some() && !self.is_operation_done(predecessor.unwrap()) {
             return Err(TimelockControllerError::MissingDependency)
         }
         Ok(())
     }
 
-    default fn _after_call(&mut self, id: OperationId) -> Result<(), TimelockControllerError> {
+    fn _after_call(&mut self, id: OperationId) -> Result<(), TimelockControllerError> {
         if !self.is_operation_ready(id) {
             return Err(TimelockControllerError::OperationIsNotReady)
         }
@@ -434,7 +434,7 @@ where
         Ok(())
     }
 
-    default fn _call(
+    fn _call(
         &mut self,
         id: OperationId,
         i: u8,
@@ -463,19 +463,19 @@ where
         Ok(())
     }
 
-    default fn _timelock_admin_role() -> RoleType {
+    fn _timelock_admin_role() -> RoleType {
         TIMELOCK_ADMIN_ROLE
     }
 
-    default fn _proposal_role() -> RoleType {
+    fn _proposal_role() -> RoleType {
         PROPOSER_ROLE
     }
 
-    default fn _executor_role() -> RoleType {
+    fn _executor_role() -> RoleType {
         EXECUTOR_ROLE
     }
 
-    default fn _done_timestamp() -> Timestamp {
+    fn _done_timestamp() -> Timestamp {
         DONE_TIMESTAMP
     }
 }

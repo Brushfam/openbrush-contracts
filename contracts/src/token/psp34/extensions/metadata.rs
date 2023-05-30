@@ -64,7 +64,7 @@ impl<'a> TypeGuard<'a> for AttributesKey {
 }
 
 impl<T: Storage<Data>> PSP34Metadata for T {
-    default fn get_attribute(&self, id: Id, key: String) -> Option<String> {
+    fn get_attribute(&self, id: Id, key: String) -> Option<String> {
         self.data().attributes.get(&(&id, &key))
     }
 }
@@ -80,9 +80,9 @@ impl<T> Internal for T
 where
     T: Storage<Data>,
 {
-    default fn _emit_attribute_set_event(&self, _id: Id, _key: String, _data: String) {}
+    fn _emit_attribute_set_event(&self, _id: Id, _key: String, _data: String) {}
 
-    default fn _set_attribute(&mut self, id: Id, key: String, value: String) {
+    fn _set_attribute(&mut self, id: Id, key: String, value: String) {
         self.data().attributes.insert(&(&id, &key), &value);
         self._emit_attribute_set_event(id, key, value);
     }

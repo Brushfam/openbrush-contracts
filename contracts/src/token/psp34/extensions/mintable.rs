@@ -53,7 +53,7 @@ where
     T: Storage<psp34::Data<B>>,
     T: OccupiedStorage<{ psp34::STORAGE_KEY }, WithData = psp34::Data<B>>,
 {
-    default fn mint(&mut self, account: AccountId, id: Id) -> Result<(), PSP34Error> {
+    fn mint(&mut self, account: AccountId, id: Id) -> Result<(), PSP34Error> {
         self._mint_to(account, id)
     }
 }

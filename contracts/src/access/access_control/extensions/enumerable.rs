@@ -72,11 +72,11 @@ where
     T: Storage<access_control::Data<Members>>,
     T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<Members>>,
 {
-    default fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
+    fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
         self.data().members.role_members.get_value(role, &(index as u128))
     }
 
-    default fn get_role_member_count(&self, role: RoleType) -> u32 {
+    fn get_role_member_count(&self, role: RoleType) -> u32 {
         self.data().members.role_members.count(role) as u32
     }
 }

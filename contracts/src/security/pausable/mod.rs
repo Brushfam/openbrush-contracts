@@ -72,7 +72,7 @@ where
 }
 
 impl<T: Storage<Data>> Pausable for T {
-    default fn paused(&self) -> bool {
+    fn paused(&self) -> bool {
         self.data().paused
     }
 }
@@ -99,24 +99,24 @@ pub trait Internal {
 }
 
 impl<T: Storage<Data>> Internal for T {
-    default fn _emit_paused_event(&self, _account: AccountId) {}
-    default fn _emit_unpaused_event(&self, _account: AccountId) {}
+    fn _emit_paused_event(&self, _account: AccountId) {}
+    fn _emit_unpaused_event(&self, _account: AccountId) {}
 
     #[modifiers(when_not_paused)]
-    default fn _pause<E: From<PausableError>>(&mut self) -> Result<(), E> {
+    fn _pause<E: From<PausableError>>(&mut self) -> Result<(), E> {
         self.data().paused = true;
         self._emit_paused_event(Self::env().caller());
         Ok(())
     }
 
     #[modifiers(when_paused)]
-    default fn _unpause<E: From<PausableError>>(&mut self) -> Result<(), E> {
+    fn _unpause<E: From<PausableError>>(&mut self) -> Result<(), E> {
         self.data().paused = false;
         self._emit_unpaused_event(Self::env().caller());
         Ok(())
     }
 
-    default fn _switch_pause<E: From<PausableError>>(&mut self) -> Result<(), E> {
+    fn _switch_pause<E: From<PausableError>>(&mut self) -> Result<(), E> {
         if self.paused() {
             self._unpause()
         } else {

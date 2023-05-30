@@ -57,7 +57,7 @@ where
     T: Storage<psp37::Data<B>>,
     T: OccupiedStorage<{ psp37::STORAGE_KEY }, WithData = psp37::Data<B>>,
 {
-    default fn burn(&mut self, from: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
+    fn burn(&mut self, from: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
         self._burn_from(from, ids_amounts)
     }
 }

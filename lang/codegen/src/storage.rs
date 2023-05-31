@@ -39,13 +39,7 @@ use syn::{
     Type,
 };
 
-pub fn storage(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
-    let storage_key = if attrs.is_empty() {
-        quote! { 0 }
-    } else {
-        attrs.clone()
-    };
-
+pub fn storage(_attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
     let fields = generate_fields(s.clone());
     let impls = generate_storage_impls(s.clone(), fields);
 
@@ -102,13 +96,24 @@ fn generate_storage_impls(s: synstructure::Structure, fields: Vec<Field>) -> Tok
 
     let impls = fields
         .iter()
-        .filter(|field| field.attrs.iter().find(|a| a.path.is_ident("storage_field")).is_some())
+        .filter(|field| {
+            field
+                .attrs
+                .iter()
+                .find(|a| a.path.is_ident("storage_field") || a.path.is_ident("upgradeable_storage_field"))
+                .is_some()
+        })
         .map(|field| {
             let field_ident = field.ident.clone();
             let ty = field.ty.clone();
 
             let storage_ty = if is_attr(&field.attrs, "upgradeable_storage_field") {
-                quote! { ::openbrush::traits::Lazy<#ty> }
+                let mut new_field = field.clone();
+                new_field.ty = Type::Verbatim(quote! { ::openbrush::storage::Lazy<#ty> });
+
+                convert_into_storage_field(&struct_ident, None, &salt(&s.ast().clone()), 0, &new_field)
+                    .ty
+                    .to_token_stream()
             } else {
                 quote! { #ty }
             };
@@ -288,7 +293,7 @@ fn wrap_upgradeable_fields(fields: Fields) -> Vec<syn::Field> {
                 let ty = field.ty.clone().to_token_stream();
                 let span = field.ty.span();
                 let new_ty = syn::Type::Verbatim(quote_spanned!(span =>
-                    ::openbrush::traits::Lazy<#ty>
+                    ::openbrush::storage::Lazy<#ty>
                 ));
                 new_field.ty = new_ty;
                 new_field

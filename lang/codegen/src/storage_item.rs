@@ -66,7 +66,6 @@ pub fn storage_item(attrs: TokenStream, s: synstructure::Structure) -> TokenStre
 pub fn storage_derive(mut s: synstructure::Structure) -> TokenStream {
     s.add_bounds(synstructure::AddBounds::None).underscore_const(true);
     let storage = s.gen_impl(quote! {
-        #[cfg(not(feature = "upgradeable"))]
         gen impl ::openbrush::traits::Storage<Self> for @Self {
             fn get(&self) -> &Self {
                 self
@@ -79,7 +78,6 @@ pub fn storage_derive(mut s: synstructure::Structure) -> TokenStream {
     });
 
     let storage_access = s.gen_impl(quote! {
-        #[cfg(not(feature = "upgradeable"))]
         gen impl ::openbrush::traits::StorageAccess<Self> for @Self {
             fn get(&self) -> Option<Self> {
                 Some(self.clone())
@@ -112,6 +110,16 @@ pub fn storage_key_derive(storage_key: &TokenStream, mut s: synstructure::Struct
     })
 }
 
+pub fn storable_hint_derive(storage_key: &TokenStream, s: synstructure::Structure) -> TokenStream {
+    let derive = storable_hint_inner(storage_key, s);
+
+    quote! {
+        const _ : () = {
+            #derive
+        };
+    }
+}
+
 fn storable_hint_inner(storage_key: &TokenStream, s: synstructure::Structure) -> TokenStream {
     let ident = s.ast().ident.clone();
     let salt_ident = format_ident!("__ink_generic_salt");
@@ -129,15 +137,5 @@ fn storable_hint_inner(storage_key: &TokenStream, s: synstructure::Structure) ->
             type Type = #ident #ty_generics_original;
             type PreferredKey = ::ink::storage::traits::ManualKey<#storage_key>;
         }
-    }
-}
-
-pub fn storable_hint_derive(storage_key: &TokenStream, s: synstructure::Structure) -> TokenStream {
-    let derive = storable_hint_inner(storage_key, s);
-
-    quote! {
-        const _ : () = {
-            #derive
-        };
     }
 }

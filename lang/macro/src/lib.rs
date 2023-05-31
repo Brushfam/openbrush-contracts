@@ -24,6 +24,7 @@
 use proc_macro::TokenStream;
 
 use openbrush_lang_codegen::{
+    accessors,
     contract,
     modifier_definition,
     modifiers,
@@ -475,3 +476,42 @@ synstructure::decl_attribute!(
 pub fn storage_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     storage_derive::storage_derive(item.into()).into()
 }
+
+synstructure::decl_attribute!(
+    [accessors] =>
+    /// Macro that automatically implements accessors like get/set for struct fields, that implements scale::Encode
+    /// and scale::Decode traits. You should specify the getters trait naming in the macro's attribute.
+    /// Also, fields that you want getters to be generated, should be marked by `#[get]` attribute.
+    /// Fields, that you want setters to be generated, should be marked by `#[set]` attribute.
+    /// The name of the accessor message will be concatenation of `get/set` + `_` + field's name.
+    ///
+    /// # Example:
+    /// ```skip
+    /// {
+    ///     use openbrush::traits::Storage;
+    ///
+    ///     #[ink(storage)]
+    ///     #[derive(Storage, Default)]
+    ///     pub struct Contract {
+    ///         #[storage_field]
+    ///         some_struct: SomeStruct,
+    ///     }
+    ///
+    ///     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(SomeStruct);
+    ///
+    ///     #[openbrush::upgradeable_storage(STORAGE_KEY)]
+    ///     #[openbrush::accessors(SomeStructGetters)]
+    ///     #[derive(Default)]
+    ///     pub struct SomeStruct {
+    ///         #[get]
+    ///         a: u32,
+    ///         b: u32,
+    ///         #[set]
+    ///         c: u32,
+    ///     }
+    ///
+    ///     impl SomeStructGetters for Contract {}
+    /// }
+    /// ```
+    accessors::accessors
+);

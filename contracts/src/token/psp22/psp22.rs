@@ -37,10 +37,7 @@ use openbrush::{
         Storage,
     },
 };
-pub use psp22::{
-    Internal as _,
-    Transfer as _,
-};
+pub use psp22::Internal as _;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
@@ -59,7 +56,7 @@ impl<'a> TypeGuard<'a> for AllowancesKey {
     type Type = &'a (&'a AccountId, &'a AccountId);
 }
 
-impl<T: Storage<Data>> PSP22 for T {
+pub trait PSP22Impl: Storage<Data> + Internal {
     fn total_supply(&self) -> Balance {
         self._total_supply()
     }
@@ -123,10 +120,13 @@ impl<T: Storage<Data>> PSP22 for T {
 pub trait Internal {
     /// User must override those methods in their contract.
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance);
+
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance);
 
     fn _total_supply(&self) -> Balance;
+
     fn _balance_of(&self, owner: &AccountId) -> Balance;
+
     fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance;
 
     fn _transfer_from_to(
@@ -142,10 +142,25 @@ pub trait Internal {
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error>;
 
     fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error>;
+
+    fn _before_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error>;
+
+    fn _after_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error>;
 }
 
-impl<T: Storage<Data>> Internal for T {
+pub trait InternalImpl: Storage<Data> + Internal {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
+
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 
     fn _total_supply(&self) -> Balance {
@@ -174,31 +189,26 @@ impl<T: Storage<Data>> Internal for T {
             return Err(PSP22Error::ZeroRecipientAddress)
         }
 
-        let from_balance = self._balance_of(&from);
+        let from_balance = Internal::_balance_of(self, &from);
 
         if from_balance < amount {
             return Err(PSP22Error::InsufficientBalance)
         }
 
-        self._before_token_transfer(Some(&from), Some(&to), &amount)?;
+        Internal::_before_token_transfer(self, Some(&from), Some(&to), &amount)?;
 
         self.data().balances.insert(&from, &(from_balance - amount));
 
-        let to_balance = self._balance_of(&to);
+        let to_balance = Internal::_balance_of(self, &to);
         self.data().balances.insert(&to, &(to_balance + amount));
 
-        self._after_token_transfer(Some(&from), Some(&to), &amount)?;
-        self._emit_transfer_event(Some(from), Some(to), amount);
+        Internal::_after_token_transfer(self, Some(&from), Some(&to), &amount)?;
+        Internal::_emit_transfer_event(self, Some(from), Some(to), amount);
 
         Ok(())
     }
 
-    fn _approve_from_to(
-        &mut self,
-        owner: AccountId,
-        spender: AccountId,
-        amount: Balance,
-    ) -> Result<(), PSP22Error> {
+    fn _approve_from_to(&mut self, owner: AccountId, spender: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         if owner.is_zero() {
             return Err(PSP22Error::ZeroSenderAddress)
         }
@@ -207,7 +217,7 @@ impl<T: Storage<Data>> Internal for T {
         }
 
         self.data().allowances.insert(&(&owner, &spender), &amount);
-        self._emit_approval_event(owner, spender, amount);
+        Internal::_emit_approval_event(self, owner, spender, amount);
         Ok(())
     }
 
@@ -216,13 +226,13 @@ impl<T: Storage<Data>> Internal for T {
             return Err(PSP22Error::ZeroRecipientAddress)
         }
 
-        self._before_token_transfer(None, Some(&account), &amount)?;
-        let mut new_balance = self._balance_of(&account);
+        Internal::_before_token_transfer(self, None, Some(&account), &amount)?;
+        let mut new_balance = Internal::_balance_of(self, &account);
         new_balance += amount;
         self.data().balances.insert(&account, &new_balance);
         self.data().supply += amount;
-        self._after_token_transfer(None, Some(&account), &amount)?;
-        self._emit_transfer_event(None, Some(account), amount);
+        Internal::_after_token_transfer(self, None, Some(&account), &amount)?;
+        Internal::_emit_transfer_event(self, None, Some(account), amount);
 
         Ok(())
     }
@@ -232,41 +242,23 @@ impl<T: Storage<Data>> Internal for T {
             return Err(PSP22Error::ZeroRecipientAddress)
         }
 
-        let mut from_balance = self._balance_of(&account);
+        let mut from_balance = Internal::_balance_of(self, &account);
 
         if from_balance < amount {
             return Err(PSP22Error::InsufficientBalance)
         }
 
-        self._before_token_transfer(Some(&account), None, &amount)?;
+        Internal::_before_token_transfer(self, Some(&account), None, &amount)?;
 
         from_balance -= amount;
         self.data().balances.insert(&account, &from_balance);
         self.data().supply -= amount;
-        self._after_token_transfer(Some(&account), None, &amount)?;
-        self._emit_transfer_event(Some(account), None, amount);
+        Internal::_after_token_transfer(self, Some(&account), None, &amount)?;
+        Internal::_emit_transfer_event(self, Some(account), None, amount);
 
         Ok(())
     }
-}
 
-pub trait Transfer {
-    fn _before_token_transfer(
-        &mut self,
-        _from: Option<&AccountId>,
-        _to: Option<&AccountId>,
-        _amount: &Balance,
-    ) -> Result<(), PSP22Error>;
-
-    fn _after_token_transfer(
-        &mut self,
-        _from: Option<&AccountId>,
-        _to: Option<&AccountId>,
-        _amount: &Balance,
-    ) -> Result<(), PSP22Error>;
-}
-
-impl<T: Storage<Data>> Transfer for T {
     fn _before_token_transfer(
         &mut self,
         _from: Option<&AccountId>,

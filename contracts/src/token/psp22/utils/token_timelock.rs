@@ -44,7 +44,11 @@ pub use psp22::{
     InternalImpl as _,
     PSP22Impl,
 };
-pub use token_timelock::Internal as _;
+pub use token_timelock::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22TokenTimelockImpl as _,
+};
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 

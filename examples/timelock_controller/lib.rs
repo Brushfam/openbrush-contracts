@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(default_alloc_error_handler)]
 
 #[openbrush::contract]
 pub mod my_timelock_controller {
@@ -47,16 +46,15 @@ pub mod my_timelock_controller {
         use ink_e2e::{build_message, PolkadotConfig};
         use ink_e2e::Client;
 
-        use test_helpers::{
-            address_of,
-        };
+        use test_helpers::address_of;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
         async fn can_schedule(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
-            let address = client.instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -74,53 +72,55 @@ pub mod my_timelock_controller {
             let id = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.hash_operation(transaction.clone(), None, salt));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             let is_operation_pending = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.is_operation_pending(id));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg =
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.is_operation_pending(id));
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert_eq!(is_operation_pending, false);
 
             let schedule_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.schedule(transaction.clone(), None, salt, 0));
-                client.call(&ink_e2e::bob(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
                     .await
                     .expect("schedule failed")
-            }.return_value();
+            }
+            .return_value();
 
             assert_eq!(schedule_tx, Ok(()));
 
             let is_operation_pending = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.is_operation_pending(id));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg =
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.is_operation_pending(id));
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert_eq!(is_operation_pending, true);
 
             let is_operation_ready = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.is_operation_ready(id));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg =
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.is_operation_ready(id));
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert_eq!(is_operation_ready, true);
 
             let is_operation_done = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.is_operation_done(id));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg =
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.is_operation_done(id));
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert_eq!(is_operation_done, false);
 
@@ -130,7 +130,8 @@ pub mod my_timelock_controller {
         #[ink_e2e::test]
         async fn schedule_and_execute_without_input_data(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
-            let address = client.instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -148,45 +149,49 @@ pub mod my_timelock_controller {
             let id = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.hash_operation(transaction.clone(), None, salt));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             let schedule_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.schedule(transaction.clone(), None, salt, 0));
-                client.call(&ink_e2e::bob(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
                     .await
                     .expect("schedule failed")
-            }.return_value();
+            }
+            .return_value();
 
             assert_eq!(schedule_tx, Ok(()));
 
             let is_operation_done = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.is_operation_done(id));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg =
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.is_operation_done(id));
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert_eq!(is_operation_done, false);
 
             let execute_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.execute(transaction.clone(), None, salt));
-                client.call(&ink_e2e::bob(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
                     .await
                     .expect("execute failed")
-            }.return_value();
+            }
+            .return_value();
 
             assert_eq!(execute_tx, Ok(()));
 
             let is_operation_done = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.is_operation_done(id));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg =
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.is_operation_done(id));
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert_eq!(is_operation_done, true);
 
@@ -194,9 +199,12 @@ pub mod my_timelock_controller {
         }
 
         #[ink_e2e::test]
-        async fn schedule_and_execute_by_passing_value_into_update_delay_and_update(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn schedule_and_execute_by_passing_value_into_update_delay_and_update(
+            client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
             let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
-            let address = client.instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -216,38 +224,40 @@ pub mod my_timelock_controller {
             let schedule_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.schedule(transaction.clone(), None, salt, 0));
-                client.call(&ink_e2e::bob(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
                     .await
                     .expect("schedule failed")
-            }.return_value();
+            }
+            .return_value();
 
             assert_eq!(schedule_tx, Ok(()));
 
             let get_min_delay = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.get_min_delay());
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_min_delay());
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert_eq!(get_min_delay, 0);
 
             let execute_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.execute(transaction.clone(), None, salt));
-                client.call(&ink_e2e::bob(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
                     .await
                     .expect("execute failed")
-            }.return_value();
+            }
+            .return_value();
 
             assert_eq!(execute_tx, Ok(()));
 
             let get_min_delay = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.get_min_delay());
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_min_delay());
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert_eq!(get_min_delay, new_min_delay);
 
@@ -257,7 +267,8 @@ pub mod my_timelock_controller {
         #[ink_e2e::test]
         async fn fails_schedule_because_signer_is_not_proposal(clientclient: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
-            let address = client.instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -275,9 +286,9 @@ pub mod my_timelock_controller {
             let schedule_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.schedule(transaction.clone(), None, salt, 0));
-                client.call_dry_run(&ink_e2e::charlie(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                client.call_dry_run(&ink_e2e::charlie(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert!(matches!(schedule_tx, Err(_)));
 
@@ -287,7 +298,8 @@ pub mod my_timelock_controller {
         #[ink_e2e::test]
         async fn fails_execute_because_signer_is_not_executor(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
-            let address = client.instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -305,19 +317,21 @@ pub mod my_timelock_controller {
             let schedule_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.schedule(transaction.clone(), None, salt, 0));
-                client.call(&ink_e2e::bob(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
                     .await
                     .expect("schedule failed")
-            }.return_value();
+            }
+            .return_value();
 
             assert_eq!(schedule_tx, Ok(()));
 
             let execute_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.execute(transaction.clone(), None, salt));
-                client.call_dry_run(&ink_e2e::charlie(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                client.call_dry_run(&ink_e2e::charlie(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert!(matches!(execute_tx, Err(_)));
 
@@ -327,17 +341,17 @@ pub mod my_timelock_controller {
         #[ink_e2e::test]
         async fn fails_update_delay(client: Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
-            let address = client.instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
 
             let update_delay_tx = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.update_delay(15));
-                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.update_delay(15));
+                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert!(matches!(update_delay_tx, Err(_)));
 

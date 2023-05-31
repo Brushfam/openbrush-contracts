@@ -23,7 +23,7 @@ pub use crate::{
     psp22_pallet,
     traits::psp22::*,
 };
-use ink::{
+pub use ink::{
     env::DefaultEnvironment,
     prelude::vec::Vec,
 };
@@ -37,7 +37,11 @@ pub use pallet_assets_chain_extension::{
     ink::*,
     traits::*,
 };
-pub use psp22_pallet::Internal as _;
+pub use psp22_pallet::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22PalletImpl as _,
+};
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
@@ -53,7 +57,7 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
-impl<T: Storage<Data>> PSP22 for T {
+pub trait PSP22PalletImpl: Storage<Data> + Internal {
     fn total_supply(&self) -> Balance {
         let self_ = self.data();
         self_.pallet_assets.total_supply(self_.asset_id)
@@ -107,8 +111,10 @@ impl<T: Storage<Data>> PSP22 for T {
         }
 
         let caller = self._sender();
+        let allowance = self.allowance(caller.clone(), spender.clone());
         let self_ = self.data();
-        if self_.allowance(caller.clone(), spender.clone()) > 0 {
+
+        if allowance > 0 {
             // First we reset the previous approve and after set a new one.
             self_
                 .pallet_assets
@@ -127,9 +133,9 @@ impl<T: Storage<Data>> PSP22 for T {
             return Ok(())
         }
 
+        let caller = self._sender();
+        let allowance = self.allowance(caller.clone(), spender.clone());
         let self_ = self.data();
-        let caller = self_._sender();
-        let allowance = self_.allowance(caller.clone(), spender.clone());
         // `approve_transfer` increases by default
         self_
             .pallet_assets
@@ -163,6 +169,7 @@ impl<T: Storage<Data>> PSP22 for T {
 pub trait Internal {
     /// User must override those methods in their contract.
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance);
+
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance);
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error>;
@@ -179,21 +186,22 @@ pub trait Internal {
     fn _sender(&self) -> AccountId;
 }
 
-impl<T: Storage<Data>> Internal for T {
+pub trait InternalImpl: Storage<Data> + Internal {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
+
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         let self_ = self.data();
         self_.pallet_assets.mint(self_.asset_id, account.clone(), amount)?;
-        self._emit_transfer_event(None, Some(account), amount);
+        Internal::_emit_transfer_event(self, None, Some(account), amount);
         Ok(())
     }
 
     fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         let self_ = self.data();
         self_.pallet_assets.burn(self_.asset_id, account.clone(), amount)?;
-        self._emit_transfer_event(Some(account), None, amount);
+        Internal::_emit_transfer_event(self, Some(account), None, amount);
         Ok(())
     }
 

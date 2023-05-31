@@ -21,7 +21,11 @@
 
 pub use crate::{
     psp22,
-    psp22::Internal as _,
+    psp22::{
+        Internal as _,
+        InternalImpl as _,
+        PSP22Impl as _,
+    },
     traits::psp22::*,
 };
 use ink::prelude::vec::Vec;
@@ -37,7 +41,11 @@ use openbrush::{
         Storage,
     },
 };
-pub use psp22::Internal as _;
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22Impl as _,
+};
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 

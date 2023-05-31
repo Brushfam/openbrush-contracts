@@ -62,7 +62,7 @@ impl Default for Data {
     }
 }
 
-impl<T: Storage<Data>> PSP22TokenTimelock for T {
+pub trait PSP22TokenTimelockImpl: Storage<Data> + Internal {
     /// Returns the token address
     fn token(&self) -> AccountId {
         self.data().token
@@ -108,12 +108,14 @@ pub trait Internal {
 
     /// Getter for caller to `PSP22Ref` of `token`
     fn _token(&mut self) -> &mut PSP22Ref;
+
+    fn _beneficiary(&self) -> AccountId;
 }
 
-impl<T: Storage<Data>> Internal for T {
+pub trait InternalImpl: Storage<Data> + Internal {
     fn _withdraw(&mut self, amount: Balance) -> Result<(), PSP22TokenTimelockError> {
-        let beneficiary = self.beneficiary();
-        self._token()
+        let beneficiary = Internal::_beneficiary(self);
+        Internal::_token(self)
             .transfer_builder(beneficiary, amount, Vec::<u8>::new())
             .call_flags(CallFlags::default().set_allow_reentry(true))
             .try_invoke()
@@ -123,7 +125,7 @@ impl<T: Storage<Data>> Internal for T {
     }
 
     fn _contract_balance(&mut self) -> Balance {
-        self._token().balance_of(Self::env().account_id())
+        Internal::_token(self).balance_of(Self::env().account_id())
     }
 
     fn _init(
@@ -143,5 +145,9 @@ impl<T: Storage<Data>> Internal for T {
 
     fn _token(&mut self) -> &mut PSP22Ref {
         &mut self.data().token
+    }
+
+    fn _beneficiary(&self) -> AccountId {
+        self.data().beneficiary
     }
 }

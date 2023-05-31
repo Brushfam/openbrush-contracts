@@ -27,15 +27,11 @@ pub use crate::{
         *,
     },
 };
-
 use openbrush::traits::{
     Storage,
     String,
 };
-pub use psp22::{
-    Internal as _,
-    Transfer as _,
-};
+pub use psp22::Internal as _;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
@@ -48,7 +44,7 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
-impl<T: Storage<Data>> PSP22Metadata for T {
+pub trait PSP22MetadataImpl: Storage<Data> {
     fn token_name(&self) -> Option<String> {
         self.data().name.clone()
     }

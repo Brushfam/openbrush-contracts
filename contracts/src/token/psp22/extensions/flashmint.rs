@@ -41,7 +41,7 @@ use openbrush::traits::{
 pub use psp22::{
     Internal as _,
     InternalImpl as _,
-    PSP22Impl,
+    *,
 };
 
 pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Internal {

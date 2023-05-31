@@ -21,11 +21,6 @@
 
 pub use crate::{
     psp22,
-    psp22::{
-        Internal as _,
-        InternalImpl as _,
-        PSP22Impl as _,
-    },
     traits::psp22::*,
 };
 pub use ink::prelude::vec::Vec;

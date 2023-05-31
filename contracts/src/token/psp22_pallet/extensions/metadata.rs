@@ -35,9 +35,13 @@ pub use pallet_assets_chain_extension::traits::{
     Origin,
     PalletAssets,
 };
-pub use psp22_pallet::Internal as _;
+pub use psp22_pallet::{
+    Internal as _,
+    InternalImpl as _,
+    *,
+};
 
-impl<T: Storage<psp22_pallet::Data>> PSP22Metadata for T {
+pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
     fn token_name(&self) -> Option<String> {
         let self_ = self.data();
         let name = self_.pallet_assets.metadata_name(self_.asset_id);

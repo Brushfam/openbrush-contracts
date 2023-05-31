@@ -33,7 +33,7 @@ use openbrush::traits::{
 pub use psp22::{
     Internal as _,
     InternalImpl as _,
-    PSP22Impl,
+    *,
 };
 
 pub trait PSP22MintableImpl: psp22::Internal {

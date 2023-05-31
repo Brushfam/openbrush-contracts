@@ -2,7 +2,6 @@
 
 #[openbrush::contract]
 pub mod my_psp22_burnable {
-    use ink::prelude::vec::Vec;
     use openbrush::{
         contracts::psp22::extensions::burnable::*,
         traits::Storage,
@@ -14,8 +13,6 @@ pub mod my_psp22_burnable {
         #[storage_field]
         psp22: psp22::Data,
     }
-
-    impl PSP22Impl for Contract {}
 
     impl psp22::InternalImpl for Contract {}
 
@@ -85,6 +82,8 @@ pub mod my_psp22_burnable {
             psp22::InternalImpl::_after_token_transfer(self, from, to, amount)
         }
     }
+
+    impl PSP22Impl for Contract {}
 
     impl PSP22 for Contract {
         #[ink(message)]

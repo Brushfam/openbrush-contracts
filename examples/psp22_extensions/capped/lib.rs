@@ -2,7 +2,6 @@
 
 #[openbrush::contract]
 pub mod my_psp22_capped {
-    use ink::prelude::vec::Vec;
     use openbrush::{
         contracts::psp22::extensions::{
             capped::*,

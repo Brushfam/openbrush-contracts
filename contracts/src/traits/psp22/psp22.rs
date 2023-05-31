@@ -23,7 +23,7 @@ pub use crate::traits::errors::{
     PSP22Error,
     PSP22ReceiverError,
 };
-use ink::prelude::vec::Vec;
+pub use ink::prelude::vec::Vec;
 use openbrush::traits::{
     AccountId,
     Balance,

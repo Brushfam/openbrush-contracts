@@ -38,7 +38,11 @@ use openbrush::traits::{
     Storage,
     String,
 };
-pub use psp22::Internal as _;
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22Impl,
+};
 
 pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Internal {
     fn max_flashloan(&mut self, token: AccountId) -> Balance {

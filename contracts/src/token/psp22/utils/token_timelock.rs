@@ -39,7 +39,11 @@ use openbrush::traits::{
     Timestamp,
     ZERO_ADDRESS,
 };
-pub use psp22::Internal as _;
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22Impl,
+};
 pub use token_timelock::Internal as _;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);

@@ -19,15 +19,15 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::psp34::{
-    Operator,
-    Owner,
-};
 pub use crate::{
     psp34,
+    psp34::{
+        Operator,
+        Owner,
+    },
     traits::psp34::*,
 };
-use ink::prelude::vec::Vec;
+pub use ink::prelude::vec::Vec;
 use openbrush::{
     storage::{
         Mapping,
@@ -96,9 +96,9 @@ pub trait PSP34Impl: Internal + Storage<Data> + PSP34 {
 
 pub trait Internal {
     /// Those methods must be implemented in derived implementation
-    fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id);
+    fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, id: Id);
 
-    fn _emit_approval_event(&self, _from: AccountId, _to: AccountId, _id: Option<Id>, _approved: bool);
+    fn _emit_approval_event(&self, from: AccountId, to: AccountId, id: Option<Id>, approved: bool);
 
     /// Approve the passed AccountId to transfer the specified token on behalf of the message's sender.
     fn _approve_for(&mut self, to: AccountId, id: Option<Id>, approved: bool) -> Result<(), PSP34Error>;
@@ -119,9 +119,9 @@ pub trait Internal {
 
     fn _balance_of(&self, owner: &Owner) -> u32;
 
-    fn _increase_balance(&mut self, owner: &Owner, _id: &Id, increase_supply: bool);
+    fn _increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool);
 
-    fn _decrease_balance(&mut self, owner: &Owner, _id: &Id, decrease_supply: bool);
+    fn _decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool);
 
     fn _total_supply(&self) -> u128;
 

@@ -19,7 +19,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::psp34::Owner;
 pub use crate::{
     psp34,
     psp34::extensions::enumerable,
@@ -28,6 +27,7 @@ pub use crate::{
         *,
     },
 };
+pub use ink::prelude::vec::Vec;
 use openbrush::{
     storage::{
         MultiMapping,
@@ -42,6 +42,8 @@ use openbrush::{
 pub use psp34::{
     Internal as _,
     InternalImpl as _,
+    Operator,
+    Owner,
     PSP34Impl,
 };
 

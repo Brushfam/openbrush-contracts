@@ -27,6 +27,7 @@ pub use crate::{
         *,
     },
 };
+pub use ink::prelude::vec::Vec;
 pub use metadata::Internal as _;
 use openbrush::{
     storage::{
@@ -41,6 +42,8 @@ use openbrush::{
 pub use psp34::{
     Internal as _,
     InternalImpl as _,
+    Operator,
+    Owner,
     PSP34Impl,
 };
 

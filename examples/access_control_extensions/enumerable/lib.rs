@@ -11,7 +11,9 @@ pub mod my_access_control {
     #[derive(Default, Storage)]
     pub struct Contract {
         #[storage_field]
-        access: access_control::Data<enumerable::Members>,
+        access: access_control::Data,
+        #[storage_field]
+        enumerable: enumerable::Data,
     }
 
     // You can manually set the number for the role.
@@ -20,9 +22,112 @@ pub mod my_access_control {
     // And will reduce the chance to have overlapping roles.
     const MINTER: RoleType = ink::selector_id!("MINTER");
 
-    impl AccessControl for Contract {}
+    impl AccessControlImpl for Contract {}
 
-    impl AccessControlEnumerable for Contract {}
+    impl AccessControl for Contract {
+        #[ink(message)]
+        fn has_role(&self, role: RoleType, address: AccountId) -> bool {
+            AccessControlImpl::has_role(self, role, address)
+        }
+
+        #[ink(message)]
+        fn get_role_admin(&self, role: RoleType) -> RoleType {
+            AccessControlImpl::get_role_admin(self, role)
+        }
+
+        #[ink(message)]
+        fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            AccessControlImpl::grant_role(self, role, account)
+        }
+
+        #[ink(message)]
+        fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            AccessControlImpl::revoke_role(self, role, account)
+        }
+
+        #[ink(message)]
+        fn renounce_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            AccessControlImpl::renounce_role(self, role, account)
+        }
+    }
+
+    impl access_control::InternalImpl for Contract {}
+
+    impl access_control::Internal for Contract {
+        fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {
+            access_control::InternalImpl::_emit_role_admin_changed(self, _role, _previous, _new);
+        }
+
+        fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {
+            access_control::InternalImpl::_emit_role_granted(self, _role, _grantee, _grantor);
+        }
+
+        fn _emit_role_revoked(&mut self, _role: RoleType, _account: AccountId, _sender: AccountId) {
+            access_control::InternalImpl::_emit_role_revoked(self, _role, _account, _sender);
+        }
+
+        fn _default_admin() -> RoleType {
+            <Self as access_control::InternalImpl>::_default_admin()
+        }
+
+        fn _init_with_caller(&mut self) {
+            access_control::InternalImpl::_init_with_caller(self);
+        }
+
+        fn _init_with_admin(&mut self, admin: AccountId) {
+            access_control::InternalImpl::_init_with_admin(self, admin);
+        }
+
+        fn _setup_role(&mut self, role: RoleType, member: AccountId) {
+            access_control::InternalImpl::_setup_role(self, role, member);
+        }
+
+        fn _do_revoke_role(&mut self, role: RoleType, account: AccountId) {
+            access_control::InternalImpl::_do_revoke_role(self, role, account);
+        }
+
+        fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType) {
+            access_control::InternalImpl::_set_role_admin(self, role, new_admin);
+        }
+
+        fn _check_role(&self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            access_control::InternalImpl::_check_role(self, role, account)
+        }
+
+        fn _get_role_admin(&self, role: RoleType) -> RoleType {
+            access_control::InternalImpl::_get_role_admin(self, role)
+        }
+    }
+
+    impl enumerable::MembersManagerImpl for Contract {}
+
+    impl access_control::MembersManager for Contract {
+        fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
+            enumerable::MembersManagerImpl::_has_role(self, role, address)
+        }
+
+        fn _add(&mut self, role: RoleType, member: &AccountId) {
+            enumerable::MembersManagerImpl::_add(self, role, member)
+        }
+
+        fn _remove(&mut self, role: RoleType, member: &AccountId) {
+            enumerable::MembersManagerImpl::_remove(self, role, member)
+        }
+    }
+
+    impl AccessControlEnumerableImpl for Contract {}
+
+    impl AccessControlEnumerable for Contract {
+        #[ink(message)]
+        fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
+            AccessControlEnumerableImpl::get_role_member(self, role, index)
+        }
+
+        #[ink(message)]
+        fn get_role_member_count(&self, role: RoleType) -> u32 {
+            AccessControlEnumerableImpl::get_role_member_count(self, role)
+        }
+    }
 
     impl Contract {
         #[ink(constructor)]
@@ -30,10 +135,10 @@ pub mod my_access_control {
             let mut instance = Self::default();
 
             let caller = Self::env().caller();
-            instance._init_with_admin(caller);
+            access_control::Internal::_init_with_admin(&mut instance, caller);
             // We grant minter role to caller in constructor, so he can mint/burn tokens
-            instance.grant_role(MINTER, caller).expect("Should grant MINTER role");
-            assert_eq!(instance.get_role_member_count(MINTER), 1);
+            AccessControl::grant_role(&mut instance, MINTER, caller).expect("Should grant MINTER role");
+            assert_eq!(AccessControlEnumerable::get_role_member_count(&instance, MINTER), 1);
 
             instance
         }

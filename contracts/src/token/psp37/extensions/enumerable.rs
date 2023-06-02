@@ -28,6 +28,7 @@ pub use crate::{
         *,
     },
 };
+pub use ink::prelude::vec::Vec;
 use openbrush::{
     storage::{
         Mapping,
@@ -37,7 +38,6 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        OccupiedStorage,
         Storage,
     },
 };

@@ -27,6 +27,7 @@ pub use crate::{
         *,
     },
 };
+pub use ink::prelude::vec::Vec;
 pub use metadata::Internal as _;
 use openbrush::{
     storage::{

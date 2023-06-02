@@ -24,18 +24,8 @@ pub use crate::{
     traits::psp37::*,
 };
 use core::result::Result;
-use ink::{
-    prelude::{
-        vec,
-        vec::Vec,
-    },
-    storage::traits::{
-        AutoStorableHint,
-        ManualKey,
-        Storable,
-        StorableHint,
-    },
-};
+use ink::prelude::vec;
+pub use ink::prelude::vec::Vec;
 use openbrush::{
     storage::{
         Mapping,
@@ -45,7 +35,6 @@ use openbrush::{
         AccountId,
         AccountIdExt,
         Balance,
-        OccupiedStorage,
         Storage,
     },
 };
@@ -123,13 +112,15 @@ pub trait PSP37Impl: Internal + Storage<Data> + BalancesManager {
 
 pub trait Internal {
     /// Those methods must be implemented in derived implementation
-    fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id, _amount: Balance);
+    fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, id: Id, amount: Balance);
+
     fn _emit_transfer_batch_event(
         &self,
-        _from: Option<AccountId>,
-        _to: Option<AccountId>,
-        _ids_amounts: Vec<(Id, Balance)>,
+        from: Option<AccountId>,
+        to: Option<AccountId>,
+        ids_amounts: Vec<(Id, Balance)>,
     );
+
     fn _emit_approval_event(&self, _owner: AccountId, _operator: AccountId, _id: Option<Id>, value: Balance);
 
     /// Creates `amount` tokens of token type `id` to `to`.
@@ -184,16 +175,16 @@ pub trait Internal {
 
     fn _before_token_transfer(
         &mut self,
-        _from: Option<&AccountId>,
-        _to: Option<&AccountId>,
-        _ids: &Vec<(Id, Balance)>,
+        from: Option<&AccountId>,
+        to: Option<&AccountId>,
+        ids: &Vec<(Id, Balance)>,
     ) -> Result<(), PSP37Error>;
 
     fn _after_token_transfer(
         &mut self,
-        _from: Option<&AccountId>,
-        _to: Option<&AccountId>,
-        _ids: &Vec<(Id, Balance)>,
+        from: Option<&AccountId>,
+        to: Option<&AccountId>,
+        ids: &Vec<(Id, Balance)>,
     ) -> Result<(), PSP37Error>;
 }
 
@@ -396,15 +387,21 @@ pub trait BalancesManager {
 }
 
 pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
-    fn balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
+    fn _balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
         self.data().balances.get(&(owner, id)).unwrap_or(0)
     }
 
-    fn total_supply(&self, id: &Option<&Id>) -> Balance {
+    fn _total_supply(&self, id: &Option<&Id>) -> Balance {
         self.data().supply.get(id).unwrap_or(0)
     }
 
-    fn increase_balance(&mut self, owner: &AccountId, id: &Id, amount: &Balance, mint: bool) -> Result<(), PSP37Error> {
+    fn _increase_balance(
+        &mut self,
+        owner: &AccountId,
+        id: &Id,
+        amount: &Balance,
+        mint: bool,
+    ) -> Result<(), PSP37Error> {
         let amount = *amount;
 
         if amount == 0 {
@@ -412,10 +409,10 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         }
 
         let id = &Some(id);
-        let balance_before = self.balance_of(owner, id);
+        let balance_before = BalancesManager::_balance_of(self, owner, id);
 
         if balance_before == 0 {
-            let amount = &self.balance_of(owner, &None).checked_add(1).unwrap();
+            let amount = &BalancesManager::_balance_of(self, owner, &None).checked_add(1).unwrap();
             self.data().balances.insert(&(owner, &None), amount);
         }
 
@@ -424,13 +421,13 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
             .insert(&(owner, id), &balance_before.checked_add(amount).unwrap());
 
         if mint {
-            let supply_before = self.total_supply(id);
+            let supply_before = BalancesManager::_total_supply(self, id);
             self.data()
                 .supply
                 .insert(id, &supply_before.checked_add(amount).unwrap());
 
             if supply_before == 0 {
-                let amount = &self.total_supply(&None).checked_add(1).unwrap();
+                let amount = &BalancesManager::_total_supply(self, &None).checked_add(1).unwrap();
                 self.data().supply.insert(&None, amount);
             }
         }
@@ -438,7 +435,13 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         Ok(())
     }
 
-    fn decrease_balance(&mut self, owner: &AccountId, id: &Id, amount: &Balance, burn: bool) -> Result<(), PSP37Error> {
+    fn _decrease_balance(
+        &mut self,
+        owner: &AccountId,
+        id: &Id,
+        amount: &Balance,
+        burn: bool,
+    ) -> Result<(), PSP37Error> {
         let amount = *amount;
 
         if amount == 0 {
@@ -446,30 +449,26 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         }
 
         let id = &Some(id);
-        let balance_after = self
-            .balance_of(owner, id)
+        let balance_after = BalancesManager::_balance_of(self, owner, id)
             .checked_sub(amount)
             .ok_or(PSP37Error::InsufficientBalance)?;
         self.data().balances.insert(&(owner, id), &balance_after);
 
         if balance_after == 0 {
-            let amount = &self
-                .balance_of(owner, &None)
+            let amount = &BalancesManager::_balance_of(self, owner, &None)
                 .checked_sub(1)
                 .ok_or(PSP37Error::InsufficientBalance)?;
             self.data().balances.insert(&(owner, &None), amount);
         }
 
         if burn {
-            let supply_after = self
-                .total_supply(id)
+            let supply_after = BalancesManager::_total_supply(self, id)
                 .checked_sub(amount)
                 .ok_or(PSP37Error::InsufficientBalance)?;
             self.data().supply.insert(id, &supply_after);
 
             if supply_after == 0 {
-                let amount = &self
-                    .total_supply(&None)
+                let amount = &BalancesManager::_total_supply(self, &None)
                     .checked_sub(1)
                     .ok_or(PSP37Error::InsufficientBalance)?;
                 self.data().supply.insert(&None, amount);

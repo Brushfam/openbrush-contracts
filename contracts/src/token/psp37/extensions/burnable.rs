@@ -26,20 +26,10 @@ pub use crate::{
         *,
     },
 };
-use ink::{
-    prelude::vec::Vec,
-    storage::traits::{
-        AutoStorableHint,
-        ManualKey,
-        Storable,
-        StorableHint,
-    },
-};
+pub use ink::prelude::vec::Vec;
 use openbrush::traits::{
     AccountId,
     Balance,
-    OccupiedStorage,
-    Storage,
 };
 pub use psp37::{
     BalancesManager as _,

@@ -1,0 +1,166 @@
+error: expected expression, found `;`
+ --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:5:1
+  |
+5 | #[openbrush::upgradeable_storage()]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  | |
+  | expected expression
+  | while parsing this item list starting here
+  | the item list ends here
+  |
+  = note: this error originates in the attribute macro `openbrush::upgradeable_storage` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected expression, found `;`
+  --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:14:1
+   |
+14 | #[openbrush::upgradeable_storage()]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | |
+   | expected expression
+   | while parsing this item list starting here
+   | the item list ends here
+   |
+   = note: this error originates in the attribute macro `openbrush::upgradeable_storage` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected expression, found `;`
+  --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:21:1
+   |
+21 | #[openbrush::upgradeable_storage()]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | |
+   | expected expression
+   | while parsing this item list starting here
+   | the item list ends here
+   |
+   = note: this error originates in the attribute macro `openbrush::upgradeable_storage` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
+ --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:7:16
+  |
+7 |     pub owner: AccountId,
+  |                ^^^^^^^^^ expected at least 1 generic argument
+  |
+note: struct defined here, with at least 1 generic parameter: `KEY`
+ --> $CARGO/ink_storage_traits-4.1.0/src/impls/mod.rs
+  |
+  | pub struct ManualKey<const KEY: Key, ParentKey: StorageKey = ()>(
+  |            ^^^^^^^^^ --------------
+help: add missing generic argument
+   |
+7  |     pub owner: AKEYccountId,
+   |                 +++
+
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
+ --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:8:20
+  |
+8 |     pub _reserved: Option<()>,
+  |                    ^^^^^^^^^^ expected at least 1 generic argument
+  |
+note: struct defined here, with at least 1 generic parameter: `KEY`
+ --> $CARGO/ink_storage_traits-4.1.0/src/impls/mod.rs
+  |
+  | pub struct ManualKey<const KEY: Key, ParentKey: StorageKey = ()>(
+  |            ^^^^^^^^^ --------------
+help: add missing generic argument
+   |
+8  |     pub _reserved: OKEYption<()>,
+   |                     +++
+
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
+  --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:16:18
+   |
+16 |     pub forward: AccountId,
+   |                  ^^^^^^^^^ expected at least 1 generic argument
+   |
+note: struct defined here, with at least 1 generic parameter: `KEY`
+  --> $CARGO/ink_storage_traits-4.1.0/src/impls/mod.rs
+   |
+   | pub struct ManualKey<const KEY: Key, ParentKey: StorageKey = ()>(
+   |            ^^^^^^^^^ --------------
+help: add missing generic argument
+   |
+16 |     pub forward: AKEYccountId,
+   |                   +++
+
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
+  --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:17:20
+   |
+17 |     pub _reserved: Option<()>,
+   |                    ^^^^^^^^^^ expected at least 1 generic argument
+   |
+note: struct defined here, with at least 1 generic parameter: `KEY`
+  --> $CARGO/ink_storage_traits-4.1.0/src/impls/mod.rs
+   |
+   | pub struct ManualKey<const KEY: Key, ParentKey: StorageKey = ()>(
+   |            ^^^^^^^^^ --------------
+help: add missing generic argument
+   |
+17 |     pub _reserved: OKEYption<()>,
+   |                     +++
+
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
+  --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:23:20
+   |
+23 |     pub _reserved: Option<()>,
+   |                    ^^^^^^^^^^ expected at least 1 generic argument
+   |
+note: struct defined here, with at least 1 generic parameter: `KEY`
+  --> $CARGO/ink_storage_traits-4.1.0/src/impls/mod.rs
+   |
+   | pub struct ManualKey<const KEY: Key, ParentKey: StorageKey = ()>(
+   |            ^^^^^^^^^ --------------
+help: add missing generic argument
+   |
+23 |     pub _reserved: OKEYption<()>,
+   |                     +++
+
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
+ --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:5:1
+  |
+5 | #[openbrush::upgradeable_storage()]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected at least 1 generic argument
+  |
+note: struct defined here, with at least 1 generic parameter: `KEY`
+ --> $CARGO/ink_storage_traits-4.1.0/src/impls/mod.rs
+  |
+  | pub struct ManualKey<const KEY: Key, ParentKey: StorageKey = ()>(
+  |            ^^^^^^^^^ --------------
+  = note: this error originates in the attribute macro `openbrush::upgradeable_storage` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: add missing generic argument
+   |
+5  | #KEY[openbrush::upgradeable_storage()]
+   |  +++
+
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
+  --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:14:1
+   |
+14 | #[openbrush::upgradeable_storage()]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected at least 1 generic argument
+   |
+note: struct defined here, with at least 1 generic parameter: `KEY`
+  --> $CARGO/ink_storage_traits-4.1.0/src/impls/mod.rs
+   |
+   | pub struct ManualKey<const KEY: Key, ParentKey: StorageKey = ()>(
+   |            ^^^^^^^^^ --------------
+   = note: this error originates in the attribute macro `openbrush::upgradeable_storage` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: add missing generic argument
+   |
+14 | #KEY[openbrush::upgradeable_storage()]
+   |  +++
+
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
+  --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:21:1
+   |
+21 | #[openbrush::upgradeable_storage()]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected at least 1 generic argument
+   |
+note: struct defined here, with at least 1 generic parameter: `KEY`
+  --> $CARGO/ink_storage_traits-4.1.0/src/impls/mod.rs
+   |
+   | pub struct ManualKey<const KEY: Key, ParentKey: StorageKey = ()>(
+   |            ^^^^^^^^^ --------------
+   = note: this error originates in the attribute macro `openbrush::upgradeable_storage` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: add missing generic argument
+   |
+21 | #KEY[openbrush::upgradeable_storage()]
+   |  +++

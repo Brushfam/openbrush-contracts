@@ -56,6 +56,26 @@ pub mod my_psp34 {
         }
     }
 
+    impl psp34::BalancesManagerImpl for Contract {}
+
+    impl psp34::BalancesManager for Contract {
+        fn _balance_of(&self, owner: &Owner) -> u32 {
+            psp34::BalancesManagerImpl::_balance_of(self, owner)
+        }
+
+        fn _increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool) {
+            psp34::BalancesManagerImpl::_increase_balance(self, owner, id, increase_supply)
+        }
+
+        fn _decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool) {
+            psp34::BalancesManagerImpl::_decrease_balance(self, owner, id, decrease_supply)
+        }
+
+        fn _total_supply(&self) -> u128 {
+            psp34::BalancesManagerImpl::_total_supply(self)
+        }
+    }
+
     impl psp34::InternalImpl for Contract {}
 
     impl psp34::Internal for Contract {
@@ -93,22 +113,6 @@ pub mod my_psp34 {
 
         fn _check_token_exists(&self, id: &Id) -> Result<AccountId, PSP34Error> {
             psp34::InternalImpl::_check_token_exists(self, id)
-        }
-
-        fn _balance_of(&self, owner: &Owner) -> u32 {
-            psp34::InternalImpl::_balance_of(self, owner)
-        }
-
-        fn _increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool) {
-            psp34::InternalImpl::_increase_balance(self, owner, id, increase_supply)
-        }
-
-        fn _decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool) {
-            psp34::InternalImpl::_decrease_balance(self, owner, id, decrease_supply)
-        }
-
-        fn _total_supply(&self) -> u128 {
-            psp34::InternalImpl::_total_supply(self)
         }
 
         fn _before_token_transfer(

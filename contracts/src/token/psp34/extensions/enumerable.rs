@@ -40,6 +40,7 @@ use openbrush::{
     },
 };
 pub use psp34::{
+    BalancesManager as _,
     Internal as _,
     InternalImpl as _,
     Operator,
@@ -62,7 +63,7 @@ impl<'a> TypeGuard<'a> for EnumerableKey {
     type Type = &'a Option<&'a AccountId>;
 }
 
-pub trait InternalImpl: Storage<Data> {
+pub trait BalancesManagerImpl: Storage<Data> {
     fn _balance_of(&self, owner: &Owner) -> u32 {
         self.data().enumerable.count(&Some(owner)) as u32
     }

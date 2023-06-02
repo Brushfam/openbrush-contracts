@@ -29,6 +29,7 @@ pub use crate::{
 pub use ink::prelude::vec::Vec;
 use openbrush::traits::AccountId;
 pub use psp34::{
+    BalancesManager as _,
     Internal as _,
     InternalImpl as _,
     Operator,

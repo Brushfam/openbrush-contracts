@@ -40,6 +40,7 @@ use openbrush::{
     },
 };
 pub use psp34::{
+    BalancesManager as _,
     Internal as _,
     InternalImpl as _,
     Operator,
@@ -70,7 +71,7 @@ pub trait PSP34MetadataImpl: Storage<Data> {
 
 pub trait Internal {
     /// Event is emitted when an attribute is set for a token.
-    fn _emit_attribute_set_event(&self, _id: Id, _key: String, _data: String);
+    fn _emit_attribute_set_event(&self, id: Id, key: String, data: String);
 
     fn _set_attribute(&mut self, id: Id, key: String, value: String);
 }

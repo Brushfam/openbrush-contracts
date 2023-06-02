@@ -44,6 +44,7 @@ pub use psp37::{
     BalancesManagerImpl as _,
     Internal as _,
     InternalImpl as _,
+    PSP37Impl,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);

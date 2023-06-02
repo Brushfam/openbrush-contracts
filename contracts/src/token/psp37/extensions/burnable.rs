@@ -36,6 +36,7 @@ pub use psp37::{
     BalancesManagerImpl as _,
     Internal as _,
     InternalImpl as _,
+    PSP37Impl,
 };
 
 pub trait PSP37BurnableImpl: psp37::Internal {

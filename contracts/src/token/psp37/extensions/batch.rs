@@ -40,6 +40,7 @@ pub use psp37::{
     BalancesManagerImpl as _,
     Internal as _,
     InternalImpl as _,
+    PSP37Impl,
 };
 
 pub trait PSP37BatchImpl: Internal + Storage<psp37::Data> {
@@ -79,7 +80,7 @@ pub trait InternalImpl: Internal + psp37::Internal + Storage<psp37::Data> + psp3
         from: AccountId,
         to: AccountId,
         ids_amounts: Vec<(Id, Balance)>,
-        _data: Vec<u8>,
+        _: Vec<u8>,
     ) -> Result<(), PSP37Error> {
         let operator = Self::env().caller();
 

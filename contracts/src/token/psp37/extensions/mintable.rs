@@ -21,17 +21,11 @@
 
 pub use crate::{
     psp37,
-    psp37::balances,
     traits::psp37::{
         extensions::mintable::*,
         *,
     },
 };
-pub use psp37::{
-    Internal as _,
-    Transfer as _,
-};
-
 use ink::{
     prelude::vec::Vec,
     storage::traits::{
@@ -47,16 +41,14 @@ use openbrush::traits::{
     OccupiedStorage,
     Storage,
 };
+pub use psp37::{
+    BalancesManager as _,
+    BalancesManagerImpl as _,
+    Internal as _,
+    InternalImpl as _,
+};
 
-impl<B, T> PSP37Mintable for T
-where
-    B: balances::BalancesManager,
-    B: Storable
-        + StorableHint<ManualKey<{ psp37::STORAGE_KEY }>>
-        + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp37::STORAGE_KEY }>>, Type = B>,
-    T: Storage<psp37::Data<B>>,
-    T: OccupiedStorage<{ psp37::STORAGE_KEY }, WithData = psp37::Data<B>>,
-{
+pub trait PSP37MintableImpl: psp37::Internal {
     fn mint(&mut self, to: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
         self._mint_to(to, ids_amounts)
     }

@@ -21,10 +21,7 @@
 
 pub use crate::{
     psp37,
-    psp37::{
-        balances,
-        extensions::metadata,
-    },
+    psp37::extensions::metadata,
     traits::psp37::{
         extensions::metadata::*,
         *,
@@ -42,8 +39,10 @@ use openbrush::{
     },
 };
 pub use psp37::{
+    BalancesManager as _,
+    BalancesManagerImpl as _,
     Internal as _,
-    Transfer as _,
+    InternalImpl as _,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
@@ -61,7 +60,7 @@ impl<'a> TypeGuard<'a> for AttributesKey {
     type Type = &'a (&'a Id, &'a String);
 }
 
-impl<T: Storage<Data>> PSP37Metadata for T {
+pub trait PSP37MetadataImpl: Storage<Data> {
     fn get_attribute(&self, id: Id, key: String) -> Option<String> {
         self.data().attributes.get(&(&id, &key))
     }
@@ -75,12 +74,12 @@ pub trait Internal {
     fn _get_attribute(&self, id: &Id, key: &String) -> Option<String>;
 }
 
-impl<T: Storage<Data>> Internal for T {
+pub trait InternalImpl: Internal + Storage<Data> {
     fn _emit_attribute_set_event(&self, _id: &Id, _key: &String, _data: &String) {}
 
     fn _set_attribute(&mut self, id: &Id, key: &String, data: &String) -> Result<(), PSP37Error> {
         self.data().attributes.insert(&(&id, &key), data);
-        self._emit_attribute_set_event(id, key, data);
+        Internal::_emit_attribute_set_event(self, id, key, data);
         Ok(())
     }
 

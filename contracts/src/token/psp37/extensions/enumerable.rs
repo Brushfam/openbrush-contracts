@@ -19,18 +19,15 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::psp37::BalancesManager;
 pub use crate::{
     psp37,
-    psp37::{
-        balances,
-        extensions::enumerable,
-    },
+    psp37::extensions::enumerable,
     traits::psp37::{
         extensions::enumerable::*,
         *,
     },
 };
-
 use openbrush::{
     storage::{
         Mapping,
@@ -45,15 +42,16 @@ use openbrush::{
     },
 };
 pub use psp37::{
+    BalancesManager as _,
     Internal as _,
-    Transfer as _,
+    InternalImpl as _,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Balances);
 
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 #[derive(Default, Debug)]
-pub struct Balances {
+pub struct Data {
     pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey>,
     pub balances: Mapping<(AccountId, Id), Balance, BalancesKey>,
     pub supply: Mapping<Id, Balance>,
@@ -72,92 +70,100 @@ impl<'a> TypeGuard<'a> for BalancesKey {
     type Type = &'a (&'a AccountId, &'a Id);
 }
 
-impl balances::BalancesManager for Balances {
-    #[inline(always)]
-    fn balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
+pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
+    fn _balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
         match id {
-            None => self.enumerable.count(&Some(owner)),
-            Some(id) => self.balances.get(&(owner, id)).unwrap_or(0),
+            None => self.data().enumerable.count(&Some(owner)),
+            Some(id) => self.data().balances.get(&(owner, id)).unwrap_or(0),
         }
     }
 
     #[inline(always)]
-    fn total_supply(&self, id: &Option<&Id>) -> Balance {
+    fn _total_supply(&self, id: &Option<&Id>) -> Balance {
         match id {
-            None => self.enumerable.count(&None),
-            Some(id) => self.supply.get(id).unwrap_or(0),
+            None => self.data().enumerable.count(&None),
+            Some(id) => self.data().supply.get(id).unwrap_or(0),
         }
     }
 
-    fn increase_balance(&mut self, owner: &AccountId, id: &Id, amount: &Balance, mint: bool) -> Result<(), PSP37Error> {
+    fn _increase_balance(
+        &mut self,
+        owner: &AccountId,
+        id: &Id,
+        amount: &Balance,
+        mint: bool,
+    ) -> Result<(), PSP37Error> {
         let amount = *amount;
 
         if amount == 0 {
             return Ok(())
         }
 
-        let balance_before = self.balance_of(owner, &Some(id));
-        self.balances
+        let balance_before = BalancesManager::_balance_of(self, owner, &Some(id));
+        self.data()
+            .balances
             .insert(&(owner, id), &(balance_before.checked_add(amount).unwrap()));
 
         if balance_before == 0 {
-            self.enumerable.insert(&Some(owner), id);
+            self.data().enumerable.insert(&Some(owner), id);
         }
 
         if mint {
-            let supply_before = self.total_supply(&Some(id));
+            let supply_before = BalancesManager::_total_supply(self, &Some(id));
 
-            self.supply.insert(id, &(supply_before.checked_add(amount).unwrap()));
+            self.data()
+                .supply
+                .insert(id, &(supply_before.checked_add(amount).unwrap()));
 
             if supply_before == 0 {
-                self.enumerable.insert(&None, id);
+                self.data().enumerable.insert(&None, id);
             }
         }
         Ok(())
     }
 
-    fn decrease_balance(&mut self, owner: &AccountId, id: &Id, amount: &Balance, burn: bool) -> Result<(), PSP37Error> {
+    fn _decrease_balance(
+        &mut self,
+        owner: &AccountId,
+        id: &Id,
+        amount: &Balance,
+        burn: bool,
+    ) -> Result<(), PSP37Error> {
         let amount = *amount;
 
         if amount == 0 {
             return Ok(())
         }
 
-        let balance_after = self
-            .balance_of(owner, &Some(id))
+        let balance_after = BalancesManager::_balance_of(self, owner, &Some(id))
             .checked_sub(amount)
             .ok_or(PSP37Error::InsufficientBalance)?;
-        self.balances.insert(&(owner, id), &balance_after);
+        self.data().balances.insert(&(owner, id), &balance_after);
 
         if balance_after == 0 {
-            self.enumerable.remove_value(&Some(owner), id);
+            self.data().enumerable.remove_value(&Some(owner), id);
         }
 
         if burn {
-            let supply_after = self
-                .total_supply(&Some(id))
+            let supply_after = BalancesManager::_total_supply(self, &Some(id))
                 .checked_sub(amount)
                 .ok_or(PSP37Error::InsufficientBalance)?;
-            self.supply.insert(id, &supply_after);
+            self.data().supply.insert(id, &supply_after);
 
             if supply_after == 0 {
-                self.enumerable.remove_value(&None, id);
+                self.data().enumerable.remove_value(&None, id);
             }
         }
         Ok(())
     }
 }
 
-impl<T> PSP37Enumerable for T
-where
-    T: Storage<psp37::Data<Balances>>,
-    T: OccupiedStorage<{ psp37::STORAGE_KEY }, WithData = psp37::Data<Balances>>,
-{
+pub trait PSP37EnumerableImpl: Storage<Data> {
     fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Option<Id> {
-        self.data().balances.enumerable.get_value(&Some(&owner), &index)
+        self.data().enumerable.get_value(&Some(&owner), &index)
     }
 
     fn token_by_index(&self, index: u128) -> Option<Id> {
-        self.data().balances.enumerable.get_value(&None, &index)
+        self.data().enumerable.get_value(&None, &index)
     }
 }

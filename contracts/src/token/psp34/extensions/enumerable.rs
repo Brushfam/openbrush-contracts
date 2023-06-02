@@ -22,16 +22,12 @@
 use crate::psp34::Owner;
 pub use crate::{
     psp34,
-    psp34::{
-        balances,
-        extensions::enumerable,
-    },
+    psp34::extensions::enumerable,
     traits::psp34::{
         extensions::enumerable::*,
         *,
     },
 };
-
 use openbrush::{
     storage::{
         MultiMapping,
@@ -40,20 +36,20 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        OccupiedStorage,
         Storage,
     },
 };
 pub use psp34::{
     Internal as _,
-    Transfer as _,
+    InternalImpl as _,
+    PSP34Impl,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Balances);
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
-pub struct Balances {
+pub struct Data {
     pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey /* optimization */>,
     pub _reserved: Option<()>,
 }
@@ -64,38 +60,33 @@ impl<'a> TypeGuard<'a> for EnumerableKey {
     type Type = &'a Option<&'a AccountId>;
 }
 
-impl balances::BalancesManager for Balances {
-    fn balance_of(&self, owner: &Owner) -> u32 {
-        self.enumerable.count(&Some(owner)) as u32
+pub trait InternalImpl: Storage<Data> {
+    fn _balance_of(&self, owner: &Owner) -> u32 {
+        self.data().enumerable.count(&Some(owner)) as u32
     }
 
-    fn increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool) {
-        self.enumerable.insert(&Some(owner), id);
+    fn _increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool) {
+        self.data().enumerable.insert(&Some(owner), id);
         if increase_supply {
-            self.enumerable.insert(&None, id);
+            self.data().enumerable.insert(&None, id);
         }
     }
 
-    fn decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool) {
-        self.enumerable.remove_value(&Some(owner), id);
+    fn _decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool) {
+        self.data().enumerable.remove_value(&Some(owner), id);
         if decrease_supply {
-            self.enumerable.remove_value(&None, id);
+            self.data().enumerable.remove_value(&None, id);
         }
     }
 
-    fn total_supply(&self) -> Balance {
-        self.enumerable.count(&None)
+    fn _total_supply(&self) -> Balance {
+        self.data().enumerable.count(&None)
     }
 }
 
-impl<T> PSP34Enumerable for T
-where
-    T: Storage<psp34::Data<Balances>>,
-    T: OccupiedStorage<{ psp34::STORAGE_KEY }, WithData = psp34::Data<Balances>>,
-{
+pub trait PSP34EnumerableImpl: Storage<Data> {
     fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Result<Id, PSP34Error> {
         self.data()
-            .balances
             .enumerable
             .get_value(&Some(&owner), &index)
             .ok_or(PSP34Error::TokenNotExists)
@@ -103,7 +94,6 @@ where
 
     fn token_by_index(&self, index: u128) -> Result<Id, PSP34Error> {
         self.data()
-            .balances
             .enumerable
             .get_value(&None, &index)
             .ok_or(PSP34Error::TokenNotExists)

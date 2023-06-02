@@ -21,38 +21,19 @@
 
 pub use crate::{
     psp34,
-    psp34::balances,
     traits::psp34::{
         extensions::mintable::*,
         *,
     },
 };
-use ink::storage::traits::{
-    AutoStorableHint,
-    ManualKey,
-    Storable,
-    StorableHint,
-};
+use openbrush::traits::AccountId;
 pub use psp34::{
     Internal as _,
-    Transfer as _,
+    InternalImpl as _,
+    PSP34Impl,
 };
 
-use openbrush::traits::{
-    AccountId,
-    OccupiedStorage,
-    Storage,
-};
-
-impl<B, T> PSP34Mintable for T
-where
-    B: balances::BalancesManager,
-    B: Storable
-        + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp34::STORAGE_KEY }>>, Type = B>
-        + StorableHint<ManualKey<{ psp34::STORAGE_KEY }>>,
-    T: Storage<psp34::Data<B>>,
-    T: OccupiedStorage<{ psp34::STORAGE_KEY }, WithData = psp34::Data<B>>,
-{
+pub trait PSP34MintableImpl: psp34::Internal {
     fn mint(&mut self, account: AccountId, id: Id) -> Result<(), PSP34Error> {
         self._mint_to(account, id)
     }

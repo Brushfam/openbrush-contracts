@@ -17,8 +17,6 @@ pub mod my_psp34 {
         next_id: u8,
     }
 
-    impl PSP34 for Contract {}
-
     impl Contract {
         #[ink(constructor)]
         pub fn new() -> Self {

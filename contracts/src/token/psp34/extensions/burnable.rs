@@ -21,38 +21,19 @@
 
 pub use crate::{
     psp34,
-    psp34::balances,
     traits::psp34::{
         extensions::burnable::*,
         *,
     },
 };
-use ink::storage::traits::{
-    AutoStorableHint,
-    ManualKey,
-    Storable,
-    StorableHint,
-};
+use openbrush::traits::AccountId;
 pub use psp34::{
     Internal as _,
-    Transfer as _,
+    InternalImpl as _,
+    PSP34Impl,
 };
 
-use openbrush::traits::{
-    AccountId,
-    OccupiedStorage,
-    Storage,
-};
-
-impl<B, T> PSP34Burnable for T
-where
-    B: balances::BalancesManager,
-    B: Storable
-        + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp34::STORAGE_KEY }>>, Type = B>
-        + StorableHint<ManualKey<{ psp34::STORAGE_KEY }>>,
-    T: Storage<psp34::Data<B>>,
-    T: OccupiedStorage<{ psp34::STORAGE_KEY }, WithData = psp34::Data<B>>,
-{
+pub trait PSP34BurnableImpl: psp34::Internal {
     fn burn(&mut self, account: AccountId, id: Id) -> Result<(), PSP34Error> {
         self._burn_from(account, id)
     }

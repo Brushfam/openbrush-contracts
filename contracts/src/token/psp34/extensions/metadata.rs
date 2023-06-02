@@ -21,22 +21,13 @@
 
 pub use crate::{
     psp34,
-    psp34::{
-        balances,
-        extensions::metadata,
-    },
+    psp34::extensions::metadata,
     traits::psp34::{
         extensions::metadata::*,
         *,
     },
 };
-
 pub use metadata::Internal as _;
-pub use psp34::{
-    Internal as _,
-    Transfer as _,
-};
-
 use openbrush::{
     storage::{
         Mapping,
@@ -46,6 +37,11 @@ use openbrush::{
         Storage,
         String,
     },
+};
+pub use psp34::{
+    Internal as _,
+    InternalImpl as _,
+    PSP34Impl,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
@@ -63,7 +59,7 @@ impl<'a> TypeGuard<'a> for AttributesKey {
     type Type = &'a (&'a Id, &'a String);
 }
 
-impl<T: Storage<Data>> PSP34Metadata for T {
+pub trait PSP34MetadataImpl: Storage<Data> {
     fn get_attribute(&self, id: Id, key: String) -> Option<String> {
         self.data().attributes.get(&(&id, &key))
     }
@@ -76,14 +72,11 @@ pub trait Internal {
     fn _set_attribute(&mut self, id: Id, key: String, value: String);
 }
 
-impl<T> Internal for T
-where
-    T: Storage<Data>,
-{
+pub trait InternalImpl: Internal + Storage<Data> {
     fn _emit_attribute_set_event(&self, _id: Id, _key: String, _data: String) {}
 
     fn _set_attribute(&mut self, id: Id, key: String, value: String) {
         self.data().attributes.insert(&(&id, &key), &value);
-        self._emit_attribute_set_event(id, key, value);
+        Internal::_emit_attribute_set_event(self, id, key, value);
     }
 }

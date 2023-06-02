@@ -19,29 +19,15 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    psp34,
-    psp34::balances,
-    traits::psp34::*,
-};
-pub use psp34::{
-    Internal as _,
-    Transfer as _,
-};
-
 use crate::psp34::{
     Operator,
     Owner,
 };
-use ink::{
-    prelude::vec::Vec,
-    storage::traits::{
-        AutoStorableHint,
-        ManualKey,
-        Storable,
-        StorableHint,
-    },
+pub use crate::{
+    psp34,
+    traits::psp34::*,
 };
+use ink::prelude::vec::Vec;
 use openbrush::{
     storage::{
         Mapping,
@@ -50,24 +36,24 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        OccupiedStorage,
         Storage,
     },
+};
+pub use psp34::{
+    Internal as _,
+    InternalImpl as _,
+    PSP34Impl as _,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 #[derive(Default, Debug)]
-pub struct Data<B = balances::Balances>
-where
-    B: Storable
-        + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
-        + StorableHint<ManualKey<{ STORAGE_KEY }>>,
-{
+pub struct Data {
     pub token_owner: Mapping<Id, Owner>,
     pub operator_approvals: Mapping<(Owner, Operator, Option<Id>), (), ApprovalsKey>,
-    pub balances: B,
+    pub owned_tokens_count: Mapping<Owner, u32>,
+    pub total_supply: Balance,
     pub _reserved: Option<()>,
 }
 
@@ -77,22 +63,14 @@ impl<'a> TypeGuard<'a> for ApprovalsKey {
     type Type = &'a (&'a Owner, &'a Operator, &'a Option<&'a Id>);
 }
 
-impl<B, T> PSP34 for T
-where
-    B: balances::BalancesManager,
-    B: Storable
-        + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
-        + StorableHint<ManualKey<{ STORAGE_KEY }>>,
-    T: Storage<Data<B>>,
-    T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
-{
+pub trait PSP34Impl: Internal + Storage<Data> + PSP34 {
     fn collection_id(&self) -> Id {
         let account_id = Self::env().account_id();
         Id::Bytes(<_ as AsRef<[u8; 32]>>::as_ref(&account_id).to_vec())
     }
 
     fn balance_of(&self, owner: AccountId) -> u32 {
-        self.data().balances.balance_of(&owner)
+        self._balance_of(&owner)
     }
 
     fn owner_of(&self, id: Id) -> Option<AccountId> {
@@ -104,7 +82,6 @@ where
     }
 
     fn approve(&mut self, operator: AccountId, id: Option<Id>, approved: bool) -> Result<(), PSP34Error> {
-        let _a = &self.data().balances;
         self._approve_for(operator, id, approved)
     }
 
@@ -113,13 +90,14 @@ where
     }
 
     fn total_supply(&self) -> Balance {
-        self.data().balances.total_supply()
+        self._total_supply()
     }
 }
 
 pub trait Internal {
     /// Those methods must be implemented in derived implementation
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id);
+
     fn _emit_approval_event(&self, _from: AccountId, _to: AccountId, _id: Option<Id>, _approved: bool);
 
     /// Approve the passed AccountId to transfer the specified token on behalf of the message's sender.
@@ -138,18 +116,33 @@ pub trait Internal {
     fn _allowance(&self, owner: &Owner, operator: &Operator, id: &Option<&Id>) -> bool;
 
     fn _check_token_exists(&self, id: &Id) -> Result<AccountId, PSP34Error>;
+
+    fn _balance_of(&self, owner: &Owner) -> u32;
+
+    fn _increase_balance(&mut self, owner: &Owner, _id: &Id, increase_supply: bool);
+
+    fn _decrease_balance(&mut self, owner: &Owner, _id: &Id, decrease_supply: bool);
+
+    fn _total_supply(&self) -> u128;
+
+    fn _before_token_transfer(
+        &mut self,
+        from: Option<&AccountId>,
+        to: Option<&AccountId>,
+        id: &Id,
+    ) -> Result<(), PSP34Error>;
+
+    fn _after_token_transfer(
+        &mut self,
+        from: Option<&AccountId>,
+        to: Option<&AccountId>,
+        id: &Id,
+    ) -> Result<(), PSP34Error>;
 }
 
-impl<B, T> Internal for T
-where
-    B: balances::BalancesManager,
-    B: Storable
-        + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
-        + StorableHint<ManualKey<{ STORAGE_KEY }>>,
-    T: Storage<Data<B>>,
-    T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
-{
+pub trait InternalImpl: Internal + Storage<Data> {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id) {}
+
     fn _emit_approval_event(&self, _from: AccountId, _to: AccountId, _id: Option<Id>, _approved: bool) {}
 
     fn _approve_for(&mut self, to: AccountId, id: Option<Id>, approved: bool) -> Result<(), PSP34Error> {
@@ -162,7 +155,7 @@ where
                 return Err(PSP34Error::SelfApprove)
             }
 
-            if owner != caller && !self._allowance(&owner, &caller, &None) {
+            if owner != caller && !Internal::_allowance(self, &owner, &caller, &None) {
                 return Err(PSP34Error::NotApproved)
             };
             caller = owner;
@@ -175,7 +168,7 @@ where
         } else {
             self.data().operator_approvals.remove(&(&caller, &to, &id.as_ref()));
         }
-        self._emit_approval_event(caller, to, id, approved);
+        Internal::_emit_approval_event(self, caller, to, id, approved);
 
         Ok(())
     }
@@ -185,23 +178,23 @@ where
     }
 
     fn _transfer_token(&mut self, to: AccountId, id: Id, _data: Vec<u8>) -> Result<(), PSP34Error> {
-        let owner = self._check_token_exists(&id)?;
+        let owner = Internal::_check_token_exists(self, &id)?;
         let caller = Self::env().caller();
 
-        if owner != caller && !self._allowance(&owner, &caller, &Some(&id)) {
+        if owner != caller && !Internal::_allowance(self, &owner, &caller, &Some(&id)) {
             return Err(PSP34Error::NotApproved)
         }
 
-        self._before_token_transfer(Some(&owner), Some(&to), &id)?;
+        Internal::_before_token_transfer(self, Some(&owner), Some(&to), &id)?;
 
         self.data().operator_approvals.remove(&(&owner, &caller, &Some(&id)));
-        self.data().balances.decrease_balance(&owner, &id, false);
+        Internal::_decrease_balance(self, &owner, &id, false);
         self.data().token_owner.remove(&id);
 
-        self.data().balances.increase_balance(&to, &id, false);
+        Internal::_increase_balance(self, &to, &id, false);
         self.data().token_owner.insert(&id, &to);
-        self._after_token_transfer(Some(&owner), Some(&to), &id)?;
-        self._emit_transfer_event(Some(owner), Some(to), id);
+        Internal::_after_token_transfer(self, Some(&owner), Some(&to), &id)?;
+        Internal::_emit_transfer_event(self, Some(owner), Some(to), id);
 
         Ok(())
     }
@@ -210,25 +203,25 @@ where
         if self.data().token_owner.get(&id).is_some() {
             return Err(PSP34Error::TokenExists)
         }
-        self._before_token_transfer(None, Some(&to), &id)?;
+        Internal::_before_token_transfer(self, None, Some(&to), &id)?;
 
-        self.data().balances.increase_balance(&to, &id, true);
+        Internal::_increase_balance(self, &to, &id, true);
         self.data().token_owner.insert(&id, &to);
-        self._after_token_transfer(None, Some(&to), &id)?;
-        self._emit_transfer_event(None, Some(to), id);
+        Internal::_after_token_transfer(self, None, Some(&to), &id)?;
+        Internal::_emit_transfer_event(self, None, Some(to), id);
 
         Ok(())
     }
 
     fn _burn_from(&mut self, from: AccountId, id: Id) -> Result<(), PSP34Error> {
-        self._check_token_exists(&id)?;
+        Internal::_check_token_exists(self, &id)?;
 
-        self._before_token_transfer(Some(&from), None, &id)?;
+        Internal::_before_token_transfer(self, Some(&from), None, &id)?;
 
         self.data().token_owner.remove(&id);
-        self.data().balances.decrease_balance(&from, &id, true);
-        self._after_token_transfer(Some(&from), None, &id)?;
-        self._emit_transfer_event(Some(from), None, id);
+        Internal::_decrease_balance(self, &from, &id, true);
+        Internal::_after_token_transfer(self, Some(&from), None, &id)?;
+        Internal::_emit_transfer_event(self, Some(from), None, id);
         Ok(())
     }
 
@@ -240,33 +233,34 @@ where
     fn _check_token_exists(&self, id: &Id) -> Result<AccountId, PSP34Error> {
         self.data().token_owner.get(&id).ok_or(PSP34Error::TokenNotExists)
     }
-}
 
-pub trait Transfer {
-    fn _before_token_transfer(
-        &mut self,
-        _from: Option<&AccountId>,
-        _to: Option<&AccountId>,
-        _id: &Id,
-    ) -> Result<(), PSP34Error>;
+    fn _balance_of(&self, owner: &Owner) -> u32 {
+        self.data().owned_tokens_count.get(owner).unwrap_or(0)
+    }
 
-    fn _after_token_transfer(
-        &mut self,
-        _from: Option<&AccountId>,
-        _to: Option<&AccountId>,
-        _id: &Id,
-    ) -> Result<(), PSP34Error>;
-}
+    fn _increase_balance(&mut self, owner: &Owner, _id: &Id, increase_supply: bool) {
+        let to_balance = self.data().owned_tokens_count.get(owner).unwrap_or(0);
+        self.data().owned_tokens_count.insert(owner, &(to_balance + 1));
+        if increase_supply {
+            self.data().total_supply += 1;
+        }
+    }
 
-impl<B, T> Transfer for T
-where
-    B: balances::BalancesManager,
-    B: Storable
-        + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
-        + StorableHint<ManualKey<{ STORAGE_KEY }>>,
-    T: Storage<Data<B>>,
-    T: OccupiedStorage<{ STORAGE_KEY }, WithData = Data<B>>,
-{
+    fn _decrease_balance(&mut self, owner: &Owner, _id: &Id, decrease_supply: bool) {
+        let from_balance = self.data().owned_tokens_count.get(owner).unwrap_or(0);
+        self.data()
+            .owned_tokens_count
+            .insert(owner, &(from_balance.checked_sub(1).unwrap()));
+
+        if decrease_supply {
+            self.data().total_supply -= 1;
+        }
+    }
+
+    fn _total_supply(&self) -> u128 {
+        self.data().total_supply
+    }
+
     fn _before_token_transfer(
         &mut self,
         _from: Option<&AccountId>,

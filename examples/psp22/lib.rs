@@ -1,5 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(min_specialization)]
+#![feature(default_alloc_error_handler)]
 
 pub use my_psp22::*;
 

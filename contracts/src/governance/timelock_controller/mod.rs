@@ -61,6 +61,8 @@ use openbrush::{
         AccountId,
         Hash,
         Storage,
+        StorageAccess,
+        StorageAsMut,
         Timestamp,
         ZERO_ADDRESS,
     },
@@ -76,6 +78,11 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
 /// Modifier to make a function callable only by a certain role. In
 /// addition to checking the sender's role, zero account's role is also
 /// considered. Granting a role to zero account is equivalent to enabling
@@ -87,7 +94,8 @@ where
     M: Storable
         + StorableHint<ManualKey<{ access_control::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
-    T: Storage<access_control::Data<M>>,
+    T: StorageAccess<access_control::Data<M>>,
+    T: Storage<access_control::DataType<M>>,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<AccessControlError>,
 {
@@ -109,8 +117,11 @@ where
     M: Storable
         + StorableHint<ManualKey<{ access_control::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
-    T: Storage<Data>,
-    T: Storage<access_control::Data<M>>,
+    T: Storage<DataType>,
+    T: StorageAccess<Data>,
+    T: Storage<access_control::DataType<M>>,
+    T: StorageAccess<access_control::Data<M>>,
+    T: AccessControl,
 {
     default fn is_operation(&self, id: OperationId) -> bool {
         self.get_timestamp(id) > Timestamp::default()
@@ -311,8 +322,10 @@ where
     M: Storable
         + StorableHint<ManualKey<{ access_control::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
-    T: Storage<Data>,
-    T: Storage<access_control::Data<M>>,
+    T: Storage<DataType>,
+    T: StorageAccess<Data>,
+    T: Storage<access_control::DataType<M>>,
+    T: StorageAccess<access_control::Data<M>>,
 {
     default fn _emit_min_delay_change_event(&self, _old_delay: Timestamp, _new_delay: Timestamp) {}
     default fn _emit_call_scheduled_event(

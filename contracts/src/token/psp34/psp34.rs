@@ -51,6 +51,7 @@ use openbrush::{
         AccountId,
         Balance,
         Storage,
+        StorageAccess,
     },
 };
 
@@ -70,6 +71,11 @@ where
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType<B> = Lazy<Data<B>>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType<B> = Data<B>;
+
 pub struct ApprovalsKey;
 
 impl<'a> TypeGuard<'a> for ApprovalsKey {
@@ -82,7 +88,8 @@ where
     B: Storable
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
-    T: Storage<Data<B>>,
+    T: Storage<DataType<B>>,
+    T: StorageAccess<Data<B>>,
 {
     default fn collection_id(&self) -> Id {
         let account_id = Self::env().account_id();
@@ -144,7 +151,8 @@ where
     B: Storable
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
-    T: Storage<Data<B>>,
+    T: Storage<DataType<B>>,
+    T: StorageAccess<Data<B>>,
 {
     default fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id) {}
     default fn _emit_approval_event(&self, _from: AccountId, _to: AccountId, _id: Option<Id>, _approved: bool) {}
@@ -261,7 +269,8 @@ where
     B: Storable
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ STORAGE_KEY }>>, Type = B>
         + StorableHint<ManualKey<{ STORAGE_KEY }>>,
-    T: Storage<Data<B>>,
+    T: Storage<DataType<B>>,
+    T: StorageAccess<Data<B>>,
 {
     default fn _before_token_transfer(
         &mut self,

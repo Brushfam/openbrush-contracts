@@ -50,6 +50,7 @@ use openbrush::traits::{
     AccountIdExt,
     Balance,
     Storage,
+    StorageAccess,
 };
 
 impl<B, T> PSP37Batch for T
@@ -58,7 +59,8 @@ where
     B: Storable
         + StorableHint<ManualKey<{ psp37::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp37::STORAGE_KEY }>>, Type = B>,
-    T: Storage<psp37::Data<B>>,
+    T: Storage<psp37::DataType<B>>,
+    T: StorageAccess<psp37::Data<B>>,
 {
     default fn batch_transfer(
         &mut self,
@@ -96,7 +98,8 @@ where
     B: Storable
         + StorableHint<ManualKey<{ psp37::STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp37::STORAGE_KEY }>>, Type = B>,
-    T: Storage<psp37::Data<B>>,
+    T: Storage<psp37::DataType<B>>,
+    T: StorageAccess<psp37::Data<B>>,
 {
     default fn _batch_transfer_from(
         &mut self,

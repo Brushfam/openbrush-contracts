@@ -41,6 +41,7 @@ use openbrush::{
         AccountId,
         Balance,
         Storage,
+        StorageAccess,
     },
 };
 pub use psp37::{
@@ -149,7 +150,9 @@ impl balances::BalancesManager for Balances {
 
 impl<T> PSP37Enumerable for T
 where
-    T: Storage<psp37::Data<Balances>>,
+    T: Storage<psp37::DataType<Balances>>,
+    T: StorageAccess<psp37::Data<Balances>>,
+    T: PSP37,
 {
     default fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Option<Id> {
         self.data().balances.enumerable.get_value(&Some(&owner), &index)

@@ -31,6 +31,7 @@ use openbrush::{
     traits::{
         AccountId,
         Storage,
+        StorageAccess,
     },
 };
 
@@ -43,11 +44,17 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
 /// Modifier to make a function callable only when the contract is paused.
 #[modifier_definition]
 pub fn when_paused<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
 where
-    T: Storage<Data>,
+    T: Storage<DataType>,
+    T: StorageAccess<Data>,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<PausableError>,
 {
@@ -61,7 +68,8 @@ where
 #[modifier_definition]
 pub fn when_not_paused<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
 where
-    T: Storage<Data>,
+    T: Storage<DataType>,
+    T: StorageAccess<Data>,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<PausableError>,
 {
@@ -98,7 +106,11 @@ pub trait Internal {
     fn _switch_pause<E: From<PausableError>>(&mut self) -> Result<(), E>;
 }
 
-impl<T: Storage<Data>> Internal for T {
+impl<T> Internal for T
+where
+    T: Storage<DataType>,
+    T: StorageAccess<Data>,
+{
     default fn _emit_paused_event(&self, _account: AccountId) {}
     default fn _emit_unpaused_event(&self, _account: AccountId) {}
 

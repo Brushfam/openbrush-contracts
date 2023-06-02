@@ -33,9 +33,14 @@ use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
+    StorageAccess,
 };
 
-impl<T: Storage<psp22_pallet::Data>> PSP22Mintable for T {
+impl<T> PSP22Mintable for T
+where
+    T: Storage<psp22_pallet::DataType>,
+    T: StorageAccess<psp22_pallet::Data>,
+{
     default fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._mint_to(account, amount)
     }

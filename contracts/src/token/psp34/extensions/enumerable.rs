@@ -41,6 +41,7 @@ use openbrush::{
         AccountId,
         Balance,
         Storage,
+        StorageAccess,
     },
 };
 pub use psp34::{
@@ -89,7 +90,9 @@ impl balances::BalancesManager for Balances {
 
 impl<T> PSP34Enumerable for T
 where
-    T: Storage<psp34::Data<Balances>>,
+    T: Storage<psp34::DataType<Balances>>,
+    T: StorageAccess<psp34::Data<Balances>>,
+    T: PSP34,
 {
     default fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Result<Id, PSP34Error> {
         self.data()

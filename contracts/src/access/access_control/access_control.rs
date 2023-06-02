@@ -42,6 +42,7 @@ use openbrush::{
     traits::{
         AccountId,
         Storage,
+        StorageAccess,
     },
 };
 
@@ -60,6 +61,11 @@ where
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType<M> = Lazy<Data<M>>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType<M> = Data<M>;
+
 pub const DEFAULT_ADMIN_ROLE: RoleType = 0;
 
 /// Modifier that checks that `caller` has a specific role.
@@ -70,7 +76,8 @@ where
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-    T: Storage<Data<M>>,
+    T: Storage<DataType<M>>,
+    T: StorageAccess<Data<M>>,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<AccessControlError>,
 {
@@ -86,7 +93,8 @@ where
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-    T: Storage<Data<M>>,
+    T: Storage<DataType<M>>,
+    T: StorageAccess<Data<M>>,
 {
     default fn has_role(&self, role: RoleType, address: AccountId) -> bool {
         self.data().members.has_role(role, &address)
@@ -148,7 +156,8 @@ where
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-    T: Storage<Data<M>>,
+    T: Storage<DataType<M>>,
+    T: StorageAccess<Data<M>>,
 {
     default fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {}
     default fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {}
@@ -197,7 +206,8 @@ where
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-    T: Storage<Data<M>>,
+    T: Storage<DataType<M>>,
+    T: StorageAccess<Data<M>>,
 {
     if !instance.data().members.has_role(role, &account) {
         return Err(AccessControlError::MissingRole)
@@ -211,7 +221,9 @@ where
     M: Storable
         + StorableHint<ManualKey<{ STORAGE_KEY }>>
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-    T: Storage<Data<M>> + Internal,
+    T: Storage<DataType<M>>,
+    T: StorageAccess<Data<M>>,
+    T: Internal,
 {
     instance.data().admin_roles.get(role).unwrap_or(T::_default_admin())
 }

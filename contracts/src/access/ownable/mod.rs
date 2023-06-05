@@ -67,7 +67,7 @@ where
     body(instance)
 }
 
-impl<T: Storage<Data>> Ownable for T {
+pub trait OwnableImpl: Storage<Data> + Internal {
     fn owner(&self) -> AccountId {
         self.data().owner.clone()
     }
@@ -99,11 +99,11 @@ pub trait Internal {
     fn _init_with_owner(&mut self, owner: AccountId);
 }
 
-impl<T: Storage<Data>> Internal for T {
+pub trait InternalImpl: Storage<Data> + Internal {
     fn _emit_ownership_transferred_event(&self, _previous: Option<AccountId>, _new: Option<AccountId>) {}
 
     fn _init_with_owner(&mut self, owner: AccountId) {
         self.data().owner = owner;
-        self._emit_ownership_transferred_event(None, Some(owner));
+        Internal::_emit_ownership_transferred_event(self, None, Some(owner));
     }
 }

@@ -50,7 +50,7 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
-impl<T: Storage<Data>> PaymentSplitter for T {
+pub trait PaymentSplitterImpl: Storage<Data> + Internal {
     fn total_shares(&self) -> Balance {
         self.data().total_shares.clone()
     }
@@ -80,6 +80,83 @@ impl<T: Storage<Data>> PaymentSplitter for T {
     }
 
     fn release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
+        self._release(account)
+    }
+}
+
+pub trait Internal {
+    /// User must override those methods in their contract.
+    fn _emit_payee_added_event(&self, account: AccountId, shares: Balance);
+
+    fn _emit_payment_received_event(&self, from: AccountId, amount: Balance);
+
+    fn _emit_payment_released_event(&self, to: AccountId, amount: Balance);
+
+    /// Inits an instance of `PaymentSplitter` where each account in `payees` is assigned the number of shares at
+    /// the matching position in the `shares` array.
+    ///
+    /// All addresses in `payees` must be non-zero. Both arrays must have the same non-zero length, and there must be no
+    /// duplicates in `payees`.
+    ///
+    /// Emits `PayeeAdded` on each account.
+    fn _init(&mut self, payees_and_shares: Vec<(AccountId, Balance)>) -> Result<(), PaymentSplitterError>;
+
+    fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError>;
+
+    /// Calls the `release` method for each `AccountId` in the `payees` vec.
+    fn _release_all(&mut self) -> Result<(), PaymentSplitterError>;
+
+    fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError>;
+}
+
+pub trait InternalImpl: Storage<Data> + Internal {
+    fn _emit_payee_added_event(&self, _account: AccountId, _shares: Balance) {}
+
+    fn _emit_payment_received_event(&self, _from: AccountId, _amount: Balance) {}
+
+    fn _emit_payment_released_event(&self, _to: AccountId, _amount: Balance) {}
+
+    fn _init(&mut self, payees_and_shares: Vec<(AccountId, Balance)>) -> Result<(), PaymentSplitterError> {
+        if payees_and_shares.is_empty() {
+            return Err(PaymentSplitterError::NoPayees)
+        }
+
+        for (payee, share) in payees_and_shares.into_iter() {
+            Internal::_add_payee(self, payee, share)?;
+        }
+        Ok(())
+    }
+
+    fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError> {
+        if payee.is_zero() {
+            return Err(PaymentSplitterError::AccountZeroAddress)
+        }
+        if share == 0 {
+            return Err(PaymentSplitterError::SharesAreZero)
+        }
+        if self.data().shares.get(&payee).is_some() {
+            return Err(PaymentSplitterError::AlreadyHasShares)
+        }
+
+        self.data().payees.push(payee.clone());
+        self.data().shares.insert(&payee, &share);
+        self.data().total_shares += share;
+        Internal::_emit_payee_added_event(self, payee, share);
+        Ok(())
+    }
+
+    fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
+        let len = self.data().payees.len();
+
+        for i in 0..len {
+            let account = self.data().payees[i];
+            Internal::_release(self, account)?;
+        }
+
+        Ok(())
+    }
+
+    fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
         if !self.data().shares.get(&account).is_some() {
             return Err(PaymentSplitterError::AccountHasNoShares)
         }
@@ -103,74 +180,7 @@ impl<T: Storage<Data>> PaymentSplitter for T {
         if transfer_result.is_err() {
             return Err(PaymentSplitterError::TransferFailed)
         }
-        self._emit_payment_released_event(account, payment);
-        Ok(())
-    }
-}
-
-pub trait Internal {
-    /// User must override those methods in their contract.
-    fn _emit_payee_added_event(&self, _account: AccountId, _shares: Balance);
-    fn _emit_payment_received_event(&self, _from: AccountId, _amount: Balance);
-    fn _emit_payment_released_event(&self, _to: AccountId, _amount: Balance);
-
-    /// Inits an instance of `PaymentSplitter` where each account in `payees` is assigned the number of shares at
-    /// the matching position in the `shares` array.
-    ///
-    /// All addresses in `payees` must be non-zero. Both arrays must have the same non-zero length, and there must be no
-    /// duplicates in `payees`.
-    ///
-    /// Emits `PayeeAdded` on each account.
-    fn _init(&mut self, payees_and_shares: Vec<(AccountId, Balance)>) -> Result<(), PaymentSplitterError>;
-
-    fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError>;
-
-    /// Calls the `release` method for each `AccountId` in the `payees` vec.
-    fn _release_all(&mut self) -> Result<(), PaymentSplitterError>;
-}
-
-impl<T: Storage<Data>> Internal for T {
-    fn _emit_payee_added_event(&self, _account: AccountId, _shares: Balance) {}
-    fn _emit_payment_received_event(&self, _from: AccountId, _amount: Balance) {}
-    fn _emit_payment_released_event(&self, _to: AccountId, _amount: Balance) {}
-
-    fn _init(&mut self, payees_and_shares: Vec<(AccountId, Balance)>) -> Result<(), PaymentSplitterError> {
-        if payees_and_shares.is_empty() {
-            return Err(PaymentSplitterError::NoPayees)
-        }
-
-        for (payee, share) in payees_and_shares.into_iter() {
-            self._add_payee(payee, share)?;
-        }
-        Ok(())
-    }
-
-    fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError> {
-        if payee.is_zero() {
-            return Err(PaymentSplitterError::AccountZeroAddress)
-        }
-        if share == 0 {
-            return Err(PaymentSplitterError::SharesAreZero)
-        }
-        if self.data().shares.get(&payee).is_some() {
-            return Err(PaymentSplitterError::AlreadyHasShares)
-        }
-
-        self.data().payees.push(payee.clone());
-        self.data().shares.insert(&payee, &share);
-        self.data().total_shares += share;
-        self._emit_payee_added_event(payee, share);
-        Ok(())
-    }
-
-    fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
-        let len = self.data().payees.len();
-
-        for i in 0..len {
-            let account = self.data().payees[i];
-            self.release(account)?;
-        }
-
+        Internal::_emit_payment_released_event(self, account, payment);
         Ok(())
     }
 }

@@ -30,15 +30,20 @@ pub use crate::{
         proxy::*,
     },
 };
-pub use ownable::Internal as _;
-pub use proxy::Internal as _;
-
 use openbrush::{
     modifiers,
     traits::{
         Hash,
         Storage,
     },
+};
+pub use ownable::{
+    Internal as _,
+    InternalImpl as _,
+};
+pub use proxy::{
+    Internal as _,
+    InternalImpl as _,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
@@ -49,7 +54,7 @@ pub struct Data {
     pub forward_to: Hash,
 }
 
-impl<T: Storage<Data> + Storage<ownable::Data>> Proxy for T {
+pub trait ProxyImpl: Storage<Data> + Storage<ownable::Data> + Internal {
     fn get_delegate_code(&self) -> Hash {
         self.data::<Data>().forward_to
     }
@@ -71,12 +76,12 @@ pub trait Internal {
     fn _fallback(&self) -> !;
 }
 
-impl<T: Storage<Data>> Internal for T {
+pub trait InternalImpl: Internal + Storage<Data> {
     fn _emit_delegate_code_changed_event(&self, _previous: Option<Hash>, _new: Option<Hash>) {}
 
     fn _init_with_forward_to(&mut self, forward_to: Hash) {
         self.data().forward_to = forward_to;
-        self._emit_delegate_code_changed_event(None, Some(forward_to));
+        Internal::_emit_delegate_code_changed_event(self, None, Some(forward_to));
     }
 
     fn _fallback(&self) -> ! {

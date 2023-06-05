@@ -22,8 +22,6 @@ pub mod my_psp22 {
         hated_account: AccountId,
     }
 
-    impl PSP22Impl for Contract {}
-
     impl InternalImpl for Contract {}
 
     impl Internal for Contract {
@@ -96,6 +94,8 @@ pub mod my_psp22 {
             InternalImpl::_after_token_transfer(self, from, to, amount)
         }
     }
+
+    impl PSP22Impl for Contract {}
 
     impl PSP22 for Contract {
         #[ink(message)]

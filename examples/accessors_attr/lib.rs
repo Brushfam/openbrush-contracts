@@ -26,17 +26,17 @@ pub mod accessors_attr {
 
     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(AccessData);
 
-    impl AccessDataAccessors for Contract {}
-
     impl Contract {
         #[ink(constructor)]
         pub fn new() -> Self {
             Default::default()
         }
+
         #[ink(message)]
         pub fn set_read_only(&mut self, value: u32) {
             self.hated_logic.read_only = value
         }
+
         #[ink(message)]
         pub fn get_write_only(&self) -> u32 {
             self.hated_logic.write_only

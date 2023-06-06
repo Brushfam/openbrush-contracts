@@ -43,7 +43,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
         let span = field.span();
 
         quote_spanned! {span =>
-            default fn #method_ident(&self) -> #field_type {
+            fn #method_ident(&self) -> #field_type {
                 self.data().#field_ident
             }
         }
@@ -70,7 +70,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
         let span = field.span();
 
         quote_spanned! {span =>
-            default fn #method_ident(&mut self, value: #field_type) {
+            fn #method_ident(&mut self, value: #field_type) {
                 self.data().#field_ident = value;
             }
         }

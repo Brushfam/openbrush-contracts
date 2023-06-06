@@ -8,13 +8,13 @@ pub mod accessors_attr {
     #[derive(Storage, Default)]
     pub struct Contract {
         #[storage_field]
-        hated_logic: DumbData,
+        hated_logic: AccessData,
     }
 
     #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    #[openbrush::accessors(DumbDataAccessors)]
+    #[openbrush::accessors(AccessDataAccessors)]
     #[derive(Default, Debug)]
-    pub struct DumbData {
+    pub struct AccessData {
         #[get]
         #[set]
         read_write: u32,
@@ -24,9 +24,9 @@ pub mod accessors_attr {
         write_only: u32,
     }
 
-    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(DumbData);
+    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(AccessData);
 
-    impl DumbDataAccessors for Contract {}
+    impl AccessDataAccessors for Contract {}
 
     impl Contract {
         #[ink(constructor)]
@@ -45,7 +45,7 @@ pub mod accessors_attr {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use crate::accessors_attr::dumbdataaccessors_external::DumbDataAccessors;
+        use crate::accessors_attr::accessdataaccessors_external::AccessDataAccessors;
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]

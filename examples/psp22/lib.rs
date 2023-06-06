@@ -18,7 +18,16 @@ pub mod my_psp22 {
     pub struct Contract {
         #[storage_field]
         psp22: psp22::Data,
-        // fields for hater logic
+        #[storage_field]
+        hated_storage: HatedStorage,
+    }
+
+    #[openbrush::upgradeable_storage(STORAGE_KEY)]
+    #[openbrush::accessors(HatedStorageAccessors)]
+    #[derive(Debug)]
+    pub struct HatedStorage {
+        #[get]
+        #[set]
         hated_account: AccountId,
     }
 
@@ -71,15 +80,22 @@ pub mod my_psp22 {
         fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
             InternalImpl::_burn_from(self, account, amount)
         }
+    }
 
-        // override this fn
+    // override this fn
+    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
+
+    impl HatedStorageAccessors for Contract {}
+
+    impl Transfer for Contract {
+        // Let's override method to reject transactions to bad account
         fn _before_token_transfer(
             &mut self,
             _from: Option<&AccountId>,
             to: Option<&AccountId>,
             _amount: &Balance,
         ) -> Result<(), PSP22Error> {
-            if to == Some(&self.hated_account) {
+            if to == Some(&self.hated_storage.hated_account) {
                 return Err(PSP22Error::Custom(String::from("I hate this account!")))
             }
             Ok(())
@@ -150,27 +166,22 @@ pub mod my_psp22 {
         pub fn new(total_supply: Balance) -> Self {
             let mut instance = Self {
                 psp22: Default::default(),
-                hated_account: [255; 32].into(),
+                hated_storage: HatedStorage {
+                    hated_account: [255; 32].into(),
+                },
             };
 
             Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
 
             instance
         }
-
-        #[ink(message)]
-        pub fn set_hated_account(&mut self, hated: AccountId) {
-            self.hated_account = hated;
-        }
-
-        #[ink(message)]
-        pub fn get_hated_account(&self) -> AccountId {
-            self.hated_account.clone()
-        }
     }
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
+        use crate::my_psp22::hatedstorageaccessors_external::HatedStorageAccessors;
+        use openbrush::contracts::psp22::psp22_external::PSP22;
+        #[rustfmt::skip]
         use super::*;
         use ink_e2e::{
             build_message,

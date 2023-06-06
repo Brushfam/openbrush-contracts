@@ -22,6 +22,8 @@ pub mod my_psp22 {
         hated_storage: HatedStorage,
     }
 
+    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
+
     #[openbrush::upgradeable_storage(STORAGE_KEY)]
     #[openbrush::accessors(HatedStorageAccessors)]
     #[derive(Debug)]
@@ -80,14 +82,7 @@ pub mod my_psp22 {
         fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
             InternalImpl::_burn_from(self, account, amount)
         }
-    }
 
-    // override this fn
-    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
-
-    impl HatedStorageAccessors for Contract {}
-
-    impl Transfer for Contract {
         // Let's override method to reject transactions to bad account
         fn _before_token_transfer(
             &mut self,

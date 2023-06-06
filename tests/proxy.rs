@@ -71,11 +71,7 @@ mod proxy {
     impl Proxy for MyProxy {}
 
     impl proxy::Internal for MyProxy {
-        fn _emit_delegate_code_changed_event(
-            &self,
-            previous_code_hash: Option<Hash>,
-            new_code_hash: Option<Hash>,
-        ) {
+        fn _emit_delegate_code_changed_event(&self, previous_code_hash: Option<Hash>, new_code_hash: Option<Hash>) {
             self.env().emit_event(CodeHashChanged {
                 previous_code_hash,
                 new_code_hash,

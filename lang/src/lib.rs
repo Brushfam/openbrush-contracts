@@ -30,6 +30,7 @@ pub mod utils;
 pub use openbrush_lang_macro::{
     accessors,
     contract,
+    implementation_psp22,
     modifier_definition,
     modifiers,
     trait_definition,

@@ -26,6 +26,7 @@ use proc_macro::TokenStream;
 use openbrush_lang_codegen::{
     accessors,
     contract,
+    implementation_psp22,
     modifier_definition,
     modifiers,
     storage,
@@ -515,3 +516,8 @@ synstructure::decl_attribute!(
     /// ```
     accessors::accessors
 );
+
+#[proc_macro_attribute]
+pub fn implementation_psp22(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
+    implementation_psp22::generate(attrs.into(), ink_module.into()).into()
+}

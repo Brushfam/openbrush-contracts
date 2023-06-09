@@ -29,3 +29,4 @@ pub mod storage;
 pub mod storage_derive;
 pub mod trait_definition;
 pub mod wrapper;
+pub mod implementation_psp22;

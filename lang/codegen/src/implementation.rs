@@ -81,6 +81,10 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "PSP22Wrapper" => impl_psp22_wrapper(&map, &mut items, &mut imports),
             "Flashmint" => impl_flashmint(&map, &mut items, &mut imports),
             "PSP22TokenTimelock" => impl_token_timelock(&map, &mut items, &mut imports),
+            "PSP22Pallet" => impl_psp22_pallet(&map, &mut items, &mut imports),
+            "PSP22PalletBurnable" => impl_psp22_pallet_burnable(&map, &mut items, &mut imports),
+            "PSP22PalletMetadata" => impl_psp22_pallet_metadata(&map, &mut items, &mut imports),
+            "PSP22PalletMintable" => impl_psp22_pallet_mintable(&map, &mut items, &mut imports),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }
@@ -114,7 +118,9 @@ fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
         "PSP22Wrapper",
         "Flashmint",
     ];
-    check_and_remove_import("PSP22", psp22_impls, imports)
+    check_and_remove_import("PSP22", psp22_impls, imports);
+    let psp22_pallet_impls = vec!["PSP22PalletMintable", "PSP22PalletBurnable", "PSP22PalletMetadata"];
+    check_and_remove_import("PSP22Pallet", psp22_pallet_impls, imports);
 }
 
 fn check_and_remove_import(name_to_check: &str, to_check: Vec<&str>, imports: &mut HashMap<&str, syn::ItemUse>) {

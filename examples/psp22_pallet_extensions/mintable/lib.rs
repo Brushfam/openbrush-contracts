@@ -1,109 +1,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[openbrush::implementation(PSP22Pallet, PSP22PalletMintable)]
 #[openbrush::contract]
 pub mod my_psp22_pallet_mintable {
-    use openbrush::{
-        contracts::psp22_pallet::extensions::mintable::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
     pub struct Contract {
         #[storage_field]
         pallet: psp22_pallet::Data,
-    }
-
-    impl psp22_pallet::InternalImpl for Contract {}
-
-    impl psp22_pallet::Internal for Contract {
-        fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {
-            psp22_pallet::InternalImpl::_emit_transfer_event(self, _from, _to, _amount)
-        }
-
-        fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {
-            psp22_pallet::InternalImpl::_emit_approval_event(self, _owner, _spender, _amount)
-        }
-
-        fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-            psp22_pallet::InternalImpl::_mint_to(self, account, amount)
-        }
-
-        fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-            psp22_pallet::InternalImpl::_burn_from(self, account, amount)
-        }
-
-        fn _create(
-            &mut self,
-            asset_id: u32,
-            admin: AccountId,
-            min_balance: Balance,
-        ) -> Result<(), Error<DefaultEnvironment>> {
-            psp22_pallet::InternalImpl::_create(self, asset_id, admin, min_balance)
-        }
-
-        fn _sender(&self) -> AccountId {
-            psp22_pallet::InternalImpl::_sender(self)
-        }
-    }
-
-    impl PSP22PalletImpl for Contract {}
-
-    impl PSP22 for Contract {
-        #[ink(message)]
-        fn total_supply(&self) -> Balance {
-            psp22_pallet::PSP22PalletImpl::total_supply(self)
-        }
-
-        #[ink(message)]
-        fn balance_of(&self, owner: AccountId) -> Balance {
-            PSP22PalletImpl::balance_of(self, owner)
-        }
-
-        #[ink(message)]
-        fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance {
-            PSP22PalletImpl::allowance(self, owner, spender)
-        }
-
-        #[ink(message)]
-        fn transfer(&mut self, to: AccountId, value: Balance, data: Vec<u8>) -> Result<(), PSP22Error> {
-            PSP22PalletImpl::transfer(self, to, value, data)
-        }
-
-        #[ink(message)]
-        fn transfer_from(
-            &mut self,
-            from: AccountId,
-            to: AccountId,
-            value: Balance,
-            data: Vec<u8>,
-        ) -> Result<(), PSP22Error> {
-            PSP22PalletImpl::transfer_from(self, from, to, value, data)
-        }
-
-        #[ink(message)]
-        fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
-            PSP22PalletImpl::approve(self, spender, value)
-        }
-
-        #[ink(message)]
-        fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
-            PSP22PalletImpl::increase_allowance(self, spender, delta_value)
-        }
-
-        #[ink(message)]
-        fn decrease_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
-            PSP22PalletImpl::decrease_allowance(self, spender, delta_value)
-        }
-    }
-
-    impl PSP22PalletMintableImpl for Contract {}
-
-    impl PSP22Mintable for Contract {
-        #[ink(message)]
-        fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-            PSP22PalletMintableImpl::mint(self, account, amount)
-        }
     }
 
     impl Contract {

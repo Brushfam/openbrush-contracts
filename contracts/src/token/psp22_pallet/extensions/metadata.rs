@@ -27,10 +27,8 @@ pub use crate::{
         *,
     },
 };
-use openbrush::traits::{
-    Storage,
-    String,
-};
+use openbrush::traits::Storage;
+pub use openbrush::traits::String;
 pub use pallet_assets_chain_extension::traits::{
     Origin,
     PalletAssets,

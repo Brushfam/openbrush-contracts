@@ -2,16 +2,12 @@
 
 pub use my_psp22::*;
 
-#[openbrush::implementation_psp22]
+#[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 pub mod my_psp22 {
-    use ink::prelude::vec::Vec;
-    use openbrush::{
-        contracts::psp22::*,
-        traits::{
-            Storage,
-            String,
-        },
+    use openbrush::traits::{
+        Storage,
+        String,
     };
 
     #[ink(storage)]

@@ -26,7 +26,7 @@ use proc_macro::TokenStream;
 use openbrush_lang_codegen::{
     accessors,
     contract,
-    implementation_psp22,
+    implementation,
     modifier_definition,
     modifiers,
     storage,
@@ -517,7 +517,48 @@ synstructure::decl_attribute!(
     accessors::accessors
 );
 
+/// This macro implements the default traits defined in OpenBrush, while also allowing users
+/// to override them with `#[overriders]` attribute
+///
+/// # Example
+///
+/// ```
+/// #[implementation(PSP22)]
+/// #[openbrush::contract]
+/// pub mod MyInkToken {
+///     use openbrush::traits::Storage;
+///     
+///     #[ink(storage)]
+///     #[derive(Storage)]
+///     pub struct MyInkToken {
+///         #[storage_field]
+///         psp22: psp22::Data
+///     }
+///
+///     // this will override a function from psp22::Internal
+///     #[overrider(psp22::Internal)]
+///     fn _before_token_transfer(
+///         &mut self,
+///         from: Option<&AccountId>,
+///         to: Option<&AccountId>,
+///         amount: &Balance,
+///     ) -> Result<(), PSP22Error> {
+///         // here we can change the behavior before token transfer
+///         Ok(())
+///     }
+///
+///     // this will override a function from PSP22
+///     #[overrider(PSP22)]
+///     fn balance_of(&self, owner: AccountId) -> Balance {
+///          // here we can change the behavior of balance_of
+///     }
+///
+///     impl Contract {
+///         // we can add constructor and other messages
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
-pub fn implementation_psp22(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
-    implementation_psp22::generate(attrs.into(), ink_module.into()).into()
+pub fn implementation(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
+    implementation::generate(attrs.into(), ink_module.into()).into()
 }

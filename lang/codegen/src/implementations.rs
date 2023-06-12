@@ -1,60 +1,8 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+use quote::quote;
 use std::collections::HashMap;
+use syn::Block;
 
-use crate::{
-    internal,
-    internal::*,
-};
-use proc_macro2::TokenStream;
-use quote::{
-    quote,
-    ToTokens,
-};
-use syn::{
-    Block,
-    Item,
-    Path,
-};
-
-pub fn generate(_: TokenStream, ink_module: TokenStream) -> TokenStream {
-    if internal::skip() {
-        return (quote! {}).into()
-    }
-    let input: TokenStream = ink_module.into();
-    let mut module = syn::parse2::<syn::ItemMod>(input.clone()).expect("Can't parse contract module");
-    let (braces, items) = match module.clone().content {
-        Some((brace, items)) => (brace, items),
-        None => {
-            panic!(
-                "{}",
-                "out-of-line openbrush modules are not supported, use `#[openbrush::contract] mod name {{ ... }}`",
-            )
-        }
-    };
-
-    // we will look for overriden functions and remove them from the mod
-    let (map, mut items) = consume_overriders(items);
-
+pub(crate) fn impl_psp22(map: &HashMap<String, Vec<(String, Box<Block>)>>, items: &mut Vec<syn::Item>) {
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl psp22::InternalImpl for Contract {}
     ))
@@ -135,7 +83,7 @@ pub fn generate(_: TokenStream, ink_module: TokenStream) -> TokenStream {
     ))
     .expect("Should parse");
 
-    let psp22 = syn::parse2::<syn::ItemImpl>(quote!(
+    let mut psp22 = syn::parse2::<syn::ItemImpl>(quote!(
         impl PSP22 for Contract {
             #[ink(message)]
             fn total_supply(&self) -> Balance {
@@ -186,10 +134,30 @@ pub fn generate(_: TokenStream, ink_module: TokenStream) -> TokenStream {
     ))
     .expect("Should parse");
 
-    if let Some(overrides) = map.get("psp22::Internal") {
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp22::*;
+    ))
+    .expect("Should parse");
+
+    override_functions("psp22::Internal", &mut internal, &map);
+    override_functions("PSP22", &mut psp22, &map);
+
+    items.push(syn::Item::Impl(internal_impl));
+    items.push(syn::Item::Impl(internal));
+    items.push(syn::Item::Impl(psp22_impl));
+    items.push(syn::Item::Impl(psp22));
+    items.push(syn::Item::Use(import));
+}
+
+fn override_functions(
+    trait_name: &str,
+    implementation: &mut syn::ItemImpl,
+    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+) {
+    if let Some(overrides) = map.get(trait_name) {
         // we will find which fns we wanna override
         for (fn_name, fn_code) in overrides {
-            for item in internal.items.iter_mut() {
+            for item in implementation.items.iter_mut() {
                 if let syn::ImplItem::Method(method) = item {
                     if &method.sig.ident.to_string() == fn_name {
                         method.block = *fn_code.clone();
@@ -198,53 +166,4 @@ pub fn generate(_: TokenStream, ink_module: TokenStream) -> TokenStream {
             }
         }
     }
-
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(psp22_impl));
-    items.push(syn::Item::Impl(psp22));
-
-    module.content = Some((braces.clone(), items));
-
-    let result = quote! {
-        #module
-    };
-    result.into()
-}
-
-// this method consumes override annotated methods and returns them mapped to code and the mod without them
-// we will later override the methods
-fn consume_overriders(items: Vec<syn::Item>) -> (HashMap<String, Vec<(String, Box<Block>)>>, Vec<syn::Item>) {
-    let mut map = HashMap::new();
-    let mut result: Vec<syn::Item> = vec![];
-    items.into_iter().for_each(|mut item| {
-        if let Item::Fn(item_fn) = &mut item {
-            if is_attr(&item_fn.attrs, "overrider") {
-                let fn_name = item_fn.sig.ident.to_string();
-                let code = item_fn.block.clone();
-
-                let trait_name = item_fn
-                    .attrs
-                    .clone()
-                    .into_iter()
-                    .find(|attr| is_attr(&vec![attr.clone()], "overrider"))
-                    .expect("No overrider attribute found!")
-                    .parse_args::<Path>()
-                    .expect("Expected overriden trait identifier")
-                    .to_token_stream()
-                    .to_string()
-                    .replace(" ", "");
-
-                let mut vec = map.get(&trait_name).unwrap_or(&vec![]).clone();
-                vec.push((fn_name, code));
-                map.insert(trait_name, vec.to_vec());
-            } else {
-                result.push(item);
-            }
-        } else {
-            result.push(item);
-        }
-    });
-
-    (map, result)
 }

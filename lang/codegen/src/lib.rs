@@ -21,6 +21,8 @@
 
 pub mod accessors;
 pub mod contract;
+pub mod implementation;
+mod implementations;
 pub mod internal;
 pub mod metadata;
 pub mod modifier_definition;
@@ -29,4 +31,3 @@ pub mod storage;
 pub mod storage_derive;
 pub mod trait_definition;
 pub mod wrapper;
-pub mod implementation_psp22;

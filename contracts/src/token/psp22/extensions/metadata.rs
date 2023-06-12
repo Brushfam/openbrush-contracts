@@ -27,10 +27,8 @@ pub use crate::{
         *,
     },
 };
-use openbrush::traits::{
-    Storage,
-    String,
-};
+use openbrush::traits::Storage;
+pub use openbrush::traits::String;
 pub use psp22::{
     Internal as _,
     InternalImpl as _,

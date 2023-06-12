@@ -19,10 +19,8 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use std::collections::HashMap;
-
 use crate::{
-    implementations::impl_psp22,
+    implementations::*,
     internal,
     internal::*,
 };
@@ -31,6 +29,7 @@ use quote::{
     quote,
     ToTokens,
 };
+use std::collections::HashMap;
 use syn::{
     Block,
     Item,
@@ -69,12 +68,32 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     // we will look for overriden functions and remove them from the mod
     let (map, mut items) = consume_overriders(items);
 
+    // to save importing of stuff by users
+    let mut imports = HashMap::<&str, syn::ItemUse>::default();
+
     for to_implement in args {
         match to_implement.as_str() {
-            "PSP22" => impl_psp22(&map, &mut items),
+            "PSP22" => impl_psp22(&map, &mut items, &mut imports),
+            "PSP22Mintable" => impl_psp22_mintable(&map, &mut items, &mut imports),
+            "PSP22Burnable" => impl_psp22_burnable(&map, &mut items, &mut imports),
+            "PSP22Metadata" => impl_psp22_metadata(&map, &mut items, &mut imports),
+            "PSP22Capped" => impl_psp22_capped(&map, &mut items, &mut imports),
+            "PSP22Wrapper" => impl_psp22_wrapper(&map, &mut items, &mut imports),
+            "Flashmint" => impl_flashmint(&map, &mut items, &mut imports),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }
+
+    cleanup_imports(&mut imports);
+
+    // add the imports
+    items.append(
+        &mut imports
+            .values()
+            .cloned()
+            .map(|item_use| syn::Item::Use(item_use))
+            .collect(),
+    );
 
     module.content = Some((braces.clone(), items));
 
@@ -82,6 +101,28 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
         #module
     };
     result.into()
+}
+
+fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
+    // we will remove unnecessary imports
+    let psp22_impls = vec![
+        "PSP22Mintable",
+        "PSP22Burnable",
+        "PSP22Capped",
+        "PSP22Metadata",
+        "PSP22Wrapper",
+        "Flashmint",
+    ];
+    check_and_remove_import("PSP22", psp22_impls, imports)
+}
+
+fn check_and_remove_import(name_to_check: &str, to_check: Vec<&str>, imports: &mut HashMap<&str, syn::ItemUse>) {
+    if to_check.iter().any(|name| imports.contains_key(name)) {
+        imports.remove(name_to_check).expect(
+            format!("Trying to implement a {name_to_check} extension without a {name_to_check} implementation!")
+                .as_str(),
+        );
+    }
 }
 
 // this method consumes override annotated methods and returns them mapped to code and the mod without them

@@ -70,6 +70,8 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 
     // to save importing of stuff by users
     let mut imports = HashMap::<&str, syn::ItemUse>::default();
+    // if multiple contracts are using the same trait implemented differently we override it this way
+    let mut overriden_traits = HashMap::<&str, syn::Item>::default();
 
     for to_implement in args {
         match to_implement.as_str() {
@@ -85,6 +87,11 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "PSP22PalletBurnable" => impl_psp22_pallet_burnable(&map, &mut items, &mut imports),
             "PSP22PalletMetadata" => impl_psp22_pallet_metadata(&map, &mut items, &mut imports),
             "PSP22PalletMintable" => impl_psp22_pallet_mintable(&map, &mut items, &mut imports),
+            "PSP34" => impl_psp34(&map, &mut items, &mut imports, &mut overriden_traits),
+            "PSP34Burnable" => impl_psp34_burnable(&map, &mut items, &mut imports),
+            "PSP34Mintable" => impl_psp34_mintable(&map, &mut items, &mut imports),
+            "PSP34Metadata" => impl_psp34_metadata(&map, &mut items, &mut imports),
+            "PSP34Enumerable" => impl_psp34_enumerable(&map, &mut items, &mut imports, &mut overriden_traits),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }
@@ -99,6 +106,9 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             .map(|item_use| syn::Item::Use(item_use))
             .collect(),
     );
+
+    // add overriden traits
+    items.append(&mut overriden_traits.values().cloned().map(|item| item).collect());
 
     module.content = Some((braces.clone(), items));
 
@@ -121,6 +131,8 @@ fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
     check_and_remove_import("PSP22", psp22_impls, imports);
     let psp22_pallet_impls = vec!["PSP22PalletMintable", "PSP22PalletBurnable", "PSP22PalletMetadata"];
     check_and_remove_import("PSP22Pallet", psp22_pallet_impls, imports);
+    let psp34_impls = vec!["PSP34Mintable", "PSP34Burnable", "PSP34Metadata", "PSP34Enumerable"];
+    check_and_remove_import("PSP34", psp34_impls, imports);
 }
 
 fn check_and_remove_import(name_to_check: &str, to_check: Vec<&str>, imports: &mut HashMap<&str, syn::ItemUse>) {

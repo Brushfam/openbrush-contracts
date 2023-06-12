@@ -29,15 +29,13 @@ pub use crate::{
 };
 pub use ink::prelude::vec::Vec;
 pub use metadata::Internal as _;
+pub use openbrush::traits::String;
 use openbrush::{
     storage::{
         Mapping,
         TypeGuard,
     },
-    traits::{
-        Storage,
-        String,
-    },
+    traits::Storage,
 };
 pub use psp34::{
     BalancesManager as _,

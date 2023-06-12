@@ -21,39 +21,24 @@
 
 pub use crate::{
     psp34,
-    psp34::balances,
     traits::psp34::{
         extensions::burnable::*,
         *,
     },
 };
-use ink::storage::traits::{
-    AutoStorableHint,
-    ManualKey,
-    Storable,
-    StorableHint,
-};
+pub use ink::prelude::vec::Vec;
+use openbrush::traits::AccountId;
 pub use psp34::{
+    BalancesManager as _,
     Internal as _,
-    Transfer as _,
+    InternalImpl as _,
+    Operator,
+    Owner,
+    PSP34Impl,
 };
 
-use openbrush::traits::{
-    AccountId,
-    Storage,
-    StorageAccess,
-};
-
-impl<B, T> PSP34Burnable for T
-where
-    B: balances::BalancesManager,
-    B: Storable
-        + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp34::STORAGE_KEY }>>, Type = B>
-        + StorableHint<ManualKey<{ psp34::STORAGE_KEY }>>,
-    T: Storage<psp34::DataType<B>>,
-    T: StorageAccess<psp34::Data<B>>,
-{
-    default fn burn(&mut self, account: AccountId, id: Id) -> Result<(), PSP34Error> {
+pub trait PSP34BurnableImpl: psp34::Internal {
+    fn burn(&mut self, account: AccountId, id: Id) -> Result<(), PSP34Error> {
         self._burn_from(account, id)
     }
 }

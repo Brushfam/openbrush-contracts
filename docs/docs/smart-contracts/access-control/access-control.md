@@ -45,7 +45,6 @@ which will use the `only_role` modifier with `CALLER` parameter, which verifies 
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_access_control {

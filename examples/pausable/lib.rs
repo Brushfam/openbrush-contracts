@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_pausable {
@@ -14,6 +13,43 @@ pub mod my_pausable {
         #[storage_field]
         pause: pausable::Data,
         flipped: bool,
+    }
+
+    impl PausableImpl for Contract {}
+
+    impl Pausable for Contract {
+        #[ink(message)]
+        fn paused(&self) -> bool {
+            PausableImpl::paused(self)
+        }
+    }
+
+    impl pausable::InternalImpl for Contract {}
+
+    impl pausable::Internal for Contract {
+        fn _emit_paused_event(&self, account: AccountId) {
+            pausable::InternalImpl::_emit_paused_event(self, account)
+        }
+
+        fn _emit_unpaused_event(&self, account: AccountId) {
+            pausable::InternalImpl::_emit_unpaused_event(self, account)
+        }
+
+        fn _paused(&self) -> bool {
+            pausable::InternalImpl::_paused(self)
+        }
+
+        fn _pause<E: From<PausableError>>(&mut self) -> Result<(), E> {
+            pausable::InternalImpl::_pause(self)
+        }
+
+        fn _unpause<E: From<PausableError>>(&mut self) -> Result<(), E> {
+            pausable::InternalImpl::_unpause(self)
+        }
+
+        fn _switch_pause<E: From<PausableError>>(&mut self) -> Result<(), E> {
+            pausable::InternalImpl::_switch_pause(self)
+        }
     }
 
     impl Contract {
@@ -31,21 +67,19 @@ pub mod my_pausable {
 
         #[ink(message)]
         pub fn pause(&mut self) -> Result<(), PausableError> {
-            self._pause()
+            Internal::_pause(self)
         }
 
         #[ink(message)]
         pub fn unpause(&mut self) -> Result<(), PausableError> {
-            self._unpause()
+            Internal::_unpause(self)
         }
 
         #[ink(message)]
         pub fn change_state(&mut self) -> Result<(), PausableError> {
-            self._switch_pause()
+            Internal::_switch_pause(self)
         }
     }
-
-    impl Pausable for Contract {}
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
@@ -64,7 +98,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn success_flip_when_not_paused(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -77,7 +112,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn success_pause_when_not_paused(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -90,7 +126,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn success_change_state(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -103,7 +140,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn failed_double_pause(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -117,7 +155,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn success_pause_and_unpause(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -131,7 +170,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn failed_unpause(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -144,7 +184,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn failed_flip_when_paused(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;

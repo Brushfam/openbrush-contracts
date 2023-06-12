@@ -21,48 +21,30 @@
 
 pub use crate::{
     psp37,
-    psp37::{
-        balances,
-        extensions::batch,
-    },
+    psp37::extensions::batch,
     traits::psp37::{
         extensions::batch::*,
         *,
     },
 };
 pub use batch::Internal as _;
-pub use psp37::{
-    Internal as _,
-    Transfer as _,
-};
-
-use ink::{
-    prelude::vec::Vec,
-    storage::traits::{
-        AutoStorableHint,
-        ManualKey,
-        Storable,
-        StorableHint,
-    },
-};
+pub use ink::prelude::vec::Vec;
 use openbrush::traits::{
     AccountId,
     AccountIdExt,
     Balance,
     Storage,
-    StorageAccess,
+};
+pub use psp37::{
+    BalancesManager as _,
+    BalancesManagerImpl as _,
+    Internal as _,
+    InternalImpl as _,
+    PSP37Impl,
 };
 
-impl<B, T> PSP37Batch for T
-where
-    B: balances::BalancesManager,
-    B: Storable
-        + StorableHint<ManualKey<{ psp37::STORAGE_KEY }>>
-        + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp37::STORAGE_KEY }>>, Type = B>,
-    T: Storage<psp37::DataType<B>>,
-    T: StorageAccess<psp37::Data<B>>,
-{
-    default fn batch_transfer(
+pub trait PSP37BatchImpl: Internal + Storage<psp37::Data> {
+    fn batch_transfer(
         &mut self,
         to: AccountId,
         ids_amounts: Vec<(Id, Balance)>,
@@ -71,7 +53,7 @@ where
         self._batch_transfer_from(Self::env().caller(), to, ids_amounts, data)
     }
 
-    default fn batch_transfer_from(
+    fn batch_transfer_from(
         &mut self,
         from: AccountId,
         to: AccountId,
@@ -92,21 +74,13 @@ pub trait Internal {
     ) -> Result<(), PSP37Error>;
 }
 
-impl<B, T> Internal for T
-where
-    B: balances::BalancesManager,
-    B: Storable
-        + StorableHint<ManualKey<{ psp37::STORAGE_KEY }>>
-        + AutoStorableHint<ManualKey<453953544, ManualKey<{ psp37::STORAGE_KEY }>>, Type = B>,
-    T: Storage<psp37::DataType<B>>,
-    T: StorageAccess<psp37::Data<B>>,
-{
-    default fn _batch_transfer_from(
+pub trait InternalImpl: Internal + psp37::Internal + Storage<psp37::Data> + psp37::BalancesManager {
+    fn _batch_transfer_from(
         &mut self,
         from: AccountId,
         to: AccountId,
         ids_amounts: Vec<(Id, Balance)>,
-        _data: Vec<u8>,
+        _: Vec<u8>,
     ) -> Result<(), PSP37Error> {
         let operator = Self::env().caller();
 
@@ -125,11 +99,11 @@ where
         for (id, value) in &ids_amounts {
             self._decrease_allowance(&from, &operator, id, value.clone())?;
 
-            self.data().balances.decrease_balance(&from, id, value, false)?;
+            self._decrease_balance(&from, id, value, false)?;
         }
 
         for (id, value) in &ids_amounts {
-            self.data().balances.increase_balance(&to, id, value, false)?;
+            self._increase_balance(&to, id, value, false)?;
         }
 
         self._after_token_transfer(Some(&from), Some(&to), &ids_amounts)?;

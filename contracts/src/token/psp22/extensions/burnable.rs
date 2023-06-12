@@ -26,21 +26,18 @@ pub use crate::{
         *,
     },
 };
-pub use psp22::{
-    Internal as _,
-    Transfer as _,
-};
-
-use crate::psp22::Data;
 use openbrush::traits::{
     AccountId,
     Balance,
-    Storage,
-    StorageAccess,
+};
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    *,
 };
 
-impl<T: Storage<psp22::DataType> + StorageAccess<Data>> PSP22Burnable for T {
-    default fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+pub trait PSP22BurnableImpl: psp22::Internal {
+    fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._burn_from(account, amount)
     }
 }

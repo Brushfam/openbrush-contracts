@@ -30,22 +30,17 @@ pub use crate::{
         ownable::*,
     },
 };
-pub use diamond::Internal as _;
-pub use ownable::Internal as _;
-
+pub use diamond::{
+    Internal as _,
+    InternalImpl as _,
+};
+pub use ink::prelude::vec::Vec;
 use ink::{
     env::call::{
         ExecutionInput,
         Selector as InkSelector,
     },
-    prelude::vec::Vec,
     primitives::Clear,
-    storage::traits::{
-        AutoStorableHint,
-        ManualKey,
-        Storable,
-        StorableHint,
-    },
 };
 use openbrush::{
     modifiers,
@@ -55,37 +50,22 @@ use openbrush::{
         Storage,
     },
 };
+pub use ownable::Internal as _;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 // TODO: Add support of Erc165
 #[derive(Default, Debug)]
-#[openbrush::storage_item(STORAGE_KEY)]
-pub struct Data<D = ()>
-where
-    D: Storable
-        + StorableHint<ManualKey<913099263>>
-        + AutoStorableHint<ManualKey<1826024066, ManualKey<{ STORAGE_KEY }>>, Type = D>,
-{
+#[openbrush::upgradeable_storage(STORAGE_KEY)]
+pub struct Data {
     pub selector_to_hash: Mapping<Selector, Hash>,
     // Facet mapped to all functions it supports
     pub hash_to_selectors: Mapping<Hash, Vec<Selector>>,
-    // Handler of each facet add and remove.
-    // It is empty by default but can be extended with loup logic.
-    pub handler: D,
 }
 
-impl<D, T> Diamond for T
-where
-    D: DiamondCut,
-    D: Storable
-        + StorableHint<ManualKey<913099263>>
-        + AutoStorableHint<ManualKey<1826024066, ManualKey<{ STORAGE_KEY }>>, Type = D>,
-    T: Storage<ownable::Data>,
-    T: Storage<Data<D>>,
-{
+pub trait DiamondImpl: Internal + Storage<ownable::Data> {
     #[modifiers(ownable::only_owner)]
-    default fn diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
+    fn diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
         self._diamond_cut(diamond_cut, init)
     }
 }
@@ -106,39 +86,32 @@ pub trait Internal {
     fn _remove_selectors(&mut self, facet_cut: &FacetCut);
 }
 
-impl<D, T> Internal for T
-where
-    D: DiamondCut,
-    D: Storable
-        + StorableHint<ManualKey<913099263>>
-        + AutoStorableHint<ManualKey<1826024066, ManualKey<{ STORAGE_KEY }>>, Type = D>,
-    T: Storage<Data<D>>,
-{
-    default fn _emit_diamond_cut_event(&self, _diamond_cut: &Vec<FacetCut>, _init: &Option<InitCall>) {}
+pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
+    fn _emit_diamond_cut_event(&self, _diamond_cut: &Vec<FacetCut>, _init: &Option<InitCall>) {}
 
-    default fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
+    fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
         for facet_cut in diamond_cut.iter() {
-            self._diamond_cut_facet(facet_cut)?;
+            Internal::_diamond_cut_facet(self, facet_cut)?;
         }
 
-        self._emit_diamond_cut_event(&diamond_cut, &init);
+        Internal::_emit_diamond_cut_event(self, &diamond_cut, &init);
 
         if init.is_some() {
             self.flush();
-            self._init_call(init.unwrap());
+            Internal::_init_call(self, init.unwrap());
         }
 
         Ok(())
     }
 
-    default fn _diamond_cut_facet(&mut self, facet_cut: &FacetCut) -> Result<(), DiamondError> {
+    fn _diamond_cut_facet(&mut self, facet_cut: &FacetCut) -> Result<(), DiamondError> {
         let code_hash = facet_cut.hash;
         if code_hash.is_clear() {
             return Err(DiamondError::EmptyCodeHash)
         }
         if facet_cut.selectors.is_empty() {
             // means that we want to remove this facet
-            self._remove_facet(code_hash);
+            Internal::_remove_facet(self, code_hash);
         } else {
             for selector in facet_cut.selectors.iter() {
                 let selector_hash = self.data().selector_to_hash.get(&selector);
@@ -156,17 +129,17 @@ where
             }
 
             if self.data().hash_to_selectors.get(&code_hash).is_none() {
-                self.data().handler.on_add_facet(code_hash);
+                self._on_add_facet(code_hash);
             }
             // remove selectors from this facet which may be registered but will not be used anymore
-            self._remove_selectors(facet_cut);
+            Internal::_remove_selectors(self, facet_cut);
             // map this code hash to its selectors
             self.data().hash_to_selectors.insert(&code_hash, &facet_cut.selectors);
         }
         Ok(())
     }
 
-    default fn _fallback(&self) -> ! {
+    fn _fallback(&self) -> ! {
         let selector = ink::env::decode_input::<Selector>().unwrap_or_else(|_| panic!("Calldata error"));
 
         let delegate_code = self.data().selector_to_hash.get(&selector);
@@ -191,7 +164,7 @@ where
         unreachable!("the _fallback call will never return since `tail_call` was set");
     }
 
-    default fn _init_call(&self, call: InitCall) -> ! {
+    fn _init_call(&self, call: InitCall) -> ! {
         ink::env::call::build_call::<ink::env::DefaultEnvironment>()
             .delegate(call.hash)
             .exec_input(ExecutionInput::new(InkSelector::new(call.selector)).push_arg(call.input))
@@ -205,16 +178,16 @@ where
         unreachable!("the _init_call call will never return since `tail_call` was set");
     }
 
-    default fn _remove_facet(&mut self, code_hash: Hash) {
+    fn _remove_facet(&mut self, code_hash: Hash) {
         let vec = self.data().hash_to_selectors.get(&code_hash).unwrap();
         vec.iter().for_each(|old_selector| {
             self.data().selector_to_hash.remove(&old_selector);
         });
         self.data().hash_to_selectors.remove(&code_hash);
-        self.data().handler.on_remove_facet(code_hash);
+        self._on_remove_facet(code_hash);
     }
 
-    default fn _remove_selectors(&mut self, facet_cut: &FacetCut) {
+    fn _remove_selectors(&mut self, facet_cut: &FacetCut) {
         let selectors = self
             .data()
             .hash_to_selectors
@@ -229,15 +202,7 @@ where
 }
 
 pub trait DiamondCut {
-    fn on_add_facet(&mut self, code_hash: Hash);
+    fn _on_add_facet(&mut self, code_hash: Hash);
 
-    fn on_remove_facet(&mut self, code_hash: Hash);
-}
-
-impl DiamondCut for () {
-    #[inline(always)]
-    fn on_add_facet(&mut self, _code_hash: Hash) {}
-
-    #[inline(always)]
-    fn on_remove_facet(&mut self, _code_hash: Hash) {}
+    fn _on_remove_facet(&mut self, code_hash: Hash);
 }

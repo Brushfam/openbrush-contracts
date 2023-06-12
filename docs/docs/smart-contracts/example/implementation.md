@@ -49,7 +49,7 @@ the asset. For that we define these functions:
 
 ```rust
 #[modifiers(only_role(MANAGER))]
-default fn set_asset_price(
+fn set_asset_price(
     &mut self,
     asset_in: AccountId,
     asset_out: AccountId,
@@ -85,7 +85,7 @@ function modifiers. The function will look like this:
 
 ```rust
 #[modifiers(only_role(MANAGER))]
-default fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
+fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
     // we will ensure the asset is not accepted already
     if self.is_accepted_lending(asset_address) {
         return Err(LendingError::AssetSupported)
@@ -119,7 +119,7 @@ The code will look like this:
 
 ```rust
 #[modifiers(when_not_paused)]
-default fn lend_assets(&mut self, asset_address: AccountId, amount: Balance) -> Result<(), LendingError> {
+fn lend_assets(&mut self, asset_address: AccountId, amount: Balance) -> Result<(), LendingError> {
     // we will be using these often so we store them in variables
     let lender = Self::env().caller();
     let contract = Self::env().account_id();
@@ -188,7 +188,7 @@ currently borrowed.
 
 ```rust
 #[modifiers(when_not_paused)]
-default fn borrow_assets(
+fn borrow_assets(
     &mut self,
     asset_address: AccountId,
     collateral_address: AccountId,

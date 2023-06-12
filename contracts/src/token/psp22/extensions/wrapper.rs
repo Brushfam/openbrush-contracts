@@ -27,65 +27,53 @@ pub use crate::{
         *,
     },
 };
-use ink::{
-    env::CallFlags,
-    prelude::{
-        boxed::Box,
-        vec::Vec,
-    },
-    primitives::AccountId,
-    storage::Lazy,
-};
+use ink::env::CallFlags;
+pub use ink::prelude::vec::Vec;
 use openbrush::traits::{
+    AccountId,
     Balance,
     Storage,
-    StorageAccess,
-    StorageAsRef,
     ZERO_ADDRESS,
 };
-pub use psp22::Internal as _;
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    *,
+};
 pub use wrapper::Internal as _;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Debug)]
-#[openbrush::storage_item(STORAGE_KEY)]
+#[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
-    pub underlying: Box<AccountId>,
+    pub underlying: AccountId,
     pub _reserved: Option<()>,
 }
-#[cfg(not(feature = "upgradeable"))]
-type DataType = Data;
-#[cfg(feature = "upgradeable")]
-type DataType = Lazy<Data>;
 
 impl Default for Data {
     fn default() -> Self {
         Self {
-            underlying: Box::new(ZERO_ADDRESS.into()),
+            underlying: ZERO_ADDRESS.into(),
             _reserved: Default::default(),
         }
     }
 }
 
-impl<T> PSP22Wrapper for T
-where
-    T: Storage<psp22::DataType> + Storage<DataType>,
-    T: StorageAccess<psp22::Data> + StorageAccess<Data>,
-{
-    default fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+pub trait PSP22WrapperImpl: Storage<Data> + Internal + psp22::Internal {
+    fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._deposit(amount)?;
-        self._mint_to(account, amount)
+        psp22::Internal::_mint_to(self, account, amount)
     }
 
-    default fn withdraw_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        self._burn_from(Self::env().caller(), amount)?;
+    fn withdraw_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+        psp22::Internal::_burn_from(self, Self::env().caller(), amount)?;
         self._withdraw(account, amount)
     }
 }
 
 pub trait Internal {
-    /// Mint wrapped token to cover any underlyingTokens that would have been transferred by mistake. Internal
+    /// Mint wrapped token to cover any underlyingTokens that would have been transfered by mistake. Internal
     /// function that can be exposed with access control if desired.
     fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error>;
 
@@ -98,28 +86,24 @@ pub trait Internal {
     /// helper function to get balance of underlying tokens in the contract
     fn _underlying_balance(&mut self) -> Balance;
 
-    /// Initialize the wrapper token with defining the underlying PSP22 token
+    /// Initalize the wrapper token with defining the underlying PSP22 token
     ///
     /// `underlying` is the token to be wrapped
     fn _init(&mut self, underlying: AccountId);
 
     /// Getter for caller to `PSP22Wrapper` of `underlying`
-    fn _underlying(&mut self) -> Box<PSP22Ref>;
+    fn _underlying(&mut self) -> &mut PSP22Ref;
 }
 
-impl<T> Internal for T
-where
-    T: Storage<psp22::DataType> + Storage<DataType>,
-    T: StorageAccess<psp22::Data> + StorageAccess<Data>,
-{
-    default fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error> {
-        let value = self._underlying_balance() - self.total_supply();
-        self._mint_to(account, value)?;
+pub trait InternalImpl: Storage<Data> + Internal + psp22::Internal + PSP22 {
+    fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error> {
+        let value = Internal::_underlying_balance(self) - self.total_supply();
+        psp22::Internal::_mint_to(self, account, value)?;
         Ok(value)
     }
 
-    default fn _deposit(&mut self, amount: Balance) -> Result<(), PSP22Error> {
-        self._underlying()
+    fn _deposit(&mut self, amount: Balance) -> Result<(), PSP22Error> {
+        Internal::_underlying(self)
             .transfer_from_builder(Self::env().caller(), Self::env().account_id(), amount, Vec::<u8>::new())
             .call_flags(CallFlags::default().set_allow_reentry(true))
             .try_invoke()
@@ -127,8 +111,8 @@ where
             .unwrap()
     }
 
-    default fn _withdraw(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        self._underlying()
+    fn _withdraw(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+        Internal::_underlying(self)
             .transfer_builder(account, amount, Vec::<u8>::new())
             .call_flags(CallFlags::default().set_allow_reentry(true))
             .try_invoke()
@@ -136,17 +120,15 @@ where
             .unwrap()
     }
 
-    default fn _underlying_balance(&mut self) -> Balance {
-        self._underlying().balance_of(Self::env().account_id())
+    fn _underlying_balance(&mut self) -> Balance {
+        Internal::_underlying(self).balance_of(Self::env().account_id())
     }
 
-    default fn _init(&mut self, underlying: AccountId) {
-        let mut data = self.data::<DataType>().get_or_default();
-        data.underlying = Box::new(underlying);
-        self.data::<DataType>().set(&data);
+    fn _init(&mut self, underlying: AccountId) {
+        self.data().underlying = underlying;
     }
 
-    default fn _underlying(&mut self) -> Box<PSP22Ref> {
-        self.data::<DataType>().get_or_default().underlying
+    fn _underlying(&mut self) -> &mut PSP22Ref {
+        &mut self.data().underlying
     }
 }

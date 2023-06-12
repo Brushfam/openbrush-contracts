@@ -36,7 +36,7 @@ where
         + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
 {
     #[modifiers(only_role(MANAGER))]
-    default fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
+    fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
         // we will ensure the asset is not accepted already
         if self.is_accepted_lending(asset_address) {
             return Err(LendingError::AssetSupported)
@@ -53,7 +53,7 @@ where
     }
 
     #[modifiers(only_role(MANAGER))]
-    default fn disallow_lending(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
+    fn disallow_lending(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
         let reserve_asset = get_reserve_asset(self, &asset_address)?;
         if PSP22Ref::balance_of(&asset_address, Self::env().account_id()) > 0
             || PSP22Ref::balance_of(&reserve_asset, Self::env().account_id()) > 0
@@ -65,7 +65,7 @@ where
     }
 
     #[modifiers(only_role(MANAGER))]
-    default fn allow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
+    fn allow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
         // we will ensure the asset is not accepted already
         if self.is_accepted_collateral(asset_address) {
             return Err(LendingError::AssetSupported)
@@ -75,7 +75,7 @@ where
     }
 
     #[modifiers(only_role(MANAGER))]
-    default fn disallow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
+    fn disallow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
         // we will ensure the asset is not accepted already
         if self.is_accepted_collateral(asset_address) {
             set_collateral_accepted(self, asset_address, false);
@@ -84,7 +84,7 @@ where
     }
 
     #[modifiers(only_role(MANAGER))]
-    default fn set_asset_price(
+    fn set_asset_price(
         &mut self,
         asset_in: AccountId,
         asset_out: AccountId,

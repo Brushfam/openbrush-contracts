@@ -1,12 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
+#[openbrush::implementation(PSP22TokenTimelock)]
 #[openbrush::contract]
 pub mod my_psp22_token_timelock {
-    use openbrush::{
-        contracts::psp22::utils::token_timelock::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -15,14 +12,13 @@ pub mod my_psp22_token_timelock {
         timelock: token_timelock::Data,
     }
 
-    impl PSP22TokenTimelock for Contract {}
-
     impl Contract {
         #[ink(constructor)]
         pub fn new(token_address: AccountId, beneficiary: AccountId, release_time: Timestamp) -> Self {
             let mut instance = Self::default();
 
-            assert!(instance._init(token_address, beneficiary, release_time).is_ok());
+            token_timelock::Internal::_init(&mut instance, token_address, beneficiary, release_time)
+                .expect("Should init");
 
             instance
         }

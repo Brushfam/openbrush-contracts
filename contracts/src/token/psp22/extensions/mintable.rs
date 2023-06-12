@@ -26,22 +26,18 @@ pub use crate::{
         *,
     },
 };
-use ink::storage::Lazy;
-pub use psp22::{
-    Internal as _,
-    Transfer as _,
-};
-
-use crate::psp22::Data;
 use openbrush::traits::{
     AccountId,
     Balance,
-    Storage,
-    StorageAccess,
+};
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    *,
 };
 
-impl<T: Storage<psp22::DataType> + StorageAccess<Data>> PSP22Mintable for T {
-    default fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+pub trait PSP22MintableImpl: psp22::Internal {
+    fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._mint_to(account, amount)
     }
 }

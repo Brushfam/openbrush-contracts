@@ -1,22 +1,26 @@
 [package]
-name = "ink_diamond"
+name = "accessors_attr"
 version = "3.1.1"
 authors = ["Brushfam <green@727.ventures>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.1.0", default-features = false}
+ink = { version = "4.2.0", default-features = false}
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.3", default-features = false, features = ["derive"], optional = true }
 
-# These dependencies
-openbrush = { path = "../../../..", default-features = false, features = ["diamond"] }
+openbrush = { path = "../..", default-features = false }
+
+[dev-dependencies]
+ink_e2e = "4.2"
+test_helpers = { path = "../test_helpers", default-features = false }
 
 [lib]
-name = "ink_diamond"
+name = "accessors_attr"
 path = "lib.rs"
 crate-type = [
+    # Used for normal contract Wasm blobs.
     "cdylib",
 ]
 
@@ -26,8 +30,10 @@ std = [
     "ink/std",
     "scale/std",
     "scale-info/std",
-    # These dependencies
     "openbrush/std",
 ]
 ink-as-dependency = []
+e2e-tests = []
 
+[profile.dev]
+codegen-units = 16

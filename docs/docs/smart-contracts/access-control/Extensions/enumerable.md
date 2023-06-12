@@ -13,7 +13,6 @@ Import **everything** from `openbrush::contracts::access_control::extensions::en
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_access_control {
@@ -49,7 +48,6 @@ impl AccessControlEnumerable for Contract {}
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_access_control {

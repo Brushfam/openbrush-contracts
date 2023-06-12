@@ -21,17 +21,17 @@
 
 pub use crate::{
     access_control,
-    access_control::{
-        extensions::enumerable,
-        members,
-    },
+    access_control::extensions::enumerable,
     traits::access_control::{
         extensions::enumerable::*,
         *,
     },
 };
-pub use access_control::Internal as _;
-
+pub use access_control::{
+    AccessControlImpl,
+    Internal as _,
+    InternalImpl as _,
+};
 use openbrush::{
     storage::{
         MultiMapping,
@@ -40,43 +40,38 @@ use openbrush::{
     traits::{
         AccountId,
         Storage,
-        StorageAccess,
     },
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
 
 #[derive(Default, Debug)]
-#[openbrush::storage_item(STORAGE_KEY)]
-pub struct Members {
+#[openbrush::upgradeable_storage(STORAGE_KEY)]
+pub struct Data {
     pub role_members: MultiMapping<RoleType, AccountId, ValueGuard<RoleType>>,
     pub _reserved: Option<()>,
 }
 
-impl members::MembersManager for Members {
-    fn has_role(&self, role: RoleType, address: &AccountId) -> bool {
-        self.role_members.contains_value(role, address)
+pub trait MembersManagerImpl: Storage<Data> {
+    fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
+        self.data().role_members.contains_value(role, address)
     }
 
-    fn add(&mut self, role: RoleType, member: &AccountId) {
-        self.role_members.insert(role, member);
+    fn _add(&mut self, role: RoleType, member: &AccountId) {
+        self.data().role_members.insert(role, member);
     }
 
-    fn remove(&mut self, role: RoleType, member: &AccountId) {
-        self.role_members.remove_value(role, member);
+    fn _remove(&mut self, role: RoleType, member: &AccountId) {
+        self.data().role_members.remove_value(role, member);
     }
 }
 
-impl<T> AccessControlEnumerable for T
-where
-    T: Storage<access_control::DataType<Members>>,
-    T: StorageAccess<access_control::Data<Members>>,
-{
-    default fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
-        self.data().members.role_members.get_value(role, &(index as u128))
+pub trait AccessControlEnumerableImpl: Storage<Data> {
+    fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
+        self.data().role_members.get_value(role, &(index as u128))
     }
 
-    default fn get_role_member_count(&self, role: RoleType) -> u32 {
-        self.data().members.role_members.count(role) as u32
+    fn get_role_member_count(&self, role: RoleType) -> u32 {
+        self.data().role_members.count(role) as u32
     }
 }

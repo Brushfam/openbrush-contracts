@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_psp22_metadata_facet {
@@ -25,7 +24,24 @@ pub mod my_psp22_metadata_facet {
         ownable: ownable::Data,
     }
 
-    impl PSP22Metadata for PSP22Facet {}
+    impl PSP22MetadataImpl for PSP22Facet {}
+
+    impl PSP22Metadata for PSP22Facet {
+        #[ink(message)]
+        fn token_name(&self) -> Option<String> {
+            PSP22MetadataImpl::token_name(self)
+        }
+
+        #[ink(message)]
+        fn token_symbol(&self) -> Option<String> {
+            PSP22MetadataImpl::token_symbol(self)
+        }
+
+        #[ink(message)]
+        fn token_decimals(&self) -> u8 {
+            PSP22MetadataImpl::token_decimals(self)
+        }
+    }
 
     impl PSP22Facet {
         #[ink(constructor)]

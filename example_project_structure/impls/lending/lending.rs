@@ -44,7 +44,7 @@ use openbrush::{
 pub const YEAR: Timestamp = 60 * 60 * 24 * 365;
 
 impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
-    default fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
+    fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
         let mapped_asset = self
             .data::<data::Data>()
@@ -61,7 +61,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         Ok(available + unavailable)
     }
 
-    default fn total_shares(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
+    fn total_shares(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
         let mapped_asset = self
             .data::<data::Data>()
@@ -75,14 +75,14 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         Ok(PSP22Ref::total_supply(&mapped_asset))
     }
 
-    default fn get_asset_shares(&self, asset_address: AccountId) -> Result<AccountId, LendingError> {
+    fn get_asset_shares(&self, asset_address: AccountId) -> Result<AccountId, LendingError> {
         self.data::<data::Data>()
             .asset_shares
             .get(&asset_address)
             .ok_or(LendingError::AssetNotSupported)
     }
 
-    default fn is_accepted_lending(&self, asset_address: AccountId) -> bool {
+    fn is_accepted_lending(&self, asset_address: AccountId) -> bool {
         !self
             .data::<data::Data>()
             .asset_shares
@@ -91,7 +91,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
             .is_zero()
     }
 
-    default fn is_accepted_collateral(&self, asset_address: AccountId) -> bool {
+    fn is_accepted_collateral(&self, asset_address: AccountId) -> bool {
         self.data::<data::Data>()
             .collateral_accepted
             .get(&asset_address)
@@ -99,7 +99,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
     }
 
     #[modifiers(when_not_paused)]
-    default fn lend_assets(&mut self, asset_address: AccountId, amount: Balance) -> Result<(), LendingError> {
+    fn lend_assets(&mut self, asset_address: AccountId, amount: Balance) -> Result<(), LendingError> {
         // we will be using these often so we store them in variables
         let lender = Self::env().caller();
         let contract = Self::env().account_id();
@@ -130,7 +130,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
     }
 
     #[modifiers(when_not_paused)]
-    default fn borrow_assets(
+    fn borrow_assets(
         &mut self,
         asset_address: AccountId,
         collateral_address: AccountId,
@@ -191,7 +191,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         Ok(())
     }
 
-    default fn repay(&mut self, loan_id: Id, repay_amount: Balance) -> Result<bool, LendingError> {
+    fn repay(&mut self, loan_id: Id, repay_amount: Balance) -> Result<bool, LendingError> {
         // REPAYING (borrower: B, nft, repayAmount: X):
         let initiator = Self::env().caller();
         let contract = Self::env().account_id();
@@ -251,7 +251,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         Ok(true)
     }
 
-    default fn withdraw_asset(
+    fn withdraw_asset(
         &mut self,
         shares_address: AccountId,
         shares_amount: Balance,
@@ -268,7 +268,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         Ok(())
     }
 
-    default fn liquidate_loan(&mut self, loan_id: Id) -> Result<(), LendingError> {
+    fn liquidate_loan(&mut self, loan_id: Id) -> Result<(), LendingError> {
         let loan_account = self.data::<data::Data>().loan_account;
         let loan_info = LoanRef::get_loan_info(&loan_account, loan_id.clone())?;
 

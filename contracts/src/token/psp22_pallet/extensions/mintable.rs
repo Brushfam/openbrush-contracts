@@ -26,22 +26,20 @@ pub use crate::{
         *,
     },
 };
-pub use pallet_assets_chain_extension::traits::Origin;
-pub use psp22_pallet::Internal as _;
-
 use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
-    StorageAccess,
+};
+pub use pallet_assets_chain_extension::traits::Origin;
+pub use psp22_pallet::{
+    Internal as _,
+    InternalImpl as _,
+    *,
 };
 
-impl<T> PSP22Mintable for T
-where
-    T: Storage<psp22_pallet::DataType>,
-    T: StorageAccess<psp22_pallet::Data>,
-{
-    default fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+pub trait PSP22PalletMintableImpl: Storage<psp22_pallet::Data> + psp22_pallet::Internal {
+    fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._mint_to(account, amount)
     }
 }

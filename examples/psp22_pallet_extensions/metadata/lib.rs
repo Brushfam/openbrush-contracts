@@ -1,16 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
-#![feature(default_alloc_error_handler)]
 
+#[openbrush::implementation(PSP22Pallet, PSP22PalletMetadata)]
 #[openbrush::contract]
 pub mod my_psp22_pallet_metadata {
-    use openbrush::{
-        contracts::psp22_pallet::extensions::metadata::*,
-        traits::{
-            Storage,
-            String,
-        },
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -18,10 +11,6 @@ pub mod my_psp22_pallet_metadata {
         #[storage_field]
         pallet: psp22_pallet::Data,
     }
-
-    impl PSP22 for Contract {}
-
-    impl PSP22Metadata for Contract {}
 
     impl Contract {
         /// During instantiation of the contract, you need to pass native tokens as a deposit
@@ -38,19 +27,16 @@ pub mod my_psp22_pallet_metadata {
         ) -> Self {
             let mut instance = Self::default();
 
-            instance
-                ._create(asset_id, Self::env().account_id(), min_balance)
+            psp22_pallet::Internal::_create(&mut instance, asset_id, Self::env().account_id(), min_balance)
                 .expect("Should create an asset");
             instance.pallet.asset_id = asset_id;
             instance.pallet.origin = Origin::Caller;
-            assert!(instance
+            instance
                 .pallet
                 .pallet_assets
                 .set_metadata(asset_id, name.into(), symbol.into(), decimal)
-                .is_ok());
-            instance
-                ._mint_to(Self::env().caller(), total_supply)
-                .expect("Should mint");
+                .expect("Should set metadata");
+            psp22_pallet::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
 
             instance
         }

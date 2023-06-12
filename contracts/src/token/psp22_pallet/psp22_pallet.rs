@@ -23,7 +23,7 @@ pub use crate::{
     psp22_pallet,
     traits::psp22::*,
 };
-use ink::{
+pub use ink::{
     env::DefaultEnvironment,
     prelude::vec::Vec,
 };
@@ -31,19 +31,22 @@ use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
-    StorageAccess,
     String,
 };
 pub use pallet_assets_chain_extension::{
     ink::*,
     traits::*,
 };
-pub use psp22_pallet::Internal as _;
+pub use psp22_pallet::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22PalletImpl as _,
+};
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
-#[openbrush::storage_item(STORAGE_KEY)]
+#[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
     /// Asset id of the token on the pallet.
     pub asset_id: u32,
@@ -54,28 +57,23 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
-#[cfg(feature = "upgradeable")]
-pub type DataType = Lazy<Data>;
-#[cfg(not(feature = "upgradeable"))]
-pub type DataType = Data;
-
-impl<T: Storage<DataType> + StorageAccess<Data>> PSP22 for T {
-    default fn total_supply(&self) -> Balance {
+pub trait PSP22PalletImpl: Storage<Data> + Internal {
+    fn total_supply(&self) -> Balance {
         let self_ = self.data();
         self_.pallet_assets.total_supply(self_.asset_id)
     }
 
-    default fn balance_of(&self, owner: AccountId) -> Balance {
+    fn balance_of(&self, owner: AccountId) -> Balance {
         let self_ = self.data();
         self_.pallet_assets.balance_of(self_.asset_id, owner)
     }
 
-    default fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance {
+    fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance {
         let self_ = self.data();
         self_.pallet_assets.allowance(self_.asset_id, owner, spender)
     }
 
-    default fn transfer(&mut self, to: AccountId, value: Balance, _data: Vec<u8>) -> Result<(), PSP22Error> {
+    fn transfer(&mut self, to: AccountId, value: Balance, _data: Vec<u8>) -> Result<(), PSP22Error> {
         if value == 0 {
             return Ok(())
         }
@@ -88,7 +86,7 @@ impl<T: Storage<DataType> + StorageAccess<Data>> PSP22 for T {
         Ok(())
     }
 
-    default fn transfer_from(
+    fn transfer_from(
         &mut self,
         from: AccountId,
         to: AccountId,
@@ -107,14 +105,16 @@ impl<T: Storage<DataType> + StorageAccess<Data>> PSP22 for T {
         Ok(())
     }
 
-    default fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
+    fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
         if value == 0 {
             return Ok(())
         }
 
         let caller = self._sender();
+        let allowance = self.allowance(caller.clone(), spender.clone());
         let self_ = self.data();
-        if self_.allowance(caller.clone(), spender.clone()) > 0 {
+
+        if allowance > 0 {
             // First we reset the previous approve and after set a new one.
             self_
                 .pallet_assets
@@ -128,14 +128,14 @@ impl<T: Storage<DataType> + StorageAccess<Data>> PSP22 for T {
         Ok(())
     }
 
-    default fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
+    fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         if delta_value == 0 {
             return Ok(())
         }
 
+        let caller = self._sender();
+        let allowance = self.allowance(caller.clone(), spender.clone());
         let self_ = self.data();
-        let caller = self_._sender();
-        let allowance = self_.allowance(caller.clone(), spender.clone());
         // `approve_transfer` increases by default
         self_
             .pallet_assets
@@ -145,7 +145,7 @@ impl<T: Storage<DataType> + StorageAccess<Data>> PSP22 for T {
         Ok(())
     }
 
-    default fn decrease_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
+    fn decrease_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         if delta_value == 0 {
             return Ok(())
         }
@@ -169,6 +169,7 @@ impl<T: Storage<DataType> + StorageAccess<Data>> PSP22 for T {
 pub trait Internal {
     /// User must override those methods in their contract.
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance);
+
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance);
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error>;
@@ -185,21 +186,22 @@ pub trait Internal {
     fn _sender(&self) -> AccountId;
 }
 
-impl<T: Storage<DataType> + StorageAccess<Data>> Internal for T {
+pub trait InternalImpl: Storage<Data> + Internal {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
+
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         let self_ = self.data();
         self_.pallet_assets.mint(self_.asset_id, account.clone(), amount)?;
-        self._emit_transfer_event(None, Some(account), amount);
+        Internal::_emit_transfer_event(self, None, Some(account), amount);
         Ok(())
     }
 
     fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         let self_ = self.data();
         self_.pallet_assets.burn(self_.asset_id, account.clone(), amount)?;
-        self._emit_transfer_event(Some(account), None, amount);
+        Internal::_emit_transfer_event(self, Some(account), None, amount);
         Ok(())
     }
 

@@ -23,7 +23,7 @@ pub use crate::traits::errors::{
     PSP22Error,
     PSP22ReceiverError,
 };
-use ink::prelude::vec::Vec;
+pub use ink::prelude::vec::Vec;
 use openbrush::traits::{
     AccountId,
     Balance,
@@ -32,7 +32,7 @@ use openbrush::traits::{
 #[openbrush::wrapper]
 pub type PSP22Ref = dyn PSP22;
 
-/// Trait implemented by all PSP-20 respecting smart traits.
+/// Trait implemented by all PSP-22 respecting smart traits.
 #[openbrush::trait_definition]
 pub trait PSP22 {
     /// Returns the total token supply.

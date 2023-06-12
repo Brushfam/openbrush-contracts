@@ -1,79 +1,83 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
-#![feature(default_alloc_error_handler)]
 
 pub use my_psp22::*;
 
+#[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 pub mod my_psp22 {
-    use openbrush::{
-        contracts::psp22::*,
-        traits::{
-            Storage,
-            String,
-        },
+    use openbrush::traits::{
+        Storage,
+        String,
     };
 
     #[ink(storage)]
-    #[openbrush::storage]
+    #[derive(Storage)]
     pub struct Contract {
         #[storage_field]
         psp22: psp22::Data,
-        // fields for hater logic
+        #[storage_field]
+        hated_storage: HatedStorage,
+    }
+
+    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
+
+    #[openbrush::upgradeable_storage(STORAGE_KEY)]
+    #[openbrush::accessors(HatedStorageAccessors)]
+    #[derive(Debug)]
+    pub struct HatedStorage {
+        #[get]
+        #[set]
         hated_account: AccountId,
     }
 
-    impl Transfer for Contract {
-        // Let's override method to reject transactions to bad account
-        fn _before_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            to: Option<&AccountId>,
-            _amount: &Balance,
-        ) -> Result<(), PSP22Error> {
-            if to == Some(&self.hated_account) {
-                return Err(PSP22Error::Custom(String::from("I hate this account!")))
-            }
-            Ok(())
+    #[overrider(psp22::Internal)]
+    fn _before_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        if to == Some(&self.hated_storage.hated_account) {
+            return Err(PSP22Error::Custom(String::from("I hate this account!")))
         }
+        Ok(())
     }
-
-    impl PSP22 for Contract {}
 
     impl Contract {
         #[ink(constructor)]
         pub fn new(total_supply: Balance) -> Self {
             let mut instance = Self {
                 psp22: Default::default(),
-                hated_account: [255; 32].into(),
+                hated_storage: HatedStorage {
+                    hated_account: [255; 32].into(),
+                },
             };
 
-            instance
-                ._mint_to(Self::env().caller(), total_supply)
-                .expect("Should mint");
+            Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
 
             instance
         }
 
         #[ink(message)]
-        pub fn set_hated_account(&mut self, hated: AccountId) {
-            self.hated_account = hated;
+        pub fn set_hated_account(&mut self, account: AccountId) {
+            self.hated_storage.hated_account = account;
         }
 
         #[ink(message)]
         pub fn get_hated_account(&self) -> AccountId {
-            self.hated_account.clone()
+            self.hated_storage.hated_account
         }
     }
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::psp22::psp22_external::PSP22;
-        #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
+        use crate::my_psp22::hatedstorageaccessors_external::HatedStorageAccessors;
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
+        use openbrush::contracts::psp22::psp22_external::PSP22;
         use test_helpers::{
             address_of,
             balance_of,

@@ -38,7 +38,6 @@ and add the `only_owner` modifier, which will verify that the caller of the func
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_ownable {

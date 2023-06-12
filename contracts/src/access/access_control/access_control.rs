@@ -21,120 +21,119 @@
 
 pub use crate::{
     access_control,
-    access_control::members,
     traits::access_control::*,
 };
 pub use access_control::Internal as _;
-use ink::storage::traits::{
-    AutoStorableHint,
-    ManualKey,
-    Storable,
-    StorableHint,
-};
-
 use openbrush::{
     modifier_definition,
     modifiers,
     storage::{
         Mapping,
+        TypeGuard,
         ValueGuard,
     },
     traits::{
         AccountId,
         Storage,
-        StorageAccess,
     },
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
-#[openbrush::storage_item(STORAGE_KEY)]
-pub struct Data<M = members::Members>
-where
-    M: Storable
-        + StorableHint<ManualKey<{ STORAGE_KEY }>>
-        + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-{
+#[openbrush::upgradeable_storage(STORAGE_KEY)]
+pub struct Data {
     pub admin_roles: Mapping<RoleType, RoleType, ValueGuard<RoleType>>,
-    pub members: M,
+    pub members: Mapping<(RoleType, AccountId), (), MembersKey>,
     pub _reserved: Option<()>,
 }
 
-#[cfg(feature = "upgradeable")]
-pub type DataType<M> = Lazy<Data<M>>;
-#[cfg(not(feature = "upgradeable"))]
-pub type DataType<M> = Data<M>;
+pub struct MembersKey;
+
+impl<'a> TypeGuard<'a> for MembersKey {
+    type Type = &'a (RoleType, &'a AccountId);
+}
 
 pub const DEFAULT_ADMIN_ROLE: RoleType = 0;
 
 /// Modifier that checks that `caller` has a specific role.
 #[modifier_definition]
-pub fn only_role<T, M, F, R, E>(instance: &mut T, body: F, role: RoleType) -> Result<R, E>
+pub fn only_role<T, F, R, E>(instance: &mut T, body: F, role: RoleType) -> Result<R, E>
 where
-    M: members::MembersManager,
-    M: Storable
-        + StorableHint<ManualKey<{ STORAGE_KEY }>>
-        + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-    T: Storage<DataType<M>>,
-    T: StorageAccess<Data<M>>,
+    T: Storage<Data> + Internal,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<AccessControlError>,
 {
-    if let Err(err) = check_role(instance, role, T::env().caller()) {
+    if let Err(err) = instance._check_role(role, T::env().caller()) {
         return Err(From::from(err))
     }
     body(instance)
 }
 
-impl<T, M> AccessControl for T
-where
-    M: members::MembersManager,
-    M: Storable
-        + StorableHint<ManualKey<{ STORAGE_KEY }>>
-        + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-    T: Storage<DataType<M>>,
-    T: StorageAccess<Data<M>>,
-{
-    default fn has_role(&self, role: RoleType, address: AccountId) -> bool {
-        self.data().members.has_role(role, &address)
+pub trait AccessControlImpl: Internal + Storage<Data> + MembersManager {
+    fn has_role(&self, role: RoleType, address: AccountId) -> bool {
+        self._has_role(role, &address)
     }
 
-    default fn get_role_admin(&self, role: RoleType) -> RoleType {
-        get_role_admin(self, role)
+    fn get_role_admin(&self, role: RoleType) -> RoleType {
+        self._get_role_admin(role)
     }
 
-    #[modifiers(only_role(get_role_admin(self, role)))]
-    default fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
-        if self.data().members.has_role(role, &account) {
+    #[modifiers(only_role(self.get_role_admin(role)))]
+    fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+        if self._has_role(role, &account) {
             return Err(AccessControlError::RoleRedundant)
         }
-        self.data().members.add(role, &account);
-        self._emit_role_granted(role, account, Some(T::env().caller()));
+        self._add(role, &account);
+        self._emit_role_granted(role, account, Some(Self::env().caller()));
         Ok(())
     }
 
-    #[modifiers(only_role(get_role_admin(self, role)))]
-    default fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
-        check_role(self, role, account)?;
+    #[modifiers(only_role(self.get_role_admin(role)))]
+    fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+        self._check_role(role, account)?;
         self._do_revoke_role(role, account);
         Ok(())
     }
 
-    default fn renounce_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+    fn renounce_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
         if Self::env().caller() != account {
             return Err(AccessControlError::InvalidCaller)
         }
-        check_role(self, role, account)?;
+        self._check_role(role, account)?;
         self._do_revoke_role(role, account);
         Ok(())
+    }
+}
+
+pub trait MembersManager {
+    fn _has_role(&self, role: RoleType, address: &AccountId) -> bool;
+
+    fn _add(&mut self, role: RoleType, member: &AccountId);
+
+    fn _remove(&mut self, role: RoleType, member: &AccountId);
+}
+
+pub trait MembersManagerImpl: Storage<Data> {
+    fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
+        self.data().members.contains(&(role, address))
+    }
+
+    fn _add(&mut self, role: RoleType, member: &AccountId) {
+        self.data().members.insert(&(role, member), &());
+    }
+
+    fn _remove(&mut self, role: RoleType, member: &AccountId) {
+        self.data().members.remove(&(role, member));
     }
 }
 
 pub trait Internal {
     /// The user must override those methods using their event definition.
     fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType);
+
     fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>);
+
     fn _emit_role_revoked(&mut self, _role: RoleType, _account: AccountId, _sender: AccountId);
 
     fn _default_admin() -> RoleType;
@@ -148,82 +147,66 @@ pub trait Internal {
     fn _do_revoke_role(&mut self, role: RoleType, account: AccountId);
 
     fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType);
+
+    fn _check_role(&self, role: RoleType, account: AccountId) -> Result<(), AccessControlError>;
+
+    fn _get_role_admin(&self, role: RoleType) -> RoleType;
 }
 
-impl<T, M> Internal for T
-where
-    M: members::MembersManager,
-    M: Storable
-        + StorableHint<ManualKey<{ STORAGE_KEY }>>
-        + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-    T: Storage<DataType<M>>,
-    T: StorageAccess<Data<M>>,
-{
-    default fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {}
-    default fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {}
-    default fn _emit_role_revoked(&mut self, _role: RoleType, _account: AccountId, _sender: AccountId) {}
+pub trait InternalImpl: Internal + Storage<Data> + MembersManager {
+    fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {}
 
-    default fn _default_admin() -> RoleType {
+    fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {}
+
+    fn _emit_role_revoked(&mut self, _role: RoleType, _account: AccountId, _sender: AccountId) {}
+
+    fn _default_admin() -> RoleType {
         DEFAULT_ADMIN_ROLE
     }
 
-    default fn _init_with_caller(&mut self) {
+    fn _init_with_caller(&mut self) {
         let caller = Self::env().caller();
-        self._init_with_admin(caller);
+        Internal::_init_with_admin(self, caller);
     }
 
-    default fn _init_with_admin(&mut self, admin: AccountId) {
-        self._setup_role(Self::_default_admin(), admin);
+    fn _init_with_admin(&mut self, admin: AccountId) {
+        Internal::_setup_role(self, <Self as Internal>::_default_admin(), admin);
     }
 
-    default fn _setup_role(&mut self, role: RoleType, member: AccountId) {
-        if !self.data().members.has_role(role, &member) {
-            self.data().members.add(role, &member);
+    fn _setup_role(&mut self, role: RoleType, member: AccountId) {
+        if !self._has_role(role, &member) {
+            self._add(role, &member);
 
-            self._emit_role_granted(role, member, None);
+            Internal::_emit_role_granted(self, role, member, None);
         }
     }
 
-    default fn _do_revoke_role(&mut self, role: RoleType, account: AccountId) {
-        self.data().members.remove(role, &account);
-        self._emit_role_revoked(role, account, Self::env().caller());
+    fn _do_revoke_role(&mut self, role: RoleType, account: AccountId) {
+        self._remove(role, &account);
+        Internal::_emit_role_revoked(self, role, account, Self::env().caller());
     }
 
-    default fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType) {
+    fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType) {
         let mut entry = self.data().admin_roles.get(role);
         if entry.is_none() {
-            entry = Some(Self::_default_admin());
+            entry = Some(<Self as Internal>::_default_admin());
         }
         let old_admin = entry.unwrap();
         self.data().admin_roles.insert(role, &new_admin);
-        self._emit_role_admin_changed(role, old_admin, new_admin);
+        Internal::_emit_role_admin_changed(self, role, old_admin, new_admin);
     }
-}
 
-pub fn check_role<T, M>(instance: &T, role: RoleType, account: AccountId) -> Result<(), AccessControlError>
-where
-    M: members::MembersManager,
-    M: Storable
-        + StorableHint<ManualKey<{ STORAGE_KEY }>>
-        + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-    T: Storage<DataType<M>>,
-    T: StorageAccess<Data<M>>,
-{
-    if !instance.data().members.has_role(role, &account) {
-        return Err(AccessControlError::MissingRole)
+    fn _check_role(&self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+        if !self._has_role(role, &account) {
+            return Err(AccessControlError::MissingRole)
+        }
+        Ok(())
     }
-    Ok(())
-}
 
-pub fn get_role_admin<T, M>(instance: &T, role: RoleType) -> RoleType
-where
-    M: members::MembersManager,
-    M: Storable
-        + StorableHint<ManualKey<{ STORAGE_KEY }>>
-        + AutoStorableHint<ManualKey<3218979580, ManualKey<{ STORAGE_KEY }>>, Type = M>,
-    T: Storage<DataType<M>>,
-    T: StorageAccess<Data<M>>,
-    T: Internal,
-{
-    instance.data().admin_roles.get(role).unwrap_or(T::_default_admin())
+    fn _get_role_admin(&self, role: RoleType) -> RoleType {
+        self.data()
+            .admin_roles
+            .get(role)
+            .unwrap_or(<Self as Internal>::_default_admin())
+    }
 }

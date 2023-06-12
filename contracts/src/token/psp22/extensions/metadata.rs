@@ -27,22 +27,18 @@ pub use crate::{
         *,
     },
 };
-use openbrush::storage::Lazy;
-
-use openbrush::traits::{
-    Storage,
-    StorageAccess,
-    String,
-};
+use openbrush::traits::Storage;
+pub use openbrush::traits::String;
 pub use psp22::{
     Internal as _,
-    Transfer as _,
+    InternalImpl as _,
+    *,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
-#[openbrush::storage_item(STORAGE_KEY)]
+#[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
     pub name: Option<String>,
     pub symbol: Option<String>,
@@ -50,21 +46,16 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
-#[cfg(not(feature = "upgradeable"))]
-pub type DataType = Data;
-#[cfg(feature = "upgradeable")]
-pub type DataType = Lazy<Data>;
-
-impl<T: Storage<DataType> + StorageAccess<Data>> PSP22Metadata for T {
-    default fn token_name(&self) -> Option<String> {
-        self.data().get_or_default().name.clone()
+pub trait PSP22MetadataImpl: Storage<Data> {
+    fn token_name(&self) -> Option<String> {
+        self.data().name.clone()
     }
 
-    default fn token_symbol(&self) -> Option<String> {
-        self.data().get_or_default().symbol.clone()
+    fn token_symbol(&self) -> Option<String> {
+        self.data().symbol.clone()
     }
 
-    default fn token_decimals(&self) -> u8 {
-        self.data().get_or_default().decimals.clone()
+    fn token_decimals(&self) -> u8 {
+        self.data().decimals.clone()
     }
 }

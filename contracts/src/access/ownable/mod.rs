@@ -67,13 +67,13 @@ where
     body(instance)
 }
 
-impl<T: Storage<Data>> Ownable for T {
-    default fn owner(&self) -> AccountId {
+pub trait OwnableImpl: Storage<Data> + Internal {
+    fn owner(&self) -> AccountId {
         self.data().owner.clone()
     }
 
     #[modifiers(only_owner)]
-    default fn renounce_ownership(&mut self) -> Result<(), OwnableError> {
+    fn renounce_ownership(&mut self) -> Result<(), OwnableError> {
         let old_owner = self.data().owner.clone();
         self.data().owner = ZERO_ADDRESS.into();
         self._emit_ownership_transferred_event(Some(old_owner), None);
@@ -81,7 +81,7 @@ impl<T: Storage<Data>> Ownable for T {
     }
 
     #[modifiers(only_owner)]
-    default fn transfer_ownership(&mut self, new_owner: AccountId) -> Result<(), OwnableError> {
+    fn transfer_ownership(&mut self, new_owner: AccountId) -> Result<(), OwnableError> {
         if new_owner.is_zero() {
             return Err(OwnableError::NewOwnerIsZero)
         }
@@ -99,11 +99,11 @@ pub trait Internal {
     fn _init_with_owner(&mut self, owner: AccountId);
 }
 
-impl<T: Storage<Data>> Internal for T {
-    default fn _emit_ownership_transferred_event(&self, _previous: Option<AccountId>, _new: Option<AccountId>) {}
+pub trait InternalImpl: Storage<Data> + Internal {
+    fn _emit_ownership_transferred_event(&self, _previous: Option<AccountId>, _new: Option<AccountId>) {}
 
-    default fn _init_with_owner(&mut self, owner: AccountId) {
+    fn _init_with_owner(&mut self, owner: AccountId) {
         self.data().owner = owner;
-        self._emit_ownership_transferred_event(None, Some(owner));
+        Internal::_emit_ownership_transferred_event(self, None, Some(owner));
     }
 }

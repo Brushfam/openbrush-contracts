@@ -14,7 +14,6 @@ Use `openbrush::contract` macro instead of `ink::contract`. Import **everything*
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_psp34_metadata {
@@ -69,7 +68,6 @@ impl Contract {
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod my_psp34_metadata {

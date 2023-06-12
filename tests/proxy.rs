@@ -19,7 +19,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![feature(min_specialization)]
 #[cfg(feature = "proxy")]
 #[openbrush::contract]
 mod proxy {
@@ -72,11 +71,7 @@ mod proxy {
     impl Proxy for MyProxy {}
 
     impl proxy::Internal for MyProxy {
-        default fn _emit_delegate_code_changed_event(
-            &self,
-            previous_code_hash: Option<Hash>,
-            new_code_hash: Option<Hash>,
-        ) {
+        fn _emit_delegate_code_changed_event(&self, previous_code_hash: Option<Hash>, new_code_hash: Option<Hash>) {
             self.env().emit_event(CodeHashChanged {
                 previous_code_hash,
                 new_code_hash,

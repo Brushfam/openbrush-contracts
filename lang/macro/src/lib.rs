@@ -24,7 +24,9 @@
 use proc_macro::TokenStream;
 
 use openbrush_lang_codegen::{
+    accessors,
     contract,
+    implementation,
     modifier_definition,
     modifiers,
     storage,
@@ -472,3 +474,88 @@ synstructure::decl_attribute!(
     /// Fields that are marked by `#[upgradeable_storage_field]` attribute will be wrapped in `openbrush::traits::Lazy`
     storage::storage
 );
+
+synstructure::decl_attribute!(
+    [accessors] =>
+    /// Macro that automatically implements accessors like get/set for struct fields, that implements scale::Encode
+    /// and scale::Decode traits. You should specify the getters trait naming in the macro's attribute.
+    /// Also, fields that you want getters to be generated, should be marked by `#[get]` attribute.
+    /// Fields, that you want setters to be generated, should be marked by `#[set]` attribute.
+    /// The name of the accessor message will be concatenation of `get/set` + `_` + field's name.
+    ///
+    /// # Example:
+    /// ```skip
+    /// {
+    ///     use openbrush::traits::Storage;
+    ///
+    ///     #[ink(storage)]
+    ///     #[derive(Storage, Default)]
+    ///     pub struct Contract {
+    ///         #[storage_field]
+    ///         some_struct: SomeStruct,
+    ///     }
+    ///
+    ///     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(SomeStruct);
+    ///
+    ///     #[openbrush::upgradeable_storage(STORAGE_KEY)]
+    ///     #[openbrush::accessors(SomeStructGetters)]
+    ///     #[derive(Default)]
+    ///     pub struct SomeStruct {
+    ///         #[get]
+    ///         a: u32,
+    ///         b: u32,
+    ///         #[set]
+    ///         c: u32,
+    ///     }
+    ///
+    ///     impl SomeStructGetters for Contract {}
+    /// }
+    /// ```
+    accessors::accessors
+);
+
+/// This macro implements the default traits defined in OpenBrush, while also allowing users
+/// to override them with `#[overriders]` attribute
+///
+/// # Example
+///
+/// ```
+/// #[implementation(PSP22)]
+/// #[openbrush::contract]
+/// pub mod MyInkToken {
+///     use openbrush::traits::Storage;
+///
+///     #[ink(storage)]
+///     #[derive(Storage)]
+///     pub struct MyInkToken {
+///         #[storage_field]
+///         psp22: psp22::Data
+///     }
+///
+///     // this will override a function from psp22::Internal
+///     #[overrider(psp22::Internal)]
+///     fn _before_token_transfer(
+///         &mut self,
+///         from: Option<&AccountId>,
+///         to: Option<&AccountId>,
+///         amount: &Balance,
+///     ) -> Result<(), PSP22Error> {
+///         // here we can change the behavior before token transfer
+///         Ok(())
+///     }
+///
+///     // this will override a function from PSP22
+///     #[overrider(PSP22)]
+///     fn balance_of(&self, owner: AccountId) -> Balance {
+///          // here we can change the behavior of balance_of
+///     }
+///
+///     impl Contract {
+///         // we can add constructor and other messages
+///     }
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn implementation(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
+    implementation::generate(attrs.into(), ink_module.into()).into()
+}

@@ -466,6 +466,91 @@ pub(crate) fn impl_flashmint(
     items.push(syn::Item::Impl(flashlender));
 }
 
+pub(crate) fn impl_token_timelock(
+    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+) {
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl token_timelock::InternalImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl token_timelock::Internal for Contract {
+            fn _withdraw(&mut self, amount: Balance) -> Result<(), PSP22TokenTimelockError> {
+                token_timelock::InternalImpl::_withdraw(self, amount)
+            }
+
+            fn _contract_balance(&mut self) -> Balance {
+                token_timelock::InternalImpl::_contract_balance(self)
+            }
+
+            fn _init(
+                &mut self,
+                token: AccountId,
+                beneficiary: AccountId,
+                release_time: Timestamp,
+            ) -> Result<(), PSP22TokenTimelockError> {
+                token_timelock::InternalImpl::_init(self, token, beneficiary, release_time)
+            }
+
+            fn _token(&mut self) -> &mut PSP22Ref {
+                token_timelock::InternalImpl::_token(self)
+            }
+
+            fn _beneficiary(&self) -> AccountId {
+                token_timelock::InternalImpl::_beneficiary(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let timelock_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP22TokenTimelockImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut timelock = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP22TokenTimelock for Contract {
+            #[ink(message)]
+            fn token(&self) -> AccountId {
+                PSP22TokenTimelockImpl::token(self)
+            }
+
+            #[ink(message)]
+            fn beneficiary(&self) -> AccountId {
+                PSP22TokenTimelockImpl::beneficiary(self)
+            }
+
+            #[ink(message)]
+            fn release_time(&self) -> Timestamp {
+                PSP22TokenTimelockImpl::release_time(self)
+            }
+
+            #[ink(message)]
+            fn release(&mut self) -> Result<(), PSP22TokenTimelockError> {
+                PSP22TokenTimelockImpl::release(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp22::utils::token_timelock::*;
+    ))
+    .expect("Should parse");
+    imports.insert("PSP22TokenTimelock", import);
+
+    override_functions("token_timelock::Internal", &mut internal, &map);
+    override_functions("PSP22TokenTimelock", &mut timelock, &map);
+
+    items.push(syn::Item::Impl(internal_impl));
+    items.push(syn::Item::Impl(internal));
+    items.push(syn::Item::Impl(timelock_impl));
+    items.push(syn::Item::Impl(timelock));
+}
+
 fn override_functions(
     trait_name: &str,
     implementation: &mut syn::ItemImpl,

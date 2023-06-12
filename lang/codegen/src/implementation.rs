@@ -80,6 +80,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "PSP22Capped" => impl_psp22_capped(&map, &mut items, &mut imports),
             "PSP22Wrapper" => impl_psp22_wrapper(&map, &mut items, &mut imports),
             "Flashmint" => impl_flashmint(&map, &mut items, &mut imports),
+            "PSP22TokenTimelock" => impl_token_timelock(&map, &mut items, &mut imports),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }

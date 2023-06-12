@@ -39,7 +39,6 @@ process_directory() {
     cargo contract build --release || exit
 
     echo "Running e2e-tests in $dir"
-    cargo test --features e2e-tests --release
     cargo test --features e2e-tests --release || exit
 
     cd - || exit

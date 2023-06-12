@@ -12,16 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install stable
+      - name: Install nightly
+      # we use nightly because of nice formatting option :)
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           override: true
           components: rustfmt
           default: true
 
       - name: Rustfmt check
-        run: cargo fmt --all -- --check
+        run: cargo +nightly fmt --all -- --check
   unit-test:
     concurrency:
       group: unit-test-${{ github.ref }}

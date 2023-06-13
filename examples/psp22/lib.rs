@@ -1,4 +1,5 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 pub use my_psp22::*;
 
@@ -9,19 +10,20 @@ pub mod my_psp22 {
         Storage,
         String,
     };
+    use openbrush::storage::Lazy;
 
     #[ink(storage)]
-    #[derive(Storage)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         psp22: psp22::Data,
-        #[storage_field]
+        // #[storage_field]
         hated_storage: HatedStorage,
     }
 
     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
 
-    #[openbrush::upgradeable_storage(STORAGE_KEY)]
+    #[openbrush::storage_item(STORAGE_KEY)]
     #[openbrush::accessors(HatedStorageAccessors)]
     #[derive(Debug)]
     pub struct HatedStorage {

@@ -97,6 +97,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "PSP37Metadata" => impl_psp37_metadata(&map, &mut items, &mut imports),
             "PSP37Mintable" => impl_psp37_mintable(&map, &mut items, &mut imports),
             "PSP37Enumerable" => impl_psp37_enumerable(&map, &mut items, &mut imports, &mut overriden_traits),
+            "Ownable" => impl_ownable(&map, &mut items, &mut imports),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }

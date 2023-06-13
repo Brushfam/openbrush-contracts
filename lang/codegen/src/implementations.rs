@@ -1599,7 +1599,69 @@ pub(crate) fn impl_psp37_enumerable(
     items.push(syn::Item::Impl(psp37_enumerable));
 }
 
+pub(crate) fn impl_ownable(
+    map: &OverridenFnMap,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl ownable::InternalImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl ownable::Internal for Contract {
+            fn _emit_ownership_transferred_event(&self, previous: Option<AccountId>, new: Option<AccountId>) {
+                ownable::InternalImpl::_emit_ownership_transferred_event(self, previous, new)
+            }
+
+            fn _init_with_owner(&mut self, owner: AccountId) {
+                ownable::InternalImpl::_init_with_owner(self, owner)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let ownable_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl OwnableImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut ownable = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Ownable for Contract {
+            #[ink(message)]
+            fn owner(&self) -> AccountId {
+                OwnableImpl::owner(self)
+            }
+
+            #[ink(message)]
+            fn renounce_ownership(&mut self) -> Result<(), OwnableError> {
+                OwnableImpl::renounce_ownership(self)
+            }
+
+            #[ink(message)]
+            fn transfer_ownership(&mut self, new_owner: AccountId) -> Result<(), OwnableError> {
+                OwnableImpl::transfer_ownership(self, new_owner)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::ownable::*;
+    ))
+    .expect("Should parse");
+    imports.insert("Ownable", import);
+
+    override_functions("ownable::Internal", &mut internal, &map);
+    override_functions("Ownable", &mut ownable, &map);
+
+    items.push(syn::Item::Impl(internal_impl));
+    items.push(syn::Item::Impl(internal));
+    items.push(syn::Item::Impl(ownable_impl));
+    items.push(syn::Item::Impl(ownable));
+}
+
 fn override_functions(trait_name: &str, implementation: &mut syn::ItemImpl, map: &OverridenFnMap) {
     if let Some(overrides) = map.get(trait_name) {
         // we will find which fns we wanna override

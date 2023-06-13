@@ -547,7 +547,6 @@ synstructure::decl_attribute!(
 ///         amount: &Balance,
 ///     ) -> Result<(), PSP22Error> {
 ///         // here we can change the behavior before token transfer
-///         Ok(())
 ///     }
 ///
 ///     // this will override a function from PSP22
@@ -558,16 +557,11 @@ synstructure::decl_attribute!(
 ///
 ///     // this will keep the default implementation of this method,
 ///     // however, it will add the modifier (and possibly other attributes defined by user)
-///     // to the function
+///     // to the function. In this case, we don't even have to worry about the attributes and 
+///     // return type of the function
 ///     #[default_impl(PSP22)]
 ///     #[modifiers(...)]
-///     fn transfer_from(
-///         &mut self,
-///         from: AccountId,
-///         to: AccountId,
-///         value: Balance,
-///         data: Vec<u8>,
-///     ) -> Result<(), PSP22Error> {}
+///     fn transfer_from() {}
 ///
 ///     impl Contract {
 ///         // we can add constructor and other messages

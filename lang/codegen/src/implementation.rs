@@ -31,7 +31,6 @@ use quote::{
 };
 use std::collections::HashMap;
 use syn::{
-    Block,
     Item,
     Path,
 };
@@ -163,21 +162,29 @@ fn check_and_remove_import(name_to_check: &str, to_check: Vec<&str>, imports: &m
 
 // this method consumes override annotated methods and returns them mapped to code and the mod without them
 // we will later override the methods
-fn consume_overriders(items: Vec<syn::Item>) -> (HashMap<String, Vec<(String, Box<Block>)>>, Vec<syn::Item>) {
+fn consume_overriders(items: Vec<syn::Item>) -> (OverridenFnMap, Vec<syn::Item>) {
     let mut map = HashMap::new();
     let mut result: Vec<syn::Item> = vec![];
     items.into_iter().for_each(|mut item| {
         if let Item::Fn(item_fn) = &mut item {
-            if is_attr(&item_fn.attrs, "overrider") {
+            if is_attr(&item_fn.attrs, "overrider") || is_attr(&item_fn.attrs, "default_impl") {
+                let attr_name = if is_attr(&item_fn.attrs, "overrider") {
+                    "overrider"
+                } else {
+                    "default_impl"
+                };
                 let fn_name = item_fn.sig.ident.to_string();
                 let code = item_fn.block.clone();
+                let mut attributes = item_fn.attrs.clone();
 
-                let trait_name = item_fn
-                    .attrs
-                    .clone()
-                    .into_iter()
-                    .find(|attr| is_attr(&vec![attr.clone()], "overrider"))
-                    .expect("No overrider attribute found!")
+                // we will remove the overrider attribute since some other attributes might be interesting to us
+                let to_remove_idx = attributes
+                    .iter()
+                    .position(|attr| is_attr(&vec![attr.clone()], attr_name))
+                    .expect("No {attr_name} attribute found!");
+                let overrider_attribute = attributes.remove(to_remove_idx);
+
+                let trait_name = overrider_attribute
                     .parse_args::<Path>()
                     .expect("Expected overriden trait identifier")
                     .to_token_stream()
@@ -185,7 +192,7 @@ fn consume_overriders(items: Vec<syn::Item>) -> (HashMap<String, Vec<(String, Bo
                     .replace(" ", "");
 
                 let mut vec = map.get(&trait_name).unwrap_or(&vec![]).clone();
-                vec.push((fn_name, code));
+                vec.push((fn_name, (code, attributes, attr_name == "default_impl")));
                 map.insert(trait_name, vec.to_vec());
             } else {
                 result.push(item);

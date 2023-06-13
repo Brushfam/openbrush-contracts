@@ -2,11 +2,10 @@ use quote::quote;
 use std::collections::HashMap;
 use syn::Block;
 
-pub(crate) fn impl_psp22(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub type IsDefault = bool;
+pub type OverridenFnMap = HashMap<String, Vec<(String, (Box<Block>, Vec<syn::Attribute>, IsDefault))>>;
+
+pub(crate) fn impl_psp22(map: &OverridenFnMap, items: &mut Vec<syn::Item>, imports: &mut HashMap<&str, syn::ItemUse>) {
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl psp22::InternalImpl for Contract {}
     ))
@@ -154,7 +153,7 @@ pub(crate) fn impl_psp22(
 }
 
 pub(crate) fn impl_psp22_mintable(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -186,7 +185,7 @@ pub(crate) fn impl_psp22_mintable(
 }
 
 pub(crate) fn impl_psp22_burnable(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -218,7 +217,7 @@ pub(crate) fn impl_psp22_burnable(
 }
 
 pub(crate) fn impl_psp22_metadata(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -260,7 +259,7 @@ pub(crate) fn impl_psp22_metadata(
 }
 
 pub(crate) fn impl_psp22_capped(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -317,7 +316,7 @@ pub(crate) fn impl_psp22_capped(
 }
 
 pub(crate) fn impl_psp22_wrapper(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -391,7 +390,7 @@ pub(crate) fn impl_psp22_wrapper(
 }
 
 pub(crate) fn impl_flashmint(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -467,7 +466,7 @@ pub(crate) fn impl_flashmint(
 }
 
 pub(crate) fn impl_token_timelock(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -552,7 +551,7 @@ pub(crate) fn impl_token_timelock(
 }
 
 pub(crate) fn impl_psp22_pallet(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -667,7 +666,7 @@ pub(crate) fn impl_psp22_pallet(
 }
 
 pub(crate) fn impl_psp22_pallet_burnable(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -699,7 +698,7 @@ pub(crate) fn impl_psp22_pallet_burnable(
 }
 
 pub(crate) fn impl_psp22_pallet_metadata(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -741,7 +740,7 @@ pub(crate) fn impl_psp22_pallet_metadata(
 }
 
 pub(crate) fn impl_psp22_pallet_mintable(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -773,7 +772,7 @@ pub(crate) fn impl_psp22_pallet_mintable(
 }
 
 pub(crate) fn impl_psp34(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
     overriden_traits: &mut HashMap<&str, syn::Item>,
@@ -936,7 +935,7 @@ pub(crate) fn impl_psp34(
 }
 
 pub(crate) fn impl_psp34_burnable(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -968,7 +967,7 @@ pub(crate) fn impl_psp34_burnable(
 }
 
 pub(crate) fn impl_psp34_mintable(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -1000,7 +999,7 @@ pub(crate) fn impl_psp34_mintable(
 }
 
 pub(crate) fn impl_psp34_metadata(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -1053,7 +1052,7 @@ pub(crate) fn impl_psp34_metadata(
 }
 
 pub(crate) fn impl_psp34_enumerable(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
     overriden_traits: &mut HashMap<&str, syn::Item>,
@@ -1122,7 +1121,7 @@ pub(crate) fn impl_psp34_enumerable(
 }
 
 pub(crate) fn impl_psp37(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
     overriden_traits: &mut HashMap<&str, syn::Item>,
@@ -1329,7 +1328,7 @@ pub(crate) fn impl_psp37(
 }
 
 pub(crate) fn impl_psp37_batch(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -1400,7 +1399,7 @@ pub(crate) fn impl_psp37_batch(
 }
 
 pub(crate) fn impl_psp37_burnable(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -1432,7 +1431,7 @@ pub(crate) fn impl_psp37_burnable(
 }
 
 pub(crate) fn impl_psp37_metadata(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -1489,7 +1488,7 @@ pub(crate) fn impl_psp37_metadata(
 }
 
 pub(crate) fn impl_psp37_mintable(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
 ) {
@@ -1521,7 +1520,7 @@ pub(crate) fn impl_psp37_mintable(
 }
 
 pub(crate) fn impl_psp37_enumerable(
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    map: &OverridenFnMap,
     items: &mut Vec<syn::Item>,
     imports: &mut HashMap<&str, syn::ItemUse>,
     overriden_traits: &mut HashMap<&str, syn::Item>,
@@ -1600,18 +1599,18 @@ pub(crate) fn impl_psp37_enumerable(
     items.push(syn::Item::Impl(psp37_enumerable));
 }
 
-fn override_functions(
-    trait_name: &str,
-    implementation: &mut syn::ItemImpl,
-    map: &HashMap<String, Vec<(String, Box<Block>)>>,
 ) {
+fn override_functions(trait_name: &str, implementation: &mut syn::ItemImpl, map: &OverridenFnMap) {
     if let Some(overrides) = map.get(trait_name) {
         // we will find which fns we wanna override
-        for (fn_name, fn_code) in overrides {
+        for (fn_name, (fn_code, attributes, is_default)) in overrides {
             for item in implementation.items.iter_mut() {
                 if let syn::ImplItem::Method(method) = item {
                     if &method.sig.ident.to_string() == fn_name {
-                        method.block = *fn_code.clone();
+                        if !is_default {
+                            method.block = *fn_code.clone();
+                        }
+                        method.attrs.append(&mut attributes.to_vec());
                     }
                 }
             }

@@ -2291,6 +2291,160 @@ pub(crate) fn impl_proxy(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(proxy));
 }
 
+pub(crate) fn impl_diamond(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl diamond::InternalImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl diamond::Internal for #storage_struct_name {
+            fn _emit_diamond_cut_event(&self, diamond_cut: &Vec<FacetCut>, init: &Option<InitCall>) {
+                diamond::InternalImpl::_emit_diamond_cut_event(self, diamond_cut, init)
+            }
+
+            fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
+                diamond::InternalImpl::_diamond_cut(self, diamond_cut, init)
+            }
+
+            fn _diamond_cut_facet(&mut self, facet_cut: &FacetCut) -> Result<(), DiamondError> {
+                diamond::InternalImpl::_diamond_cut_facet(self, facet_cut)
+            }
+
+            fn _fallback(&self) -> ! {
+                diamond::InternalImpl::_fallback(self)
+            }
+
+            fn _init_call(&self, call: InitCall) -> ! {
+                diamond::InternalImpl::_init_call(self, call)
+            }
+
+            fn _remove_facet(&mut self, code_hash: Hash) {
+                diamond::InternalImpl::_remove_facet(self, code_hash)
+            }
+
+            fn _remove_selectors(&mut self, facet_cut: &FacetCut) {
+                diamond::InternalImpl::_remove_selectors(self, facet_cut)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let diamond_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl DiamondImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let mut diamond = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Diamond for #storage_struct_name {
+            #[ink(message)]
+            fn diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
+                DiamondImpl::diamond_cut(self, diamond_cut, init)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let mut cut = syn::parse2::<syn::ItemImpl>(quote!(
+        impl diamond::DiamondCut for #storage_struct_name {
+            fn _on_add_facet(&mut self, _code_hash: Hash) {}
+
+            fn _on_remove_facet(&mut self, _code_hash: Hash) {}
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::diamond::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("Diamond", import);
+
+    override_functions("DiamondCut", &mut cut, &impl_args.map);
+    override_functions("diamond::Internal", &mut internal, &impl_args.map);
+    override_functions("Diamond", &mut diamond, &impl_args.map);
+
+    // only insert this if it is not present
+    impl_args
+        .overriden_traits
+        .entry("diamond::DiamondCut")
+        .or_insert(syn::Item::Impl(cut));
+
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(diamond_impl));
+    impl_args.items.push(syn::Item::Impl(diamond));
+}
+
+pub(crate) fn impl_diamond_loupe(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let loupe_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl DiamondLoupeImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let mut loupe = syn::parse2::<syn::ItemImpl>(quote!(
+        impl DiamondLoupe for #storage_struct_name {
+            #[ink(message)]
+            fn facets(&self) -> Vec<FacetCut> {
+                diamond_loupe::DiamondLoupeImpl::facets(self)
+            }
+
+            #[ink(message)]
+            fn facet_function_selectors(&self, facet: Hash) -> Vec<Selector> {
+                diamond_loupe::DiamondLoupeImpl::facet_function_selectors(self, facet)
+            }
+
+            #[ink(message)]
+            fn facet_code_hashes(&self) -> Vec<Hash> {
+                diamond_loupe::DiamondLoupeImpl::facet_code_hashes(self)
+            }
+
+            #[ink(message)]
+            fn facet_code_hash(&self, selector: Selector) -> Option<Hash> {
+                diamond_loupe::DiamondLoupeImpl::facet_code_hash(self, selector)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let cut_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl diamond_loupe::DiamondCutLoupeImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let mut cut = syn::parse2::<syn::ItemImpl>(quote!(
+        impl diamond::DiamondCut for #storage_struct_name {
+            fn _on_add_facet(&mut self, code_hash: Hash) {
+                diamond_loupe::DiamondCutLoupeImpl::_on_add_facet(self, code_hash)
+            }
+
+            fn _on_remove_facet(&mut self, code_hash: Hash) {
+                diamond_loupe::DiamondCutLoupeImpl::_on_remove_facet(self, code_hash)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::diamond::extensions::diamond_loupe::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("DiamondLoupe", import);
+
+    override_functions("diamond::DiamondCut", &mut cut, &impl_args.map);
+    override_functions("DiamondLoupe", &mut loupe, &impl_args.map);
+
+    impl_args
+        .overriden_traits
+        .insert("diamond::DiamondCut", syn::Item::Impl(cut));
+
+    impl_args.items.push(syn::Item::Impl(cut_impl));
+    impl_args.items.push(syn::Item::Impl(loupe_impl));
+    impl_args.items.push(syn::Item::Impl(loupe));
+}
+
 fn override_functions(trait_name: &str, implementation: &mut syn::ItemImpl, map: &OverridenFnMap) {
     if let Some(overrides) = map.get(trait_name) {
         // we will find which fns we wanna override

@@ -74,7 +74,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     // if multiple contracts are using the same trait implemented differently we override it this way
     let mut overriden_traits = HashMap::<&str, syn::Item>::default();
 
-    let mut impl_args = ImplArgs::new(&map, &mut items, &mut imports, &mut overriden_traits,ident);
+    let mut impl_args = ImplArgs::new(&map, &mut items, &mut imports, &mut overriden_traits, ident);
 
     for to_implement in args {
         match to_implement.as_str() {
@@ -108,6 +108,8 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "Pausable" => impl_pausable(&mut impl_args),
             "TimelockController" => impl_timelock_controller(&mut impl_args),
             "Proxy" => impl_proxy(&mut impl_args),
+            "Diamond" => impl_diamond(&mut impl_args),
+            "DiamondLoupe" => impl_diamond_loupe(&mut impl_args),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }
@@ -166,14 +168,13 @@ fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
 
     let access_impls = vec!["AccessControlEnumerable", "TimelockController"];
     check_and_remove_import("AccessControl", access_impls, imports);
+
+    check_and_remove_import("Diamond", vec!["DiamondLoupe"], imports);
 }
 
 fn check_and_remove_import(name_to_check: &str, to_check: Vec<&str>, imports: &mut HashMap<&str, syn::ItemUse>) {
     if to_check.iter().any(|name| imports.contains_key(name)) {
-        imports.remove(name_to_check).expect(
-            format!("Trying to implement a {name_to_check} extension without a {name_to_check} implementation!")
-                .as_str(),
-        );
+        imports.remove(name_to_check);
     }
 }
 

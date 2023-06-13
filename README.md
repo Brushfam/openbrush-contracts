@@ -1,3 +1,9 @@
+## Important!
+OpenBrush currently works with rustc 1.69-nightly and cargo-contract v 2.2.1.
+
+However, work on a version which will work with latest stable Rust and latest cargo contract is in progress!
+
+
 # 
 
 ![OpenBrush](https://user-images.githubusercontent.com/88630083/218825486-accc2d8c-bc5c-4b92-a278-a5b9009fd6f5.png)

@@ -557,7 +557,7 @@ synstructure::decl_attribute!(
 ///
 ///     // this will keep the default implementation of this method,
 ///     // however, it will add the modifier (and possibly other attributes defined by user)
-///     // to the function. In this case, we don't even have to worry about the attributes and 
+///     // to the function. In this case, we don't even have to worry about the attributes and
 ///     // return type of the function
 ///     #[default_impl(PSP22)]
 ///     #[modifiers(...)]

@@ -64,6 +64,8 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
         }
     };
 
+    // name of struct for which we will implement the traits
+    let ident = extract_storage_struct_name(&items);
     // we will look for overriden functions and remove them from the mod
     let (map, mut items) = consume_overriders(items);
 
@@ -72,48 +74,50 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     // if multiple contracts are using the same trait implemented differently we override it this way
     let mut overriden_traits = HashMap::<&str, syn::Item>::default();
 
+    let mut impl_args = ImplArgs::new(&map, &mut items, &mut imports, &mut overriden_traits,ident);
+
     for to_implement in args {
         match to_implement.as_str() {
-            "PSP22" => impl_psp22(&map, &mut items, &mut imports),
-            "PSP22Mintable" => impl_psp22_mintable(&map, &mut items, &mut imports),
-            "PSP22Burnable" => impl_psp22_burnable(&map, &mut items, &mut imports),
-            "PSP22Metadata" => impl_psp22_metadata(&map, &mut items, &mut imports),
-            "PSP22Capped" => impl_psp22_capped(&map, &mut items, &mut imports),
-            "PSP22Wrapper" => impl_psp22_wrapper(&map, &mut items, &mut imports),
-            "Flashmint" => impl_flashmint(&map, &mut items, &mut imports),
-            "PSP22TokenTimelock" => impl_token_timelock(&map, &mut items, &mut imports),
-            "PSP22Pallet" => impl_psp22_pallet(&map, &mut items, &mut imports),
-            "PSP22PalletBurnable" => impl_psp22_pallet_burnable(&map, &mut items, &mut imports),
-            "PSP22PalletMetadata" => impl_psp22_pallet_metadata(&map, &mut items, &mut imports),
-            "PSP22PalletMintable" => impl_psp22_pallet_mintable(&map, &mut items, &mut imports),
-            "PSP34" => impl_psp34(&map, &mut items, &mut imports, &mut overriden_traits),
-            "PSP34Burnable" => impl_psp34_burnable(&map, &mut items, &mut imports),
-            "PSP34Mintable" => impl_psp34_mintable(&map, &mut items, &mut imports),
-            "PSP34Metadata" => impl_psp34_metadata(&map, &mut items, &mut imports),
-            "PSP34Enumerable" => impl_psp34_enumerable(&map, &mut items, &mut imports, &mut overriden_traits),
-            "PSP37" => impl_psp37(&map, &mut items, &mut imports, &mut overriden_traits),
-            "PSP37Batch" => impl_psp37_batch(&map, &mut items, &mut imports),
-            "PSP37Burnable" => impl_psp37_burnable(&map, &mut items, &mut imports),
-            "PSP37Metadata" => impl_psp37_metadata(&map, &mut items, &mut imports),
-            "PSP37Mintable" => impl_psp37_mintable(&map, &mut items, &mut imports),
-            "PSP37Enumerable" => impl_psp37_enumerable(&map, &mut items, &mut imports, &mut overriden_traits),
-            "Ownable" => impl_ownable(&map, &mut items, &mut imports),
-            "PaymentSplitter" => impl_payment_splitter(&map, &mut items, &mut imports),
-            "AccessControl" => impl_access_control(&map, &mut items, &mut imports, &mut overriden_traits),
-            "AccessControlEnumerable" => {
-                impl_access_control_enumerable(&map, &mut items, &mut imports, &mut overriden_traits)
-            }
-            "Pausable" => impl_pausable(&map, &mut items, &mut imports),
-            "TimelockController" => impl_timelock_controller(&map, &mut items, &mut imports),
+            "PSP22" => impl_psp22(&mut impl_args),
+            "PSP22Mintable" => impl_psp22_mintable(&mut impl_args),
+            "PSP22Burnable" => impl_psp22_burnable(&mut impl_args),
+            "PSP22Metadata" => impl_psp22_metadata(&mut impl_args),
+            "PSP22Capped" => impl_psp22_capped(&mut impl_args),
+            "PSP22Wrapper" => impl_psp22_wrapper(&mut impl_args),
+            "Flashmint" => impl_flashmint(&mut impl_args),
+            "PSP22TokenTimelock" => impl_token_timelock(&mut impl_args),
+            "PSP22Pallet" => impl_psp22_pallet(&mut impl_args),
+            "PSP22PalletBurnable" => impl_psp22_pallet_burnable(&mut impl_args),
+            "PSP22PalletMetadata" => impl_psp22_pallet_metadata(&mut impl_args),
+            "PSP22PalletMintable" => impl_psp22_pallet_mintable(&mut impl_args),
+            "PSP34" => impl_psp34(&mut impl_args),
+            "PSP34Burnable" => impl_psp34_burnable(&mut impl_args),
+            "PSP34Mintable" => impl_psp34_mintable(&mut impl_args),
+            "PSP34Metadata" => impl_psp34_metadata(&mut impl_args),
+            "PSP34Enumerable" => impl_psp34_enumerable(&mut impl_args),
+            "PSP37" => impl_psp37(&mut impl_args),
+            "PSP37Batch" => impl_psp37_batch(&mut impl_args),
+            "PSP37Burnable" => impl_psp37_burnable(&mut impl_args),
+            "PSP37Metadata" => impl_psp37_metadata(&mut impl_args),
+            "PSP37Mintable" => impl_psp37_mintable(&mut impl_args),
+            "PSP37Enumerable" => impl_psp37_enumerable(&mut impl_args),
+            "Ownable" => impl_ownable(&mut impl_args),
+            "PaymentSplitter" => impl_payment_splitter(&mut impl_args),
+            "AccessControl" => impl_access_control(&mut impl_args),
+            "AccessControlEnumerable" => impl_access_control_enumerable(&mut impl_args),
+            "Pausable" => impl_pausable(&mut impl_args),
+            "TimelockController" => impl_timelock_controller(&mut impl_args),
+            "Proxy" => impl_proxy(&mut impl_args),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }
 
-    cleanup_imports(&mut imports);
+    cleanup_imports(&mut impl_args.imports);
 
     // add the imports
-    items.append(
-        &mut imports
+    impl_args.items.append(
+        &mut impl_args
+            .imports
             .values()
             .cloned()
             .map(|item_use| syn::Item::Use(item_use))
@@ -121,7 +125,9 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     );
 
     // add overriden traits
-    items.append(&mut overriden_traits.values().cloned().map(|item| item).collect());
+    impl_args
+        .items
+        .append(&mut impl_args.overriden_traits.values().cloned().map(|item| item).collect());
 
     module.content = Some((braces.clone(), items));
 
@@ -214,4 +220,33 @@ fn consume_overriders(items: Vec<syn::Item>) -> (OverridenFnMap, Vec<syn::Item>)
     });
 
     (map, result)
+}
+
+fn extract_storage_struct_name(items: &Vec<syn::Item>) -> String {
+    let contract_storage_struct = items
+        .iter()
+        .filter(|item| {
+            if let Item::Struct(structure) = item {
+                let ink_attr_maybe = structure
+                    .attrs
+                    .iter()
+                    .cloned()
+                    .find(|attr| is_attr(&vec![attr.clone()], "ink"));
+
+                if let Some(ink_attr) = ink_attr_maybe {
+                    if let Ok(path) = ink_attr.parse_args::<Path>() {
+                        return path.to_token_stream().to_string() == "storage"
+                    }
+                }
+                false
+            } else {
+                false
+            }
+        })
+        .nth(0)
+        .expect("Contract storage struct not found!");
+    match contract_storage_struct {
+        Item::Struct(structure) => structure.ident.to_string(),
+        _ => unreachable!("Only Item::Struct allowed here"),
+    }
 }

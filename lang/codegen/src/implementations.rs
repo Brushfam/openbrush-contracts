@@ -1,18 +1,52 @@
-use quote::quote;
+use quote::{
+    format_ident,
+    quote,
+};
 use std::collections::HashMap;
 use syn::Block;
 
 pub type IsDefault = bool;
 pub type OverridenFnMap = HashMap<String, Vec<(String, (Box<Block>, Vec<syn::Attribute>, IsDefault))>>;
 
-pub(crate) fn impl_psp22(map: &OverridenFnMap, items: &mut Vec<syn::Item>, imports: &mut HashMap<&str, syn::ItemUse>) {
+pub struct ImplArgs<'a> {
+    pub map: &'a OverridenFnMap,
+    pub items: &'a mut Vec<syn::Item>,
+    pub imports: &'a mut HashMap<&'a str, syn::ItemUse>,
+    pub overriden_traits: &'a mut HashMap<&'a str, syn::Item>,
+    pub storage_struct_name: String,
+}
+
+impl<'a> ImplArgs<'a> {
+    pub fn new(
+        map: &'a OverridenFnMap,
+        items: &'a mut Vec<syn::Item>,
+        imports: &'a mut HashMap<&'a str, syn::ItemUse>,
+        overriden_traits: &'a mut HashMap<&'a str, syn::Item>,
+        storage_struct_name: String,
+    ) -> Self {
+        Self {
+            map,
+            items,
+            imports,
+            overriden_traits,
+            storage_struct_name,
+        }
+    }
+
+    fn contract_name(&self) -> proc_macro2::Ident {
+        format_ident!("{}", self.storage_struct_name)
+    }
+}
+
+pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp22::InternalImpl for Contract {}
+        impl psp22::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp22::Internal for Contract {
+        impl psp22::Internal for #storage_struct_name {
             fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, amount: Balance) {
                 psp22::InternalImpl::_emit_transfer_event(self, from, to, amount)
             }
@@ -82,12 +116,12 @@ pub(crate) fn impl_psp22(map: &OverridenFnMap, items: &mut Vec<syn::Item>, impor
     .expect("Should parse");
 
     let psp22_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22Impl for Contract {}
+        impl PSP22Impl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut psp22 = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22 for Contract {
+        impl PSP22 for #storage_struct_name {
             #[ink(message)]
             fn total_supply(&self) -> Balance {
                 PSP22Impl::total_supply(self)
@@ -141,29 +175,26 @@ pub(crate) fn impl_psp22(map: &OverridenFnMap, items: &mut Vec<syn::Item>, impor
         use openbrush::contracts::psp22::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22", import);
+    impl_args.imports.insert("PSP22", import);
 
-    override_functions("psp22::Internal", &mut internal, &map);
-    override_functions("PSP22", &mut psp22, &map);
+    override_functions("psp22::Internal", &mut internal, &impl_args.map);
+    override_functions("PSP22", &mut psp22, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(psp22_impl));
-    items.push(syn::Item::Impl(psp22));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(psp22_impl));
+    impl_args.items.push(syn::Item::Impl(psp22));
 }
 
-pub(crate) fn impl_psp22_mintable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp22_mintable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let mintable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22MintableImpl for Contract {}
+        impl PSP22MintableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut mintable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22Mintable for Contract {
+        impl PSP22Mintable for #storage_struct_name {
             #[ink(message)]
             fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
                 PSP22MintableImpl::mint(self, account, amount)
@@ -176,26 +207,23 @@ pub(crate) fn impl_psp22_mintable(
         use openbrush::contracts::psp22::extensions::mintable::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22Mintable", import);
+    impl_args.imports.insert("PSP22Mintable", import);
 
-    override_functions("PSP22Mintable", &mut mintable, &map);
+    override_functions("PSP22Mintable", &mut mintable, &impl_args.map);
 
-    items.push(syn::Item::Impl(mintable_impl));
-    items.push(syn::Item::Impl(mintable));
+    impl_args.items.push(syn::Item::Impl(mintable_impl));
+    impl_args.items.push(syn::Item::Impl(mintable));
 }
 
-pub(crate) fn impl_psp22_burnable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp22_burnable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let burnable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22BurnableImpl for Contract {}
+        impl PSP22BurnableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut burnable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22Burnable for Contract {
+        impl PSP22Burnable for #storage_struct_name {
             #[ink(message)]
             fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
                 PSP22BurnableImpl::burn(self, account, amount)
@@ -208,26 +236,23 @@ pub(crate) fn impl_psp22_burnable(
         use openbrush::contracts::psp22::extensions::burnable::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22Burnable", import);
+    impl_args.imports.insert("PSP22Burnable", import);
 
-    override_functions("PSP22Burnable", &mut burnable, &map);
+    override_functions("PSP22Burnable", &mut burnable, &impl_args.map);
 
-    items.push(syn::Item::Impl(burnable_impl));
-    items.push(syn::Item::Impl(burnable));
+    impl_args.items.push(syn::Item::Impl(burnable_impl));
+    impl_args.items.push(syn::Item::Impl(burnable));
 }
 
-pub(crate) fn impl_psp22_metadata(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp22_metadata(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let metadata_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22MetadataImpl for Contract {}
+        impl PSP22MetadataImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut metadata = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22Metadata for Contract {
+        impl PSP22Metadata for #storage_struct_name {
             #[ink(message)]
             fn token_name(&self) -> Option<String> {
                 PSP22MetadataImpl::token_name(self)
@@ -250,26 +275,23 @@ pub(crate) fn impl_psp22_metadata(
         use openbrush::contracts::psp22::extensions::metadata::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22Metadata", import);
+    impl_args.imports.insert("PSP22Metadata", import);
 
-    override_functions("PSP22Metadata", &mut metadata, &map);
+    override_functions("PSP22Metadata", &mut metadata, &impl_args.map);
 
-    items.push(syn::Item::Impl(metadata_impl));
-    items.push(syn::Item::Impl(metadata));
+    impl_args.items.push(syn::Item::Impl(metadata_impl));
+    impl_args.items.push(syn::Item::Impl(metadata));
 }
 
-pub(crate) fn impl_psp22_capped(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp22_capped(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl capped::InternalImpl for Contract {}
+        impl capped::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl capped::Internal for Contract {
+        impl capped::Internal for #storage_struct_name {
             fn _init_cap(&mut self, cap: Balance) -> Result<(), PSP22Error> {
                 capped::InternalImpl::_init_cap(self, cap)
             }
@@ -286,12 +308,12 @@ pub(crate) fn impl_psp22_capped(
     .expect("Should parse");
 
     let capped_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22CappedImpl for Contract {}
+        impl PSP22CappedImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut capped = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22Capped for Contract {
+        impl PSP22Capped for #storage_struct_name {
             #[ink(message)]
             fn cap(&self) -> Balance {
                 PSP22CappedImpl::cap(self)
@@ -304,29 +326,26 @@ pub(crate) fn impl_psp22_capped(
         use openbrush::contracts::psp22::extensions::capped::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22Capped", import);
+    impl_args.imports.insert("PSP22Capped", import);
 
-    override_functions("capped::Internal", &mut internal, &map);
-    override_functions("PSP22Capped", &mut capped, &map);
+    override_functions("capped::Internal", &mut internal, &impl_args.map);
+    override_functions("PSP22Capped", &mut capped, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(capped_impl));
-    items.push(syn::Item::Impl(capped));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(capped_impl));
+    impl_args.items.push(syn::Item::Impl(capped));
 }
 
-pub(crate) fn impl_psp22_wrapper(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp22_wrapper(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl wrapper::InternalImpl for Contract {}
+        impl wrapper::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl wrapper::Internal for Contract {
+        impl wrapper::Internal for #storage_struct_name {
             fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error> {
                 wrapper::InternalImpl::_recover(self, account)
             }
@@ -355,12 +374,12 @@ pub(crate) fn impl_psp22_wrapper(
     .expect("Should parse");
 
     let wrapper_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22WrapperImpl for Contract {}
+        impl PSP22WrapperImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut wrapper = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22Wrapper for Contract {
+        impl PSP22Wrapper for #storage_struct_name {
             #[ink(message)]
             fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
                 PSP22WrapperImpl::deposit_for(self, account, amount)
@@ -378,29 +397,26 @@ pub(crate) fn impl_psp22_wrapper(
         use openbrush::contracts::psp22::extensions::wrapper::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22Wrapper", import);
+    impl_args.imports.insert("PSP22Wrapper", import);
 
-    override_functions("wrapper::Internal", &mut internal, &map);
-    override_functions("PSP22Wrapper", &mut wrapper, &map);
+    override_functions("wrapper::Internal", &mut internal, &impl_args.map);
+    override_functions("PSP22Wrapper", &mut wrapper, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(wrapper_impl));
-    items.push(syn::Item::Impl(wrapper));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(wrapper_impl));
+    impl_args.items.push(syn::Item::Impl(wrapper));
 }
 
-pub(crate) fn impl_flashmint(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_flashmint(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl flashmint::InternalImpl for Contract {}
+        impl flashmint::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl flashmint::Internal for Contract {
+        impl flashmint::Internal for #storage_struct_name {
             fn _get_fee(&self, amount: Balance) -> Balance {
                 flashmint::InternalImpl::_get_fee(self, amount)
             }
@@ -420,12 +436,12 @@ pub(crate) fn impl_flashmint(
     .expect("Should parse");
 
     let flashlender_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl FlashLenderImpl for Contract {}
+        impl FlashLenderImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut flashlender = syn::parse2::<syn::ItemImpl>(quote!(
-        impl FlashLender for Contract {
+        impl FlashLender for #storage_struct_name {
             #[ink(message)]
             fn max_flashloan(&mut self, token: AccountId) -> Balance {
                 FlashLenderImpl::max_flashloan(self, token)
@@ -454,29 +470,26 @@ pub(crate) fn impl_flashmint(
         use openbrush::contracts::psp22::extensions::flashmint::*;
     ))
     .expect("Should parse");
-    imports.insert("Flashmint", import);
+    impl_args.imports.insert("Flashmint", import);
 
-    override_functions("flashmint::Internal", &mut internal, &map);
-    override_functions("FlashLender", &mut flashlender, &map);
+    override_functions("flashmint::Internal", &mut internal, &impl_args.map);
+    override_functions("FlashLender", &mut flashlender, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(flashlender_impl));
-    items.push(syn::Item::Impl(flashlender));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(flashlender_impl));
+    impl_args.items.push(syn::Item::Impl(flashlender));
 }
 
-pub(crate) fn impl_token_timelock(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_token_timelock(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl token_timelock::InternalImpl for Contract {}
+        impl token_timelock::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl token_timelock::Internal for Contract {
+        impl token_timelock::Internal for #storage_struct_name {
             fn _withdraw(&mut self, amount: Balance) -> Result<(), PSP22TokenTimelockError> {
                 token_timelock::InternalImpl::_withdraw(self, amount)
             }
@@ -506,12 +519,12 @@ pub(crate) fn impl_token_timelock(
     .expect("Should parse");
 
     let timelock_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22TokenTimelockImpl for Contract {}
+        impl PSP22TokenTimelockImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut timelock = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22TokenTimelock for Contract {
+        impl PSP22TokenTimelock for #storage_struct_name {
             #[ink(message)]
             fn token(&self) -> AccountId {
                 PSP22TokenTimelockImpl::token(self)
@@ -539,29 +552,26 @@ pub(crate) fn impl_token_timelock(
         use openbrush::contracts::psp22::utils::token_timelock::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22TokenTimelock", import);
+    impl_args.imports.insert("PSP22TokenTimelock", import);
 
-    override_functions("token_timelock::Internal", &mut internal, &map);
-    override_functions("PSP22TokenTimelock", &mut timelock, &map);
+    override_functions("token_timelock::Internal", &mut internal, &impl_args.map);
+    override_functions("PSP22TokenTimelock", &mut timelock, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(timelock_impl));
-    items.push(syn::Item::Impl(timelock));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(timelock_impl));
+    impl_args.items.push(syn::Item::Impl(timelock));
 }
 
-pub(crate) fn impl_psp22_pallet(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp22_pallet(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp22_pallet::InternalImpl for Contract {}
+        impl psp22_pallet::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp22_pallet::Internal for Contract {
+        impl psp22_pallet::Internal for #storage_struct_name {
             fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {
                 psp22_pallet::InternalImpl::_emit_transfer_event(self, _from, _to, _amount)
             }
@@ -595,12 +605,12 @@ pub(crate) fn impl_psp22_pallet(
     .expect("Should parse");
 
     let psp22_pallet_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22PalletImpl for Contract {}
+        impl PSP22PalletImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut psp22 = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22 for Contract {
+        impl PSP22 for #storage_struct_name {
             #[ink(message)]
             fn total_supply(&self) -> Balance {
                 PSP22PalletImpl::total_supply(self)
@@ -654,29 +664,26 @@ pub(crate) fn impl_psp22_pallet(
         use openbrush::contracts::psp22_pallet::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22Pallet", import);
+    impl_args.imports.insert("PSP22Pallet", import);
 
-    override_functions("psp22_pallet::Internal", &mut internal, &map);
-    override_functions("PSP22", &mut psp22, &map);
+    override_functions("psp22_pallet::Internal", &mut internal, &impl_args.map);
+    override_functions("PSP22", &mut psp22, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(psp22_pallet_impl));
-    items.push(syn::Item::Impl(psp22));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(psp22_pallet_impl));
+    impl_args.items.push(syn::Item::Impl(psp22));
 }
 
-pub(crate) fn impl_psp22_pallet_burnable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp22_pallet_burnable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let burnable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22PalletBurnableImpl for Contract {}
+        impl PSP22PalletBurnableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut burnable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22Burnable for Contract {
+        impl PSP22Burnable for #storage_struct_name {
             #[ink(message)]
             fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
                 PSP22PalletBurnableImpl::burn(self, account, amount)
@@ -689,26 +696,23 @@ pub(crate) fn impl_psp22_pallet_burnable(
         use openbrush::contracts::psp22_pallet::extensions::burnable::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22PalletBurnable", import);
+    impl_args.imports.insert("PSP22PalletBurnable", import);
 
-    override_functions("PSP22Burnable", &mut burnable, &map);
+    override_functions("PSP22Burnable", &mut burnable, &impl_args.map);
 
-    items.push(syn::Item::Impl(burnable_impl));
-    items.push(syn::Item::Impl(burnable));
+    impl_args.items.push(syn::Item::Impl(burnable_impl));
+    impl_args.items.push(syn::Item::Impl(burnable));
 }
 
-pub(crate) fn impl_psp22_pallet_metadata(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp22_pallet_metadata(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let metadata_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22PalletMetadataImpl for Contract {}
+        impl PSP22PalletMetadataImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut burnable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22Metadata for Contract {
+        impl PSP22Metadata for #storage_struct_name {
             #[ink(message)]
             fn token_name(&self) -> Option<String> {
                 PSP22PalletMetadataImpl::token_name(self)
@@ -731,26 +735,23 @@ pub(crate) fn impl_psp22_pallet_metadata(
         use openbrush::contracts::psp22_pallet::extensions::metadata::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22PalletMetadata", import);
+    impl_args.imports.insert("PSP22PalletMetadata", import);
 
-    override_functions("PSP22Metadata", &mut burnable, &map);
+    override_functions("PSP22Metadata", &mut burnable, &impl_args.map);
 
-    items.push(syn::Item::Impl(metadata_impl));
-    items.push(syn::Item::Impl(burnable));
+    impl_args.items.push(syn::Item::Impl(metadata_impl));
+    impl_args.items.push(syn::Item::Impl(burnable));
 }
 
-pub(crate) fn impl_psp22_pallet_mintable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp22_pallet_mintable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let mintable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22PalletMintableImpl for Contract {}
+        impl PSP22PalletMintableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut mintable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP22Mintable for Contract {
+        impl PSP22Mintable for #storage_struct_name {
             #[ink(message)]
             fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
                 PSP22PalletMintableImpl::mint(self, account, amount)
@@ -763,27 +764,23 @@ pub(crate) fn impl_psp22_pallet_mintable(
         use openbrush::contracts::psp22_pallet::extensions::mintable::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP22PalletMintable", import);
+    impl_args.imports.insert("PSP22PalletMintable", import);
 
-    override_functions("PSP22Mintable", &mut mintable, &map);
+    override_functions("PSP22Mintable", &mut mintable, &impl_args.map);
 
-    items.push(syn::Item::Impl(mintable_impl));
-    items.push(syn::Item::Impl(mintable));
+    impl_args.items.push(syn::Item::Impl(mintable_impl));
+    impl_args.items.push(syn::Item::Impl(mintable));
 }
 
-pub(crate) fn impl_psp34(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-    overriden_traits: &mut HashMap<&str, syn::Item>,
-) {
+pub(crate) fn impl_psp34(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp34::InternalImpl for Contract {}
+        impl psp34::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp34::Internal for Contract {
+        impl psp34::Internal for #storage_struct_name {
             fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, id: Id) {
                 psp34::InternalImpl::_emit_transfer_event(self, from, to, id)
             }
@@ -842,12 +839,12 @@ pub(crate) fn impl_psp34(
     .expect("Should parse");
 
     let psp34_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP34Impl for Contract {}
+        impl PSP34Impl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut psp34 = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP34 for Contract {
+        impl PSP34 for #storage_struct_name {
             #[ink(message)]
             fn collection_id(&self) -> Id {
                 PSP34Impl::collection_id(self)
@@ -887,12 +884,12 @@ pub(crate) fn impl_psp34(
     .expect("Should parse");
 
     let psp34_balances_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp34::BalancesManagerImpl for Contract {}
+        impl psp34::BalancesManagerImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut psp34_balances = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp34::BalancesManager for Contract {
+        impl psp34::BalancesManager for #storage_struct_name {
             fn _balance_of(&self, owner: &Owner) -> u32 {
                 psp34::BalancesManagerImpl::_balance_of(self, owner)
             }
@@ -916,36 +913,34 @@ pub(crate) fn impl_psp34(
         use openbrush::contracts::psp34::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP34", import);
+    impl_args.imports.insert("PSP34", import);
 
-    override_functions("psp34::BalancesManager", &mut psp34_balances, &map);
-    override_functions("psp34::Internal", &mut internal, &map);
-    override_functions("PSP34", &mut psp34, &map);
+    override_functions("psp34::BalancesManager", &mut psp34_balances, &impl_args.map);
+    override_functions("psp34::Internal", &mut internal, &impl_args.map);
+    override_functions("PSP34", &mut psp34, &impl_args.map);
 
     // only insert this if it is not present
-    overriden_traits
+    impl_args
+        .overriden_traits
         .entry("psp34::BalancesManager")
         .or_insert(syn::Item::Impl(psp34_balances));
 
-    items.push(syn::Item::Impl(psp34_balances_impl));
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(psp34_impl));
-    items.push(syn::Item::Impl(psp34));
+    impl_args.items.push(syn::Item::Impl(psp34_balances_impl));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(psp34_impl));
+    impl_args.items.push(syn::Item::Impl(psp34));
 }
 
-pub(crate) fn impl_psp34_burnable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp34_burnable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let burnable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP34BurnableImpl for Contract {}
+        impl PSP34BurnableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut burnable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP34Burnable for Contract {
+        impl PSP34Burnable for #storage_struct_name {
             #[ink(message)]
             fn burn(&mut self, account: AccountId, id: Id) -> Result<(), PSP34Error> {
                 PSP34BurnableImpl::burn(self, account, id)
@@ -958,26 +953,23 @@ pub(crate) fn impl_psp34_burnable(
         use openbrush::contracts::psp34::extensions::burnable::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP34Burnable", import);
+    impl_args.imports.insert("PSP34Burnable", import);
 
-    override_functions("PSP34Burnable", &mut burnable, &map);
+    override_functions("PSP34Burnable", &mut burnable, &impl_args.map);
 
-    items.push(syn::Item::Impl(burnable_impl));
-    items.push(syn::Item::Impl(burnable));
+    impl_args.items.push(syn::Item::Impl(burnable_impl));
+    impl_args.items.push(syn::Item::Impl(burnable));
 }
 
-pub(crate) fn impl_psp34_mintable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp34_mintable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let mintable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP34MintableImpl for Contract {}
+        impl PSP34MintableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut mintable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP34Mintable for Contract {
+        impl PSP34Mintable for #storage_struct_name {
             #[ink(message)]
             fn mint(&mut self, account: AccountId, id: Id) -> Result<(), PSP34Error> {
                 PSP34MintableImpl::mint(self, account, id)
@@ -990,26 +982,23 @@ pub(crate) fn impl_psp34_mintable(
         use openbrush::contracts::psp34::extensions::mintable::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP34Mintable", import);
+    impl_args.imports.insert("PSP34Mintable", import);
 
-    override_functions("PSP34Mintable", &mut mintable, &map);
+    override_functions("PSP34Mintable", &mut mintable, &impl_args.map);
 
-    items.push(syn::Item::Impl(mintable_impl));
-    items.push(syn::Item::Impl(mintable));
+    impl_args.items.push(syn::Item::Impl(mintable_impl));
+    impl_args.items.push(syn::Item::Impl(mintable));
 }
 
-pub(crate) fn impl_psp34_metadata(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp34_metadata(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl metadata::InternalImpl for Contract {}
+        impl metadata::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl metadata::Internal for Contract {
+        impl metadata::Internal for #storage_struct_name {
             fn _emit_attribute_set_event(&self, id: Id, key: String, data: String) {
                 metadata::InternalImpl::_emit_attribute_set_event(self, id, key, data)
             }
@@ -1022,12 +1011,12 @@ pub(crate) fn impl_psp34_metadata(
     .expect("Should parse");
 
     let metadata_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP34MetadataImpl for Contract {}
+        impl PSP34MetadataImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut metadata = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP34Metadata for Contract {
+        impl PSP34Metadata for #storage_struct_name {
             #[ink(message)]
             fn get_attribute(&self, id: Id, key: String) -> Option<String> {
                 PSP34MetadataImpl::get_attribute(self, id, key)
@@ -1040,30 +1029,26 @@ pub(crate) fn impl_psp34_metadata(
         use openbrush::contracts::psp34::extensions::metadata::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP34Metadata", import);
+    impl_args.imports.insert("PSP34Metadata", import);
 
-    override_functions("metadata::Internal", &mut internal, &map);
-    override_functions("PSP34Mintable", &mut metadata, &map);
+    override_functions("metadata::Internal", &mut internal, &impl_args.map);
+    override_functions("PSP34Mintable", &mut metadata, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(metadata_impl));
-    items.push(syn::Item::Impl(metadata));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(metadata_impl));
+    impl_args.items.push(syn::Item::Impl(metadata));
 }
 
-pub(crate) fn impl_psp34_enumerable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-    overriden_traits: &mut HashMap<&str, syn::Item>,
-) {
+pub(crate) fn impl_psp34_enumerable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let enumerable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP34EnumerableImpl for Contract {}
+        impl PSP34EnumerableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut psp34_enumerable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP34Enumerable for Contract {
+        impl PSP34Enumerable for #storage_struct_name {
             #[ink(message)]
             fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Result<Id, PSP34Error> {
                 PSP34EnumerableImpl::owners_token_by_index(self, owner, index)
@@ -1079,12 +1064,12 @@ pub(crate) fn impl_psp34_enumerable(
     .expect("Should parse");
 
     let psp34_balances_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl enumerable::BalancesManagerImpl for Contract {}
+        impl enumerable::BalancesManagerImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut psp34_balances = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp34::BalancesManager for Contract {
+        impl psp34::BalancesManager for #storage_struct_name {
             fn _balance_of(&self, owner: &Owner) -> u32 {
                 enumerable::BalancesManagerImpl::_balance_of(self, owner)
             }
@@ -1108,31 +1093,29 @@ pub(crate) fn impl_psp34_enumerable(
         use openbrush::contracts::psp34::extensions::enumerable::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP34Enumerable", import);
+    impl_args.imports.insert("PSP34Enumerable", import);
 
-    override_functions("psp34::BalancesManager", &mut psp34_balances, &map);
-    override_functions("PSP34Enumerable", &mut psp34_enumerable, &map);
+    override_functions("psp34::BalancesManager", &mut psp34_balances, &impl_args.map);
+    override_functions("PSP34Enumerable", &mut psp34_enumerable, &impl_args.map);
 
-    overriden_traits.insert("psp34::BalancesManager", syn::Item::Impl(psp34_balances));
+    impl_args
+        .overriden_traits
+        .insert("psp34::BalancesManager", syn::Item::Impl(psp34_balances));
 
-    items.push(syn::Item::Impl(psp34_balances_impl));
-    items.push(syn::Item::Impl(enumerable_impl));
-    items.push(syn::Item::Impl(psp34_enumerable));
+    impl_args.items.push(syn::Item::Impl(psp34_balances_impl));
+    impl_args.items.push(syn::Item::Impl(enumerable_impl));
+    impl_args.items.push(syn::Item::Impl(psp34_enumerable));
 }
 
-pub(crate) fn impl_psp37(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-    overriden_traits: &mut HashMap<&str, syn::Item>,
-) {
+pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp37::InternalImpl for Contract {}
+        impl psp37::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp37::Internal for Contract {
+        impl psp37::Internal for #storage_struct_name {
             fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, id: Id, amount: Balance) {
                 psp37::InternalImpl::_emit_transfer_event(self, from, to, id, amount)
             }
@@ -1221,12 +1204,12 @@ pub(crate) fn impl_psp37(
     .expect("Should parse");
 
     let psp37_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37Impl for Contract {}
+        impl PSP37Impl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut psp37 = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37 for Contract {
+        impl PSP37 for #storage_struct_name {
             #[ink(message)]
             fn balance_of(&self, owner: AccountId, id: Option<Id>) -> Balance {
                 PSP37Impl::balance_of(self, owner, id)
@@ -1268,12 +1251,12 @@ pub(crate) fn impl_psp37(
     .expect("Should parse");
 
     let psp37_balances_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp37::BalancesManagerImpl for Contract {}
+        impl psp37::BalancesManagerImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut psp37_balances = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp37::BalancesManager for Contract {
+        impl psp37::BalancesManager for #storage_struct_name {
             fn _balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
                 psp37::BalancesManagerImpl::_balance_of(self, owner, id)
             }
@@ -1309,36 +1292,34 @@ pub(crate) fn impl_psp37(
         use openbrush::contracts::psp37::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP37", import);
+    impl_args.imports.insert("PSP37", import);
 
-    override_functions("psp37::BalancesManager", &mut psp37_balances, &map);
-    override_functions("psp37::Internal", &mut internal, &map);
-    override_functions("PSP37", &mut psp37, &map);
+    override_functions("psp37::BalancesManager", &mut psp37_balances, &impl_args.map);
+    override_functions("psp37::Internal", &mut internal, &impl_args.map);
+    override_functions("PSP37", &mut psp37, &impl_args.map);
 
     // only insert this if it is not present
-    overriden_traits
+    impl_args
+        .overriden_traits
         .entry("psp37::BalancesManager")
         .or_insert(syn::Item::Impl(psp37_balances));
 
-    items.push(syn::Item::Impl(psp37_balances_impl));
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(psp37_impl));
-    items.push(syn::Item::Impl(psp37));
+    impl_args.items.push(syn::Item::Impl(psp37_balances_impl));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(psp37_impl));
+    impl_args.items.push(syn::Item::Impl(psp37));
 }
 
-pub(crate) fn impl_psp37_batch(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp37_batch(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl batch::InternalImpl for Contract {}
+        impl batch::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl batch::Internal for Contract {
+        impl batch::Internal for #storage_struct_name {
             fn _batch_transfer_from(
                 &mut self,
                 from: AccountId,
@@ -1353,12 +1334,12 @@ pub(crate) fn impl_psp37_batch(
     .expect("Should parse");
 
     let batch_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37BatchImpl for Contract {}
+        impl PSP37BatchImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut batch = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37Batch for Contract {
+        impl PSP37Batch for #storage_struct_name {
             #[ink(message)]
             fn batch_transfer(
                 &mut self,
@@ -1387,29 +1368,26 @@ pub(crate) fn impl_psp37_batch(
         use openbrush::contracts::psp37::extensions::batch::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP37Batch", import);
+    impl_args.imports.insert("PSP37Batch", import);
 
-    override_functions("batch::Internal", &mut internal, &map);
-    override_functions("PSP37Batch", &mut batch, &map);
+    override_functions("batch::Internal", &mut internal, &impl_args.map);
+    override_functions("PSP37Batch", &mut batch, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(batch_impl));
-    items.push(syn::Item::Impl(batch));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(batch_impl));
+    impl_args.items.push(syn::Item::Impl(batch));
 }
 
-pub(crate) fn impl_psp37_burnable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp37_burnable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let burnable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37BurnableImpl for Contract {}
+        impl PSP37BurnableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut burnable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37Burnable for Contract {
+        impl PSP37Burnable for #storage_struct_name {
             #[ink(message)]
             fn burn(&mut self, from: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
                 PSP37BurnableImpl::burn(self, from, ids_amounts)
@@ -1422,26 +1400,23 @@ pub(crate) fn impl_psp37_burnable(
         use openbrush::contracts::psp37::extensions::burnable::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP37Burnable", import);
+    impl_args.imports.insert("PSP37Burnable", import);
 
-    override_functions("PSP37Burnable", &mut burnable, &map);
+    override_functions("PSP37Burnable", &mut burnable, &impl_args.map);
 
-    items.push(syn::Item::Impl(burnable_impl));
-    items.push(syn::Item::Impl(burnable));
+    impl_args.items.push(syn::Item::Impl(burnable_impl));
+    impl_args.items.push(syn::Item::Impl(burnable));
 }
 
-pub(crate) fn impl_psp37_metadata(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp37_metadata(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl metadata::InternalImpl for Contract {}
+        impl metadata::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl metadata::Internal for Contract {
+        impl metadata::Internal for #storage_struct_name {
             fn _emit_attribute_set_event(&self, id: &Id, key: &String, data: &String) {
                 metadata::InternalImpl::_emit_attribute_set_event(self, id, key, data);
             }
@@ -1458,12 +1433,12 @@ pub(crate) fn impl_psp37_metadata(
     .expect("Should parse");
 
     let metadata_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37MetadataImpl for Contract {}
+        impl PSP37MetadataImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut metadata = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37Metadata for Contract {
+        impl PSP37Metadata for #storage_struct_name {
             #[ink(message)]
             fn get_attribute(&self, id: Id, key: String) -> Option<String> {
                 PSP37MetadataImpl::get_attribute(self, id, key)
@@ -1476,29 +1451,26 @@ pub(crate) fn impl_psp37_metadata(
         use openbrush::contracts::psp37::extensions::metadata::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP37Metadata", import);
+    impl_args.imports.insert("PSP37Metadata", import);
 
-    override_functions("metadata::Internal", &mut internal, &map);
-    override_functions("PSP37Metadata", &mut metadata, &map);
+    override_functions("metadata::Internal", &mut internal, &impl_args.map);
+    override_functions("PSP37Metadata", &mut metadata, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(metadata_impl));
-    items.push(syn::Item::Impl(metadata));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(metadata_impl));
+    impl_args.items.push(syn::Item::Impl(metadata));
 }
 
-pub(crate) fn impl_psp37_mintable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_psp37_mintable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let mintable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37MintableImpl for Contract {}
+        impl PSP37MintableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut mintable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37Mintable for Contract {
+        impl PSP37Mintable for #storage_struct_name {
             #[ink(message)]
             fn mint(&mut self, to: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
                 PSP37MintableImpl::mint(self, to, ids_amounts)
@@ -1511,27 +1483,23 @@ pub(crate) fn impl_psp37_mintable(
         use openbrush::contracts::psp37::extensions::mintable::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP37Mintable", import);
+    impl_args.imports.insert("PSP37Mintable", import);
 
-    override_functions("PSP37Mintable", &mut mintable, &map);
+    override_functions("PSP37Mintable", &mut mintable, &impl_args.map);
 
-    items.push(syn::Item::Impl(mintable_impl));
-    items.push(syn::Item::Impl(mintable));
+    impl_args.items.push(syn::Item::Impl(mintable_impl));
+    impl_args.items.push(syn::Item::Impl(mintable));
 }
 
-pub(crate) fn impl_psp37_enumerable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-    overriden_traits: &mut HashMap<&str, syn::Item>,
-) {
+pub(crate) fn impl_psp37_enumerable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let enumerable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37EnumerableImpl for Contract {}
+        impl PSP37EnumerableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut psp37_enumerable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PSP37Enumerable for Contract {
+        impl PSP37Enumerable for #storage_struct_name {
             #[ink(message)]
             fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Option<Id> {
                 PSP37EnumerableImpl::owners_token_by_index(self, owner, index)
@@ -1546,12 +1514,12 @@ pub(crate) fn impl_psp37_enumerable(
     .expect("Should parse");
 
     let psp37_balances_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl enumerable::BalancesManagerImpl for Contract {}
+        impl enumerable::BalancesManagerImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut psp37_balances = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp37::BalancesManager for Contract {
+        impl psp37::BalancesManager for #storage_struct_name {
             fn _balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
                 enumerable::BalancesManagerImpl::_balance_of(self, owner, id)
             }
@@ -1587,30 +1555,29 @@ pub(crate) fn impl_psp37_enumerable(
         use openbrush::contracts::psp37::extensions::enumerable::*;
     ))
     .expect("Should parse");
-    imports.insert("PSP37Enumerable", import);
+    impl_args.imports.insert("PSP37Enumerable", import);
 
-    override_functions("psp37::BalancesManager", &mut psp37_balances, &map);
-    override_functions("PSP37Enumerable", &mut psp37_enumerable, &map);
+    override_functions("psp37::BalancesManager", &mut psp37_balances, &impl_args.map);
+    override_functions("PSP37Enumerable", &mut psp37_enumerable, &impl_args.map);
 
-    overriden_traits.insert("psp37::BalancesManager", syn::Item::Impl(psp37_balances));
+    impl_args
+        .overriden_traits
+        .insert("psp37::BalancesManager", syn::Item::Impl(psp37_balances));
 
-    items.push(syn::Item::Impl(psp37_balances_impl));
-    items.push(syn::Item::Impl(enumerable_impl));
-    items.push(syn::Item::Impl(psp37_enumerable));
+    impl_args.items.push(syn::Item::Impl(psp37_balances_impl));
+    impl_args.items.push(syn::Item::Impl(enumerable_impl));
+    impl_args.items.push(syn::Item::Impl(psp37_enumerable));
 }
 
-pub(crate) fn impl_ownable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_ownable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl ownable::InternalImpl for Contract {}
+        impl ownable::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl ownable::Internal for Contract {
+        impl ownable::Internal for #storage_struct_name {
             fn _emit_ownership_transferred_event(&self, previous: Option<AccountId>, new: Option<AccountId>) {
                 ownable::InternalImpl::_emit_ownership_transferred_event(self, previous, new)
             }
@@ -1623,12 +1590,12 @@ pub(crate) fn impl_ownable(
     .expect("Should parse");
 
     let ownable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl OwnableImpl for Contract {}
+        impl OwnableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut ownable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl Ownable for Contract {
+        impl Ownable for #storage_struct_name {
             #[ink(message)]
             fn owner(&self) -> AccountId {
                 OwnableImpl::owner(self)
@@ -1651,29 +1618,26 @@ pub(crate) fn impl_ownable(
         use openbrush::contracts::ownable::*;
     ))
     .expect("Should parse");
-    imports.insert("Ownable", import);
+    impl_args.imports.insert("Ownable", import);
 
-    override_functions("ownable::Internal", &mut internal, &map);
-    override_functions("Ownable", &mut ownable, &map);
+    override_functions("ownable::Internal", &mut internal, &impl_args.map);
+    override_functions("Ownable", &mut ownable, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(ownable_impl));
-    items.push(syn::Item::Impl(ownable));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(ownable_impl));
+    impl_args.items.push(syn::Item::Impl(ownable));
 }
 
-pub(crate) fn impl_payment_splitter(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl payment_splitter::InternalImpl for Contract {}
+        impl payment_splitter::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl payment_splitter::Internal for Contract {
+        impl payment_splitter::Internal for #storage_struct_name {
             fn _emit_payee_added_event(&self, account: AccountId, shares: Balance) {
                 payment_splitter::InternalImpl::_emit_payee_added_event(self, account, shares)
             }
@@ -1706,12 +1670,12 @@ pub(crate) fn impl_payment_splitter(
     .expect("Should parse");
 
     let payment_splitter_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PaymentSplitterImpl for Contract {}
+        impl PaymentSplitterImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut payment_splitter = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PaymentSplitter for Contract {
+        impl PaymentSplitter for #storage_struct_name {
             #[ink(message)]
             fn total_shares(&self) -> Balance {
                 PaymentSplitterImpl::total_shares(self)
@@ -1754,30 +1718,26 @@ pub(crate) fn impl_payment_splitter(
         use openbrush::contracts::payment_splitter::*;
     ))
     .expect("Should parse");
-    imports.insert("PaymentSplitter", import);
+    impl_args.imports.insert("PaymentSplitter", import);
 
-    override_functions("payment_splitter::Internal", &mut internal, &map);
-    override_functions("PaymentSplitter", &mut payment_splitter, &map);
+    override_functions("payment_splitter::Internal", &mut internal, &impl_args.map);
+    override_functions("PaymentSplitter", &mut payment_splitter, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(payment_splitter_impl));
-    items.push(syn::Item::Impl(payment_splitter));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(payment_splitter_impl));
+    impl_args.items.push(syn::Item::Impl(payment_splitter));
 }
 
-pub(crate) fn impl_access_control(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-    overriden_traits: &mut HashMap<&str, syn::Item>,
-) {
+pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl access_control::InternalImpl for Contract {}
+        impl access_control::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl access_control::Internal for Contract {
+        impl access_control::Internal for #storage_struct_name {
             fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {
                 access_control::InternalImpl::_emit_role_admin_changed(self, _role, _previous, _new);
             }
@@ -1826,12 +1786,12 @@ pub(crate) fn impl_access_control(
     .expect("Should parse");
 
     let access_control_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl AccessControlImpl for Contract {}
+        impl AccessControlImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut access_control = syn::parse2::<syn::ItemImpl>(quote!(
-        impl AccessControl for Contract {
+        impl AccessControl for #storage_struct_name {
             #[ink(message)]
             fn has_role(&self, role: RoleType, address: AccountId) -> bool {
                 AccessControlImpl::has_role(self, role, address)
@@ -1861,12 +1821,12 @@ pub(crate) fn impl_access_control(
     .expect("Should parse");
 
     let members_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl access_control::MembersManagerImpl for Contract {}
+        impl access_control::MembersManagerImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut members = syn::parse2::<syn::ItemImpl>(quote!(
-        impl access_control::MembersManager for Contract {
+        impl access_control::MembersManager for #storage_struct_name {
             fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
                 access_control::MembersManagerImpl::_has_role(self, role, address)
             }
@@ -1886,37 +1846,34 @@ pub(crate) fn impl_access_control(
         use openbrush::contracts::access_control::*;
     ))
     .expect("Should parse");
-    imports.insert("AccessControl", import);
+    impl_args.imports.insert("AccessControl", import);
 
-    override_functions("access_control::MembersManager", &mut members, &map);
-    override_functions("access_control::Internal", &mut internal, &map);
-    override_functions("AccessControl", &mut access_control, &map);
+    override_functions("access_control::MembersManager", &mut members, &impl_args.map);
+    override_functions("access_control::Internal", &mut internal, &impl_args.map);
+    override_functions("AccessControl", &mut access_control, &impl_args.map);
 
     // only insert this if it is not present
-    overriden_traits
+    impl_args
+        .overriden_traits
         .entry("access_control::MembersManager")
         .or_insert(syn::Item::Impl(members));
 
-    items.push(syn::Item::Impl(members_impl));
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(access_control_impl));
-    items.push(syn::Item::Impl(access_control));
+    impl_args.items.push(syn::Item::Impl(members_impl));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(access_control_impl));
+    impl_args.items.push(syn::Item::Impl(access_control));
 }
 
-pub(crate) fn impl_access_control_enumerable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-    overriden_traits: &mut HashMap<&str, syn::Item>,
-) {
+pub(crate) fn impl_access_control_enumerable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let enumerable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl AccessControlEnumerableImpl for Contract {}
+        impl AccessControlEnumerableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut enumerable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl AccessControlEnumerable for Contract {
+        impl AccessControlEnumerable for #storage_struct_name {
             #[ink(message)]
             fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
                 AccessControlEnumerableImpl::get_role_member(self, role, index)
@@ -1931,12 +1888,12 @@ pub(crate) fn impl_access_control_enumerable(
     .expect("Should parse");
 
     let members_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl enumerable::MembersManagerImpl for Contract {}
+        impl enumerable::MembersManagerImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut members = syn::parse2::<syn::ItemImpl>(quote!(
-        impl access_control::MembersManager for Contract {
+        impl access_control::MembersManager for #storage_struct_name {
             fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
                 enumerable::MembersManagerImpl::_has_role(self, role, address)
             }
@@ -1956,30 +1913,29 @@ pub(crate) fn impl_access_control_enumerable(
         use openbrush::contracts::access_control::extensions::enumerable::*;
     ))
     .expect("Should parse");
-    imports.insert("AccessControlEnumerable", import);
+    impl_args.imports.insert("AccessControlEnumerable", import);
 
-    override_functions("access_control::MembersManager", &mut members, &map);
-    override_functions("AccessControlEnumerable", &mut enumerable, &map);
+    override_functions("access_control::MembersManager", &mut members, &impl_args.map);
+    override_functions("AccessControlEnumerable", &mut enumerable, &impl_args.map);
 
-    overriden_traits.insert("access_control::MembersManager", syn::Item::Impl(members));
+    impl_args
+        .overriden_traits
+        .insert("access_control::MembersManager", syn::Item::Impl(members));
 
-    items.push(syn::Item::Impl(members_impl));
-    items.push(syn::Item::Impl(enumerable_impl));
-    items.push(syn::Item::Impl(enumerable));
+    impl_args.items.push(syn::Item::Impl(members_impl));
+    impl_args.items.push(syn::Item::Impl(enumerable_impl));
+    impl_args.items.push(syn::Item::Impl(enumerable));
 }
 
-pub(crate) fn impl_pausable(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_pausable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl pausable::InternalImpl for Contract {}
+        impl pausable::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl pausable::Internal for Contract {
+        impl pausable::Internal for #storage_struct_name {
             fn _emit_paused_event(&self, account: AccountId) {
                 pausable::InternalImpl::_emit_paused_event(self, account)
             }
@@ -2008,12 +1964,12 @@ pub(crate) fn impl_pausable(
     .expect("Should parse");
 
     let pausable_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl PausableImpl for Contract {}
+        impl PausableImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
     let mut pausable = syn::parse2::<syn::ItemImpl>(quote!(
-        impl Pausable for Contract {
+        impl Pausable for #storage_struct_name {
             #[ink(message)]
             fn paused(&self) -> bool {
                 PausableImpl::paused(self)
@@ -2026,29 +1982,27 @@ pub(crate) fn impl_pausable(
         use openbrush::contracts::pausable::*;
     ))
     .expect("Should parse");
-    imports.insert("Pausable", import);
+    impl_args.imports.insert("Pausable", import);
 
-    override_functions("pausable::Internal", &mut internal, &map);
-    override_functions("Pausable", &mut pausable, &map);
+    override_functions("pausable::Internal", &mut internal, &impl_args.map);
+    override_functions("Pausable", &mut pausable, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(pausable_impl));
-    items.push(syn::Item::Impl(pausable));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(pausable_impl));
+    impl_args.items.push(syn::Item::Impl(pausable));
 }
 
-pub(crate) fn impl_timelock_controller(
-    map: &OverridenFnMap,
-    items: &mut Vec<syn::Item>,
-    imports: &mut HashMap<&str, syn::ItemUse>,
-) {
+pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl timelock_controller::InternalImpl for Contract {}
+        impl timelock_controller::InternalImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
+    #[rustfmt::skip]
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
-        impl timelock_controller::Internal for Contract {
+        impl timelock_controller::Internal for #storage_struct_name {
             fn _emit_min_delay_change_event(&self, old_delay: Timestamp, new_delay: Timestamp) {
                 InternalImpl::_emit_min_delay_change_event(self, old_delay, new_delay)
             }
@@ -2156,12 +2110,13 @@ pub(crate) fn impl_timelock_controller(
     .expect("Should parse");
 
     let timelock_controller_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl TimelockControllerImpl for Contract {}
+        impl TimelockControllerImpl for #storage_struct_name {}
     ))
     .expect("Should parse");
 
+    #[rustfmt::skip]
     let mut timelock_controller = syn::parse2::<syn::ItemImpl>(quote!(
-        impl TimelockController for Contract {
+        impl TimelockController for #storage_struct_name {
             #[ink(message)]
             fn is_operation(&self, id: OperationId) -> bool {
                 TimelockControllerImpl::is_operation(self, id)
@@ -2266,15 +2221,74 @@ pub(crate) fn impl_timelock_controller(
         use openbrush::contracts::timelock_controller::*;
     ))
     .expect("Should parse");
-    imports.insert("TimelockController", import);
+    impl_args.imports.insert("TimelockController", import);
 
-    override_functions("timelock_controller::Internal", &mut internal, &map);
-    override_functions("TimelockController", &mut timelock_controller, &map);
+    override_functions("timelock_controller::Internal", &mut internal, &impl_args.map);
+    override_functions("TimelockController", &mut timelock_controller, &impl_args.map);
 
-    items.push(syn::Item::Impl(internal_impl));
-    items.push(syn::Item::Impl(internal));
-    items.push(syn::Item::Impl(timelock_controller_impl));
-    items.push(syn::Item::Impl(timelock_controller));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(timelock_controller_impl));
+    impl_args.items.push(syn::Item::Impl(timelock_controller));
+}
+
+pub(crate) fn impl_proxy(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl proxy::InternalImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl proxy::Internal for #storage_struct_name {
+            fn _emit_delegate_code_changed_event(&self, previous: Option<Hash>, new: Option<Hash>) {
+                proxy::InternalImpl::_emit_delegate_code_changed_event(self, previous, new)
+            }
+
+            fn _init_with_forward_to(&mut self, forward_to: Hash) {
+                proxy::InternalImpl::_init_with_forward_to(self, forward_to)
+            }
+
+            fn _fallback(&self) -> ! {
+                proxy::InternalImpl::_fallback(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let proxy_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl ProxyImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let mut proxy = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Proxy for #storage_struct_name {
+            #[ink(message)]
+            fn get_delegate_code(&self) -> Hash {
+                ProxyImpl::get_delegate_code(self)
+            }
+
+            #[ink(message)]
+            fn change_delegate_code(&mut self, new_code_hash: Hash) -> Result<(), OwnableError> {
+                ProxyImpl::change_delegate_code(self, new_code_hash)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::proxy::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("Proxy", import);
+
+    override_functions("proxy::Internal", &mut internal, &impl_args.map);
+    override_functions("Proxy", &mut proxy, &impl_args.map);
+
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(proxy_impl));
+    impl_args.items.push(syn::Item::Impl(proxy));
 }
 
 fn override_functions(trait_name: &str, implementation: &mut syn::ItemImpl, map: &OverridenFnMap) {

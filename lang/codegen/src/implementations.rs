@@ -1121,6 +1121,485 @@ pub(crate) fn impl_psp34_enumerable(
     items.push(syn::Item::Impl(psp34_enumerable));
 }
 
+pub(crate) fn impl_psp37(
+    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+    overriden_traits: &mut HashMap<&str, syn::Item>,
+) {
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl psp37::InternalImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl psp37::Internal for Contract {
+            fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, id: Id, amount: Balance) {
+                psp37::InternalImpl::_emit_transfer_event(self, from, to, id, amount)
+            }
+
+            fn _emit_transfer_batch_event(
+                &self,
+                from: Option<AccountId>,
+                to: Option<AccountId>,
+                ids_amounts: Vec<(Id, Balance)>,
+            ) {
+                psp37::InternalImpl::_emit_transfer_batch_event(self, from, to, ids_amounts)
+            }
+
+            fn _emit_approval_event(&self, owner: AccountId, operator: AccountId, id: Option<Id>, value: Balance) {
+                psp37::InternalImpl::_emit_approval_event(self, owner, operator, id, value)
+            }
+
+            fn _mint_to(&mut self, to: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
+                psp37::InternalImpl::_mint_to(self, to, ids_amounts)
+            }
+
+            fn _burn_from(&mut self, from: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
+                psp37::InternalImpl::_burn_from(self, from, ids_amounts)
+            }
+
+            fn _transfer_from(
+                &mut self,
+                from: AccountId,
+                to: AccountId,
+                id: Id,
+                amount: Balance,
+                data: Vec<u8>,
+            ) -> Result<(), PSP37Error> {
+                psp37::InternalImpl::_transfer_from(self, from, to, id, amount, data)
+            }
+
+            fn _get_allowance(&self, account: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Balance {
+                psp37::InternalImpl::_get_allowance(self, account, operator, id)
+            }
+
+            fn _approve_for(&mut self, operator: AccountId, id: Option<Id>, value: Balance) -> Result<(), PSP37Error> {
+                psp37::InternalImpl::_approve_for(self, operator, id, value)
+            }
+
+            fn _decrease_allowance(
+                &mut self,
+                owner: &AccountId,
+                operator: &AccountId,
+                id: &Id,
+                value: Balance,
+            ) -> Result<(), PSP37Error> {
+                psp37::InternalImpl::_decrease_allowance(self, owner, operator, id, value)
+            }
+
+            fn _transfer_token(
+                &mut self,
+                from: &AccountId,
+                to: &AccountId,
+                id: Id,
+                amount: Balance,
+                data: &Vec<u8>,
+            ) -> Result<(), PSP37Error> {
+                psp37::InternalImpl::_transfer_token(self, from, to, id, amount, data)
+            }
+
+            fn _before_token_transfer(
+                &mut self,
+                from: Option<&AccountId>,
+                to: Option<&AccountId>,
+                ids: &Vec<(Id, Balance)>,
+            ) -> Result<(), PSP37Error> {
+                psp37::InternalImpl::_before_token_transfer(self, from, to, ids)
+            }
+
+            fn _after_token_transfer(
+                &mut self,
+                from: Option<&AccountId>,
+                to: Option<&AccountId>,
+                ids: &Vec<(Id, Balance)>,
+            ) -> Result<(), PSP37Error> {
+                psp37::InternalImpl::_after_token_transfer(self, from, to, ids)
+            }
+        }
+
+    ))
+    .expect("Should parse");
+
+    let psp37_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37Impl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut psp37 = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37 for Contract {
+            #[ink(message)]
+            fn balance_of(&self, owner: AccountId, id: Option<Id>) -> Balance {
+                PSP37Impl::balance_of(self, owner, id)
+            }
+
+            #[ink(message)]
+            fn total_supply(&self, id: Option<Id>) -> Balance {
+                PSP37Impl::total_supply(self, id)
+            }
+
+            #[ink(message)]
+            fn allowance(&self, owner: AccountId, operator: AccountId, id: Option<Id>) -> Balance {
+                PSP37Impl::allowance(self, owner, operator, id)
+            }
+
+            #[ink(message)]
+            fn approve(&mut self, operator: AccountId, id: Option<Id>, value: Balance) -> Result<(), PSP37Error> {
+                PSP37Impl::approve(self, operator, id, value)
+            }
+
+            #[ink(message)]
+            fn transfer(&mut self, to: AccountId, id: Id, value: Balance, data: Vec<u8>) -> Result<(), PSP37Error> {
+                PSP37Impl::transfer(self, to, id, value, data)
+            }
+
+            #[ink(message)]
+            fn transfer_from(
+                &mut self,
+                from: AccountId,
+                to: AccountId,
+                id: Id,
+                value: Balance,
+                data: Vec<u8>,
+            ) -> Result<(), PSP37Error> {
+                PSP37Impl::transfer_from(self, from, to, id, value, data)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let psp37_balances_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl psp37::BalancesManagerImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut psp37_balances = syn::parse2::<syn::ItemImpl>(quote!(
+        impl psp37::BalancesManager for Contract {
+            fn _balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
+                psp37::BalancesManagerImpl::_balance_of(self, owner, id)
+            }
+
+            fn _total_supply(&self, id: &Option<&Id>) -> Balance {
+                psp37::BalancesManagerImpl::_total_supply(self, id)
+            }
+
+            fn _increase_balance(
+                &mut self,
+                owner: &AccountId,
+                id: &Id,
+                amount: &Balance,
+                mint: bool,
+            ) -> Result<(), PSP37Error> {
+                psp37::BalancesManagerImpl::_increase_balance(self, owner, id, amount, mint)
+            }
+
+            fn _decrease_balance(
+                &mut self,
+                owner: &AccountId,
+                id: &Id,
+                amount: &Balance,
+                burn: bool,
+            ) -> Result<(), PSP37Error> {
+                psp37::BalancesManagerImpl::_decrease_balance(self, owner, id, amount, burn)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp37::*;
+    ))
+    .expect("Should parse");
+    imports.insert("PSP37", import);
+
+    override_functions("psp37::BalancesManager", &mut psp37_balances, &map);
+    override_functions("psp37::Internal", &mut internal, &map);
+    override_functions("PSP37", &mut psp37, &map);
+
+    // only insert this if it is not present
+    overriden_traits
+        .entry("psp37::BalancesManager")
+        .or_insert(syn::Item::Impl(psp37_balances));
+
+    items.push(syn::Item::Impl(psp37_balances_impl));
+    items.push(syn::Item::Impl(internal_impl));
+    items.push(syn::Item::Impl(internal));
+    items.push(syn::Item::Impl(psp37_impl));
+    items.push(syn::Item::Impl(psp37));
+}
+
+pub(crate) fn impl_psp37_batch(
+    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+) {
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl batch::InternalImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl batch::Internal for Contract {
+            fn _batch_transfer_from(
+                &mut self,
+                from: AccountId,
+                to: AccountId,
+                ids_amounts: Vec<(Id, Balance)>,
+                data: Vec<u8>,
+            ) -> Result<(), PSP37Error> {
+                batch::InternalImpl::_batch_transfer_from(self, from, to, ids_amounts, data)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let batch_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37BatchImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut batch = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37Batch for Contract {
+            #[ink(message)]
+            fn batch_transfer(
+                &mut self,
+                to: AccountId,
+                ids_amounts: Vec<(Id, Balance)>,
+                data: Vec<u8>,
+            ) -> Result<(), PSP37Error> {
+                PSP37BatchImpl::batch_transfer(self, to, ids_amounts, data)
+            }
+
+            #[ink(message)]
+            fn batch_transfer_from(
+                &mut self,
+                from: AccountId,
+                to: AccountId,
+                ids_amounts: Vec<(Id, Balance)>,
+                data: Vec<u8>,
+            ) -> Result<(), PSP37Error> {
+                PSP37BatchImpl::batch_transfer_from(self, from, to, ids_amounts, data)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp37::extensions::batch::*;
+    ))
+    .expect("Should parse");
+    imports.insert("PSP37Batch", import);
+
+    override_functions("batch::Internal", &mut internal, &map);
+    override_functions("PSP37Batch", &mut batch, &map);
+
+    items.push(syn::Item::Impl(internal_impl));
+    items.push(syn::Item::Impl(internal));
+    items.push(syn::Item::Impl(batch_impl));
+    items.push(syn::Item::Impl(batch));
+}
+
+pub(crate) fn impl_psp37_burnable(
+    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+) {
+    let burnable_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37BurnableImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut burnable = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37Burnable for Contract {
+            #[ink(message)]
+            fn burn(&mut self, from: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
+                PSP37BurnableImpl::burn(self, from, ids_amounts)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp37::extensions::burnable::*;
+    ))
+    .expect("Should parse");
+    imports.insert("PSP37Burnable", import);
+
+    override_functions("PSP37Burnable", &mut burnable, &map);
+
+    items.push(syn::Item::Impl(burnable_impl));
+    items.push(syn::Item::Impl(burnable));
+}
+
+pub(crate) fn impl_psp37_metadata(
+    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+) {
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl metadata::InternalImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl metadata::Internal for Contract {
+            fn _emit_attribute_set_event(&self, id: &Id, key: &String, data: &String) {
+                metadata::InternalImpl::_emit_attribute_set_event(self, id, key, data);
+            }
+
+            fn _set_attribute(&mut self, id: &Id, key: &String, data: &String) -> Result<(), PSP37Error> {
+                metadata::InternalImpl::_set_attribute(self, id, key, data)
+            }
+
+            fn _get_attribute(&self, id: &Id, key: &String) -> Option<String> {
+                metadata::InternalImpl::_get_attribute(self, id, key)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let metadata_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37MetadataImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut metadata = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37Metadata for Contract {
+            #[ink(message)]
+            fn get_attribute(&self, id: Id, key: String) -> Option<String> {
+                PSP37MetadataImpl::get_attribute(self, id, key)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp37::extensions::metadata::*;
+    ))
+    .expect("Should parse");
+    imports.insert("PSP37Metadata", import);
+
+    override_functions("metadata::Internal", &mut internal, &map);
+    override_functions("PSP37Metadata", &mut metadata, &map);
+
+    items.push(syn::Item::Impl(internal_impl));
+    items.push(syn::Item::Impl(internal));
+    items.push(syn::Item::Impl(metadata_impl));
+    items.push(syn::Item::Impl(metadata));
+}
+
+pub(crate) fn impl_psp37_mintable(
+    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+) {
+    let mintable_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37MintableImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut mintable = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37Mintable for Contract {
+            #[ink(message)]
+            fn mint(&mut self, to: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
+                PSP37MintableImpl::mint(self, to, ids_amounts)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp37::extensions::mintable::*;
+    ))
+    .expect("Should parse");
+    imports.insert("PSP37Mintable", import);
+
+    override_functions("PSP37Mintable", &mut mintable, &map);
+
+    items.push(syn::Item::Impl(mintable_impl));
+    items.push(syn::Item::Impl(mintable));
+}
+
+pub(crate) fn impl_psp37_enumerable(
+    map: &HashMap<String, Vec<(String, Box<Block>)>>,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+    overriden_traits: &mut HashMap<&str, syn::Item>,
+) {
+    let enumerable_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37EnumerableImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut psp37_enumerable = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP37Enumerable for Contract {
+            #[ink(message)]
+            fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Option<Id> {
+                PSP37EnumerableImpl::owners_token_by_index(self, owner, index)
+            }
+
+            #[ink(message)]
+            fn token_by_index(&self, index: u128) -> Option<Id> {
+                PSP37EnumerableImpl::token_by_index(self, index)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let psp37_balances_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl enumerable::BalancesManagerImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut psp37_balances = syn::parse2::<syn::ItemImpl>(quote!(
+        impl psp37::BalancesManager for Contract {
+            fn _balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
+                enumerable::BalancesManagerImpl::_balance_of(self, owner, id)
+            }
+
+            fn _total_supply(&self, id: &Option<&Id>) -> Balance {
+                enumerable::BalancesManagerImpl::_total_supply(self, id)
+            }
+
+            fn _increase_balance(
+                &mut self,
+                owner: &AccountId,
+                id: &Id,
+                amount: &Balance,
+                mint: bool,
+            ) -> Result<(), PSP37Error> {
+                enumerable::BalancesManagerImpl::_increase_balance(self, owner, id, amount, mint)
+            }
+
+            fn _decrease_balance(
+                &mut self,
+                owner: &AccountId,
+                id: &Id,
+                amount: &Balance,
+                burn: bool,
+            ) -> Result<(), PSP37Error> {
+                enumerable::BalancesManagerImpl::_decrease_balance(self, owner, id, amount, burn)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp37::extensions::enumerable::*;
+    ))
+    .expect("Should parse");
+    imports.insert("PSP37Enumerable", import);
+
+    override_functions("enumerable::BalancesManager", &mut psp37_balances, &map);
+    override_functions("PSP37Enumerable", &mut psp37_enumerable, &map);
+
+    overriden_traits.insert("psp37::BalancesManager", syn::Item::Impl(psp37_balances));
+
+    items.push(syn::Item::Impl(psp37_balances_impl));
+    items.push(syn::Item::Impl(enumerable_impl));
+    items.push(syn::Item::Impl(psp37_enumerable));
+}
+
 fn override_functions(
     trait_name: &str,
     implementation: &mut syn::ItemImpl,

@@ -92,6 +92,12 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "PSP34Mintable" => impl_psp34_mintable(&map, &mut items, &mut imports),
             "PSP34Metadata" => impl_psp34_metadata(&map, &mut items, &mut imports),
             "PSP34Enumerable" => impl_psp34_enumerable(&map, &mut items, &mut imports, &mut overriden_traits),
+            "PSP37" => impl_psp37(&map, &mut items, &mut imports, &mut overriden_traits),
+            "PSP37Batch" => impl_psp37_batch(&map, &mut items, &mut imports),
+            "PSP37Burnable" => impl_psp37_burnable(&map, &mut items, &mut imports),
+            "PSP37Metadata" => impl_psp37_metadata(&map, &mut items, &mut imports),
+            "PSP37Mintable" => impl_psp37_mintable(&map, &mut items, &mut imports),
+            "PSP37Enumerable" => impl_psp37_enumerable(&map, &mut items, &mut imports, &mut overriden_traits),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }
@@ -129,10 +135,21 @@ fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
         "Flashmint",
     ];
     check_and_remove_import("PSP22", psp22_impls, imports);
+
     let psp22_pallet_impls = vec!["PSP22PalletMintable", "PSP22PalletBurnable", "PSP22PalletMetadata"];
     check_and_remove_import("PSP22Pallet", psp22_pallet_impls, imports);
+
     let psp34_impls = vec!["PSP34Mintable", "PSP34Burnable", "PSP34Metadata", "PSP34Enumerable"];
     check_and_remove_import("PSP34", psp34_impls, imports);
+
+    let psp37_impls = vec![
+        "PSP37Batch",
+        "PSP37Burnable",
+        "PSP37Metadata",
+        "PSP37Mintable",
+        "PSP34Enumerable",
+    ];
+    check_and_remove_import("PSP37", psp37_impls, imports);
 }
 
 fn check_and_remove_import(name_to_check: &str, to_check: Vec<&str>, imports: &mut HashMap<&str, syn::ItemUse>) {

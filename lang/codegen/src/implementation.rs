@@ -98,6 +98,13 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "PSP37Mintable" => impl_psp37_mintable(&map, &mut items, &mut imports),
             "PSP37Enumerable" => impl_psp37_enumerable(&map, &mut items, &mut imports, &mut overriden_traits),
             "Ownable" => impl_ownable(&map, &mut items, &mut imports),
+            "PaymentSplitter" => impl_payment_splitter(&map, &mut items, &mut imports),
+            "AccessControl" => impl_access_control(&map, &mut items, &mut imports, &mut overriden_traits),
+            "AccessControlEnumerable" => {
+                impl_access_control_enumerable(&map, &mut items, &mut imports, &mut overriden_traits)
+            }
+            "Pausable" => impl_pausable(&map, &mut items, &mut imports),
+            "TimelockController" => impl_timelock_controller(&map, &mut items, &mut imports),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }
@@ -150,6 +157,9 @@ fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
         "PSP34Enumerable",
     ];
     check_and_remove_import("PSP37", psp37_impls, imports);
+
+    let access_impls = vec!["AccessControlEnumerable", "TimelockController"];
+    check_and_remove_import("AccessControl", access_impls, imports);
 }
 
 fn check_and_remove_import(name_to_check: &str, to_check: Vec<&str>, imports: &mut HashMap<&str, syn::ItemUse>) {

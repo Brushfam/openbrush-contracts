@@ -1110,7 +1110,7 @@ pub(crate) fn impl_psp34_enumerable(
     .expect("Should parse");
     imports.insert("PSP34Enumerable", import);
 
-    override_functions("enumerable::BalancesManager", &mut psp34_balances, &map);
+    override_functions("psp34::BalancesManager", &mut psp34_balances, &map);
     override_functions("PSP34Enumerable", &mut psp34_enumerable, &map);
 
     overriden_traits.insert("psp34::BalancesManager", syn::Item::Impl(psp34_balances));
@@ -1589,7 +1589,7 @@ pub(crate) fn impl_psp37_enumerable(
     .expect("Should parse");
     imports.insert("PSP37Enumerable", import);
 
-    override_functions("enumerable::BalancesManager", &mut psp37_balances, &map);
+    override_functions("psp37::BalancesManager", &mut psp37_balances, &map);
     override_functions("PSP37Enumerable", &mut psp37_enumerable, &map);
 
     overriden_traits.insert("psp37::BalancesManager", syn::Item::Impl(psp37_balances));
@@ -1660,6 +1660,621 @@ pub(crate) fn impl_ownable(
     items.push(syn::Item::Impl(internal));
     items.push(syn::Item::Impl(ownable_impl));
     items.push(syn::Item::Impl(ownable));
+}
+
+pub(crate) fn impl_payment_splitter(
+    map: &OverridenFnMap,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+) {
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl payment_splitter::InternalImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl payment_splitter::Internal for Contract {
+            fn _emit_payee_added_event(&self, account: AccountId, shares: Balance) {
+                payment_splitter::InternalImpl::_emit_payee_added_event(self, account, shares)
+            }
+
+            fn _emit_payment_received_event(&self, from: AccountId, amount: Balance) {
+                payment_splitter::InternalImpl::_emit_payment_received_event(self, from, amount)
+            }
+
+            fn _emit_payment_released_event(&self, to: AccountId, amount: Balance) {
+                payment_splitter::InternalImpl::_emit_payment_released_event(self, to, amount)
+            }
+
+            fn _init(&mut self, payees_and_shares: Vec<(AccountId, Balance)>) -> Result<(), PaymentSplitterError> {
+                payment_splitter::InternalImpl::_init(self, payees_and_shares)
+            }
+
+            fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError> {
+                payment_splitter::InternalImpl::_add_payee(self, payee, share)
+            }
+
+            fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
+                payment_splitter::InternalImpl::_release_all(self)
+            }
+
+            fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
+                payment_splitter::InternalImpl::_release(self, account)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let payment_splitter_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PaymentSplitterImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut payment_splitter = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PaymentSplitter for Contract {
+            #[ink(message)]
+            fn total_shares(&self) -> Balance {
+                PaymentSplitterImpl::total_shares(self)
+            }
+
+            #[ink(message)]
+            fn total_released(&self) -> Balance {
+                PaymentSplitterImpl::total_released(self)
+            }
+
+            #[ink(message)]
+            fn shares(&self, account: AccountId) -> Balance {
+                PaymentSplitterImpl::shares(self, account)
+            }
+
+            #[ink(message)]
+            fn released(&self, account: AccountId) -> Balance {
+                PaymentSplitterImpl::released(self, account)
+            }
+
+            #[ink(message)]
+            fn payee(&self, index: u32) -> AccountId {
+                PaymentSplitterImpl::payee(self, index)
+            }
+
+            #[ink(message)]
+            fn receive(&mut self) {
+                PaymentSplitterImpl::receive(self)
+            }
+
+            #[ink(message)]
+            fn release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
+                PaymentSplitterImpl::release(self, account)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::payment_splitter::*;
+    ))
+    .expect("Should parse");
+    imports.insert("PaymentSplitter", import);
+
+    override_functions("payment_splitter::Internal", &mut internal, &map);
+    override_functions("PaymentSplitter", &mut payment_splitter, &map);
+
+    items.push(syn::Item::Impl(internal_impl));
+    items.push(syn::Item::Impl(internal));
+    items.push(syn::Item::Impl(payment_splitter_impl));
+    items.push(syn::Item::Impl(payment_splitter));
+}
+
+pub(crate) fn impl_access_control(
+    map: &OverridenFnMap,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+    overriden_traits: &mut HashMap<&str, syn::Item>,
+) {
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl access_control::InternalImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl access_control::Internal for Contract {
+            fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {
+                access_control::InternalImpl::_emit_role_admin_changed(self, _role, _previous, _new);
+            }
+
+            fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {
+                access_control::InternalImpl::_emit_role_granted(self, _role, _grantee, _grantor);
+            }
+
+            fn _emit_role_revoked(&mut self, _role: RoleType, _account: AccountId, _sender: AccountId) {
+                access_control::InternalImpl::_emit_role_revoked(self, _role, _account, _sender);
+            }
+
+            fn _default_admin() -> RoleType {
+                <Self as access_control::InternalImpl>::_default_admin()
+            }
+
+            fn _init_with_caller(&mut self) {
+                access_control::InternalImpl::_init_with_caller(self);
+            }
+
+            fn _init_with_admin(&mut self, admin: AccountId) {
+                access_control::InternalImpl::_init_with_admin(self, admin);
+            }
+
+            fn _setup_role(&mut self, role: RoleType, member: AccountId) {
+                access_control::InternalImpl::_setup_role(self, role, member);
+            }
+
+            fn _do_revoke_role(&mut self, role: RoleType, account: AccountId) {
+                access_control::InternalImpl::_do_revoke_role(self, role, account);
+            }
+
+            fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType) {
+                access_control::InternalImpl::_set_role_admin(self, role, new_admin);
+            }
+
+            fn _check_role(&self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+                access_control::InternalImpl::_check_role(self, role, account)
+            }
+
+            fn _get_role_admin(&self, role: RoleType) -> RoleType {
+                access_control::InternalImpl::_get_role_admin(self, role)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let access_control_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl AccessControlImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut access_control = syn::parse2::<syn::ItemImpl>(quote!(
+        impl AccessControl for Contract {
+            #[ink(message)]
+            fn has_role(&self, role: RoleType, address: AccountId) -> bool {
+                AccessControlImpl::has_role(self, role, address)
+            }
+
+            #[ink(message)]
+            fn get_role_admin(&self, role: RoleType) -> RoleType {
+                AccessControlImpl::get_role_admin(self, role)
+            }
+
+            #[ink(message)]
+            fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+                AccessControlImpl::grant_role(self, role, account)
+            }
+
+            #[ink(message)]
+            fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+                AccessControlImpl::revoke_role(self, role, account)
+            }
+
+            #[ink(message)]
+            fn renounce_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+                AccessControlImpl::renounce_role(self, role, account)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let members_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl access_control::MembersManagerImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut members = syn::parse2::<syn::ItemImpl>(quote!(
+        impl access_control::MembersManager for Contract {
+            fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
+                access_control::MembersManagerImpl::_has_role(self, role, address)
+            }
+
+            fn _add(&mut self, role: RoleType, member: &AccountId) {
+                access_control::MembersManagerImpl::_add(self, role, member)
+            }
+
+            fn _remove(&mut self, role: RoleType, member: &AccountId) {
+                access_control::MembersManagerImpl::_remove(self, role, member)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::access_control::*;
+    ))
+    .expect("Should parse");
+    imports.insert("AccessControl", import);
+
+    override_functions("access_control::MembersManager", &mut members, &map);
+    override_functions("access_control::Internal", &mut internal, &map);
+    override_functions("AccessControl", &mut access_control, &map);
+
+    // only insert this if it is not present
+    overriden_traits
+        .entry("access_control::MembersManager")
+        .or_insert(syn::Item::Impl(members));
+
+    items.push(syn::Item::Impl(members_impl));
+    items.push(syn::Item::Impl(internal_impl));
+    items.push(syn::Item::Impl(internal));
+    items.push(syn::Item::Impl(access_control_impl));
+    items.push(syn::Item::Impl(access_control));
+}
+
+pub(crate) fn impl_access_control_enumerable(
+    map: &OverridenFnMap,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+    overriden_traits: &mut HashMap<&str, syn::Item>,
+) {
+    let enumerable_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl AccessControlEnumerableImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut enumerable = syn::parse2::<syn::ItemImpl>(quote!(
+        impl AccessControlEnumerable for Contract {
+            #[ink(message)]
+            fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
+                AccessControlEnumerableImpl::get_role_member(self, role, index)
+            }
+
+            #[ink(message)]
+            fn get_role_member_count(&self, role: RoleType) -> u32 {
+                AccessControlEnumerableImpl::get_role_member_count(self, role)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let members_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl enumerable::MembersManagerImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut members = syn::parse2::<syn::ItemImpl>(quote!(
+        impl access_control::MembersManager for Contract {
+            fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
+                enumerable::MembersManagerImpl::_has_role(self, role, address)
+            }
+
+            fn _add(&mut self, role: RoleType, member: &AccountId) {
+                enumerable::MembersManagerImpl::_add(self, role, member)
+            }
+
+            fn _remove(&mut self, role: RoleType, member: &AccountId) {
+                enumerable::MembersManagerImpl::_remove(self, role, member)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::access_control::extensions::enumerable::*;
+    ))
+    .expect("Should parse");
+    imports.insert("AccessControlEnumerable", import);
+
+    override_functions("access_control::MembersManager", &mut members, &map);
+    override_functions("AccessControlEnumerable", &mut enumerable, &map);
+
+    overriden_traits.insert("access_control::MembersManager", syn::Item::Impl(members));
+
+    items.push(syn::Item::Impl(members_impl));
+    items.push(syn::Item::Impl(enumerable_impl));
+    items.push(syn::Item::Impl(enumerable));
+}
+
+pub(crate) fn impl_pausable(
+    map: &OverridenFnMap,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+) {
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl pausable::InternalImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl pausable::Internal for Contract {
+            fn _emit_paused_event(&self, account: AccountId) {
+                pausable::InternalImpl::_emit_paused_event(self, account)
+            }
+
+            fn _emit_unpaused_event(&self, account: AccountId) {
+                pausable::InternalImpl::_emit_unpaused_event(self, account)
+            }
+
+            fn _paused(&self) -> bool {
+                pausable::InternalImpl::_paused(self)
+            }
+
+            fn _pause(&mut self) -> Result<(), PausableError> {
+                pausable::InternalImpl::_pause(self)
+            }
+
+            fn _unpause(&mut self) -> Result<(), PausableError> {
+                pausable::InternalImpl::_unpause(self)
+            }
+
+            fn _switch_pause(&mut self) -> Result<(), PausableError> {
+                pausable::InternalImpl::_switch_pause(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let pausable_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PausableImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut pausable = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Pausable for Contract {
+            #[ink(message)]
+            fn paused(&self) -> bool {
+                PausableImpl::paused(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::pausable::*;
+    ))
+    .expect("Should parse");
+    imports.insert("Pausable", import);
+
+    override_functions("pausable::Internal", &mut internal, &map);
+    override_functions("Pausable", &mut pausable, &map);
+
+    items.push(syn::Item::Impl(internal_impl));
+    items.push(syn::Item::Impl(internal));
+    items.push(syn::Item::Impl(pausable_impl));
+    items.push(syn::Item::Impl(pausable));
+}
+
+pub(crate) fn impl_timelock_controller(
+    map: &OverridenFnMap,
+    items: &mut Vec<syn::Item>,
+    imports: &mut HashMap<&str, syn::ItemUse>,
+) {
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl timelock_controller::InternalImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl timelock_controller::Internal for Contract {
+            fn _emit_min_delay_change_event(&self, old_delay: Timestamp, new_delay: Timestamp) {
+                InternalImpl::_emit_min_delay_change_event(self, old_delay, new_delay)
+            }
+    
+            fn _emit_call_scheduled_event(
+                &self,
+                id: OperationId,
+                index: u8,
+                transaction: Transaction,
+                predecessor: Option<OperationId>,
+                delay: Timestamp,
+            ) {
+                InternalImpl::_emit_call_scheduled_event(self, id, index, transaction, predecessor, delay)
+            }
+    
+            fn _emit_cancelled_event(&self, id: OperationId) {
+                InternalImpl::_emit_cancelled_event(self, id)
+            }
+    
+            fn _emit_call_executed_event(&self, id: OperationId, index: u8, transaction: Transaction) {
+                InternalImpl::_emit_call_executed_event(self, id, index, transaction)
+            }
+    
+            fn _init_with_caller(&mut self, min_delay: Timestamp, proposers: Vec<AccountId>, executors: Vec<AccountId>) {
+                InternalImpl::_init_with_caller(self, min_delay, proposers, executors)
+            }
+    
+            fn _init_with_admin(
+                &mut self,
+                admin: AccountId,
+                min_delay: Timestamp,
+                proposers: Vec<AccountId>,
+                executors: Vec<AccountId>,
+            ) {
+                InternalImpl::_init_with_admin(self, admin, min_delay, proposers, executors)
+            }
+    
+            fn _hash_operation(
+                &self,
+                transaction: &Transaction,
+                predecessor: &Option<OperationId>,
+                salt: &[u8; 32],
+            ) -> OperationId {
+                InternalImpl::_hash_operation(self, transaction, predecessor, salt)
+            }
+    
+            fn _hash_operation_batch(
+                &self,
+                transactions: &Vec<Transaction>,
+                predecessor: &Option<OperationId>,
+                salt: &[u8; 32],
+            ) -> OperationId {
+                InternalImpl::_hash_operation_batch(self, transactions, predecessor, salt)
+            }
+    
+            fn _schedule(&mut self, id: OperationId, delay: &Timestamp) -> Result<(), TimelockControllerError> {
+                InternalImpl::_schedule(self, id, delay)
+            }
+    
+            fn _before_call(&self, predecessor: Option<OperationId>) -> Result<(), TimelockControllerError> {
+                InternalImpl::_before_call(self, predecessor)
+            }
+    
+            fn _after_call(&mut self, id: OperationId) -> Result<(), TimelockControllerError> {
+                InternalImpl::_after_call(self, id)
+            }
+    
+            fn _call(&mut self, id: OperationId, i: u8, transaction: Transaction) -> Result<(), TimelockControllerError> {
+                InternalImpl::_call(self, id, i, transaction)
+            }
+    
+            fn _timelock_admin_role() -> RoleType {
+                <Self as InternalImpl>::_timelock_admin_role()
+            }
+    
+            fn _proposal_role() -> RoleType {
+                <Self as InternalImpl>::_proposal_role()
+            }
+    
+            fn _executor_role() -> RoleType {
+                <Self as InternalImpl>::_executor_role()
+            }
+    
+            fn _done_timestamp() -> Timestamp {
+                <Self as InternalImpl>::_done_timestamp()
+            }
+    
+            fn _is_operation(&self, id: OperationId) -> bool {
+                InternalImpl::_is_operation(self, id)
+            }
+    
+            fn _is_operation_ready(&self, id: OperationId) -> bool {
+                InternalImpl::_is_operation_ready(self, id)
+            }
+    
+            fn _is_operation_done(&self, id: OperationId) -> bool {
+                InternalImpl::_is_operation_done(self, id)
+            }
+    
+            fn _get_timestamp(&self, id: OperationId) -> Timestamp {
+                InternalImpl::_get_timestamp(self, id)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let timelock_controller_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl TimelockControllerImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let mut timelock_controller = syn::parse2::<syn::ItemImpl>(quote!(
+        impl TimelockController for Contract {
+            #[ink(message)]
+            fn is_operation(&self, id: OperationId) -> bool {
+                TimelockControllerImpl::is_operation(self, id)
+            }
+    
+            #[ink(message)]
+            fn is_operation_pending(&self, id: OperationId) -> bool {
+                TimelockControllerImpl::is_operation_pending(self, id)
+            }
+    
+            #[ink(message)]
+            fn is_operation_ready(&self, id: OperationId) -> bool {
+                TimelockControllerImpl::is_operation_ready(self, id)
+            }
+    
+            #[ink(message)]
+            fn is_operation_done(&self, id: OperationId) -> bool {
+                TimelockControllerImpl::is_operation_done(self, id)
+            }
+    
+            #[ink(message)]
+            fn get_timestamp(&self, id: OperationId) -> Timestamp {
+                TimelockControllerImpl::get_timestamp(self, id)
+            }
+    
+            #[ink(message)]
+            fn get_min_delay(&self) -> Timestamp {
+                TimelockControllerImpl::get_min_delay(self)
+            }
+    
+            #[ink(message)]
+            fn hash_operation(&self, transaction: Transaction, predecessor: Option<OperationId>, salt: [u8; 32]) -> Hash {
+                TimelockControllerImpl::hash_operation(self, transaction, predecessor, salt)
+            }
+    
+            #[ink(message)]
+            fn hash_operation_batch(
+                &self,
+                transactions: Vec<Transaction>,
+                predecessor: Option<OperationId>,
+                salt: [u8; 32],
+            ) -> Hash {
+                TimelockControllerImpl::hash_operation_batch(self, transactions, predecessor, salt)
+            }
+    
+            #[ink(message)]
+            fn schedule(
+                &mut self,
+                transaction: Transaction,
+                predecessor: Option<OperationId>,
+                salt: [u8; 32],
+                delay: Timestamp,
+            ) -> Result<(), TimelockControllerError> {
+                TimelockControllerImpl::schedule(self, transaction, predecessor, salt, delay)
+            }
+    
+            #[ink(message)]
+            fn schedule_batch(
+                &mut self,
+                transactions: Vec<Transaction>,
+                predecessor: Option<OperationId>,
+                salt: [u8; 32],
+                delay: Timestamp,
+            ) -> Result<(), TimelockControllerError> {
+                TimelockControllerImpl::schedule_batch(self, transactions, predecessor, salt, delay)
+            }
+    
+            #[ink(message)]
+            fn cancel(&mut self, id: OperationId) -> Result<(), TimelockControllerError> {
+                TimelockControllerImpl::cancel(self, id)
+            }
+    
+            #[ink(message)]
+            fn execute(
+                &mut self,
+                transaction: Transaction,
+                predecessor: Option<OperationId>,
+                salt: [u8; 32],
+            ) -> Result<(), TimelockControllerError> {
+                TimelockControllerImpl::execute(self, transaction, predecessor, salt)
+            }
+    
+            #[ink(message)]
+            fn execute_batch(
+                &mut self,
+                transactions: Vec<Transaction>,
+                predecessor: Option<OperationId>,
+                salt: [u8; 32],
+            ) -> Result<(), TimelockControllerError> {
+                TimelockControllerImpl::execute_batch(self, transactions, predecessor, salt)
+            }
+    
+            #[ink(message)]
+            fn update_delay(&mut self, new_delay: Timestamp) -> Result<(), TimelockControllerError> {
+                TimelockControllerImpl::update_delay(self, new_delay)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::timelock_controller::*;
+    ))
+    .expect("Should parse");
+    imports.insert("TimelockController", import);
+
+    override_functions("timelock_controller::Internal", &mut internal, &map);
+    override_functions("TimelockController", &mut timelock_controller, &map);
+
+    items.push(syn::Item::Impl(internal_impl));
+    items.push(syn::Item::Impl(internal));
+    items.push(syn::Item::Impl(timelock_controller_impl));
+    items.push(syn::Item::Impl(timelock_controller));
 }
 
 fn override_functions(trait_name: &str, implementation: &mut syn::ItemImpl, map: &OverridenFnMap) {

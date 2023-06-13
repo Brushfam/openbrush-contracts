@@ -91,15 +91,15 @@ pub trait Internal {
     /// Triggers stopped state.
     ///
     /// On success a `Paused` event is emitted.
-    fn _pause<E: From<PausableError>>(&mut self) -> Result<(), E>;
+    fn _pause(&mut self) -> Result<(), PausableError>;
 
     /// Returns to normal state.
     ///
     /// On success a `Unpaused` event is emitted.
-    fn _unpause<E: From<PausableError>>(&mut self) -> Result<(), E>;
+    fn _unpause(&mut self) -> Result<(), PausableError>;
 
     /// Function which changes state to unpaused if paused and vice versa
-    fn _switch_pause<E: From<PausableError>>(&mut self) -> Result<(), E>;
+    fn _switch_pause(&mut self) -> Result<(), PausableError>;
 }
 
 pub trait InternalImpl: Storage<Data> + Internal {
@@ -112,20 +112,20 @@ pub trait InternalImpl: Storage<Data> + Internal {
     }
 
     #[modifiers(when_not_paused)]
-    fn _pause<E: From<PausableError>>(&mut self) -> Result<(), E> {
+    fn _pause(&mut self) -> Result<(), PausableError> {
         self.data().paused = true;
         Internal::_emit_paused_event(self, Self::env().caller());
         Ok(())
     }
 
     #[modifiers(when_paused)]
-    fn _unpause<E: From<PausableError>>(&mut self) -> Result<(), E> {
+    fn _unpause(&mut self) -> Result<(), PausableError> {
         self.data().paused = false;
         Internal::_emit_unpaused_event(self, Self::env().caller());
         Ok(())
     }
 
-    fn _switch_pause<E: From<PausableError>>(&mut self) -> Result<(), E> {
+    fn _switch_pause(&mut self) -> Result<(), PausableError> {
         if Internal::_paused(self) {
             Internal::_unpause(self)
         } else {

@@ -27,6 +27,10 @@ pub mod my_access_control {
     #[modifiers(only_role(MINTER))]
     fn burn() {}
 
+    #[default_impl(PSP34Mintable)]
+    #[modifiers(only_role(MINTER))]
+    fn mint() {}
+
     impl Contract {
         #[ink(constructor)]
         pub fn new() -> Self {

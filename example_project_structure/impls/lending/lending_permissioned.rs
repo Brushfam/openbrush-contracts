@@ -1,41 +1,25 @@
 use super::{
-    data,
-    data::*,
+    lending_internal,
+    lending_internal::*,
 };
 use crate::traits::lending::*;
-use ink::storage::traits::{
-    AutoStorableHint,
-    ManualKey,
-    Storable,
-    StorableHint,
-};
 use openbrush::{
     contracts::{
         access_control::*,
-        pausable::*,
         traits::psp22::PSP22Ref,
     },
     modifiers,
     traits::{
         AccountId,
         Balance,
-        OccupiedStorage,
         Storage,
-        ZERO_ADDRESS,
     },
 };
 
 pub const MANAGER: RoleType = ink::selector_id!("MANAGER");
 
-impl<T, M> LendingPermissioned for T
-where
-    T: Internal,
-    T: Storage<data::Data> + Storage<pausable::Data> + Storage<access_control::Data<M>>,
-    T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<M>>,
-    M: members::MembersManager,
-    M: Storable
-        + StorableHint<ManualKey<{ access_control::STORAGE_KEY }>>
-        + AutoStorableHint<ManualKey<3218979580, ManualKey<{ access_control::STORAGE_KEY }>>, Type = M>,
+pub trait LendingPermissionedImpl:
+    access_control::Internal + Storage<access_control::Data> + lending_internal::Internal + Lending + Instantiator
 {
     #[modifiers(only_role(MANAGER))]
     fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
@@ -50,19 +34,19 @@ where
         let reserves_address = self._instantiate_shares_contract("LendingReserves", "LR");
         // accept the asset and map shares and reserves to it
 
-        accept_lending(self, asset_address, shares_address, reserves_address);
+        self._accept_lending(asset_address, shares_address, reserves_address);
         Ok(())
     }
 
     #[modifiers(only_role(MANAGER))]
     fn disallow_lending(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
-        let reserve_asset = get_reserve_asset(self, &asset_address)?;
+        let reserve_asset = self._get_reserve_asset(&asset_address)?;
         if PSP22Ref::balance_of(&asset_address, Self::env().account_id()) > 0
             || PSP22Ref::balance_of(&reserve_asset, Self::env().account_id()) > 0
         {
             return Err(LendingError::AssetsInTheContract)
         }
-        disallow_lending(self, asset_address);
+        self._disallow_lending(asset_address);
         Ok(())
     }
 
@@ -72,7 +56,7 @@ where
         if self.is_accepted_collateral(asset_address) {
             return Err(LendingError::AssetSupported)
         }
-        set_collateral_accepted(self, asset_address, true);
+        self._set_collateral_accepted(asset_address, true);
         Ok(())
     }
 
@@ -80,7 +64,7 @@ where
     fn disallow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
         // we will ensure the asset is not accepted already
         if self.is_accepted_collateral(asset_address) {
-            set_collateral_accepted(self, asset_address, false);
+            self._set_collateral_accepted(asset_address, false);
         }
         Ok(())
     }
@@ -92,39 +76,7 @@ where
         asset_out: AccountId,
         price: Balance,
     ) -> Result<(), LendingError> {
-        set_asset_price(self, &asset_in, &asset_out, &price);
+        self._set_asset_price(&asset_in, &asset_out, &price);
         Ok(())
     }
-}
-
-pub trait Internal {
-    /// Internal function which instantiates a shares contract and returns its AccountId
-    fn _instantiate_shares_contract(&self, contract_name: &str, contract_symbol: &str) -> AccountId;
-}
-
-fn accept_lending<T: Storage<data::Data>>(
-    instance: &mut T,
-    asset_address: AccountId,
-    share_address: AccountId,
-    reserve_address: AccountId,
-) {
-    instance.data().asset_shares.insert(&asset_address, &share_address);
-    instance.data().shares_asset.insert(&share_address, &asset_address);
-    instance.data().assets_lended.insert(&asset_address, &reserve_address);
-}
-
-fn disallow_lending<T: Storage<data::Data>>(instance: &mut T, asset_address: AccountId) {
-    let share_address = instance
-        .data()
-        .asset_shares
-        .get(&asset_address)
-        .unwrap_or(ZERO_ADDRESS.into());
-    instance.data().asset_shares.remove(&asset_address);
-    instance.data().shares_asset.remove(&share_address);
-    instance.data().assets_lended.remove(&asset_address);
-}
-
-/// this function will accept `asset_address` for using as collateral
-fn set_collateral_accepted<T: Storage<data::Data>>(instance: &mut T, asset_address: AccountId, accepted: bool) {
-    instance.data().collateral_accepted.insert(&asset_address, &accepted);
 }

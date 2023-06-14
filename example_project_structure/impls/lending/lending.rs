@@ -1,19 +1,5 @@
 // Importing everything publicly from traits allows you to import every stuff related to lending
 // by one import
-pub use crate::{
-    impls::lending::{
-        data,
-        data::*,
-        lending,
-        lending_permissioned::{
-            Internal,
-            *,
-        },
-        *,
-    },
-    traits::lending::*,
-};
-
 use crate::traits::{
     loan::{
         LoanInfo,
@@ -21,14 +7,25 @@ use crate::traits::{
     },
     shares::SharesRef,
 };
+pub use crate::{
+    impls::lending::{
+        data,
+        data::*,
+        lending,
+        lending_internal,
+        lending_internal::*,
+        *,
+    },
+    traits::lending::*,
+};
 use ink::prelude::vec::Vec;
+pub use lending_internal::Internal as _;
+pub use lending_permissioned::LendingPermissionedImpl;
+pub use openbrush::contracts::traits::psp34::Id;
 use openbrush::{
     contracts::{
         pausable::*,
-        traits::{
-            psp22::PSP22Ref,
-            psp34::Id,
-        },
+        traits::psp22::PSP22Ref,
     },
     modifiers,
     traits::{
@@ -43,7 +40,7 @@ use openbrush::{
 
 pub const YEAR: Timestamp = 60 * 60 * 24 * 365;
 
-impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
+pub trait LendingImpl: Storage<data::Data> + lending_internal::Internal + Storage<pausable::Data> {
     fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
         let mapped_asset = self
@@ -123,7 +120,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
             // else we calculate how much shares will belong us after depositing the `amount`
             (amount * self.total_shares(asset_address)?) / total_asset
         };
-        let reserve_asset = get_reserve_asset(self, &asset_address)?;
+        let reserve_asset = self._get_reserve_asset(&asset_address)?;
         // mint the shares token to the user
         SharesRef::mint(&reserve_asset, lender, new_shares)?;
         Ok(())
@@ -151,10 +148,10 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         if PSP22Ref::balance_of(&collateral_address, borrower) < amount {
             return Err(LendingError::InsufficientCollateralBalance)
         }
-        let reserve_asset = get_reserve_asset(self, &asset_address)?;
+        let reserve_asset = self._get_reserve_asset(&asset_address)?;
 
         // we will find out the price of deposited collateral
-        let price = get_asset_price(self, &amount, &collateral_address, &asset_address);
+        let price = self._get_asset_price(&amount, &collateral_address, &asset_address);
         // we will set the liquidation price to be 75% of current price
         let liquidation_price = (price * 75) / 100;
         // borrow amount is 70% of collateral
@@ -218,7 +215,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         let time_passed = Self::env().block_timestamp() - loan_info.timestamp;
         let total_apy = (apy * time_passed as Balance) / YEAR as Balance;
         let to_repay = (((loan_info.borrow_amount) * (10000 + total_apy)) / 10000) + 1;
-        let reserve_asset = get_reserve_asset(self, &loan_info.borrow_token)?;
+        let reserve_asset = self._get_reserve_asset(&loan_info.borrow_token)?;
         if repay_amount >= to_repay {
             PSP22Ref::transfer_from(&loan_info.borrow_token, initiator, contract, to_repay, Vec::<u8>::new())?;
             PSP22Ref::transfer(
@@ -251,12 +248,8 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         Ok(true)
     }
 
-    fn withdraw_asset(
-        &mut self,
-        shares_address: AccountId,
-        shares_amount: Balance,
-    ) -> Result<(), LendingError> {
-        let withdraw_asset = get_asset_from_shares(self, &shares_address)?;
+    fn withdraw_asset(&mut self, shares_address: AccountId, shares_amount: Balance) -> Result<(), LendingError> {
+        let withdraw_asset = self._get_asset_from_shares(&shares_address)?;
         let withdraw_amount =
             (shares_amount * self.total_asset(withdraw_asset)?) / PSP22Ref::total_supply(&shares_address);
         if withdraw_amount > PSP22Ref::balance_of(&withdraw_asset, Self::env().account_id()) {
@@ -276,8 +269,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
             return Err(LendingError::LoanLiquidated)
         }
 
-        let price = get_asset_price(
-            self,
+        let price = self._get_asset_price(
             &loan_info.collateral_amount,
             &loan_info.collateral_token,
             &loan_info.borrow_token,

@@ -3,13 +3,11 @@
 #[openbrush::implementation(PSP37, PSP37Metadata)]
 #[openbrush::contract]
 pub mod my_psp37 {
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::String;
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         psp37: psp37::Data,

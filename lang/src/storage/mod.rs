@@ -38,6 +38,7 @@ impl<'a> TypeGuard<'a> for () {
     type Type = ();
 }
 
+#[derive(Clone)]
 pub struct ValueGuard<K>(PhantomData<K>);
 
 impl<'a, K: 'a> TypeGuard<'a> for ValueGuard<K> {

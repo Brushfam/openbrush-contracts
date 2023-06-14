@@ -4,10 +4,10 @@
 #[openbrush::contract]
 pub mod my_psp37 {
     use ink::prelude::vec::Vec;
-    use openbrush::traits::Storage;
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         psp37: psp37::Data,

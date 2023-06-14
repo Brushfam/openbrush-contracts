@@ -3,10 +3,9 @@
 #[openbrush::implementation(AccessControl, AccessControlEnumerable)]
 #[openbrush::contract]
 pub mod my_access_control {
-    use openbrush::traits::Storage;
-
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         access: access_control::Data,

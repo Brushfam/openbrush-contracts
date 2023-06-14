@@ -7,7 +7,8 @@ pub mod my_payment_splitter {
     use openbrush::traits::Storage;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         splitter: payment_splitter::Data,

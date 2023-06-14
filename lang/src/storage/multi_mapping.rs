@@ -45,6 +45,7 @@ use scale::{
 // TODO: More doc
 /// A mapping of one key to many values. The mapping provides iteration functionality over all
 /// key's values.
+#[derive(Clone)]
 pub struct MultiMapping<K, V, TGK = RefGuard<K>, TGV = ValueGuard<V>, KeyType: StorageKey = AutoKey> {
     _marker: PhantomData<fn() -> (K, V, TGK, TGV, KeyType)>,
 }

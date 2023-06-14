@@ -3,10 +3,9 @@
 #[openbrush::implementation(PSP22Pallet, PSP22PalletBurnable)]
 #[openbrush::contract]
 pub mod my_psp22_pallet_burnable {
-    use openbrush::traits::Storage;
-
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         pallet: psp22_pallet::Data,

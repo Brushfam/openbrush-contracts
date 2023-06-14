@@ -1,15 +1,13 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_flipper_guard {
     use flipper::traits::flipper::*;
-    use openbrush::{
-        modifiers,
-        traits::Storage,
-    };
+    use openbrush::modifiers;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct MyFlipper {
         #[storage_field]
         guard: reentrancy_guard::Data,

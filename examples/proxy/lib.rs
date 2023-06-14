@@ -6,7 +6,8 @@ pub mod proxy {
     use openbrush::traits::Storage;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         proxy: proxy::Data,

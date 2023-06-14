@@ -39,7 +39,9 @@ use openbrush::{
         AccountId,
         Balance,
         Storage,
+        StorageAccess,
     },
+    with_data,
 };
 pub use psp37::{
     BalancesManager as _,
@@ -50,7 +52,7 @@ pub use psp37::{
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Balances);
 
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 #[derive(Default, Debug)]
 pub struct Data {
     pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey>,
@@ -64,6 +66,7 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
+#[derive(Clone)]
 pub struct EnumerableKey;
 
 impl<'a> TypeGuard<'a> for EnumerableKey {
@@ -76,19 +79,19 @@ impl<'a> TypeGuard<'a> for BalancesKey {
     type Type = &'a (&'a AccountId, &'a Id);
 }
 
-pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
+pub trait BalancesManagerImpl: Storage<DataType> + StorageAccess<Data> + psp37::BalancesManager {
     fn _balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
         match id {
-            None => self.data().enumerable.count(&Some(owner)),
-            Some(id) => self.data().balances.get(&(owner, id)).unwrap_or(0),
+            None => self.get_or_default().enumerable.count(&Some(owner)),
+            Some(id) => self.get_or_default().balances.get(&(owner, id)).unwrap_or(0),
         }
     }
 
     #[inline(always)]
     fn _total_supply(&self, id: &Option<&Id>) -> Balance {
         match id {
-            None => self.data().enumerable.count(&None),
-            Some(id) => self.data().supply.get(id).unwrap_or(0),
+            None => self.get_or_default().enumerable.count(&None),
+            Some(id) => self.get_or_default().supply.get(id).unwrap_or(0),
         }
     }
 
@@ -106,23 +109,28 @@ pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
         }
 
         let balance_before = BalancesManager::_balance_of(self, owner, &Some(id));
-        self.data()
-            .balances
-            .insert(&(owner, id), &(balance_before.checked_add(amount).unwrap()));
+        with_data!(self, data, {
+            data.balances
+                .insert(&(owner, id), &(balance_before.checked_add(amount).unwrap()));
+        });
 
         if balance_before == 0 {
-            self.data().enumerable.insert(&Some(owner), id);
+            with_data!(self, data, {
+                data.enumerable.insert(&Some(owner), id);
+            });
         }
 
         if mint {
             let supply_before = BalancesManager::_total_supply(self, &Some(id));
 
-            self.data()
-                .supply
-                .insert(id, &(supply_before.checked_add(amount).unwrap()));
+            with_data!(self, data, {
+                data.supply.insert(id, &(supply_before.checked_add(amount).unwrap()));
+            });
 
             if supply_before == 0 {
-                self.data().enumerable.insert(&None, id);
+                with_data!(self, data, {
+                    data.enumerable.insert(&None, id);
+                });
             }
         }
         Ok(())
@@ -144,32 +152,41 @@ pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
         let balance_after = BalancesManager::_balance_of(self, owner, &Some(id))
             .checked_sub(amount)
             .ok_or(PSP37Error::InsufficientBalance)?;
-        self.data().balances.insert(&(owner, id), &balance_after);
+        with_data!(self, data, {
+            data.balances.insert(&(owner, id), &balance_after);
+        });
 
         if balance_after == 0 {
-            self.data().enumerable.remove_value(&Some(owner), id);
+            with_data!(self, data, {
+                data.enumerable.remove_value(&Some(owner), id);
+            });
         }
 
         if burn {
             let supply_after = BalancesManager::_total_supply(self, &Some(id))
                 .checked_sub(amount)
                 .ok_or(PSP37Error::InsufficientBalance)?;
-            self.data().supply.insert(id, &supply_after);
+
+            with_data!(self, data, {
+                data.supply.insert(id, &supply_after);
+            });
 
             if supply_after == 0 {
-                self.data().enumerable.remove_value(&None, id);
+                with_data!(self, data, {
+                    data.enumerable.remove_value(&None, id);
+                });
             }
         }
         Ok(())
     }
 }
 
-pub trait PSP37EnumerableImpl: Storage<Data> {
+pub trait PSP37EnumerableImpl: Storage<DataType> + StorageAccess<Data> {
     fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Option<Id> {
-        self.data().enumerable.get_value(&Some(&owner), &index)
+        self.get_or_default().enumerable.get_value(&Some(&owner), &index)
     }
 
     fn token_by_index(&self, index: u128) -> Option<Id> {
-        self.data().enumerable.get_value(&None, &index)
+        self.get_or_default().enumerable.get_value(&None, &index)
     }
 }

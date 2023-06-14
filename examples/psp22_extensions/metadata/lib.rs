@@ -3,10 +3,9 @@
 #[openbrush::implementation(PSP22, PSP22Metadata)]
 #[openbrush::contract]
 pub mod my_psp22 {
-    use openbrush::traits::Storage;
-
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         psp22: psp22::Data,

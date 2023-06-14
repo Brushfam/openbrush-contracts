@@ -36,8 +36,10 @@ use openbrush::{
     },
     traits::{
         Storage,
+        StorageAccess,
         String,
     },
+    with_data,
 };
 pub use psp37::{
     BalancesManager as _,
@@ -50,7 +52,7 @@ pub use psp37::{
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 pub struct Data {
     pub attributes: Mapping<(Id, String), String, AttributesKey>,
     pub _reserved: Option<()>,
@@ -67,9 +69,9 @@ impl<'a> TypeGuard<'a> for AttributesKey {
     type Type = &'a (&'a Id, &'a String);
 }
 
-pub trait PSP37MetadataImpl: Storage<Data> {
+pub trait PSP37MetadataImpl: Storage<DataType> + StorageAccess<Data> {
     fn get_attribute(&self, id: Id, key: String) -> Option<String> {
-        self.data().attributes.get(&(&id, &key))
+        self.get_or_default().attributes.get(&(&id, &key))
     }
 }
 
@@ -81,16 +83,18 @@ pub trait Internal {
     fn _get_attribute(&self, id: &Id, key: &String) -> Option<String>;
 }
 
-pub trait InternalImpl: Internal + Storage<Data> {
+pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> {
     fn _emit_attribute_set_event(&self, _id: &Id, _key: &String, _data: &String) {}
 
     fn _set_attribute(&mut self, id: &Id, key: &String, data: &String) -> Result<(), PSP37Error> {
-        self.data().attributes.insert(&(&id, &key), data);
+        with_data!(self, data, {
+            data.attributes.insert(&(&id, &key), data);
+        });
         Internal::_emit_attribute_set_event(self, id, key, data);
         Ok(())
     }
 
     fn _get_attribute(&self, id: &Id, key: &String) -> Option<String> {
-        self.data().attributes.get(&(&id, &key))
+        self.get_or_default().attributes.get(&(&id, &key))
     }
 }

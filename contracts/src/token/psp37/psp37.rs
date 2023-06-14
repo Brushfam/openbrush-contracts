@@ -36,7 +36,9 @@ use openbrush::{
         AccountIdExt,
         Balance,
         Storage,
+        StorageAccess,
     },
+    with_data,
 };
 pub use psp37::{
     BalancesManager as _,
@@ -48,7 +50,7 @@ pub use psp37::{
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 pub struct Data {
     pub balances: Mapping<(AccountId, Option<Id>), Balance, BalancesKey>,
     pub supply: Mapping<Option<Id>, Balance, SupplyKey>,
@@ -79,7 +81,7 @@ impl<'a> TypeGuard<'a> for ApprovalsKey {
     type Type = &'a (&'a AccountId, &'a AccountId, &'a Option<&'a Id>);
 }
 
-pub trait PSP37Impl: Internal + Storage<Data> + BalancesManager {
+pub trait PSP37Impl: Internal + Storage<DataType> + StorageAccess<Data> + BalancesManager {
     fn balance_of(&self, owner: AccountId, id: Option<Id>) -> Balance {
         self._balance_of(&owner, &id.as_ref())
     }
@@ -193,7 +195,7 @@ pub trait Internal {
     ) -> Result<(), PSP37Error>;
 }
 
-pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
+pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + BalancesManager {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id, _amount: Balance) {}
 
     fn _emit_transfer_batch_event(
@@ -283,8 +285,13 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
     }
 
     fn _get_allowance(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Balance {
-        return match self.data().operator_approvals.get(&(owner, operator, &None)) {
-            None => self.data().operator_approvals.get(&(owner, operator, id)).unwrap_or(0),
+        return match self.get_or_default().operator_approvals.get(&(owner, operator, &None)) {
+            None => {
+                self.get_or_default()
+                    .operator_approvals
+                    .get(&(owner, operator, id))
+                    .unwrap_or(0)
+            }
             _ => Balance::MAX,
         }
     }
@@ -298,19 +305,24 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
 
         if let Some(id) = &id {
             if value == 0 {
-                self.data().operator_approvals.remove(&(&caller, &operator, &Some(id)));
+                with_data!(self, data, {
+                    data.operator_approvals.remove(&(&caller, &operator, &Some(id)));
+                });
             } else {
-                self.data()
-                    .operator_approvals
-                    .insert(&(&caller, &operator, &Some(id)), &value);
+                with_data!(self, data, {
+                    data.operator_approvals.insert(&(&caller, &operator, &Some(id)), &value);
+                });
             }
         } else {
             if value == 0 {
-                self.data().operator_approvals.remove(&(&caller, &operator, &None));
+                with_data!(self, data, {
+                    data.operator_approvals.remove(&(&caller, &operator, &None));
+                });
             } else {
-                self.data()
-                    .operator_approvals
-                    .insert(&(&caller, &operator, &None), &Balance::MAX);
+                with_data!(self, data, {
+                    data.operator_approvals
+                        .insert(&(&caller, &operator, &None), &Balance::MAX);
+                });
             }
         }
 
@@ -340,9 +352,10 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
             return Err(PSP37Error::InsufficientBalance)
         }
 
-        self.data()
-            .operator_approvals
-            .insert(&(owner, operator, &Some(id)), &(initial_allowance - value));
+        with_data!(self, data, {
+            data.operator_approvals
+                .insert(&(owner, operator, &Some(id)), &(initial_allowance - value));
+        });
 
         Ok(())
     }
@@ -391,9 +404,9 @@ pub trait BalancesManager {
         -> Result<(), PSP37Error>;
 }
 
-pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
+pub trait BalancesManagerImpl: BalancesManager + Storage<DataType> + StorageAccess<Data> {
     fn _balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
-        self.data().balances.get(&(owner, id)).unwrap_or(0)
+        self.get_or_default().balances.get(&(owner, id)).unwrap_or(0)
     }
 
     fn _total_supply(&self, id: &Option<&Id>) -> Balance {
@@ -418,22 +431,28 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
 
         if balance_before == 0 {
             let amount = &BalancesManager::_balance_of(self, owner, &None).checked_add(1).unwrap();
-            self.data().balances.insert(&(owner, &None), amount);
+            with_data!(self, data, {
+                data.balances.insert(&(owner, &None), amount);
+            });
         }
 
-        self.data()
-            .balances
-            .insert(&(owner, id), &balance_before.checked_add(amount).unwrap());
+        with_data!(self, data, {
+            data.balances
+                .insert(&(owner, id), &balance_before.checked_add(amount).unwrap());
+        });
 
         if mint {
             let supply_before = BalancesManager::_total_supply(self, id);
-            self.data()
-                .supply
-                .insert(id, &supply_before.checked_add(amount).unwrap());
+
+            with_data!(self, data, {
+                data.supply.insert(id, &supply_before.checked_add(amount).unwrap());
+            });
 
             if supply_before == 0 {
                 let amount = &BalancesManager::_total_supply(self, &None).checked_add(1).unwrap();
-                self.data().supply.insert(&None, amount);
+                with_data!(self, data, {
+                    data.supply.insert(&None, amount);
+                });
             }
         }
 
@@ -457,26 +476,35 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         let balance_after = BalancesManager::_balance_of(self, owner, id)
             .checked_sub(amount)
             .ok_or(PSP37Error::InsufficientBalance)?;
-        self.data().balances.insert(&(owner, id), &balance_after);
+
+        with_data!(self, data, {
+            data.balances.insert(&(owner, id), &balance_after);
+        });
 
         if balance_after == 0 {
             let amount = &BalancesManager::_balance_of(self, owner, &None)
                 .checked_sub(1)
                 .ok_or(PSP37Error::InsufficientBalance)?;
-            self.data().balances.insert(&(owner, &None), amount);
+            with_data!(self, data, {
+                data.balances.insert(&(owner, &None), amount);
+            });
         }
 
         if burn {
             let supply_after = BalancesManager::_total_supply(self, id)
                 .checked_sub(amount)
                 .ok_or(PSP37Error::InsufficientBalance)?;
-            self.data().supply.insert(id, &supply_after);
+            with_data!(self, data, {
+                data.supply.insert(id, &supply_after);
+            });
 
             if supply_after == 0 {
                 let amount = &BalancesManager::_total_supply(self, &None)
                     .checked_sub(1)
                     .ok_or(PSP37Error::InsufficientBalance)?;
-                self.data().supply.insert(&None, amount);
+                with_data!(self, data, {
+                    data.supply.insert(&None, amount);
+                });
             }
         }
         Ok(())

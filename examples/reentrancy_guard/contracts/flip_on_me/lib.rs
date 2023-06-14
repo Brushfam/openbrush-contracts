@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod flip_on_me {
@@ -7,6 +7,7 @@ pub mod flip_on_me {
 
     #[ink(storage)]
     #[derive(Default)]
+    #[openbrush::storage]
     pub struct FlipOnMeContract {}
 
     impl FlipOnMeContract {

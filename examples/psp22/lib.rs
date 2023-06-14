@@ -6,10 +6,7 @@ pub use my_psp22::*;
 #[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 pub mod my_psp22 {
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::String;
 
     #[ink(storage)]
     #[openbrush::storage]

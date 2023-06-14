@@ -37,7 +37,9 @@ use openbrush::{
         AccountId,
         Balance,
         Storage,
+        StorageAccess,
     },
+    with_data,
 };
 pub use psp34::{
     BalancesManager as _,
@@ -51,7 +53,7 @@ pub use psp34::{
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 pub struct Data {
     pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey /* optimization */>,
     pub _reserved: Option<()>,
@@ -62,46 +64,57 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
+#[derive(Clone)]
 pub struct EnumerableKey;
 
 impl<'a> TypeGuard<'a> for EnumerableKey {
     type Type = &'a Option<&'a AccountId>;
 }
 
-pub trait BalancesManagerImpl: Storage<Data> {
+pub trait BalancesManagerImpl: Storage<DataType> + StorageAccess<Data> {
     fn _balance_of(&self, owner: &Owner) -> u32 {
-        self.data().enumerable.count(&Some(owner)) as u32
+        self.get_or_default().enumerable.count(&Some(owner)) as u32
     }
 
     fn _increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool) {
-        self.data().enumerable.insert(&Some(owner), id);
+        with_data!(self, data, {
+            data.enumerable.insert(&Some(owner), id);
+        });
+
         if increase_supply {
-            self.data().enumerable.insert(&None, id);
+            with_data!(self, data, {
+                data.enumerable.insert(&None, id);
+            });
         }
     }
 
     fn _decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool) {
-        self.data().enumerable.remove_value(&Some(owner), id);
+        with_data!(self, data, {
+            data.enumerable.remove_value(&Some(owner), id);
+        });
+
         if decrease_supply {
-            self.data().enumerable.remove_value(&None, id);
+            with_data!(self, data, {
+                data.enumerable.remove_value(&None, id);
+            });
         }
     }
 
     fn _total_supply(&self) -> Balance {
-        self.data().enumerable.count(&None)
+        self.get_or_default().enumerable.count(&None)
     }
 }
 
-pub trait PSP34EnumerableImpl: Storage<Data> {
+pub trait PSP34EnumerableImpl: Storage<DataType> + StorageAccess<Data> {
     fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Result<Id, PSP34Error> {
-        self.data()
+        self.get_or_default()
             .enumerable
             .get_value(&Some(&owner), &index)
             .ok_or(PSP34Error::TokenNotExists)
     }
 
     fn token_by_index(&self, index: u128) -> Result<Id, PSP34Error> {
-        self.data()
+        self.get_or_default()
             .enumerable
             .get_value(&None, &index)
             .ok_or(PSP34Error::TokenNotExists)

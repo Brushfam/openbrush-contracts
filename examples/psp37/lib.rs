@@ -1,4 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 #[openbrush::implementation(PSP37)]
 #[openbrush::contract]
@@ -6,14 +7,12 @@ pub mod my_psp37 {
     use ink::prelude::vec;
     use openbrush::{
         storage::Mapping,
-        traits::{
-            Storage,
-            String,
-        },
+        traits::String,
     };
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         psp37: psp37::Data,

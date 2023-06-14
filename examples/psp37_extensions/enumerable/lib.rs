@@ -3,10 +3,9 @@
 #[openbrush::implementation(PSP37, PSP37Batch, PSP37Burnable, PSP37Mintable, PSP37Enumerable)]
 #[openbrush::contract]
 pub mod my_psp37_enumerable {
-    use openbrush::traits::Storage;
-
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         psp37: psp37::Data,

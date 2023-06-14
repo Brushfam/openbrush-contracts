@@ -497,7 +497,7 @@ synstructure::decl_attribute!(
     ///
     ///     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(SomeStruct);
     ///
-    ///     #[openbrush::upgradeable_storage(STORAGE_KEY)]
+    ///     #[openbrush::storage_item(STORAGE_KEY)]
     ///     #[openbrush::accessors(SomeStructGetters)]
     ///     #[derive(Default)]
     ///     pub struct SomeStruct {

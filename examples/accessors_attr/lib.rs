@@ -5,13 +5,14 @@ pub mod accessors_attr {
     use openbrush::traits::Storage;
 
     #[ink(storage)]
-    #[derive(Storage, Default)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         hated_logic: AccessData,
     }
 
-    #[openbrush::upgradeable_storage(STORAGE_KEY)]
+    #[openbrush::storage_item(STORAGE_KEY)]
     #[openbrush::accessors(AccessDataAccessors)]
     #[derive(Default, Debug)]
     pub struct AccessData {

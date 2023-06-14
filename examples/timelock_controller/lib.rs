@@ -4,10 +4,10 @@
 #[openbrush::contract]
 pub mod my_timelock_controller {
     use ink::prelude::vec::Vec;
-    use openbrush::traits::Storage;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         access_control: access_control::Data,

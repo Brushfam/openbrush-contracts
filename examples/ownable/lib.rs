@@ -3,13 +3,11 @@
 #[openbrush::implementation(Ownable, PSP37, PSP37Burnable, PSP37Mintable)]
 #[openbrush::contract]
 pub mod ownable {
-    use openbrush::{
-        modifiers,
-        traits::Storage,
-    };
+    use openbrush::modifiers;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         psp37: psp37::Data,

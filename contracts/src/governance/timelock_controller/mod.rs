@@ -66,7 +66,7 @@ pub use timelock_controller::Internal as _;
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 pub struct Data {
     pub min_delay: Timestamp,
     pub timestamps: Mapping<OperationId, Timestamp>,

@@ -46,7 +46,7 @@ use openbrush::{
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
 
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 pub struct Data {
     pub role_members: MultiMapping<RoleType, AccountId, ValueGuard<RoleType>>,
     pub _reserved: Option<()>,
@@ -56,7 +56,6 @@ pub struct Data {
 pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
-
 
 pub trait MembersManagerImpl: Storage<Data> {
     fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {

@@ -3,13 +3,11 @@
 #[openbrush::implementation(PSP34, PSP34Burnable, PSP34Mintable, AccessControl)]
 #[openbrush::contract]
 pub mod my_access_control {
-    use openbrush::{
-        modifiers,
-        traits::Storage,
-    };
+    use openbrush::modifiers;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         psp34: psp34::Data,

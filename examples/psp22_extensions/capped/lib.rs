@@ -6,7 +6,8 @@ pub mod my_psp22_capped {
     use openbrush::traits::Storage;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         psp22: psp22::Data,

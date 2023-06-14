@@ -20,6 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "psp22")]
+#[openbrush::implementation(PSP22, PSP22Metadata)]
 #[openbrush::contract]
 mod psp22_metadata {
     /// Imports all the definitions from the outer scope so we can use them here.
@@ -39,10 +40,6 @@ mod psp22_metadata {
         metadata: metadata::Data,
     }
 
-    impl PSP22 for PSP22Struct {}
-
-    impl PSP22Metadata for PSP22Struct {}
-
     impl PSP22Struct {
         #[ink(constructor)]
         pub fn new(name: Option<String>, symbol: Option<String>, decimal: u8) -> Self {
@@ -58,8 +55,8 @@ mod psp22_metadata {
     fn init_with_name_and_symbol_works() {
         let token = PSP22Struct::new(Some(String::from("TOKEN")), Some(String::from("TKN")), 18);
 
-        assert_eq!(token.token_name(), Some(String::from("TOKEN")));
-        assert_eq!(token.token_symbol(), Some(String::from("TKN")));
-        assert_eq!(token.token_decimals(), 18);
+        assert_eq!(PSP22Metadata::token_name(&token), Some(String::from("TOKEN")));
+        assert_eq!(PSP22Metadata::token_symbol(&token), Some(String::from("TKN")));
+        assert_eq!(PSP22Metadata::token_decimals(&token), 18);
     }
 }

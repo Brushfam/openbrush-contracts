@@ -1738,16 +1738,16 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl access_control::Internal for #storage_struct_name {
-            fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {
-                access_control::InternalImpl::_emit_role_admin_changed(self, _role, _previous, _new);
+            fn _emit_role_admin_changed(&mut self, role: RoleType, previous: RoleType, new: RoleType) {
+                access_control::InternalImpl::_emit_role_admin_changed(self, role, previous, new);
             }
 
-            fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {
-                access_control::InternalImpl::_emit_role_granted(self, _role, _grantee, _grantor);
+            fn _emit_role_granted(&mut self, role: RoleType, grantee: AccountId, grantor: Option<AccountId>) {
+                access_control::InternalImpl::_emit_role_granted(self, role, grantee, grantor);
             }
 
-            fn _emit_role_revoked(&mut self, _role: RoleType, _account: AccountId, _sender: AccountId) {
-                access_control::InternalImpl::_emit_role_revoked(self, _role, _account, _sender);
+            fn _emit_role_revoked(&mut self, role: RoleType, account: AccountId, sender: AccountId) {
+                access_control::InternalImpl::_emit_role_revoked(self, role, account, sender);
             }
 
             fn _default_admin() -> RoleType {

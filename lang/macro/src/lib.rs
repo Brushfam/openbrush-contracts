@@ -525,8 +525,8 @@ synstructure::decl_attribute!(
 ///
 /// # Example
 ///
-/// ```
-/// #[implementation(PSP22)]
+/// ```skip
+/// #[openbrush::implementation(PSP22)]
 /// #[openbrush::contract]
 /// pub mod MyInkToken {
 ///     use openbrush::traits::Storage;

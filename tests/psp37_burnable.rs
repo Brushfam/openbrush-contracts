@@ -20,6 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "psp37")]
+#[openbrush::implementation(PSP37, PSP37Burnable)]
 #[openbrush::contract]
 mod psp37_burnable {
     use openbrush::{
@@ -29,7 +30,6 @@ mod psp37_burnable {
             String,
         },
     };
-    use openbrush_contracts::psp37::extensions::burnable::*;
 
     #[derive(Default, Storage)]
     #[ink(storage)]
@@ -42,33 +42,30 @@ mod psp37_burnable {
         return_err_on_after: bool,
     }
 
-    impl PSP37Burnable for PSP37Struct {}
-    impl PSP37 for PSP37Struct {}
-
-    impl psp37::Transfer for PSP37Struct {
-        fn _before_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            _to: Option<&AccountId>,
-            _ids: &Vec<(Id, Balance)>,
-        ) -> Result<(), PSP37Error> {
-            if self.return_err_on_before {
-                return Err(PSP37Error::Custom(String::from("Error on _before_token_transfer")))
-            }
-            Ok(())
+    #[overrider(psp37::Internal)]
+    fn _before_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        _ids: &Vec<(Id, Balance)>,
+    ) -> Result<(), PSP37Error> {
+        if self.return_err_on_before {
+            return Err(PSP37Error::Custom(String::from("Error on _before_token_transfer")))
         }
+        Ok(())
+    }
 
-        fn _after_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            _to: Option<&AccountId>,
-            _ids: &Vec<(Id, Balance)>,
-        ) -> Result<(), PSP37Error> {
-            if self.return_err_on_after {
-                return Err(PSP37Error::Custom(String::from("Error on _after_token_transfer")))
-            }
-            Ok(())
+    #[overrider(psp37::Internal)]
+    fn _after_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        _ids: &Vec<(Id, Balance)>,
+    ) -> Result<(), PSP37Error> {
+        if self.return_err_on_after {
+            return Err(PSP37Error::Custom(String::from("Error on _after_token_transfer")))
         }
+        Ok(())
     }
 
     impl PSP37Struct {
@@ -79,7 +76,7 @@ mod psp37_burnable {
 
         #[ink(message)]
         pub fn mint(&mut self, acc: AccountId, id: Id, amount: Balance) -> Result<(), PSP37Error> {
-            self._mint_to(acc, vec![(id, amount)])
+            psp37::Internal::_mint_to(self, acc, vec![(id, amount)])
         }
 
         pub fn change_state_err_on_before(&mut self) {
@@ -103,37 +100,35 @@ mod psp37_burnable {
         assert!(nft.mint(accounts.alice, token_id1.clone(), token_amount1).is_ok());
         assert!(nft.mint(accounts.alice, token_id2.clone(), token_amount2).is_ok());
 
-        assert_eq!(nft.balance_of(accounts.alice, None), 2);
-        assert_eq!(nft.total_supply(None), 2);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 2);
+        assert_eq!(PSP37::total_supply(&mut nft, None), 2);
 
         assert!(nft.mint(accounts.bob, token_id2.clone(), token_amount2).is_ok());
 
-        assert_eq!(nft.total_supply(None), 2);
-        assert_eq!(nft.total_supply(Some(token_id1.clone())), 1);
-        assert_eq!(nft.total_supply(Some(token_id2.clone())), 20);
-        assert_eq!(nft.balance_of(accounts.alice, None), 2);
-        assert_eq!(nft.balance_of(accounts.bob, None), 1);
+        assert_eq!(PSP37::total_supply(&mut nft, None), 2);
+        assert_eq!(PSP37::total_supply(&mut nft, Some(token_id1.clone())), 1);
+        assert_eq!(PSP37::total_supply(&mut nft, Some(token_id2.clone())), 20);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 2);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, None), 1);
 
-        assert!(nft
-            .burn(
-                accounts.bob,
-                vec![(token_id2.clone(), token_amount2), (token_id1.clone(), 0)]
-            )
-            .is_ok());
+        assert!(PSP37Burnable::burn(
+            &mut nft,
+            accounts.bob,
+            vec![(token_id2.clone(), token_amount2), (token_id1.clone(), 0)]
+        )
+        .is_ok());
 
-        assert_eq!(nft.total_supply(None), 2);
-        assert_eq!(nft.total_supply(Some(token_id2.clone())), 10);
+        assert_eq!(PSP37::total_supply(&mut nft, None), 2);
+        assert_eq!(PSP37::total_supply(&mut nft, Some(token_id2.clone())), 10);
 
-        assert_eq!(nft.balance_of(accounts.alice, None), 2);
-        assert_eq!(nft.balance_of(accounts.bob, None), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 2);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, None), 0);
 
-        assert!(nft
-            .burn(accounts.alice, vec![(token_id2.clone(), token_amount2)])
-            .is_ok());
+        assert!(PSP37Burnable::burn(&mut nft, accounts.alice, vec![(token_id2.clone(), token_amount2)]).is_ok());
 
-        assert_eq!(nft.total_supply(None), 1);
-        assert_eq!(nft.total_supply(Some(token_id2.clone())), 0);
-        assert_eq!(nft.balance_of(accounts.alice, None), 1);
+        assert_eq!(PSP37::total_supply(&mut nft, None), 1);
+        assert_eq!(PSP37::total_supply(&mut nft, Some(token_id2.clone())), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 1);
     }
 
     #[ink::test]
@@ -145,7 +140,7 @@ mod psp37_burnable {
         let mut nft = PSP37Struct::new();
 
         assert_eq!(
-            nft.burn(accounts.alice, vec![(token_id_1, burn_amount)]),
+            PSP37Burnable::burn(&mut nft, accounts.alice, vec![(token_id_1, burn_amount)]),
             Err(PSP37Error::InsufficientBalance),
         );
     }
@@ -158,12 +153,12 @@ mod psp37_burnable {
         let mut nft = PSP37Struct::new();
         assert!(nft.mint(accounts.alice, token_id.clone(), 2).is_ok());
         // Alice can burn tokens
-        assert!(nft.burn(accounts.alice, vec![(token_id.clone(), 1)]).is_ok());
+        assert!(PSP37Burnable::burn(&mut nft, accounts.alice, vec![(token_id.clone(), 1)]).is_ok());
         // Turn on error on _before_token_transfer
         nft.change_state_err_on_before();
         // Alice gets an error on _before_token_transfer
         assert_eq!(
-            nft.burn(accounts.alice, vec![(token_id.clone(), 1)]),
+            PSP37Burnable::burn(&mut nft, accounts.alice, vec![(token_id.clone(), 1)]),
             Err(PSP37Error::Custom(String::from("Error on _before_token_transfer")))
         );
     }
@@ -176,12 +171,12 @@ mod psp37_burnable {
         let mut nft = PSP37Struct::new();
         assert!(nft.mint(accounts.alice, token_id.clone(), 2).is_ok());
         // Alice can burn tokens
-        assert!(nft.burn(accounts.alice, vec![(token_id.clone(), 1)]).is_ok());
+        assert!(PSP37Burnable::burn(&mut nft, accounts.alice, vec![(token_id.clone(), 1)]).is_ok());
         // Turn on error on _after_token_transfer
         nft.change_state_err_on_after();
         // Alice gets an error on _after_token_transfer
         assert_eq!(
-            nft.burn(accounts.alice, vec![(token_id.clone(), 1)]),
+            PSP37Burnable::burn(&mut nft, accounts.alice, vec![(token_id.clone(), 1)]),
             Err(PSP37Error::Custom(String::from("Error on _after_token_transfer")))
         );
     }

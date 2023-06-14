@@ -20,6 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "psp22")]
+#[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 mod psp22_test {
     use ink::codegen::{
@@ -27,7 +28,6 @@ mod psp22_test {
         Env,
     };
     use openbrush::{
-        contracts::psp22::*,
         test_utils::*,
         traits::{
             Storage,
@@ -71,57 +71,56 @@ mod psp22_test {
 
     type Event = <PSP22Struct as ::ink::reflect::ContractEventBase>::Type;
 
-    impl psp22::Internal for PSP22Struct {
-        fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {
-            self.env().emit_event(Transfer {
-                from: _from,
-                to: _to,
-                value: _amount,
-            });
-        }
-
-        fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {
-            self.env().emit_event(Approval {
-                owner: _owner,
-                spender: _spender,
-                value: _amount,
-            });
-        }
+    #[overrider(psp22::Internal)]
+    fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, amount: Balance) {
+        self.env().emit_event(Transfer {
+            from,
+            to,
+            value: amount,
+        });
     }
 
-    impl psp22::Transfer for PSP22Struct {
-        fn _before_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            _to: Option<&AccountId>,
-            _amount: &Balance,
-        ) -> Result<(), PSP22Error> {
-            if self.return_err_on_before {
-                return Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")))
-            }
-            Ok(())
-        }
-
-        fn _after_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            _to: Option<&AccountId>,
-            _amount: &Balance,
-        ) -> Result<(), PSP22Error> {
-            if self.return_err_on_after {
-                return Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")))
-            }
-            Ok(())
-        }
+    #[overrider(psp22::Internal)]
+    fn _emit_approval_event(&self, owner: AccountId, spender: AccountId, amount: Balance) {
+        self.env().emit_event(Approval {
+            owner,
+            spender,
+            value: amount,
+        });
     }
 
-    impl PSP22 for PSP22Struct {}
+    #[overrider(psp22::Internal)]
+    fn _before_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        if self.return_err_on_before {
+            return Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")))
+        }
+        Ok(())
+    }
+
+    #[overrider(psp22::Internal)]
+    fn _after_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        if self.return_err_on_after {
+            return Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")))
+        }
+        Ok(())
+    }
 
     impl PSP22Struct {
         #[ink(constructor)]
         pub fn new(total_supply: Balance) -> Self {
             let mut instance = Self::default();
-            assert!(instance._mint_to(instance.env().caller(), total_supply).is_ok());
+            let caller = instance.env().caller();
+            assert!(psp22::Internal::_mint_to(&mut instance, caller, total_supply).is_ok());
             instance
         }
 
@@ -199,7 +198,7 @@ mod psp22_test {
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_transfer_event(&emitted_events[0], None, Some(AccountId::from([0x01; 32])), 100);
         // Get the token total supply.
-        assert_eq!(psp22.total_supply(), 100);
+        assert_eq!(PSP22::total_supply(&psp22), 100);
     }
 
     /// Get the actual balance of an account.
@@ -212,9 +211,9 @@ mod psp22_test {
         assert_transfer_event(&emitted_events[0], None, Some(AccountId::from([0x01; 32])), 100);
         let accounts = accounts();
         // Alice owns all the tokens on deployment
-        assert_eq!(psp22.balance_of(accounts.alice), 100);
+        assert_eq!(PSP22::balance_of(&psp22, accounts.alice), 100);
         // Bob does not owns tokens
-        assert_eq!(psp22.balance_of(accounts.bob), 0);
+        assert_eq!(PSP22::balance_of(&psp22, accounts.bob), 0);
     }
 
     #[ink::test]
@@ -223,11 +222,11 @@ mod psp22_test {
         let mut psp22 = PSP22Struct::new(100);
         let accounts = accounts();
 
-        assert_eq!(psp22.balance_of(accounts.bob), 0);
+        assert_eq!(PSP22::balance_of(&psp22, accounts.bob), 0);
         // Alice transfers 10 tokens to Bob.
-        assert!(psp22.transfer(accounts.bob, 10, Vec::<u8>::new()).is_ok());
+        assert!(PSP22::transfer(&mut psp22, accounts.bob, 10, Vec::<u8>::new()).is_ok());
         // Bob owns 10 tokens.
-        assert_eq!(psp22.balance_of(accounts.bob), 10);
+        assert_eq!(PSP22::balance_of(&psp22, accounts.bob), 10);
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(emitted_events.len(), 2);
@@ -248,12 +247,12 @@ mod psp22_test {
         let mut psp22 = PSP22Struct::new(100);
         let accounts = accounts();
 
-        assert_eq!(psp22.balance_of(accounts.bob), 0);
+        assert_eq!(PSP22::balance_of(&psp22, accounts.bob), 0);
         change_caller(accounts.bob);
 
         // Bob fails to transfers 10 tokens to Eve.
         assert_eq!(
-            psp22.transfer(accounts.eve, 10, Vec::<u8>::new()),
+            PSP22::transfer(&mut psp22, accounts.eve, 10, Vec::<u8>::new()),
             Err(PSP22Error::InsufficientBalance)
         );
     }
@@ -267,7 +266,7 @@ mod psp22_test {
 
         // Bob fails to transfer tokens owned by Alice.
         assert_eq!(
-            psp22.transfer_from(accounts.alice, accounts.eve, 10, Vec::<u8>::new()),
+            PSP22::transfer_from(&mut psp22, accounts.alice, accounts.eve, 10, Vec::<u8>::new()),
             Err(PSP22Error::InsufficientAllowance)
         );
     }
@@ -279,7 +278,7 @@ mod psp22_test {
         let accounts = accounts();
 
         // Alice approves Bob for token transfers on her behalf.
-        assert!(psp22.approve(accounts.bob, 10).is_ok());
+        assert!(PSP22::approve(&mut psp22, accounts.bob, 10).is_ok());
 
         // The approve event takes place.
         assert_eq!(ink::env::test::recorded_events().count(), 2);
@@ -287,11 +286,9 @@ mod psp22_test {
         change_caller(accounts.bob);
 
         // Bob transfers tokens from Alice to Eve.
-        assert!(psp22
-            .transfer_from(accounts.alice, accounts.eve, 10, Vec::<u8>::new())
-            .is_ok());
+        assert!(PSP22::transfer_from(&mut psp22, accounts.alice, accounts.eve, 10, Vec::<u8>::new()).is_ok());
         // Eve owns tokens.
-        assert_eq!(psp22.balance_of(accounts.eve), 10);
+        assert_eq!(PSP22::balance_of(&psp22, accounts.eve), 10);
 
         // Check all transfer events that happened during the previous calls:
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
@@ -313,13 +310,19 @@ mod psp22_test {
         let accounts = accounts();
 
         // Alice approves Bob for token transfers on her behalf.
-        let alice_balance = psp22.balance_of(accounts.alice);
+        let alice_balance = PSP22::balance_of(&psp22, accounts.alice);
         let initial_allowance = alice_balance + 2;
-        assert!(psp22.approve(accounts.bob, initial_allowance).is_ok());
+        assert!(PSP22::approve(&mut psp22, accounts.bob, initial_allowance).is_ok());
         change_caller(accounts.bob);
 
         assert_eq!(
-            psp22.transfer_from(accounts.alice, accounts.eve, alice_balance + 1, Vec::<u8>::new()),
+            PSP22::transfer_from(
+                &mut psp22,
+                accounts.alice,
+                accounts.eve,
+                alice_balance + 1,
+                Vec::<u8>::new()
+            ),
             Err(PSP22Error::InsufficientBalance)
         );
     }
@@ -330,13 +333,13 @@ mod psp22_test {
         let mut psp22 = PSP22Struct::new(100);
         let accounts = accounts();
         // Alice can transfer 10 tokens to Bob
-        assert!(psp22.transfer(accounts.bob, 10, Vec::<u8>::new()).is_ok());
-        assert_eq!(psp22.balance_of(accounts.alice), 90);
+        assert!(PSP22::transfer(&mut psp22, accounts.bob, 10, Vec::<u8>::new()).is_ok());
+        assert_eq!(PSP22::balance_of(&psp22, accounts.alice), 90);
         // Turn on error on _before_token_transfer
         psp22.change_state_err_on_before();
         // Alice gets an error on _before_token_transfer
         assert_eq!(
-            psp22.transfer(accounts.bob, 10, Vec::<u8>::new()),
+            PSP22::transfer(&mut psp22, accounts.bob, 10, Vec::<u8>::new()),
             Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")))
         );
     }
@@ -347,13 +350,13 @@ mod psp22_test {
         let mut psp22 = PSP22Struct::new(100);
         let accounts = accounts();
         // Alice can transfer 10 tokens to Bob
-        assert!(psp22.transfer(accounts.bob, 10, Vec::<u8>::new()).is_ok());
-        assert_eq!(psp22.balance_of(accounts.alice), 90);
+        assert!(PSP22::transfer(&mut psp22, accounts.bob, 10, Vec::<u8>::new()).is_ok());
+        assert_eq!(PSP22::balance_of(&psp22, accounts.alice), 90);
         // Turn on error on _after_token_transfer
         psp22.change_state_err_on_after();
         // Alice gets an error on _after_token_transfer
         assert_eq!(
-            psp22.transfer(accounts.bob, 10, Vec::<u8>::new()),
+            PSP22::transfer(&mut psp22, accounts.bob, 10, Vec::<u8>::new()),
             Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")))
         );
     }

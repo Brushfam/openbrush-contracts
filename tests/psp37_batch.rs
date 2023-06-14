@@ -20,6 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "psp37")]
+#[openbrush::implementation(PSP37, PSP37Batch)]
 #[openbrush::contract]
 mod psp37_batch {
     use ink::{
@@ -36,7 +37,6 @@ mod psp37_batch {
         },
         traits::Storage,
     };
-    use openbrush_contracts::psp37::extensions::batch::*;
 
     #[ink(event)]
     pub struct Transfer {
@@ -74,33 +74,25 @@ mod psp37_batch {
         psp37: psp37::Data,
     }
 
-    impl psp37::Internal for PSP37Struct {
-        fn _emit_approval_event(&self, _owner: AccountId, _operator: AccountId, _id: Option<Id>, _value: Balance) {
-            self.env().emit_event(Approval {
-                owner: _owner,
-                operator: _operator,
-                id: _id,
-                value: _value,
-            });
-        }
-
-        fn _emit_transfer_batch_event(
-            &self,
-            _from: Option<AccountId>,
-            _to: Option<AccountId>,
-            _ids_amounts: Vec<(Id, Balance)>,
-        ) {
-            self.env().emit_event(TransferBatch {
-                from: _from,
-                to: _to,
-                ids_amounts: _ids_amounts,
-            });
-        }
+    #[openbrush::overrider(psp37::Internal)]
+    fn _emit_approval_event(&self, owner: AccountId, operator: AccountId, id: Option<Id>, value: Balance) {
+        self.env().emit_event(Approval {
+            owner,
+            operator,
+            id,
+            value,
+        });
     }
 
-    impl PSP37 for PSP37Struct {}
-
-    impl PSP37Batch for PSP37Struct {}
+    #[openbrush::overrider(psp37::Internal)]
+    fn _emit_transfer_batch_event(
+        &self,
+        from: Option<AccountId>,
+        to: Option<AccountId>,
+        ids_amounts: Vec<(Id, Balance)>,
+    ) {
+        self.env().emit_event(TransferBatch { from, to, ids_amounts });
+    }
 
     impl PSP37Struct {
         #[ink(constructor)]
@@ -110,7 +102,7 @@ mod psp37_batch {
 
         #[ink(message)]
         pub fn mint(&mut self, acc: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
-            self._mint_to(acc, ids_amounts)
+            psp37::Internal::_mint_to(self, acc, ids_amounts)
         }
     }
 
@@ -128,18 +120,18 @@ mod psp37_batch {
         let mut nft = PSP37Struct::new();
         assert!(nft.mint(accounts.alice, ids_amounts.clone()).is_ok());
 
-        assert_eq!(nft.balance_of(accounts.alice, None), 2);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 2);
 
-        assert!(nft.batch_transfer(accounts.bob, ids_amounts.clone(), vec![]).is_ok());
+        assert!(PSP37Batch::batch_transfer(&mut nft, accounts.bob, ids_amounts.clone(), vec![]).is_ok());
 
-        assert_eq!(nft.balance_of(accounts.alice, Some(token_id1.clone())), 0);
-        assert_eq!(nft.balance_of(accounts.alice, Some(token_id2.clone())), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, Some(token_id1.clone())), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, Some(token_id2.clone())), 0);
 
-        assert_eq!(nft.balance_of(accounts.bob, Some(token_id1)), id_1_amount);
-        assert_eq!(nft.balance_of(accounts.bob, Some(token_id2)), id_2_amount);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, Some(token_id1)), id_1_amount);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, Some(token_id2)), id_2_amount);
 
-        assert_eq!(nft.balance_of(accounts.alice, None), 0);
-        assert_eq!(nft.balance_of(accounts.bob, None), 2);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, None), 2);
 
         // EVENTS ASSERTS
         let mut events_iter = ink::env::test::recorded_events();
@@ -168,27 +160,40 @@ mod psp37_batch {
         let mut nft = PSP37Struct::new();
         assert!(nft.mint(accounts.alice, ids_amounts.clone()).is_ok());
 
-        assert_eq!(nft.balance_of(accounts.bob, Some(token_id_1.clone())), 0);
-        assert_eq!(nft.balance_of(accounts.bob, Some(token_id_2.clone())), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, Some(token_id_1.clone())), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, Some(token_id_2.clone())), 0);
 
-        assert_eq!(nft.balance_of(accounts.alice, Some(token_id_1.clone())), amounts[0]);
-        assert_eq!(nft.balance_of(accounts.alice, Some(token_id_2.clone())), amounts[1]);
+        assert_eq!(
+            PSP37::balance_of(&mut nft, accounts.alice, Some(token_id_1.clone())),
+            amounts[0]
+        );
+        assert_eq!(
+            PSP37::balance_of(&mut nft, accounts.alice, Some(token_id_2.clone())),
+            amounts[1]
+        );
 
-        assert_eq!(nft.balance_of(accounts.alice, None), 2);
-        assert_eq!(nft.balance_of(accounts.bob, None), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 2);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, None), 0);
 
-        assert!(nft
-            .batch_transfer_from(accounts.alice, accounts.bob, ids_amounts.clone(), vec![])
-            .is_ok());
+        assert!(
+            PSP37Batch::batch_transfer_from(&mut nft, accounts.alice, accounts.bob, ids_amounts.clone(), vec![])
+                .is_ok()
+        );
 
-        assert_eq!(nft.balance_of(accounts.bob, Some(token_id_1.clone())), amounts[0]);
-        assert_eq!(nft.balance_of(accounts.bob, Some(token_id_2.clone())), amounts[1]);
+        assert_eq!(
+            PSP37::balance_of(&mut nft, accounts.bob, Some(token_id_1.clone())),
+            amounts[0]
+        );
+        assert_eq!(
+            PSP37::balance_of(&mut nft, accounts.bob, Some(token_id_2.clone())),
+            amounts[1]
+        );
 
-        assert_eq!(nft.balance_of(accounts.alice, Some(token_id_1.clone())), 0);
-        assert_eq!(nft.balance_of(accounts.alice, Some(token_id_2.clone())), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, Some(token_id_1.clone())), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, Some(token_id_2.clone())), 0);
 
-        assert_eq!(nft.balance_of(accounts.alice, None), 0);
-        assert_eq!(nft.balance_of(accounts.bob, None), 2);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, None), 2);
     }
 
     #[ink::test]
@@ -203,7 +208,8 @@ mod psp37_batch {
         let mut nft = PSP37Struct::new();
         assert!(nft.mint(accounts.alice, ids_amounts.clone()).is_ok());
         assert_eq!(
-            nft.batch_transfer_from(
+            PSP37Batch::batch_transfer_from(
+                &mut nft,
                 accounts.alice,
                 accounts.bob,
                 ids_amounts
@@ -229,7 +235,7 @@ mod psp37_batch {
         assert!(nft.mint(accounts.bob, ids_amounts.clone()).is_ok());
 
         assert_eq!(
-            nft.batch_transfer_from(accounts.bob, accounts.alice, ids_amounts, vec![]),
+            PSP37Batch::batch_transfer_from(&mut nft, accounts.bob, accounts.alice, ids_amounts, vec![]),
             Err(PSP37Error::NotAllowed)
         );
     }
@@ -249,20 +255,27 @@ mod psp37_batch {
         // Create a new contract instance.
         let mut nft = PSP37Struct::new();
         assert!(nft.mint(accounts.alice, ids_amounts.clone()).is_ok());
-        assert!(nft.approve(accounts.bob, None, Balance::MAX).is_ok());
+        assert!(PSP37::approve(&mut nft, accounts.bob, None, Balance::MAX).is_ok());
 
         change_caller(accounts.bob);
-        assert!(nft
-            .batch_transfer_from(accounts.alice, accounts.bob, ids_amounts.clone(), vec![])
-            .is_ok());
+        assert!(
+            PSP37Batch::batch_transfer_from(&mut nft, accounts.alice, accounts.bob, ids_amounts.clone(), vec![])
+                .is_ok()
+        );
 
-        assert_eq!(nft.balance_of(accounts.bob, Some(token_id_1.clone())), amounts[0]);
-        assert_eq!(nft.balance_of(accounts.bob, Some(token_id_2.clone())), amounts[1]);
-        assert_eq!(nft.balance_of(accounts.alice, Some(token_id_1)), 0);
-        assert_eq!(nft.balance_of(accounts.alice, Some(token_id_2)), 0);
+        assert_eq!(
+            PSP37::balance_of(&mut nft, accounts.bob, Some(token_id_1.clone())),
+            amounts[0]
+        );
+        assert_eq!(
+            PSP37::balance_of(&mut nft, accounts.bob, Some(token_id_2.clone())),
+            amounts[1]
+        );
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, Some(token_id_1)), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, Some(token_id_2)), 0);
 
-        assert_eq!(nft.balance_of(accounts.alice, None), 0);
-        assert_eq!(nft.balance_of(accounts.bob, None), 2);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 0);
+        assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, None), 2);
 
         // EVENTS ASSERTS
         let mut events_iter = ink::env::test::recorded_events();

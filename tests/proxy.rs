@@ -20,6 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "proxy")]
+#[openbrush::implementation(Proxy, Ownable)]
 #[openbrush::contract]
 mod proxy {
     use core::convert::TryFrom;
@@ -28,10 +29,6 @@ mod proxy {
         Env,
     };
     use openbrush::{
-        contracts::{
-            ownable::*,
-            proxy::*,
-        },
         test_utils::change_caller,
         traits::Storage,
     };
@@ -39,9 +36,9 @@ mod proxy {
     #[ink(event)]
     pub struct CodeHashChanged {
         #[ink(topic)]
-        previous_code_hash: Option<Hash>,
+        previous: Option<Hash>,
         #[ink(topic)]
-        new_code_hash: Option<Hash>,
+        new: Option<Hash>,
     }
 
     const CODE_HASH_0: [u8; 32] = [0u8; 32];
@@ -62,21 +59,15 @@ mod proxy {
         #[ink(constructor)]
         pub fn new(forward_to: Hash) -> Self {
             let mut inst = Self::default();
-            inst._init_with_forward_to(Hash::try_from(forward_to).unwrap());
-            inst._init_with_owner(Self::env().caller());
+            proxy::Internal::_init_with_forward_to(&mut inst, Hash::try_from(forward_to).unwrap());
+            ownable::Internal::_init_with_owner(&mut inst, Self::env().caller());
             inst
         }
     }
 
-    impl Proxy for MyProxy {}
-
-    impl proxy::Internal for MyProxy {
-        fn _emit_delegate_code_changed_event(&self, previous_code_hash: Option<Hash>, new_code_hash: Option<Hash>) {
-            self.env().emit_event(CodeHashChanged {
-                previous_code_hash,
-                new_code_hash,
-            })
-        }
+    #[overrider(proxy::Internal)]
+    fn _emit_delegate_code_changed_event(&self, previous: Option<Hash>, new: Option<Hash>) {
+        self.env().emit_event(CodeHashChanged { previous, new })
     }
 
     fn assert_code_changed_event(
@@ -84,18 +75,16 @@ mod proxy {
         expected_previous_code_hash: Option<Hash>,
         expected_new_code_hash: Option<Hash>,
     ) {
-        let Event::CodeHashChanged(CodeHashChanged {
-            previous_code_hash,
-            new_code_hash,
-        }) = <Event as scale::Decode>::decode(&mut &event.data[..])
-            .expect("encountered invalid contract event data buffer");
+        let Event::CodeHashChanged(CodeHashChanged { previous, new }) =
+            <Event as scale::Decode>::decode(&mut &event.data[..])
+                .expect("encountered invalid contract event data buffer");
 
         assert_eq!(
-            previous_code_hash, expected_previous_code_hash,
+            previous, expected_previous_code_hash,
             "Previous code hash was not equal to expected previous code hash."
         );
         assert_eq!(
-            new_code_hash, expected_new_code_hash,
+            new, expected_new_code_hash,
             "New code hash was not equal to expected new code hash."
         );
     }
@@ -108,14 +97,14 @@ mod proxy {
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(1, emitted_events.len());
 
-        assert_code_changed_event(&emitted_events[0], None, Some(instance.get_delegate_code()))
+        assert_code_changed_event(&emitted_events[0], None, Some(Proxy::get_delegate_code(&instance)))
     }
 
     #[ink::test]
     fn get_delegate_code_works() {
         let hash = Hash::try_from(CODE_HASH_0).unwrap();
         let my_proxy = MyProxy::new(hash);
-        assert_eq!(my_proxy.get_delegate_code(), hash)
+        assert_eq!(Proxy::get_delegate_code(&my_proxy), hash)
     }
 
     #[ink::test]
@@ -123,8 +112,8 @@ mod proxy {
         let hash = Hash::try_from(CODE_HASH_0).unwrap();
         let new_hash = Hash::try_from(CODE_HASH_1).unwrap();
         let mut my_proxy = MyProxy::new(hash);
-        assert!(my_proxy.change_delegate_code(new_hash).is_ok());
-        assert_eq!(my_proxy.get_delegate_code(), new_hash);
+        assert!(Proxy::change_delegate_code(&mut my_proxy, new_hash).is_ok());
+        assert_eq!(Proxy::get_delegate_code(&my_proxy), new_hash);
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(2, emitted_events.len());
         assert_code_changed_event(&emitted_events[0], None, Some(hash));
@@ -137,7 +126,7 @@ mod proxy {
         let new_hash = Hash::try_from(CODE_HASH_1).unwrap();
         let mut my_proxy = MyProxy::new(hash);
         change_caller(AccountId::from([0x13; 32]));
-        let result = my_proxy.change_delegate_code(new_hash);
+        let result = Proxy::change_delegate_code(&mut my_proxy, new_hash);
         assert!(result.is_err());
         assert_eq!(result, Err(OwnableError::CallerIsNotOwner));
     }

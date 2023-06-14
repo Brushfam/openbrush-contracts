@@ -20,12 +20,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "access_control")]
+#[openbrush::implementation(AccessControl, AccessControlEnumerable)]
 #[openbrush::contract]
 mod access_control_enumerable {
     use ::ink::env::DefaultEnvironment;
     use ink::env::test::DefaultAccounts;
     use openbrush::{
-        contracts::access_control::extensions::enumerable::*,
         test_utils::accounts,
         traits::Storage,
     };
@@ -41,19 +41,17 @@ mod access_control_enumerable {
     #[ink(storage)]
     pub struct AccessControlStruct {
         #[storage_field]
-        access: access_control::Data<enumerable::Members>,
+        access: access_control::Data,
+        #[storage_field]
+        enumerable: enumerable::Data,
     }
-
-    impl AccessControl for AccessControlStruct {}
-
-    impl AccessControlEnumerable for AccessControlStruct {}
 
     impl AccessControlStruct {
         #[ink(constructor)]
         pub fn new(admin: AccountId) -> Self {
             let mut instance = Self::default();
 
-            instance._init_with_admin(admin);
+            access_control::Internal::_init_with_admin(&mut instance, admin);
 
             instance
         }
@@ -71,18 +69,33 @@ mod access_control_enumerable {
         let alice = accounts.alice;
         let mut access_control = AccessControlStruct::new(alice);
 
-        assert_eq!(access_control.get_role_member_count(PAUSER), 0);
+        assert_eq!(
+            AccessControlEnumerable::get_role_member_count(&mut access_control, PAUSER),
+            0
+        );
 
-        assert!(access_control.grant_role(PAUSER, alice).is_ok());
-        assert_eq!(access_control.get_role_member_count(PAUSER), 1);
+        assert!(AccessControl::grant_role(&mut access_control, PAUSER, alice).is_ok());
+        assert_eq!(
+            AccessControlEnumerable::get_role_member_count(&mut access_control, PAUSER),
+            1
+        );
 
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
-        assert_eq!(access_control.get_role_member_count(PAUSER), 2);
+        assert!(AccessControl::grant_role(&mut access_control, PAUSER, accounts.bob).is_ok());
+        assert_eq!(
+            AccessControlEnumerable::get_role_member_count(&mut access_control, PAUSER),
+            2
+        );
 
-        assert!(access_control.revoke_role(PAUSER, alice).is_ok());
-        assert!(access_control.grant_role(MINTER, alice).is_ok());
-        assert_eq!(access_control.get_role_member_count(PAUSER), 1);
-        assert_eq!(access_control.get_role_member_count(MINTER), 1);
+        assert!(AccessControl::revoke_role(&mut access_control, PAUSER, alice).is_ok());
+        assert!(AccessControl::grant_role(&mut access_control, MINTER, alice).is_ok());
+        assert_eq!(
+            AccessControlEnumerable::get_role_member_count(&mut access_control, PAUSER),
+            1
+        );
+        assert_eq!(
+            AccessControlEnumerable::get_role_member_count(&mut access_control, MINTER),
+            1
+        );
     }
 
     #[ink::test]
@@ -91,11 +104,14 @@ mod access_control_enumerable {
         let alice = accounts.alice;
         let mut access_control = AccessControlStruct::new(alice);
 
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
-        assert!(access_control.grant_role(PAUSER, alice).is_ok());
-        assert!(access_control.grant_role(PAUSER, accounts.eve).is_ok());
+        assert!(AccessControl::grant_role(&mut access_control, PAUSER, accounts.bob).is_ok());
+        assert!(AccessControl::grant_role(&mut access_control, PAUSER, alice).is_ok());
+        assert!(AccessControl::grant_role(&mut access_control, PAUSER, accounts.eve).is_ok());
 
-        assert_eq!(access_control.get_role_member(PAUSER, 1), Some(alice))
+        assert_eq!(
+            AccessControlEnumerable::get_role_member(&mut access_control, PAUSER, 1),
+            Some(alice)
+        )
     }
 
     #[ink::test]
@@ -104,11 +120,17 @@ mod access_control_enumerable {
         let alice = accounts.alice;
         let mut access_control = AccessControlStruct::new(alice);
 
-        assert!(access_control.grant_role(PAUSER, accounts.bob).is_ok());
-        assert!(access_control.grant_role(PAUSER, alice).is_ok());
-        assert_eq!(access_control.get_role_member(PAUSER, 1), Some(alice));
+        assert!(AccessControl::grant_role(&mut access_control, PAUSER, accounts.bob).is_ok());
+        assert!(AccessControl::grant_role(&mut access_control, PAUSER, alice).is_ok());
+        assert_eq!(
+            AccessControlEnumerable::get_role_member(&mut access_control, PAUSER, 1),
+            Some(alice)
+        );
 
-        assert!(access_control.revoke_role(PAUSER, alice).is_ok());
-        assert_eq!(access_control.get_role_member(PAUSER, 1), None)
+        assert!(AccessControl::revoke_role(&mut access_control, PAUSER, alice).is_ok());
+        assert_eq!(
+            AccessControlEnumerable::get_role_member(&mut access_control, PAUSER, 1),
+            None
+        )
     }
 }

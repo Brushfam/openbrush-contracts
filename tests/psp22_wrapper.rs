@@ -20,10 +20,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "psp22")]
+#[openbrush::implementation(PSP22, PSP22Wrapper)]
 #[openbrush::contract]
 mod psp22_wrapper {
     use openbrush::{
-        contracts::psp22::extensions::wrapper::*,
         test_utils::accounts,
         traits::Storage,
     };
@@ -38,44 +38,41 @@ mod psp22_wrapper {
         contract_balance: Balance,
     }
 
-    impl PSP22 for PSP22WrapperStruct {}
-
     /// We will override cross-contract wrapper calls in tests
     /// The cross-contract interaction will be tested in integration tests
-    impl wrapper::Internal for PSP22WrapperStruct {
-        fn _deposit(&mut self, amount: Balance) -> Result<(), PSP22Error> {
-            self.contract_balance += amount;
-            Ok(())
-        }
-
-        fn _withdraw(&mut self, _account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-            self.contract_balance -= amount;
-            Ok(())
-        }
-
-        fn _underlying_balance(&mut self) -> Balance {
-            self.contract_balance
-        }
+    #[overrider(wrapper::Internal)]
+    fn _deposit(&mut self, amount: Balance) -> Result<(), PSP22Error> {
+        self.contract_balance += amount;
+        Ok(())
     }
 
-    impl PSP22Wrapper for PSP22WrapperStruct {}
+    #[overrider(wrapper::Internal)]
+    fn _withdraw(&mut self, _account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+        self.contract_balance -= amount;
+        Ok(())
+    }
+
+    #[overrider(wrapper::Internal)]
+    fn _underlying_balance(&mut self) -> Balance {
+        self.contract_balance
+    }
 
     impl PSP22WrapperStruct {
         #[ink(constructor)]
         pub fn new(underlying: AccountId) -> Self {
             let mut instance = Self::default();
-            instance._init(underlying);
+            wrapper::Internal::_init(&mut instance, underlying);
             instance
         }
 
         #[ink(message)]
         pub fn recover(&mut self) -> Result<Balance, PSP22Error> {
-            self._recover(self.env().caller())
+            wrapper::Internal::_recover(self, self.env().caller())
         }
 
         #[ink(message)]
         pub fn burn(&mut self, amount: Balance) -> Result<(), PSP22Error> {
-            self._burn_from(self.env().caller(), amount)
+            psp22::Internal::_burn_from(self, self.env().caller(), amount)
         }
     }
 
@@ -84,13 +81,13 @@ mod psp22_wrapper {
         let accounts = accounts();
         let mut wrapper = PSP22WrapperStruct::new(AccountId::from([0x1; 32]));
 
-        assert_eq!(wrapper.balance_of(accounts.alice), 0);
-        assert_eq!(wrapper.total_supply(), 0);
+        assert_eq!(PSP22::balance_of(&mut wrapper, accounts.alice), 0);
+        assert_eq!(PSP22::total_supply(&mut wrapper), 0);
 
-        assert!(wrapper.deposit_for(accounts.alice, 100).is_ok());
+        assert!(PSP22Wrapper::deposit_for(&mut wrapper, accounts.alice, 100).is_ok());
 
-        assert_eq!(wrapper.balance_of(accounts.alice), 100);
-        assert_eq!(wrapper.total_supply(), 100);
+        assert_eq!(PSP22::balance_of(&mut wrapper, accounts.alice), 100);
+        assert_eq!(PSP22::total_supply(&mut wrapper), 100);
     }
 
     #[ink::test]
@@ -98,13 +95,13 @@ mod psp22_wrapper {
         let accounts = accounts();
         let mut wrapper = PSP22WrapperStruct::new(AccountId::from([0x1; 32]));
 
-        assert!(wrapper.deposit_for(accounts.alice, 100).is_ok());
-        assert_eq!(wrapper.balance_of(accounts.alice), 100);
-        assert_eq!(wrapper.total_supply(), 100);
-        assert!(wrapper.withdraw_to(accounts.alice, 100).is_ok());
+        assert!(PSP22Wrapper::deposit_for(&mut wrapper, accounts.alice, 100).is_ok());
+        assert_eq!(PSP22::balance_of(&mut wrapper, accounts.alice), 100);
+        assert_eq!(PSP22::total_supply(&mut wrapper), 100);
+        assert!(PSP22Wrapper::withdraw_to(&mut wrapper, accounts.alice, 100).is_ok());
 
-        assert_eq!(wrapper.balance_of(accounts.alice), 0);
-        assert_eq!(wrapper.total_supply(), 0);
+        assert_eq!(PSP22::balance_of(&mut wrapper, accounts.alice), 0);
+        assert_eq!(PSP22::total_supply(&mut wrapper), 0);
     }
 
     #[ink::test]
@@ -112,14 +109,14 @@ mod psp22_wrapper {
         let accounts = accounts();
         let mut wrapper = PSP22WrapperStruct::new(AccountId::from([0x1; 32]));
 
-        assert!(wrapper.deposit_for(accounts.alice, 100).is_ok());
+        assert!(PSP22Wrapper::deposit_for(&mut wrapper, accounts.alice, 100).is_ok());
         assert!(wrapper.burn(100).is_ok());
-        assert_eq!(wrapper.balance_of(accounts.alice), 0);
-        assert_eq!(wrapper.total_supply(), 0);
+        assert_eq!(PSP22::balance_of(&mut wrapper, accounts.alice), 0);
+        assert_eq!(PSP22::total_supply(&mut wrapper), 0);
 
         assert!(wrapper.recover().is_ok());
 
-        assert_eq!(wrapper.balance_of(accounts.alice), 100);
-        assert_eq!(wrapper.total_supply(), 100);
+        assert_eq!(PSP22::balance_of(&mut wrapper, accounts.alice), 100);
+        assert_eq!(PSP22::total_supply(&mut wrapper), 100);
     }
 }

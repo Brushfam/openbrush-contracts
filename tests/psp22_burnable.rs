@@ -20,6 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "psp22")]
+#[openbrush::implementation(PSP22, PSP22Burnable)]
 #[openbrush::contract]
 mod psp22_burnable {
     use ink::codegen::{
@@ -59,49 +60,47 @@ mod psp22_burnable {
 
     type Event = <PSP22Struct as ::ink::reflect::ContractEventBase>::Type;
 
-    impl psp22::Internal for PSP22Struct {
-        fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {
-            self.env().emit_event(Transfer {
-                from: _from,
-                to: _to,
-                value: _amount,
-            });
-        }
+    #[overrider(psp22::Internal)]
+    fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, amount: Balance) {
+        self.env().emit_event(Transfer {
+            from,
+            to,
+            value: amount,
+        });
     }
 
-    impl psp22::Transfer for PSP22Struct {
-        fn _before_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            _to: Option<&AccountId>,
-            _amount: &Balance,
-        ) -> Result<(), PSP22Error> {
-            if self.return_err_on_before {
-                return Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")))
-            }
-            Ok(())
+    #[overrider(psp22::Internal)]
+    fn _before_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        if self.return_err_on_before {
+            return Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")))
         }
-
-        fn _after_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            _to: Option<&AccountId>,
-            _amount: &Balance,
-        ) -> Result<(), PSP22Error> {
-            if self.return_err_on_after {
-                return Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")))
-            }
-            Ok(())
-        }
+        Ok(())
     }
 
-    impl PSP22 for PSP22Struct {}
+    #[overrider(psp22::Internal)]
+    fn _after_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        if self.return_err_on_after {
+            return Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")))
+        }
+        Ok(())
+    }
 
     impl PSP22Struct {
         #[ink(constructor)]
         pub fn new(total_supply: Balance) -> Self {
             let mut instance = Self::default();
-            assert!(instance._mint_to(instance.env().caller(), total_supply).is_ok());
+            let caller = instance.env().caller();
+            assert!(psp22::Internal::_mint_to(&mut instance, caller, total_supply).is_ok());
             instance
         }
 
@@ -113,8 +112,6 @@ mod psp22_burnable {
             self.return_err_on_after = !self.return_err_on_after;
         }
     }
-
-    impl PSP22Burnable for PSP22Struct {}
 
     fn assert_transfer_event(
         event: &ink::env::test::EmittedEvent,
@@ -168,7 +165,7 @@ mod psp22_burnable {
         let amount_to_burn = 100;
 
         assert_eq!(
-            psp22.burn(accounts.alice, amount_to_burn),
+            PSP22Burnable::burn(&mut psp22, accounts.alice, amount_to_burn),
             Err(PSP22Error::InsufficientBalance)
         );
     }
@@ -182,7 +179,7 @@ mod psp22_burnable {
         // Transfer event triggered during initial construction.
         let amount_to_burn = 10;
 
-        assert!(psp22.burn(accounts.alice, amount_to_burn).is_ok());
+        assert!(PSP22Burnable::burn(&mut psp22, accounts.alice, amount_to_burn).is_ok());
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(emitted_events.len(), 2);
@@ -208,13 +205,13 @@ mod psp22_burnable {
         let accounts = accounts();
 
         // Contract's total supply before burning
-        let total_supply = psp22.total_supply();
+        let total_supply = PSP22::total_supply(&mut psp22);
         let amount_to_burn = 10;
 
-        assert!(psp22.burn(accounts.alice, amount_to_burn).is_ok());
+        assert!(PSP22Burnable::burn(&mut psp22, accounts.alice, amount_to_burn).is_ok());
 
         // Contract's total supply after burning
-        let newtotal_supply = psp22.total_supply();
+        let newtotal_supply = PSP22::total_supply(&mut psp22);
 
         assert_eq!(newtotal_supply, total_supply - amount_to_burn);
     }
@@ -225,13 +222,13 @@ mod psp22_burnable {
         let accounts = accounts();
 
         // Alice's balance before burning
-        let alice_balance = psp22.balance_of(accounts.alice);
+        let alice_balance = PSP22::balance_of(&mut psp22, accounts.alice);
         let amount_to_burn = 10;
 
-        assert!(psp22.burn(accounts.alice, amount_to_burn).is_ok());
+        assert!(PSP22Burnable::burn(&mut psp22, accounts.alice, amount_to_burn).is_ok());
 
         // Alice's balance after burning
-        let new_alice_balance = psp22.balance_of(accounts.alice);
+        let new_alice_balance = PSP22::balance_of(&mut psp22, accounts.alice);
 
         assert_eq!(new_alice_balance, alice_balance - amount_to_burn);
     }
@@ -242,16 +239,19 @@ mod psp22_burnable {
         let accounts = accounts();
         let amount_to_burn = 50;
 
-        let alice_balance = psp22.balance_of(accounts.alice);
+        let alice_balance = PSP22::balance_of(&mut psp22, accounts.alice);
 
         // switch to bob
         change_caller(accounts.bob);
 
         // Burning some amount from Alice's account
-        assert!(psp22.burn(accounts.alice, amount_to_burn).is_ok());
+        assert!(PSP22Burnable::burn(&mut psp22, accounts.alice, amount_to_burn).is_ok());
 
         // Expecting Alice's balance decrease
-        assert_eq!(psp22.balance_of(accounts.alice), alice_balance - amount_to_burn);
+        assert_eq!(
+            PSP22::balance_of(&mut psp22, accounts.alice),
+            alice_balance - amount_to_burn
+        );
     }
 
     #[ink::test]
@@ -260,13 +260,13 @@ mod psp22_burnable {
         let mut psp22 = PSP22Struct::new(100);
         let accounts = accounts();
         // Alice can burn 10 tokens
-        assert!(psp22.burn(accounts.alice, 10).is_ok());
-        assert_eq!(psp22.balance_of(accounts.alice), 90);
+        assert!(PSP22Burnable::burn(&mut psp22, accounts.alice, 10).is_ok());
+        assert_eq!(PSP22::balance_of(&mut psp22, accounts.alice), 90);
         // Turn on error on _before_token_transfer
         psp22.change_state_err_on_before();
         // Alice gets an error on _before_token_transfer
         assert_eq!(
-            psp22.burn(accounts.alice, 10),
+            PSP22Burnable::burn(&mut psp22, accounts.alice, 10),
             Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")))
         );
     }
@@ -277,13 +277,13 @@ mod psp22_burnable {
         let mut psp22 = PSP22Struct::new(100);
         let accounts = accounts();
         // Alice can burn 10 tokens
-        assert!(psp22.burn(accounts.alice, 10).is_ok());
-        assert_eq!(psp22.balance_of(accounts.alice), 90);
+        assert!(PSP22Burnable::burn(&mut psp22, accounts.alice, 10).is_ok());
+        assert_eq!(PSP22::balance_of(&mut psp22, accounts.alice), 90);
         // Turn on error on _after_token_transfer
         psp22.change_state_err_on_after();
         // Alice gets an error on _after_token_transfer
         assert_eq!(
-            psp22.burn(accounts.alice, 10),
+            PSP22Burnable::burn(&mut psp22, accounts.alice, 10),
             Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")))
         );
     }

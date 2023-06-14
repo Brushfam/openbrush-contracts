@@ -1,14 +1,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 /// This contract will represent the loan of a user
+#[openbrush::implementation(PSP34, Ownable, PSP34Metadata)]
 #[openbrush::contract]
 pub mod loan {
     use lending_project::traits::loan::*;
     use openbrush::{
-        contracts::{
-            ownable::*,
-            psp34::extensions::metadata::*,
-        },
         modifiers,
         storage::Mapping,
         traits::{
@@ -27,22 +24,12 @@ pub mod loan {
         ownable: ownable::Data,
         #[storage_field]
         metadata: metadata::Data,
-
         // Fields of current contract
         /// mapping from token id to `LoanInfo`
         loan_info: Mapping<Id, LoanInfo>,
         /// the id of last loan
         last_loan_id: Id,
     }
-
-    // Implement PSP34 Trait for our NFT
-    impl PSP34 for LoanContract {}
-
-    // Implement Ownable Trait for our NFT
-    impl Ownable for LoanContract {}
-
-    // Implement PSP34Metadata Trait for our NFT
-    impl PSP34Metadata for LoanContract {}
 
     impl Loan for LoanContract {
         #[modifiers(only_owner)]
@@ -54,14 +41,14 @@ pub mod loan {
             }
             loan_info.liquidated = false;
             self.loan_info.insert(&loan_id, &loan_info);
-            self._mint_to(loan_info.borrower, loan_id)
+            psp34::Internal::_mint_to(self, loan_info.borrower, loan_id)
         }
 
         #[modifiers(only_owner)]
         #[ink(message)]
         fn delete_loan(&mut self, initiator: AccountId, loan_id: Id) -> Result<(), PSP34Error> {
             self.loan_info.remove(&loan_id);
-            self._burn_from(initiator, loan_id)
+            psp34::Internal::_burn_from(self, initiator, loan_id)
         }
 
         #[modifiers(only_owner)]
@@ -98,8 +85,13 @@ pub mod loan {
         pub fn new() -> Self {
             let mut instance = Self::default();
             instance.last_loan_id = Id::U128(1);
-            instance._set_attribute(Id::U8(1u8), String::from("LoanContract NFT"), String::from("L-NFT"));
-            instance._init_with_owner(Self::env().caller());
+            metadata::Internal::_set_attribute(
+                &mut instance,
+                Id::U8(1u8),
+                String::from("LoanContract NFT"),
+                String::from("L-NFT"),
+            );
+            ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
 
             instance
         }

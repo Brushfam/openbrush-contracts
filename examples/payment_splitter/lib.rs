@@ -1,89 +1,16 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PaymentSplitter)]
 #[openbrush::contract]
 pub mod my_payment_splitter {
     use ink::prelude::vec::Vec;
-    use openbrush::{
-        contracts::payment_splitter::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
     pub struct Contract {
         #[storage_field]
         splitter: payment_splitter::Data,
-    }
-
-    impl payment_splitter::InternalImpl for Contract {}
-
-    impl payment_splitter::Internal for Contract {
-        fn _emit_payee_added_event(&self, account: AccountId, shares: Balance) {
-            payment_splitter::InternalImpl::_emit_payee_added_event(self, account, shares)
-        }
-
-        fn _emit_payment_received_event(&self, from: AccountId, amount: Balance) {
-            payment_splitter::InternalImpl::_emit_payment_received_event(self, from, amount)
-        }
-
-        fn _emit_payment_released_event(&self, to: AccountId, amount: Balance) {
-            payment_splitter::InternalImpl::_emit_payment_released_event(self, to, amount)
-        }
-
-        fn _init(&mut self, payees_and_shares: Vec<(AccountId, Balance)>) -> Result<(), PaymentSplitterError> {
-            payment_splitter::InternalImpl::_init(self, payees_and_shares)
-        }
-
-        fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError> {
-            payment_splitter::InternalImpl::_add_payee(self, payee, share)
-        }
-
-        fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
-            payment_splitter::InternalImpl::_release_all(self)
-        }
-
-        fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
-            payment_splitter::InternalImpl::_release(self, account)
-        }
-    }
-
-    impl PaymentSplitterImpl for Contract {}
-
-    impl PaymentSplitter for Contract {
-        #[ink(message)]
-        fn total_shares(&self) -> Balance {
-            PaymentSplitterImpl::total_shares(self)
-        }
-
-        #[ink(message)]
-        fn total_released(&self) -> Balance {
-            PaymentSplitterImpl::total_released(self)
-        }
-
-        #[ink(message)]
-        fn shares(&self, account: AccountId) -> Balance {
-            PaymentSplitterImpl::shares(self, account)
-        }
-
-        #[ink(message)]
-        fn released(&self, account: AccountId) -> Balance {
-            PaymentSplitterImpl::released(self, account)
-        }
-
-        #[ink(message)]
-        fn payee(&self, index: u32) -> AccountId {
-            PaymentSplitterImpl::payee(self, index)
-        }
-
-        #[ink(message)]
-        fn receive(&mut self) {
-            PaymentSplitterImpl::receive(self)
-        }
-
-        #[ink(message)]
-        fn release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
-            PaymentSplitterImpl::release(self, account)
-        }
     }
 
     impl Contract {

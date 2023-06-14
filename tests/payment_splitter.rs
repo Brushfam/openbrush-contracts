@@ -20,20 +20,19 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "payment_splitter")]
+#[openbrush::implementation(PaymentSplitter)]
 #[openbrush::contract]
 mod payment_splitter {
-    use openbrush::{
-        contracts::payment_splitter::*,
-        test_utils::accounts,
-        traits::Storage,
-    };
-
     use ink::{
         codegen::{
             EmitEvent,
             Env,
         },
         storage::traits::StorageKey,
+    };
+    use openbrush::{
+        test_utils::accounts,
+        traits::Storage,
     };
 
     #[ink(event)]
@@ -66,7 +65,7 @@ mod payment_splitter {
         pub fn new(payees_and_shares: Vec<(AccountId, Balance)>) -> Self {
             let mut instance = Self::default();
 
-            instance._init(payees_and_shares).unwrap();
+            payment_splitter::Internal::_init(&mut instance, payees_and_shares).unwrap();
 
             instance
         }
@@ -79,20 +78,19 @@ mod payment_splitter {
         }
     }
 
-    impl PaymentSplitter for MySplitter {}
+    #[overrider(payment_splitter::Internal)]
+    fn _emit_payee_added_event(&self, account: AccountId, shares: Balance) {
+        self.env().emit_event(PayeeAdded { account, shares })
+    }
 
-    impl Internal for MySplitter {
-        fn _emit_payee_added_event(&self, account: AccountId, shares: Balance) {
-            self.env().emit_event(PayeeAdded { account, shares })
-        }
+    #[overrider(payment_splitter::Internal)]
+    fn _emit_payment_received_event(&self, from: AccountId, amount: Balance) {
+        self.env().emit_event(PaymentReceived { from, amount })
+    }
 
-        fn _emit_payment_received_event(&self, from: AccountId, amount: Balance) {
-            self.env().emit_event(PaymentReceived { from, amount })
-        }
-
-        fn _emit_payment_released_event(&self, to: AccountId, amount: Balance) {
-            self.env().emit_event(PaymentReleased { to, amount })
-        }
+    #[overrider(payment_splitter::Internal)]
+    fn _emit_payment_released_event(&self, to: AccountId, amount: Balance) {
+        self.env().emit_event(PaymentReleased { to, amount })
     }
 
     type Event = <MySplitter as ::ink::reflect::ContractEventBase>::Type;
@@ -146,10 +144,10 @@ mod payment_splitter {
         let accounts = accounts();
         let instance = MySplitter::new(vec![(accounts.alice, 100), (accounts.bob, 200)]);
 
-        assert_eq!(100 + 200, instance.total_shares());
-        assert_eq!(0, instance.total_released());
-        assert_eq!(accounts.alice, instance.payee(0));
-        assert_eq!(accounts.bob, instance.payee(1));
+        assert_eq!(100 + 200, PaymentSplitter::total_shares(&instance));
+        assert_eq!(0, PaymentSplitter::total_released(&instance));
+        assert_eq!(accounts.alice, PaymentSplitter::payee(&instance, 0));
+        assert_eq!(accounts.bob, PaymentSplitter::payee(&instance, 1));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_payee_added_event(&emitted_events[0], accounts.alice, 100);
@@ -167,17 +165,17 @@ mod payment_splitter {
 
         instance.print_keys();
 
-        assert_eq!(100 + 200, instance.total_shares());
-        assert!(instance.release(accounts.charlie).is_ok());
-        assert_eq!(333333, instance.total_released());
-        assert!(instance.release(accounts.bob).is_ok());
-        assert_eq!(999999, instance.total_released());
-        assert_eq!(333333, instance.released(accounts.charlie));
+        assert_eq!(100 + 200, PaymentSplitter::total_shares(&mut instance,));
+        assert!(PaymentSplitter::release(&mut instance, accounts.charlie).is_ok());
+        assert_eq!(333333, PaymentSplitter::total_released(&mut instance,));
+        assert!(PaymentSplitter::release(&mut instance, accounts.bob).is_ok());
+        assert_eq!(999999, PaymentSplitter::total_released(&mut instance,));
+        assert_eq!(333333, PaymentSplitter::released(&mut instance, accounts.charlie));
         assert_eq!(
             333333,
             ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.charlie).unwrap()
         );
-        assert_eq!(2 * 333333, instance.released(accounts.bob));
+        assert_eq!(2 * 333333, PaymentSplitter::released(&mut instance, accounts.bob));
         assert_eq!(
             2 * 333333,
             ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.bob).unwrap()
@@ -194,22 +192,22 @@ mod payment_splitter {
         let mut instance = MySplitter::new(vec![(accounts.charlie, 100), (accounts.bob, 200)]);
         let amount = 1000000;
         add_funds(instance.env().account_id(), amount);
-        assert!(instance.release(accounts.charlie).is_ok());
-        assert!(instance.release(accounts.bob).is_ok());
+        assert!(PaymentSplitter::release(&mut instance, accounts.charlie).is_ok());
+        assert!(PaymentSplitter::release(&mut instance, accounts.bob).is_ok());
 
         ink::env::test::set_account_balance::<ink::env::DefaultEnvironment>(accounts.charlie, 0);
         ink::env::test::set_account_balance::<ink::env::DefaultEnvironment>(accounts.bob, 0);
 
         add_funds(instance.env().account_id(), amount);
-        assert!(instance.release(accounts.charlie).is_ok());
-        assert!(instance.release(accounts.bob).is_ok());
-        assert_eq!(1999999, instance.total_released());
-        assert_eq!(666666, instance.released(accounts.charlie));
+        assert!(PaymentSplitter::release(&mut instance, accounts.charlie).is_ok());
+        assert!(PaymentSplitter::release(&mut instance, accounts.bob).is_ok());
+        assert_eq!(1999999, PaymentSplitter::total_released(&mut instance,));
+        assert_eq!(666666, PaymentSplitter::released(&mut instance, accounts.charlie));
         assert_eq!(
             333333,
             ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.charlie).unwrap()
         );
-        assert_eq!(1333333, instance.released(accounts.bob));
+        assert_eq!(1333333, PaymentSplitter::released(&mut instance, accounts.bob));
         assert_eq!(
             666667,
             ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.bob).unwrap()
@@ -229,7 +227,7 @@ mod payment_splitter {
 
         assert_eq!(
             Err(PaymentSplitterError::AccountIsNotDuePayment),
-            instance.release(accounts.alice)
+            PaymentSplitter::release(&mut instance, accounts.alice)
         );
     }
 
@@ -240,7 +238,7 @@ mod payment_splitter {
 
         assert_eq!(
             Err(PaymentSplitterError::AccountHasNoShares),
-            instance.release(accounts.eve)
+            PaymentSplitter::release(&mut instance, accounts.eve)
         );
     }
 
@@ -253,15 +251,15 @@ mod payment_splitter {
         let amount = 1000000;
         add_funds(instance.env().account_id(), amount);
 
-        assert_eq!(100 + 200, instance.total_shares());
-        assert!(instance._release_all().is_ok());
-        assert_eq!(999999, instance.total_released());
-        assert_eq!(333333, instance.released(accounts.charlie));
+        assert_eq!(100 + 200, PaymentSplitter::total_shares(&mut instance,));
+        assert!(payment_splitter::Internal::_release_all(&mut instance,).is_ok());
+        assert_eq!(999999, PaymentSplitter::total_released(&mut instance,));
+        assert_eq!(333333, PaymentSplitter::released(&mut instance, accounts.charlie));
         assert_eq!(
             333333,
             ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.charlie).unwrap()
         );
-        assert_eq!(2 * 333333, instance.released(accounts.bob));
+        assert_eq!(2 * 333333, PaymentSplitter::released(&mut instance, accounts.bob));
         assert_eq!(
             2 * 333333,
             ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.bob).unwrap()

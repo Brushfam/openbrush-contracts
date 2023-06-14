@@ -1,11 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(Pausable)]
 #[openbrush::contract]
 pub mod my_pausable {
-    use openbrush::{
-        contracts::pausable::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -13,43 +11,6 @@ pub mod my_pausable {
         #[storage_field]
         pause: pausable::Data,
         flipped: bool,
-    }
-
-    impl PausableImpl for Contract {}
-
-    impl Pausable for Contract {
-        #[ink(message)]
-        fn paused(&self) -> bool {
-            PausableImpl::paused(self)
-        }
-    }
-
-    impl pausable::InternalImpl for Contract {}
-
-    impl pausable::Internal for Contract {
-        fn _emit_paused_event(&self, account: AccountId) {
-            pausable::InternalImpl::_emit_paused_event(self, account)
-        }
-
-        fn _emit_unpaused_event(&self, account: AccountId) {
-            pausable::InternalImpl::_emit_unpaused_event(self, account)
-        }
-
-        fn _paused(&self) -> bool {
-            pausable::InternalImpl::_paused(self)
-        }
-
-        fn _pause<E: From<PausableError>>(&mut self) -> Result<(), E> {
-            pausable::InternalImpl::_pause(self)
-        }
-
-        fn _unpause<E: From<PausableError>>(&mut self) -> Result<(), E> {
-            pausable::InternalImpl::_unpause(self)
-        }
-
-        fn _switch_pause<E: From<PausableError>>(&mut self) -> Result<(), E> {
-            pausable::InternalImpl::_switch_pause(self)
-        }
     }
 
     impl Contract {

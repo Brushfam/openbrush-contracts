@@ -34,16 +34,13 @@
 /// 8. Pause the contract
 /// Users with the manager role can pause the contract. If the contract is paused, no borrowing or lending can be performed
 /// Users can still repay their loans, liquidate loans or withdraw their deposits
+#[openbrush::implementation(AccessControl, Pausable)]
 #[openbrush::contract]
 pub mod my_lending {
     use ink::ToAccountId;
     use lending_project::impls::lending::*;
     use loan_contract::loan::LoanContractRef;
     use openbrush::{
-        contracts::{
-            access_control::*,
-            pausable::*,
-        },
         traits::{
             DefaultEnv,
             Storage,
@@ -65,15 +62,102 @@ pub mod my_lending {
         lending: lending::data::Data,
     }
 
-    impl AccessControl for LendingContract {}
+    impl lending_internal::Internal for LendingContract {}
 
-    impl Pausable for LendingContract {}
+    impl LendingImpl for LendingContract {}
 
-    impl Lending for LendingContract {}
+    impl Lending for LendingContract {
+        #[ink(message)]
+        fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
+            LendingImpl::total_asset(self, asset_address)
+        }
 
-    impl LendingPermissioned for LendingContract {}
+        #[ink(message)]
+        fn total_shares(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
+            LendingImpl::total_shares(self, asset_address)
+        }
 
-    impl lending::Internal for LendingContract {
+        #[ink(message)]
+        fn get_asset_shares(&self, asset_address: AccountId) -> Result<AccountId, LendingError> {
+            LendingImpl::get_asset_shares(self, asset_address)
+        }
+
+        #[ink(message)]
+        fn is_accepted_lending(&self, asset_address: AccountId) -> bool {
+            LendingImpl::is_accepted_lending(self, asset_address)
+        }
+
+        #[ink(message)]
+        fn is_accepted_collateral(&self, asset_address: AccountId) -> bool {
+            LendingImpl::is_accepted_collateral(self, asset_address)
+        }
+
+        #[ink(message)]
+        fn lend_assets(&mut self, asset_address: AccountId, amount: Balance) -> Result<(), LendingError> {
+            LendingImpl::lend_assets(self, asset_address, amount)
+        }
+
+        #[ink(message)]
+        fn borrow_assets(
+            &mut self,
+            asset_address: AccountId,
+            collateral_address: AccountId,
+            amount: Balance,
+        ) -> Result<(), LendingError> {
+            LendingImpl::borrow_assets(self, asset_address, collateral_address, amount)
+        }
+
+        #[ink(message)]
+        fn repay(&mut self, loan_id: Id, repay_amount: Balance) -> Result<bool, LendingError> {
+            LendingImpl::repay(self, loan_id, repay_amount)
+        }
+
+        #[ink(message)]
+        fn withdraw_asset(&mut self, shares_address: AccountId, shares_amount: Balance) -> Result<(), LendingError> {
+            LendingImpl::withdraw_asset(self, shares_address, shares_amount)
+        }
+
+        #[ink(message)]
+        fn liquidate_loan(&mut self, loan_id: Id) -> Result<(), LendingError> {
+            LendingImpl::liquidate_loan(self, loan_id)
+        }
+    }
+
+    impl LendingPermissionedImpl for LendingContract {}
+
+    impl LendingPermissioned for LendingContract {
+        #[ink(message, payable)]
+        fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
+            LendingPermissionedImpl::allow_asset(self, asset_address)
+        }
+
+        #[ink(message)]
+        fn disallow_lending(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
+            LendingPermissionedImpl::disallow_lending(self, asset_address)
+        }
+
+        #[ink(message)]
+        fn allow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
+            LendingPermissionedImpl::allow_collateral(self, asset_address)
+        }
+
+        #[ink(message)]
+        fn disallow_collateral(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
+            LendingPermissionedImpl::disallow_collateral(self, asset_address)
+        }
+
+        #[ink(message)]
+        fn set_asset_price(
+            &mut self,
+            asset_in: AccountId,
+            asset_out: AccountId,
+            price: Balance,
+        ) -> Result<(), LendingError> {
+            LendingPermissionedImpl::set_asset_price(self, asset_in, asset_out, price)
+        }
+    }
+
+    impl lending::Instantiator for LendingContract {
         fn _instantiate_shares_contract(&self, contract_name: &str, contract_symbol: &str) -> AccountId {
             let code_hash = self.lending.shares_contract_code_hash;
 
@@ -97,8 +181,8 @@ pub mod my_lending {
         pub fn new(shares_hash: Hash, loan_hash: Hash) -> Self {
             let mut instance = Self::default();
             let caller = <Self as DefaultEnv>::env().caller();
-            instance._init_with_admin(caller);
-            instance.grant_role(MANAGER, caller).expect("Can not set manager role");
+            access_control::Internal::_init_with_admin(&mut instance, caller);
+            AccessControl::grant_role(&mut instance, MANAGER, caller).expect("Can not set manager role");
             instance.lending.shares_contract_code_hash = shares_hash;
             // instantiate NFT contract and store its account id
             let nft = LoanContractRef::new()

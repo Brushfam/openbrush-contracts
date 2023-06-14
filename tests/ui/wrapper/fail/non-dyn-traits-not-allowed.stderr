@@ -14,18 +14,6 @@ warning: unused import: `openbrush::traits::AccountId`
   |
   = note: `#[warn(unused_imports)]` on by default
 
-error[E0782]: trait objects must include the `dyn` keyword
-  --> tests/ui/wrapper/fail/non-dyn-traits-not-allowed.rs:20:1
-   |
-20 | #[openbrush::wrapper]
-   | ^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in the attribute macro `openbrush::wrapper` (in Nightly builds, run with -Z macro-backtrace for more info)
-help: add `dyn` keyword before this trait
-   |
-20 | dyn #[openbrush::wrapper]
-   | +++
-
 error[E0433]: failed to resolve: use of undeclared type `Trait1Ref`
   --> tests/ui/wrapper/fail/non-dyn-traits-not-allowed.rs:16:24
    |
@@ -34,3 +22,11 @@ error[E0433]: failed to resolve: use of undeclared type `Trait1Ref`
    |                        |
    |                        use of undeclared type `Trait1Ref`
    |                        help: a trait with a similar name exists: `Trait1`
+
+error[E0782]: trait objects must include the `dyn` keyword
+  --> tests/ui/wrapper/fail/non-dyn-traits-not-allowed.rs:20:1
+   |
+20 | #[openbrush::wrapper]
+   | ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `openbrush::wrapper` (in Nightly builds, run with -Z macro-backtrace for more info)

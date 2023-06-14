@@ -23,12 +23,9 @@ pub use crate::{
     reentrancy_guard,
     traits::errors::ReentrancyGuardError,
 };
-use ink::{
-    primitives::Key,
-    storage::{
-        traits::Storable,
-        Lazy,
-    },
+use ink::storage::{
+    traits::Storable,
+    Lazy,
 };
 use openbrush::{
     modifier_definition,

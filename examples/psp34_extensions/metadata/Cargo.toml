@@ -20,10 +20,6 @@ test_helpers = { path = "../../test_helpers", default-features = false }
 [lib]
 name = "my_psp34_metadata"
 path = "lib.rs"
-crate-type = [
-    # Used for normal contract Wasm blobs.
-    "cdylib",
-]
 
 [features]
 default = ["std"]

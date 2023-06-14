@@ -20,9 +20,6 @@ test_helpers = { path = "../test_helpers", default-features = false }
 [lib]
 name = "my_pausable"
 path = "lib.rs"
-crate-type = [
-    "cdylib",
-]
 
 [features]
 default = ["std"]

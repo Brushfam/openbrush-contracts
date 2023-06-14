@@ -34,9 +34,6 @@ openbrush = { version = "~3.1.1", default-features = false, features = ["pausabl
 [lib]
 name = "lending_contract"
 path = "lib.rs"
-crate-type = [
-    "cdylib",
-]
 
 [features]
 default = ["std"]

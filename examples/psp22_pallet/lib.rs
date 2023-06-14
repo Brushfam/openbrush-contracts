@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 #![feature(default_alloc_error_handler)]
 
@@ -55,7 +55,7 @@ pub mod my_psp22_pallet {
 
         use test_helpers::{
             address_of,
-            balance_of
+            balance_of,
         };
 
         fn random_num() -> u32 {
@@ -68,7 +68,14 @@ pub mod my_psp22_pallet {
         #[ink_e2e::test]
         async fn assigns_initial_balance(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 100);
-            let address = client.instantiate("my_psp22_pallet", &ink_e2e::alice(), constructor, 10000000000000000, None)
+            let address = client
+                .instantiate(
+                    "my_psp22_pallet",
+                    &ink_e2e::alice(),
+                    constructor,
+                    10000000000000000,
+                    None,
+                )
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -87,7 +94,14 @@ pub mod my_psp22_pallet {
         #[ink_e2e::test]
         async fn transfer_adds_amount_to_destination_account(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 100);
-            let address = client.instantiate("my_psp22_pallet", &ink_e2e::alice(), constructor, 10000000000000000, None)
+            let address = client
+                .instantiate(
+                    "my_psp22_pallet",
+                    &ink_e2e::alice(),
+                    constructor,
+                    10000000000000000,
+                    None,
+                )
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -95,7 +109,8 @@ pub mod my_psp22_pallet {
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.transfer(address_of!(bob), 50, vec![]));
-                client.call(&ink_e2e::alice(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
                     .expect("transfer failed")
             };
@@ -115,7 +130,14 @@ pub mod my_psp22_pallet {
         #[ink_e2e::test]
         async fn cannot_transfer_above_the_amount(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 100);
-            let address = client.instantiate("my_psp22_pallet", &ink_e2e::alice(), constructor, 10000000000000000, None)
+            let address = client
+                .instantiate(
+                    "my_psp22_pallet",
+                    &ink_e2e::alice(),
+                    constructor,
+                    10000000000000000,
+                    None,
+                )
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -123,8 +145,7 @@ pub mod my_psp22_pallet {
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.transfer(address_of!(bob), 101, vec![]));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             };
 
             assert!(matches!(result.return_value(), Err(PSP22Error::InsufficientBalance)));

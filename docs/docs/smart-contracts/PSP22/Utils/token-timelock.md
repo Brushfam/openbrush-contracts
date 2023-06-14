@@ -11,7 +11,7 @@ Use `openbrush::contract` macro instead of `ink::contract`.
 Import **everything** from `openbrush::contracts::psp22::utils::token_timelock`.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
@@ -64,7 +64,7 @@ impl Contract {
 
 ## Final code
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]

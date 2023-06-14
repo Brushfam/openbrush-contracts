@@ -42,7 +42,7 @@ Likely the most common function to use from this internal trait will be `_releas
 function (i.e. `#[ink(message)]`) called `release_all` and have it call the internal `_release_all` function using `self`.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]

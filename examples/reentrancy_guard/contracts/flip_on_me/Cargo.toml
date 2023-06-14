@@ -16,10 +16,6 @@ openbrush = { path = "../../../..", default-features = false }
 [lib]
 name = "flip_on_me"
 path = "lib.rs"
-crate-type = [
-    # Used for normal contract Wasm blobs.
-    "cdylib",
-]
 
 [features]
 default = ["std"]

@@ -16,10 +16,6 @@ openbrush = { path = "../../..", default-features = false, features = ["psp22"] 
 [lib]
 name = "my_psp22_capped"
 path = "lib.rs"
-crate-type = [
-    # Used for normal contract Wasm blobs.
-    "cdylib",
-]
 
 [dev-dependencies]
 ink_e2e = "4.1.0"

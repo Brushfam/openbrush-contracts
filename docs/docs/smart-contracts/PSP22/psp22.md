@@ -39,7 +39,7 @@ Also we will override `_before_token_transfer` method in the `PSP22` implementat
 and we will add the `hated_account: AccountId` field to the structure.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]

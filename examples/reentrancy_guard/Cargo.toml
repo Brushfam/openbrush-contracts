@@ -17,10 +17,6 @@ openbrush = { path = "../..", default-features = false, features = ["reentrancy_
 name = "flipper"
 path = "lib.rs"
 
-crate-type = [
-    "rlib",
-]
-
 [features]
 default = ["std"]
 std = [

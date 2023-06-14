@@ -36,7 +36,7 @@ Id will be added to `denied_ids` map.
 If someone tries to mint token with denied id, we will reject transaction.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]

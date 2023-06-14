@@ -16,9 +16,6 @@ openbrush = { path = "../../../..", default-features = false, features = ["diamo
 [lib]
 name = "ink_diamond"
 path = "lib.rs"
-crate-type = [
-    "cdylib",
-]
 
 [features]
 default = ["std"]

@@ -32,7 +32,7 @@ impl Contract {
 Customize it by adding flipper logic. We will implement `flip` method marked with `when_not_paused` modifier.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]

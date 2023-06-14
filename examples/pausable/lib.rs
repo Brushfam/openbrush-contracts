@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
@@ -64,7 +64,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn success_flip_when_not_paused(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -77,7 +78,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn success_pause_when_not_paused(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -90,7 +92,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn success_change_state(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -103,7 +106,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn failed_double_pause(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -117,7 +121,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn success_pause_and_unpause(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -131,7 +136,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn failed_unpause(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -144,7 +150,8 @@ pub mod my_pausable {
         #[ink_e2e::test]
         async fn failed_flip_when_paused(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;

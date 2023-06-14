@@ -17,9 +17,6 @@ paste = "1.0"
 [lib]
 name = "rust_diamond"
 path = "lib.rs"
-crate-type = [
-    "cdylib",
-]
 
 [features]
 default = ["std"]

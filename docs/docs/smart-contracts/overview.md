@@ -47,7 +47,7 @@ A list of all available features you can find [here](https://github.com/727-Vent
 The default implementation of traits requires the usage of the unstable feature [min-specialization](https://doc.rust-lang.org/beta/unstable-book/language-features/min-specialization.html).
 You can enable it by adding `#![feature(min_specialization)]` at the top of your root module(for more information check [rust official documentation](https://doc.rust-lang.org/rustdoc/unstable-features.html)). 
 
-> **_Note:_**  ink! requires put `#![cfg_attr(not(feature = "std"), no_std)]` at the top of root crate.
+> **_Note:_**  ink! requires put `#![cfg_attr(not(feature = "std"), no_std, no_main)]` at the top of root crate.
 
 > **_Note:_**  Some default implementations for traits provide additional methods that can be overridden. 
 > These methods are defined in a separate internal trait. It has the name `Internal`. 

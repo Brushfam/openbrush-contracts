@@ -12,7 +12,7 @@ First, you should implement basic version of [PSP37](/smart-contracts/PSP37).
 Import **everything** from `openbrush::contracts::psp37::extensions::metadata`.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
@@ -67,7 +67,7 @@ impl Contract {
 ## Final code
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]

@@ -35,7 +35,7 @@ pub use pallet_assets_chain_extension::traits::Origin;
 pub use psp22_pallet::{
     Internal as _,
     InternalImpl as _,
-    *,
+    PSP22PalletImpl,
 };
 
 pub trait PSP22PalletMintableImpl: Storage<psp22_pallet::Data> + psp22_pallet::Internal {

@@ -32,7 +32,7 @@ pub use openbrush::traits::String;
 pub use psp22::{
     Internal as _,
     InternalImpl as _,
-    *,
+    PSP22Impl,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);

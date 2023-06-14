@@ -34,3 +34,12 @@ impl ConstHasher {
         xxh32(str.as_bytes(), XXH32_SEED)
     }
 }
+
+#[macro_export]
+macro_rules! with_data {
+    ($self:ident, $data:ident, $body:block) => {
+        let mut $data = $self.get_or_default();
+        $body
+        $self.set(&$data);
+    };
+}

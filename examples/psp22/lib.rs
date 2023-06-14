@@ -10,12 +10,11 @@ pub mod my_psp22 {
         Storage,
         String,
     };
-    use openbrush::storage::Lazy;
 
     #[ink(storage)]
     #[openbrush::storage]
     pub struct Contract {
-        #[storage_field]
+        #[upgradeable_storage_field]
         psp22: psp22::Data,
         // #[storage_field]
         hated_storage: HatedStorage,

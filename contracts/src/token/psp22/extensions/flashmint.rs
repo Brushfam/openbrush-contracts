@@ -34,15 +34,17 @@ use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
+    StorageAccess,
     String,
 };
+use openbrush::storage::Lazy;
 pub use psp22::{
     Internal as _,
     InternalImpl as _,
     *,
 };
 
-pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Internal {
+pub trait FlashLenderImpl: Storage<psp22::DataType> + StorageAccess<psp22::Data> + psp22::Internal + PSP22 + Internal {
     fn max_flashloan(&mut self, token: AccountId) -> Balance {
         if token == Self::env().account_id() {
             Balance::MAX - self.total_supply()
@@ -92,7 +94,7 @@ pub trait Internal {
     ) -> Result<(), FlashLenderError>;
 }
 
-pub trait InternalImpl: Storage<psp22::Data> + Internal {
+pub trait InternalImpl: Storage<psp22::DataType> + StorageAccess<psp22::Data> + Internal {
     fn _get_fee(&self, _amount: Balance) -> Balance {
         0
     }

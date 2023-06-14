@@ -27,8 +27,14 @@ pub use crate::{
         *,
     },
 };
-use openbrush::traits::Storage;
-pub use openbrush::traits::String;
+use openbrush::{
+    storage::Lazy,
+    traits::{
+        Storage,
+        StorageAccess,
+        String,
+    },
+};
 pub use psp22::{
     Internal as _,
     InternalImpl as _,
@@ -51,16 +57,16 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait PSP22MetadataImpl: Storage<Data> {
+pub trait PSP22MetadataImpl: Storage<DataType> + StorageAccess<Data> {
     fn token_name(&self) -> Option<String> {
-        self.data().name.clone()
+        self.get_or_default().name.clone()
     }
 
     fn token_symbol(&self) -> Option<String> {
-        self.data().symbol.clone()
+        self.get_or_default().symbol.clone()
     }
 
     fn token_decimals(&self) -> u8 {
-        self.data().decimals.clone()
+        self.get_or_default().decimals.clone()
     }
 }

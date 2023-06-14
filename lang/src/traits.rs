@@ -113,6 +113,7 @@ impl<T> StorageAsRef for T {}
 impl<T: StorageAsRef> StorageAsMut for T {}
 
 pub const ZERO_ADDRESS: [u8; 32] = [255; 32];
+
 pub trait StorageAccess<V>
 where
     V: Storable,

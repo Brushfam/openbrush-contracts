@@ -24,8 +24,14 @@ pub use crate::{
     traits::psp22::*,
 };
 pub use ink::prelude::vec::Vec;
+use ink::storage::traits::{
+    AutoKey,
+    ManualKey,
+    ResolverKey,
+};
 use openbrush::{
     storage::{
+        Lazy,
         Mapping,
         TypeGuard,
     },
@@ -34,9 +40,11 @@ use openbrush::{
         AccountIdExt,
         Balance,
         Storage,
+        StorageAccess,
     },
+    with_data,
 };
-use openbrush::traits::StorageAccess;
+
 pub use psp22::{
     Internal as _,
     InternalImpl as _,
@@ -55,7 +63,7 @@ pub struct Data {
 }
 
 #[cfg(feature = "upgradeable")]
-pub type DataType = Lazy<Data>;
+pub type DataType = Lazy<Data, ResolverKey<AutoKey, ManualKey<1533075381>>>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
@@ -167,21 +175,24 @@ pub trait Internal {
     ) -> Result<(), PSP22Error>;
 }
 
-pub trait InternalImpl: Storage<Data> + Internal {
+pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
 
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 
     fn _total_supply(&self) -> Balance {
-        self.data().supply.clone()
+        self.get_or_default().supply.clone()
     }
 
     fn _balance_of(&self, owner: &AccountId) -> Balance {
-        self.data().balances.get(owner).unwrap_or(0)
+        StorageAccess::<Data>::get_or_default(self)
+            .balances
+            .get(owner)
+            .unwrap_or(0)
     }
 
     fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance {
-        self.data().allowances.get(&(owner, spender)).unwrap_or(0)
+        self.get_or_default().allowances.get(&(owner, spender)).unwrap_or(0)
     }
 
     fn _transfer_from_to(
@@ -206,10 +217,11 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
         Internal::_before_token_transfer(self, Some(&from), Some(&to), &amount)?;
 
-        self.data().balances.insert(&from, &(from_balance - amount));
-
-        let to_balance = Internal::_balance_of(self, &to);
-        self.data().balances.insert(&to, &(to_balance + amount));
+        with_data!(self, data, {
+            data.balances.insert(&from, &(from_balance - amount));
+            let to_balance = Internal::_balance_of(self, &to);
+            data.balances.insert(&to, &(to_balance + amount));
+        });
 
         Internal::_after_token_transfer(self, Some(&from), Some(&to), &amount)?;
         Internal::_emit_transfer_event(self, Some(from), Some(to), amount);
@@ -225,7 +237,10 @@ pub trait InternalImpl: Storage<Data> + Internal {
             return Err(PSP22Error::ZeroRecipientAddress)
         }
 
-        self.data().allowances.insert(&(&owner, &spender), &amount);
+        with_data!(self, data, {
+            data.allowances.insert(&(&owner, &spender), &amount);
+        });
+
         Internal::_emit_approval_event(self, owner, spender, amount);
         Ok(())
     }
@@ -238,8 +253,12 @@ pub trait InternalImpl: Storage<Data> + Internal {
         Internal::_before_token_transfer(self, None, Some(&account), &amount)?;
         let mut new_balance = Internal::_balance_of(self, &account);
         new_balance += amount;
-        self.data().balances.insert(&account, &new_balance);
-        self.data().supply += amount;
+
+        with_data!(self, data, {
+            data.balances.insert(&account, &new_balance);
+            data.supply += amount;
+        });
+
         Internal::_after_token_transfer(self, None, Some(&account), &amount)?;
         Internal::_emit_transfer_event(self, None, Some(account), amount);
 
@@ -260,8 +279,12 @@ pub trait InternalImpl: Storage<Data> + Internal {
         Internal::_before_token_transfer(self, Some(&account), None, &amount)?;
 
         from_balance -= amount;
-        self.data().balances.insert(&account, &from_balance);
-        self.data().supply -= amount;
+
+        with_data!(self, data, {
+            data.balances.insert(&account, &from_balance);
+            data.supply -= amount;
+        });
+
         Internal::_after_token_transfer(self, Some(&account), None, &amount)?;
         Internal::_emit_transfer_event(self, Some(account), None, amount);
 

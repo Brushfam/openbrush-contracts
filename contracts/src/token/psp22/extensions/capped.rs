@@ -28,10 +28,15 @@ pub use crate::{
     },
 };
 pub use capped::Internal as _;
-use openbrush::traits::{
-    Balance,
-    Storage,
-    String,
+use openbrush::{
+    storage::Lazy,
+    traits::{
+        Balance,
+        Storage,
+        StorageAccess,
+        String,
+    },
+    with_data,
 };
 pub use psp22::{
     Internal as _,
@@ -53,7 +58,6 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-
 pub trait PSP22CappedImpl: Internal {
     fn cap(&self) -> Balance {
         self._cap()
@@ -69,12 +73,16 @@ pub trait Internal {
     fn _cap(&self) -> Balance;
 }
 
-pub trait InternalImpl: Storage<Data> + Internal + PSP22 {
+pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal + PSP22 {
     fn _init_cap(&mut self, cap: Balance) -> Result<(), PSP22Error> {
         if cap == 0 {
             return Err(PSP22Error::Custom(String::from("Cap must be above 0")))
         }
-        self.data().cap = cap;
+
+        with_data!(self, data, {
+            data.cap = cap;
+        });
+
         Ok(())
     }
 
@@ -86,6 +94,6 @@ pub trait InternalImpl: Storage<Data> + Internal + PSP22 {
     }
 
     fn _cap(&self) -> Balance {
-        self.data().cap.clone()
+        self.get_or_default().cap.clone()
     }
 }

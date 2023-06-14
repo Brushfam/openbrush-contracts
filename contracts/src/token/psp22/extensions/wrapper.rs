@@ -27,13 +27,21 @@ pub use crate::{
         *,
     },
 };
-use ink::env::CallFlags;
 pub use ink::prelude::vec::Vec;
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Storage,
-    ZERO_ADDRESS,
+use ink::{
+    env::CallFlags,
+    prelude::boxed::Box,
+};
+use openbrush::{
+    storage::Lazy,
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+        StorageAccess,
+        ZERO_ADDRESS,
+    },
+    with_data,
 };
 pub use psp22::{
     Internal as _,
@@ -65,7 +73,7 @@ impl Default for Data {
     }
 }
 
-pub trait PSP22WrapperImpl: Storage<Data> + Internal + psp22::Internal {
+pub trait PSP22WrapperImpl: Storage<DataType> + StorageAccess<Data> + Internal + psp22::Internal {
     fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._deposit(amount)?;
         psp22::Internal::_mint_to(self, account, amount)
@@ -100,7 +108,7 @@ pub trait Internal {
     fn _underlying(&mut self) -> &mut PSP22Ref;
 }
 
-pub trait InternalImpl: Storage<Data> + Internal + psp22::Internal + PSP22 {
+pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal + psp22::Internal + PSP22 {
     fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error> {
         let value = Internal::_underlying_balance(self) - self.total_supply();
         psp22::Internal::_mint_to(self, account, value)?;
@@ -130,10 +138,14 @@ pub trait InternalImpl: Storage<Data> + Internal + psp22::Internal + PSP22 {
     }
 
     fn _init(&mut self, underlying: AccountId) {
-        self.data().underlying = underlying;
+        with_data!(self, data, {
+            data.underlying = underlying;
+        });
     }
 
-    fn _underlying(&mut self) -> &mut PSP22Ref {
-        &mut self.data().underlying
+    fn _underlying(&mut self) -> Box<PSP22Ref> {
+        let res = &mut self.get_or_default();
+
+        Box::from(res.underlying)
     }
 }

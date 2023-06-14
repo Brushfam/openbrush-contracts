@@ -36,6 +36,7 @@ use openbrush::{
         Storage,
     },
 };
+use openbrush::traits::StorageAccess;
 pub use psp22::{
     Internal as _,
     InternalImpl as _,
@@ -53,13 +54,18 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
 pub struct AllowancesKey;
 
 impl<'a> TypeGuard<'a> for AllowancesKey {
     type Type = &'a (&'a AccountId, &'a AccountId);
 }
 
-pub trait PSP22Impl: Storage<Data> + Internal {
+pub trait PSP22Impl: Storage<DataType> + StorageAccess<Data> + Internal {
     fn total_supply(&self) -> Balance {
         self._total_supply()
     }

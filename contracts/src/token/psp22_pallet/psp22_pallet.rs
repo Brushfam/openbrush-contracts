@@ -57,6 +57,11 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
 pub trait PSP22PalletImpl: Storage<Data> + Internal {
     fn total_supply(&self) -> Balance {
         let self_ = self.data();

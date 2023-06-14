@@ -58,6 +58,11 @@ pub struct Data {
 
 pub struct BalancesKey;
 
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
 impl<'a> TypeGuard<'a> for BalancesKey {
     type Type = &'a (&'a AccountId, &'a Option<&'a Id>);
 }

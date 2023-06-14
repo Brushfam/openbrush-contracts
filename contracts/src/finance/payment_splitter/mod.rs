@@ -49,6 +49,10 @@ pub struct Data {
     pub payees: Vec<AccountId>,
     pub _reserved: Option<()>,
 }
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
 
 pub trait PaymentSplitterImpl: Storage<Data> + Internal {
     fn total_shares(&self) -> Balance {

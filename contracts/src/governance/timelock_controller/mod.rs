@@ -73,6 +73,11 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
 /// Modifier to make a function callable only by a certain role. In
 /// addition to checking the sender's role, zero account's role is also
 /// considered. Granting a role to zero account is equivalent to enabling

@@ -46,6 +46,11 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
 /// Modifier to make a function callable only when the contract is paused.
 #[modifier_definition]
 pub fn when_paused<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>

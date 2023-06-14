@@ -52,6 +52,12 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
+
 pub trait MembersManagerImpl: Storage<Data> {
     fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
         self.data().role_members.contains_value(role, address)

@@ -25,7 +25,10 @@ pub use crate::{
 };
 use ink::{
     primitives::Key,
-    storage::traits::Storable,
+    storage::{
+        traits::Storable,
+        Lazy,
+    },
 };
 use openbrush::{
     modifier_definition,
@@ -37,7 +40,7 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 #[derive(Default, Debug)]
 pub struct Data {
-    pub status: u8,
+    pub status: Lazy<u8>,
     pub _reserved: Option<()>,
 }
 
@@ -59,18 +62,14 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<ReentrancyGuardError>,
 {
-    if instance.data().status == ENTERED {
+    if instance.data().status.get_or_default() == ENTERED {
         return Err(From::from(ReentrancyGuardError::ReentrantCall))
     }
     // Any calls to nonReentrant after this point will fail
-    instance.data().status = ENTERED;
-
-    // We want to flush storage before execution of inner function,
-    // because ink! doesn't do it by default and `status` will not be updated in child calls
-    ink::env::set_contract_storage::<Key, Data>(&Default::default(), &instance.data());
+    instance.data().status.set(&ENTERED);
 
     let result = body(instance);
-    instance.data().status = NOT_ENTERED;
+    instance.data().status.set(&NOT_ENTERED);
 
     return result
 }

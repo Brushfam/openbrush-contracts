@@ -87,7 +87,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
             #(#trait_set_messages)*
         }
 
-        impl<T: StorageAccess<#struct_ident>> #trait_ident for T {
+        impl<T: ::openbrush::traits::StorageAccess<#struct_ident>> #trait_ident for T {
             #(#get_impls)*
             #(#set_impls)*
         }

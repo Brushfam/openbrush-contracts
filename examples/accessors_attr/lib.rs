@@ -1,9 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 #[openbrush::contract]
 pub mod accessors_attr {
-    use openbrush::traits::Storage;
-
     #[ink(storage)]
     #[derive(Default)]
     #[openbrush::storage]

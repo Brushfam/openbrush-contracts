@@ -48,7 +48,9 @@ use openbrush::{
     traits::{
         Hash,
         Storage,
+        StorageAccess,
     },
+    with_data,
 };
 pub use ownable::Internal as _;
 
@@ -63,7 +65,12 @@ pub struct Data {
     pub hash_to_selectors: Mapping<Hash, Vec<Selector>>,
 }
 
-pub trait DiamondImpl: Internal + Storage<ownable::Data> {
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data, ResolverKey<AutoKey>>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
+pub trait DiamondImpl: Internal + Storage<ownable::DataType> + StorageAccess<ownable::Data> {
     #[modifiers(ownable::only_owner)]
     fn diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
         self._diamond_cut(diamond_cut, init)
@@ -86,7 +93,7 @@ pub trait Internal {
     fn _remove_selectors(&mut self, facet_cut: &FacetCut);
 }
 
-pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
+pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + DiamondCut {
     fn _emit_diamond_cut_event(&self, _diamond_cut: &Vec<FacetCut>, _init: &Option<InitCall>) {}
 
     fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
@@ -114,7 +121,7 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
             Internal::_remove_facet(self, code_hash);
         } else {
             for selector in facet_cut.selectors.iter() {
-                let selector_hash = self.data().selector_to_hash.get(&selector);
+                let selector_hash = self.get_or_default().selector_to_hash.get(&selector);
 
                 if selector_hash.and_then(|hash| Some(hash == code_hash)).unwrap_or(false) {
                     // selector already registered to this hash -> no action
@@ -124,17 +131,21 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
                     return Err(DiamondError::ReplaceExisting(selector_hash.unwrap()))
                 } else {
                     // map selector to its facet
-                    self.data().selector_to_hash.insert(&selector, &code_hash);
+                    with_data!(self, data, {
+                        data.selector_to_hash.insert(&selector, &code_hash);
+                    });
                 }
             }
 
-            if self.data().hash_to_selectors.get(&code_hash).is_none() {
+            if self.get_or_default().hash_to_selectors.get(&code_hash).is_none() {
                 self._on_add_facet(code_hash);
             }
             // remove selectors from this facet which may be registered but will not be used anymore
             Internal::_remove_selectors(self, facet_cut);
             // map this code hash to its selectors
-            self.data().hash_to_selectors.insert(&code_hash, &facet_cut.selectors);
+            with_data!(self, data, {
+                data.hash_to_selectors.insert(&code_hash, &facet_cut.selectors);
+            });
         }
         Ok(())
     }
@@ -142,7 +153,7 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
     fn _fallback(&self) -> ! {
         let selector = ink::env::decode_input::<Selector>().unwrap_or_else(|_| panic!("Calldata error"));
 
-        let delegate_code = self.data().selector_to_hash.get(&selector);
+        let delegate_code = self.get_or_default().selector_to_hash.get(&selector);
 
         if delegate_code.is_none() {
             panic!("Function is not registered");
@@ -179,23 +190,29 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
     }
 
     fn _remove_facet(&mut self, code_hash: Hash) {
-        let vec = self.data().hash_to_selectors.get(&code_hash).unwrap();
+        let vec = self.get_or_default().hash_to_selectors.get(&code_hash).unwrap();
         vec.iter().for_each(|old_selector| {
-            self.data().selector_to_hash.remove(&old_selector);
+            with_data!(self, data, {
+                data.selector_to_hash.remove(&old_selector);
+            });
         });
-        self.data().hash_to_selectors.remove(&code_hash);
+        with_data!(self, data, {
+            data.hash_to_selectors.remove(&code_hash);
+        });
         self._on_remove_facet(code_hash);
     }
 
     fn _remove_selectors(&mut self, facet_cut: &FacetCut) {
         let selectors = self
-            .data()
+            .get_or_default()
             .hash_to_selectors
             .get(&facet_cut.hash)
             .unwrap_or(Vec::<Selector>::new());
         for selector in selectors.iter() {
             if !facet_cut.selectors.contains(&selector) {
-                self.data().selector_to_hash.remove(&selector);
+                with_data!(self, data, {
+                    data.selector_to_hash.remove(&selector);
+                });
             }
         }
     }

@@ -35,7 +35,9 @@ use openbrush::{
     traits::{
         Hash,
         Storage,
+        StorageAccess,
     },
+    with_data,
 };
 pub use ownable::{
     Internal as _,
@@ -54,15 +56,24 @@ pub struct Data {
     pub forward_to: Hash,
 }
 
-pub trait ProxyImpl: Storage<Data> + Storage<ownable::Data> + Internal {
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
+pub trait ProxyImpl:
+    Storage<DataType> + StorageAccess<Data> + Storage<ownable::DataType> + StorageAccess<ownable::Data> + Internal
+{
     fn get_delegate_code(&self) -> Hash {
-        self.data::<Data>().forward_to
+        StorageAccess::<Data>::get_or_default(self).forward_to
     }
 
     #[modifiers(ownable::only_owner)]
     fn change_delegate_code(&mut self, new_code_hash: Hash) -> Result<(), OwnableError> {
-        let old_code_hash = self.data::<Data>().forward_to.clone();
-        self.data::<Data>().forward_to = new_code_hash;
+        let mut old_data = StorageAccess::<Data>::get_or_default(self);
+        let old_code_hash = old_data.forward_to.clone();
+        old_data.forward_to = new_code_hash;
+        StorageAccess::<Data>::set(self, &old_data);
         self._emit_delegate_code_changed_event(Some(old_code_hash), Some(new_code_hash));
         Ok(())
     }
@@ -76,17 +87,19 @@ pub trait Internal {
     fn _fallback(&self) -> !;
 }
 
-pub trait InternalImpl: Internal + Storage<Data> {
+pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> {
     fn _emit_delegate_code_changed_event(&self, _previous: Option<Hash>, _new: Option<Hash>) {}
 
     fn _init_with_forward_to(&mut self, forward_to: Hash) {
-        self.data().forward_to = forward_to;
+        with_data!(self, data, {
+            data.forward_to = forward_to;
+        });
         Internal::_emit_delegate_code_changed_event(self, None, Some(forward_to));
     }
 
     fn _fallback(&self) -> ! {
         ink::env::call::build_call::<ink::env::DefaultEnvironment>()
-            .delegate(self.data().forward_to.clone())
+            .delegate(self.get_or_default().forward_to.clone())
             .call_flags(
                 ink::env::CallFlags::default()
                 // We don't plan to use the input data after the delegated call, so the 
@@ -100,7 +113,7 @@ pub trait InternalImpl: Internal + Storage<Data> {
             .unwrap_or_else(|err| {
                 panic!(
                     "delegate call to {:?} failed due to {:?}",
-                    self.data().forward_to.clone(),
+                    self.get_or_default().forward_to.clone(),
                     err
                 )
             });

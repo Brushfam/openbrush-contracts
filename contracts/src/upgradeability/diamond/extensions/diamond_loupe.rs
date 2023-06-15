@@ -42,7 +42,9 @@ use openbrush::{
     traits::{
         Hash,
         Storage,
+        StorageAccess,
     },
+    with_data,
 };
 pub use ownable::{
     Internal as _,
@@ -64,46 +66,64 @@ pub struct Data {
     pub _reserved: Option<()>,
 }
 
-pub trait DiamondCutLoupeImpl: Storage<Data> {
+#[cfg(feature = "upgradeable")]
+pub type DataType = Lazy<Data, ResolverKey<AutoKey>>;
+#[cfg(not(feature = "upgradeable"))]
+pub type DataType = Data;
+
+pub trait DiamondCutLoupeImpl: Storage<DataType> + StorageAccess<Data> {
     #[inline(always)]
     fn _on_add_facet(&mut self, code_hash: Hash) {
-        let hash_id = self.data().code_hashes;
-        self.data().hash_to_id.insert(&code_hash, &hash_id);
-        self.data().id_to_hash.insert(hash_id, &code_hash);
-        self.data().code_hashes += 1;
+        let hash_id = self.get_or_default().code_hashes;
+        with_data!(self, data, {
+            data.hash_to_id.insert(&code_hash, &hash_id);
+            data.id_to_hash.insert(hash_id, &code_hash);
+            data.code_hashes += 1;
+        });
     }
 
     fn _on_remove_facet(&mut self, code_hash: Hash) {
-        let new_hash_id = self.data().code_hashes - 1;
-        let removed_hash_id = self.data().hash_to_id.get(&code_hash).unwrap();
-        let last_hash = self.data().id_to_hash.get(new_hash_id).unwrap();
+        let new_hash_id = self.get_or_default().code_hashes - 1;
+        let removed_hash_id = self.get_or_default().hash_to_id.get(&code_hash).unwrap();
+        let last_hash = self.get_or_default().id_to_hash.get(new_hash_id).unwrap();
 
         if last_hash != code_hash {
-            self.data().id_to_hash.insert(removed_hash_id, &last_hash);
-            self.data().hash_to_id.insert(&last_hash, &removed_hash_id);
-            self.data().id_to_hash.remove(new_hash_id);
+            with_data!(self, data, {
+                data.id_to_hash.insert(removed_hash_id, &last_hash);
+                data.hash_to_id.insert(&last_hash, &removed_hash_id);
+                data.id_to_hash.remove(new_hash_id);
+            });
         } else {
-            self.data().id_to_hash.remove(removed_hash_id);
+            with_data!(self, data, {
+                data.hash_to_id.remove(&last_hash);
+            });
         }
 
-        self.data().hash_to_id.remove(&code_hash);
-        self.data().code_hashes = new_hash_id;
+        with_data!(self, data, {
+            data.hash_to_id.remove(&code_hash);
+            data.code_hashes = new_hash_id;
+        });
     }
 }
 
-pub trait DiamondLoupeImpl: Storage<diamond::Data> + Storage<Data> {
+pub trait DiamondLoupeImpl:
+    Storage<diamond::DataType> + StorageAccess<diamond::Data> + Storage<DataType> + StorageAccess<Data>
+{
     fn facets(&self) -> Vec<FacetCut> {
         let mut out_vec = Vec::new();
-        for i in 0..self.data::<Data>().code_hashes {
-            let hash = self.data::<Data>().id_to_hash.get(i).unwrap();
-            let selectors = self.data::<diamond::Data>().hash_to_selectors.get(&hash).unwrap();
+        for i in 0..StorageAccess::<Data>::get_or_default(self).code_hashes {
+            let hash = StorageAccess::<Data>::get_or_default(self).id_to_hash.get(i).unwrap();
+            let selectors = StorageAccess::<diamond::Data>::get_or_default(self)
+                .hash_to_selectors
+                .get(&hash)
+                .unwrap();
             out_vec.push(FacetCut { hash, selectors })
         }
         out_vec
     }
 
     fn facet_function_selectors(&self, facet: Hash) -> Vec<Selector> {
-        self.data::<diamond::Data>()
+        StorageAccess::<diamond::Data>::get_or_default(self)
             .hash_to_selectors
             .get(&facet)
             .unwrap_or(Vec::<Selector>::new())
@@ -111,13 +131,15 @@ pub trait DiamondLoupeImpl: Storage<diamond::Data> + Storage<Data> {
 
     fn facet_code_hashes(&self) -> Vec<Hash> {
         let mut out_vec = Vec::new();
-        for i in 0..self.data::<Data>().code_hashes {
-            out_vec.push(self.data::<Data>().id_to_hash.get(i).unwrap())
+        for i in 0..StorageAccess::<Data>::get_or_default(self).code_hashes {
+            out_vec.push(StorageAccess::<Data>::get_or_default(self).id_to_hash.get(i).unwrap())
         }
         out_vec
     }
 
     fn facet_code_hash(&self, selector: Selector) -> Option<Hash> {
-        self.data::<diamond::Data>().selector_to_hash.get(&selector)
+        StorageAccess::<diamond::Data>::get_or_default(self)
+            .selector_to_hash
+            .get(&selector)
     }
 }

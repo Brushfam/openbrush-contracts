@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::implementation(PSP22Metadata)]
 #[openbrush::contract]
@@ -6,14 +6,12 @@ pub mod my_psp22_metadata_facet {
     use openbrush::{
         contracts::ownable::*,
         modifiers,
-        traits::{
-            Storage,
-            String,
-        },
+        traits::String,
     };
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct PSP22Facet {
         #[storage_field]
         metadata: metadata::Data,

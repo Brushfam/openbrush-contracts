@@ -1,4 +1,5 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 #[openbrush::implementation(Ownable, Diamond, DiamondLoupe)]
 #[openbrush::contract]
@@ -9,7 +10,8 @@ pub mod diamond {
     };
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct Contract {
         #[storage_field]
         ownable: ownable::Data,

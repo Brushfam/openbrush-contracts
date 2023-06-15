@@ -49,6 +49,8 @@ use ink::{
         vec::Vec,
     },
 };
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 use openbrush::{
     modifier_definition,
     modifiers,
@@ -57,9 +59,11 @@ use openbrush::{
         AccountId,
         Hash,
         Storage,
+        StorageAccess,
         Timestamp,
         ZERO_ADDRESS,
     },
+    with_data,
 };
 pub use timelock_controller::Internal as _;
 
@@ -85,7 +89,10 @@ pub type DataType = Data;
 #[modifier_definition]
 pub fn only_role_or_open_role<T, F, R, E>(instance: &mut T, body: F, role: RoleType) -> Result<R, E>
 where
-    T: access_control::Internal + access_control::MembersManager + Storage<access_control::Data>,
+    T: access_control::Internal
+        + access_control::MembersManager
+        + Storage<access_control::DataType>
+        + StorageAccess<access_control::Data>,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<AccessControlError>,
 {
@@ -102,7 +109,13 @@ pub const EXECUTOR_ROLE: RoleType = ink::selector_id!("EXECUTOR_ROLE");
 pub const DONE_TIMESTAMP: Timestamp = 1;
 
 pub trait TimelockControllerImpl:
-    Internal + Storage<Data> + access_control::MembersManager + access_control::Internal + Storage<access_control::Data>
+    Internal
+    + Storage<DataType>
+    + StorageAccess<Data>
+    + access_control::MembersManager
+    + access_control::Internal
+    + Storage<access_control::DataType>
+    + StorageAccess<access_control::Data>
 {
     fn is_operation(&self, id: OperationId) -> bool {
         self._is_operation(id)
@@ -222,10 +235,15 @@ pub trait TimelockControllerImpl:
             return Err(TimelockControllerError::CallerMustBeTimeLock)
         }
 
-        let old_delay = self.data::<Data>().min_delay.clone();
+        let old_delay = StorageAccess::<Data>::get_or_default(self).min_delay.clone();
         self._emit_min_delay_change_event(old_delay, new_delay);
 
         self.data::<Data>().min_delay = new_delay;
+
+        let mut _data = StorageAccess::<Data>::get_or_default(self);
+        _data.min_delay = new_delay;
+        StorageAccess::<Data>::set(self, &_data);
+
         Ok(())
     }
 }
@@ -302,7 +320,7 @@ pub trait Internal {
     fn _get_timestamp(&self, id: OperationId) -> Timestamp;
 }
 
-pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
+pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + access_control::Internal {
     fn _emit_min_delay_change_event(&self, _old_delay: Timestamp, _new_delay: Timestamp) {}
 
     fn _emit_call_scheduled_event(
@@ -357,8 +375,10 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
             .into_iter()
             .for_each(|executor| self._setup_role(<Self as Internal>::_executor_role(), executor));
 
-        let old_delay = self.data::<Data>().min_delay.clone();
-        self.data::<Data>().min_delay = min_delay;
+        let old_delay = self.get_or_default().min_delay.clone();
+        with_data!(self, data, {
+            data.min_delay = min_delay;
+        });
         Internal::_emit_min_delay_change_event(self, old_delay, min_delay);
     }
 
@@ -400,13 +420,14 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
         if Internal::_is_operation(self, id) {
             return Err(TimelockControllerError::OperationAlreadyScheduled)
         }
-        if delay < &self.data::<Data>().min_delay {
+        if delay < &self.get_or_default().min_delay {
             return Err(TimelockControllerError::InsufficientDelay)
         }
 
-        self.data::<Data>()
-            .timestamps
-            .insert(&id, &(Self::env().block_timestamp() + delay));
+        with_data!(self, data, {
+            data.timestamps.insert(&id, &(Self::env().block_timestamp() + delay));
+        });
+
         Ok(())
     }
 
@@ -422,9 +443,10 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
             return Err(TimelockControllerError::OperationIsNotReady)
         }
 
-        self.data::<Data>()
-            .timestamps
-            .insert(&id, &<Self as Internal>::_done_timestamp());
+        with_data!(self, data, {
+            data.timestamps.insert(&id, &<Self as Internal>::_done_timestamp());
+        });
+
         Ok(())
     }
 
@@ -482,7 +504,10 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
     }
 
     fn _get_timestamp(&self, id: OperationId) -> Timestamp {
-        self.data::<Data>().timestamps.get(&id).unwrap_or(Timestamp::default())
+        self.get_or_default()
+            .timestamps
+            .get(&id)
+            .unwrap_or(Timestamp::default())
     }
 }
 

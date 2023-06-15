@@ -34,19 +34,22 @@ pub use access_control::{
 };
 use openbrush::{
     storage::{
+        Lazy,
         MultiMapping,
         ValueGuard,
     },
     traits::{
         AccountId,
         Storage,
+        StorageAccess,
     },
+    with_data,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
 
-#[derive(Default, Debug)]
 #[openbrush::storage_item(STORAGE_KEY)]
+#[derive(Default, Debug)]
 pub struct Data {
     pub role_members: MultiMapping<RoleType, AccountId, ValueGuard<RoleType>>,
     pub _reserved: Option<()>,
@@ -57,26 +60,30 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait MembersManagerImpl: Storage<Data> {
+pub trait MembersManagerImpl: Storage<DataType> + StorageAccess<Data> {
     fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
-        self.data().role_members.contains_value(role, address)
+        self.get_or_default().role_members.contains_value(role, address)
     }
 
     fn _add(&mut self, role: RoleType, member: &AccountId) {
-        self.data().role_members.insert(role, member);
+        with_data!(self, data, {
+            data.role_members.insert(role, member);
+        });
     }
 
     fn _remove(&mut self, role: RoleType, member: &AccountId) {
-        self.data().role_members.remove_value(role, member);
+        with_data!(self, data, {
+            data.role_members.remove_value(role, member);
+        });
     }
 }
 
-pub trait AccessControlEnumerableImpl: Storage<Data> {
+pub trait AccessControlEnumerableImpl: Storage<DataType> + StorageAccess<Data> {
     fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
-        self.data().role_members.get_value(role, &(index as u128))
+        self.get_or_default().role_members.get_value(role, &(index as u128))
     }
 
     fn get_role_member_count(&self, role: RoleType) -> u32 {
-        self.data().role_members.count(role) as u32
+        self.get_or_default().role_members.count(role) as u32
     }
 }

@@ -63,28 +63,27 @@ fn generate_fields(s: synstructure::Structure) -> Vec<Field> {
 
     match &s.ast().data {
         Data::Struct(st) => {
-            st.fields
+            st.clone()
+                .fields
                 .iter()
                 .enumerate()
-                .map(|(i, field)| convert_into_storage_field(&struct_ident, None, &key_salt, i, field))
+                .map(|(_, field)| field.clone())
                 .collect()
         }
         Data::Enum(en) => {
-            en.variants
+            en.clone()
+                .variants
                 .iter()
-                .flat_map(|v| {
-                    v.fields.iter().enumerate().map(|(i, field)| {
-                        convert_into_storage_field(&struct_ident, Some(&v.ident), &key_salt, i, field)
-                    })
-                })
+                .flat_map(|v| v.fields.iter().enumerate().map(|(_, field)| field.clone()))
                 .collect()
         }
         Data::Union(un) => {
-            un.fields
+            un.clone()
+                .fields
                 .named
                 .iter()
                 .enumerate()
-                .map(|(i, field)| convert_into_storage_field(&struct_ident, None, &key_salt, i, field))
+                .map(|(_, field)| field.clone())
                 .collect()
         }
     }

@@ -28,6 +28,7 @@ use openbrush::{
     modifier_definition,
     modifiers,
     storage::{
+        Lazy,
         Mapping,
         TypeGuard,
         ValueGuard,
@@ -35,13 +36,15 @@ use openbrush::{
     traits::{
         AccountId,
         Storage,
+        StorageAccess,
     },
+    with_data,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[derive(Default, Debug)]
 #[openbrush::storage_item(STORAGE_KEY)]
+#[derive(Default, Debug)]
 pub struct Data {
     pub admin_roles: Mapping<RoleType, RoleType, ValueGuard<RoleType>>,
     pub members: Mapping<(RoleType, AccountId), (), MembersKey>,
@@ -65,7 +68,7 @@ pub const DEFAULT_ADMIN_ROLE: RoleType = 0;
 #[modifier_definition]
 pub fn only_role<T, F, R, E>(instance: &mut T, body: F, role: RoleType) -> Result<R, E>
 where
-    T: Storage<Data> + Internal,
+    T: Storage<DataType> + StorageAccess<Data> + Internal,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<AccessControlError>,
 {
@@ -75,7 +78,7 @@ where
     body(instance)
 }
 
-pub trait AccessControlImpl: Internal + Storage<Data> + MembersManager {
+pub trait AccessControlImpl: Internal + Storage<DataType> + StorageAccess<Data> + MembersManager {
     fn has_role(&self, role: RoleType, address: AccountId) -> bool {
         self._has_role(role, &address)
     }
@@ -119,17 +122,21 @@ pub trait MembersManager {
     fn _remove(&mut self, role: RoleType, member: &AccountId);
 }
 
-pub trait MembersManagerImpl: Storage<Data> {
+pub trait MembersManagerImpl: Storage<DataType> + StorageAccess<Data> {
     fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
-        self.data().members.contains(&(role, address))
+        self.get_or_default().members.contains(&(role, address))
     }
 
     fn _add(&mut self, role: RoleType, member: &AccountId) {
-        self.data().members.insert(&(role, member), &());
+        with_data!(self, data, {
+            data.members.insert(&(role, member), &());
+        });
     }
 
     fn _remove(&mut self, role: RoleType, member: &AccountId) {
-        self.data().members.remove(&(role, member));
+        with_data!(self, data, {
+            data.members.remove(&(role, member));
+        });
     }
 }
 
@@ -158,7 +165,7 @@ pub trait Internal {
     fn _get_role_admin(&self, role: RoleType) -> RoleType;
 }
 
-pub trait InternalImpl: Internal + Storage<Data> + MembersManager {
+pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + MembersManager {
     fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {}
 
     fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {}
@@ -192,12 +199,16 @@ pub trait InternalImpl: Internal + Storage<Data> + MembersManager {
     }
 
     fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType) {
-        let mut entry = self.data().admin_roles.get(role);
+        let mut entry = self.get_or_default().admin_roles.get(role);
         if entry.is_none() {
             entry = Some(<Self as Internal>::_default_admin());
         }
         let old_admin = entry.unwrap();
-        self.data().admin_roles.insert(role, &new_admin);
+
+        with_data!(self, data, {
+            data.admin_roles.insert(role, &new_admin);
+        });
+
         Internal::_emit_role_admin_changed(self, role, old_admin, new_admin);
     }
 
@@ -209,7 +220,7 @@ pub trait InternalImpl: Internal + Storage<Data> + MembersManager {
     }
 
     fn _get_role_admin(&self, role: RoleType) -> RoleType {
-        self.data()
+        self.get_or_default()
             .admin_roles
             .get(role)
             .unwrap_or(<Self as Internal>::_default_admin())

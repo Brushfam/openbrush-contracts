@@ -68,14 +68,15 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<ReentrancyGuardError>,
 {
-    if instance.data().status.get_or_default() == ENTERED {
+    if instance.get_or_default().status.get_or_default() == ENTERED {
         return Err(From::from(ReentrancyGuardError::ReentrantCall))
     }
     // Any calls to nonReentrant after this point will fail
-    instance.data().status.set(&ENTERED);
+    instance.get_or_default().status.set(&ENTERED);
 
     let result = body(instance);
-    instance.data().status.set(&NOT_ENTERED);
+    // TODO: Check if it is correct
+    instance.get_or_default().status.set(&NOT_ENTERED);
 
     return result
 }

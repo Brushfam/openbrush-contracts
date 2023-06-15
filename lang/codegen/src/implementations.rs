@@ -366,7 +366,7 @@ pub(crate) fn impl_psp22_wrapper(impl_args: &mut ImplArgs) {
                 wrapper::InternalImpl::_init(self, underlying)
             }
 
-            fn _underlying(&mut self) -> &mut PSP22Ref {
+            fn _underlying(&mut self) -> ::ink::prelude::boxed::Box<PSP22Ref> {
                 wrapper::InternalImpl::_underlying(self)
             }
         }

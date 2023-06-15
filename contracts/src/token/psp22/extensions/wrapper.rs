@@ -106,7 +106,7 @@ pub trait Internal {
     fn _init(&mut self, underlying: AccountId);
 
     /// Getter for caller to `PSP22Wrapper` of `underlying`
-    fn _underlying(&mut self) -> &mut PSP22Ref;
+    fn _underlying(&mut self) -> Box<PSP22Ref>;
 }
 
 pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal + psp22::Internal + PSP22 {

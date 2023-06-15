@@ -31,10 +31,7 @@ mod pausable {
         },
         env::test::DefaultAccounts,
     };
-    use openbrush::{
-        test_utils::accounts,
-        traits::Storage,
-    };
+    use openbrush::test_utils::accounts;
 
     /// Emitted when the pause is triggered by `account`.
     #[ink(event)]
@@ -49,7 +46,8 @@ mod pausable {
     }
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct MyFlipper {
         #[storage_field]
         pause: Data,

@@ -32,10 +32,7 @@ mod psp37 {
             accounts,
             change_caller,
         },
-        traits::{
-            Storage,
-            String,
-        },
+        traits::String,
     };
 
     #[ink(event)]
@@ -58,8 +55,9 @@ mod psp37 {
         value: Balance,
     }
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct PSP37Struct {
         #[storage_field]
         psp37: psp37::Data,

@@ -30,6 +30,7 @@ use scale::{
 };
 
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[derive(Clone)]
 pub struct Lazy<V, KeyType: StorageKey = AutoKey> {
     _marker: PhantomData<fn() -> (V, KeyType)>,
 }

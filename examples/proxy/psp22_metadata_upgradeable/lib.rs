@@ -9,7 +9,8 @@ pub mod my_psp22 {
     };
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct MyPSP22 {
         #[storage_field]
         ownable: ownable::Data,

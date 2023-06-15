@@ -30,12 +30,9 @@ mod psp37_batch {
         },
         prelude::vec::Vec,
     };
-    use openbrush::{
-        test_utils::{
-            accounts,
-            change_caller,
-        },
-        traits::Storage,
+    use openbrush::test_utils::{
+        accounts,
+        change_caller,
     };
 
     #[ink(event)]
@@ -67,8 +64,9 @@ mod psp37_batch {
         value: Balance,
     }
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct PSP37Struct {
         #[storage_field]
         psp37: psp37::Data,

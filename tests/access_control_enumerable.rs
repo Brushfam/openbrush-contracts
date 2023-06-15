@@ -25,10 +25,7 @@
 mod access_control_enumerable {
     use ::ink::env::DefaultEnvironment;
     use ink::env::test::DefaultAccounts;
-    use openbrush::{
-        test_utils::accounts,
-        traits::Storage,
-    };
+    use openbrush::test_utils::accounts;
 
     // You can manually set the number for the role.
     // But better to use a hash of the variable name.
@@ -37,7 +34,8 @@ mod access_control_enumerable {
     const MINTER: RoleType = ink::selector_id!("MINTER");
     const PAUSER: RoleType = ink::selector_id!("PAUSER");
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     #[ink(storage)]
     pub struct AccessControlStruct {
         #[storage_field]

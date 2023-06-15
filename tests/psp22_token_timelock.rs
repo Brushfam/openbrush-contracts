@@ -23,13 +23,11 @@
 #[openbrush::implementation(PSP22TokenTimelock)]
 #[openbrush::contract]
 mod psp22_timelock {
-    use openbrush::{
-        test_utils::accounts,
-        traits::Storage,
-    };
+    use openbrush::test_utils::accounts;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct PSP22TokenTimelockStruct {
         #[storage_field]
         timelock: Data,

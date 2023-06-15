@@ -25,14 +25,12 @@
 mod psp22_capped {
     use openbrush::{
         test_utils::accounts,
-        traits::{
-            Storage,
-            String,
-        },
+        traits::String,
     };
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct PSP22Struct {
         #[storage_field]
         psp22: psp22::Data,

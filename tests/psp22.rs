@@ -29,10 +29,7 @@ mod psp22_test {
     };
     use openbrush::{
         test_utils::*,
-        traits::{
-            Storage,
-            String,
-        },
+        traits::String,
     };
     use std::panic;
 
@@ -59,7 +56,8 @@ mod psp22_test {
 
     /// A simple PSP-20 contract.
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct PSP22Struct {
         #[storage_field]
         psp22: psp22::Data,

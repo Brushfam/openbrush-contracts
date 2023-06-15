@@ -24,13 +24,11 @@
 #[openbrush::contract]
 mod psp22_flashmint {
     use ink::codegen::Env;
-    use openbrush::{
-        test_utils::accounts,
-        traits::Storage,
-    };
+    use openbrush::test_utils::accounts;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct PSP22FlashMintStruct {
         #[storage_field]
         psp22: psp22::Data,

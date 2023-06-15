@@ -27,10 +27,7 @@ mod psp37_metadata {
         EmitEvent,
         Env,
     };
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::String;
 
     #[ink(event)]
     pub struct AttributeSet {
@@ -39,8 +36,9 @@ mod psp37_metadata {
         data: String,
     }
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct PSP37Struct {
         #[storage_field]
         psp37: psp37::Data,

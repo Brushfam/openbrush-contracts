@@ -22,13 +22,11 @@
 #[cfg(feature = "reentrancy_guard")]
 #[openbrush::contract]
 mod reentrancy_guard {
-    use openbrush::{
-        contracts::reentrancy_guard::*,
-        traits::Storage,
-    };
+    use openbrush::contracts::reentrancy_guard::*;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct MyFlipper {
         #[storage_field]
         guard: Data,

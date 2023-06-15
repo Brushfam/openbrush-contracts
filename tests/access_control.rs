@@ -31,7 +31,6 @@ mod access_control {
             accounts,
             change_caller,
         },
-        traits::Storage,
     };
 
     use ink::codegen::{
@@ -76,7 +75,8 @@ mod access_control {
     const MINTER: RoleType = ink::selector_id!("MINTER");
     const PAUSER: RoleType = ink::selector_id!("PAUSER");
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     #[ink(storage)]
     pub struct AccessControlStruct {
         #[storage_field]

@@ -27,13 +27,11 @@ mod diamond {
         test::DefaultAccounts,
         DefaultEnvironment,
     };
-    use openbrush::{
-        test_utils::accounts,
-        traits::Storage,
-    };
+    use openbrush::test_utils::accounts;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct DiamondContract {
         #[storage_field]
         ownable: ownable::Data,

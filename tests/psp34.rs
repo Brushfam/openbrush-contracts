@@ -36,10 +36,7 @@ mod psp34 {
             accounts,
             change_caller,
         },
-        traits::{
-            Storage,
-            String,
-        },
+        traits::String,
     };
 
     /// Event emitted when a token transfer occurs.
@@ -65,8 +62,9 @@ mod psp34 {
         approved: bool,
     }
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct PSP34Struct {
         #[storage_field]
         psp34: psp34::Data,

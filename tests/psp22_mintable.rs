@@ -30,7 +30,6 @@ mod psp22_mintable {
     use openbrush::{
         test_utils::*,
         traits::{
-            Storage,
             String,
             ZERO_ADDRESS,
         },
@@ -48,7 +47,8 @@ mod psp22_mintable {
 
     /// A simple PSP22 contract.
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct PSP22Struct {
         #[storage_field]
         psp22: psp22::Data,

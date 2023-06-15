@@ -31,12 +31,9 @@ mod timelock_controller {
         },
         env::test::DefaultAccounts,
     };
-    use openbrush::{
-        test_utils::{
-            accounts,
-            change_caller,
-        },
-        traits::Storage,
+    use openbrush::test_utils::{
+        accounts,
+        change_caller,
     };
     use openbrush_contracts::traits::timelock_controller::AccessControlError;
 
@@ -77,7 +74,8 @@ mod timelock_controller {
     }
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct TimelockControllerStruct {
         #[storage_field]
         access_control: access_control::Data,

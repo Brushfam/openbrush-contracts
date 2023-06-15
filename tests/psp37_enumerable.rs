@@ -29,11 +29,11 @@ mod psp37_enumerable {
             accounts,
             change_caller,
         },
-        traits::Storage,
     };
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct PSP37Struct {
         #[storage_field]
         psp37: psp37::Data,

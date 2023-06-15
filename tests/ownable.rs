@@ -31,7 +31,6 @@ mod ownable {
         test_utils::change_caller,
         traits::{
             AccountIdExt,
-            Storage,
             ZERO_ADDRESS,
         },
     };
@@ -45,7 +44,8 @@ mod ownable {
     }
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct MyOwnable {
         #[storage_field]
         ownable: Data,

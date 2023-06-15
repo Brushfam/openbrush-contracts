@@ -23,13 +23,11 @@
 #[openbrush::implementation(PSP22, PSP22Wrapper)]
 #[openbrush::contract]
 mod psp22_wrapper {
-    use openbrush::{
-        test_utils::accounts,
-        traits::Storage,
-    };
+    use openbrush::test_utils::accounts;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct PSP22WrapperStruct {
         #[storage_field]
         psp22: psp22::Data,

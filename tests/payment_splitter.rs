@@ -30,10 +30,7 @@ mod payment_splitter {
         },
         storage::traits::StorageKey,
     };
-    use openbrush::{
-        test_utils::accounts,
-        traits::Storage,
-    };
+    use openbrush::test_utils::accounts;
 
     #[ink(event)]
     pub struct PayeeAdded {
@@ -54,7 +51,8 @@ mod payment_splitter {
     }
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct MySplitter {
         #[storage_field]
         splitter: Data,

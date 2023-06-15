@@ -25,14 +25,12 @@
 mod psp34_burnable {
     use openbrush::{
         test_utils::accounts,
-        traits::{
-            Storage,
-            String,
-        },
+        traits::String,
     };
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct PSP34Struct {
         #[storage_field]
         psp34: psp34::Data,

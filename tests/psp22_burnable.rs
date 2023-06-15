@@ -30,10 +30,7 @@ mod psp22_burnable {
     use openbrush::{
         contracts::psp22::extensions::burnable::*,
         test_utils::*,
-        traits::{
-            Storage,
-            String,
-        },
+        traits::String,
     };
 
     /// Event emitted when a token transfer occurs.
@@ -48,7 +45,8 @@ mod psp22_burnable {
 
     /// A simple PSP-20 contract.
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct PSP22Struct {
         #[storage_field]
         psp22: psp22::Data,

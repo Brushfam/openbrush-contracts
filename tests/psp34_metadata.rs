@@ -23,13 +23,11 @@
 #[openbrush::implementation(PSP34, PSP34Metadata)]
 #[openbrush::contract]
 mod psp34_metadata {
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::String;
 
-    #[derive(Default, Storage)]
+    #[derive(Default)]
     #[ink(storage)]
+    #[openbrush::storage]
     pub struct PSP34Struct {
         #[storage_field]
         psp34: psp34::Data,

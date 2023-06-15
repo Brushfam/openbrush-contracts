@@ -28,10 +28,7 @@ mod proxy {
         EmitEvent,
         Env,
     };
-    use openbrush::{
-        test_utils::change_caller,
-        traits::Storage,
-    };
+    use openbrush::test_utils::change_caller;
 
     #[ink(event)]
     pub struct CodeHashChanged {
@@ -45,7 +42,8 @@ mod proxy {
     const CODE_HASH_1: [u8; 32] = [1u8; 32];
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct MyProxy {
         #[storage_field]
         ownable: ownable::Data,

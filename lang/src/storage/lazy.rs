@@ -21,7 +21,6 @@ use ink::{
         Storable,
         StorableHint,
         StorageKey,
-        StorageLayout,
     },
 };
 use scale::{

@@ -58,9 +58,6 @@ pub fn storage(_attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
 }
 
 fn generate_fields(s: synstructure::Structure) -> Vec<Field> {
-    let key_salt = salt(&s.ast().clone());
-    let struct_ident = s.ast().ident.clone();
-
     match &s.ast().data {
         Data::Struct(st) => {
             st.clone()

@@ -23,20 +23,23 @@ pub use crate::{
     pausable,
     traits::pausable::*,
 };
+#[cfg(feature = "upgradeable")]
+use openbrush::traits::Lazy;
 use openbrush::{
     modifier_definition,
     modifiers,
     traits::{
         AccountId,
         Storage,
+        StorageAccess,
     },
+    with_data,
 };
 pub use pausable::{
     Internal as _,
     InternalImpl as _,
     PausableImpl as _,
 };
-
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
@@ -55,11 +58,11 @@ pub type DataType = Data;
 #[modifier_definition]
 pub fn when_paused<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
 where
-    T: Storage<Data>,
+    T: Storage<DataType> + StorageAccess<Data>,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<PausableError>,
 {
-    if !instance.data().paused {
+    if !instance.get_or_default().paused {
         return Err(From::from(PausableError::NotPaused))
     }
     body(instance)
@@ -69,17 +72,17 @@ where
 #[modifier_definition]
 pub fn when_not_paused<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
 where
-    T: Storage<Data>,
+    T: Storage<DataType> + StorageAccess<Data>,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<PausableError>,
 {
-    if instance.data().paused {
+    if instance.get_or_default().paused {
         return Err(From::from(PausableError::Paused))
     }
     body(instance)
 }
 
-pub trait PausableImpl: Storage<Data> + Internal {
+pub trait PausableImpl: Storage<DataType> + StorageAccess<Data> + Internal {
     fn paused(&self) -> bool {
         self._paused()
     }
@@ -107,25 +110,29 @@ pub trait Internal {
     fn _switch_pause(&mut self) -> Result<(), PausableError>;
 }
 
-pub trait InternalImpl: Storage<Data> + Internal {
+pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
     fn _emit_paused_event(&self, _account: AccountId) {}
 
     fn _emit_unpaused_event(&self, _account: AccountId) {}
 
     fn _paused(&self) -> bool {
-        self.data().paused
+        self.get_or_default().paused
     }
 
     #[modifiers(when_not_paused)]
     fn _pause(&mut self) -> Result<(), PausableError> {
-        self.data().paused = true;
+        with_data!(self, data, {
+            data.paused = true;
+        });
         Internal::_emit_paused_event(self, Self::env().caller());
         Ok(())
     }
 
     #[modifiers(when_paused)]
     fn _unpause(&mut self) -> Result<(), PausableError> {
-        self.data().paused = false;
+        with_data!(self, data, {
+            data.paused = false;
+        });
         Internal::_emit_unpaused_event(self, Self::env().caller());
         Ok(())
     }

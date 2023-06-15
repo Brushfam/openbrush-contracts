@@ -86,11 +86,11 @@ pub trait Internal {
 pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> {
     fn _emit_attribute_set_event(&self, _id: &Id, _key: &String, _data: &String) {}
 
-    fn _set_attribute(&mut self, id: &Id, key: &String, data: &String) -> Result<(), PSP37Error> {
+    fn _set_attribute(&mut self, id: &Id, key: &String, _data: &String) -> Result<(), PSP37Error> {
         with_data!(self, data, {
-            data.attributes.insert(&(&id, &key), data);
+            data.attributes.insert(&(&id, &key), _data);
         });
-        Internal::_emit_attribute_set_event(self, id, key, data);
+        Internal::_emit_attribute_set_event(self, id, key, _data);
         Ok(())
     }
 

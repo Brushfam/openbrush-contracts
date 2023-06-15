@@ -3,6 +3,11 @@
 #[openbrush::implementation(PSP22Pallet, PSP22PalletMintable)]
 #[openbrush::contract]
 pub mod my_psp22_pallet_mintable {
+    use psp22_pallet::{
+        DefaultEnvironment,
+        Error,
+    };
+
     #[ink(storage)]
     #[derive(Default)]
     #[openbrush::storage]

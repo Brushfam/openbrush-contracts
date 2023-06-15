@@ -242,9 +242,10 @@ pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
         min_balance: Balance,
     ) -> Result<(), Error<DefaultEnvironment>> {
         let mut self_ = self.get_or_default();
-        self_.pallet_assets.create(asset_id, admin, min_balance);
+        let result = self_.pallet_assets.create(asset_id, admin, min_balance);
         // TODO: can we delete?
         self.set(&self_);
+        result
     }
 
     fn _sender(&self) -> AccountId {

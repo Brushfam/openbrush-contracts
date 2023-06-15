@@ -24,14 +24,16 @@ pub use crate::{
     traits::psp22::*,
 };
 pub use ink::prelude::vec::Vec;
+#[cfg(feature = "upgradeable")]
 use ink::storage::traits::{
     AutoKey,
     ManualKey,
     ResolverKey,
 };
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 use openbrush::{
     storage::{
-        Lazy,
         Mapping,
         TypeGuard,
     },

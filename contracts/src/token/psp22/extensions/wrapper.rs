@@ -32,8 +32,9 @@ use ink::{
     env::CallFlags,
     prelude::boxed::Box,
 };
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 use openbrush::{
-    storage::Lazy,
     traits::{
         AccountId,
         Balance,

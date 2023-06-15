@@ -507,7 +507,7 @@ pub(crate) fn impl_token_timelock(impl_args: &mut ImplArgs) {
                 token_timelock::InternalImpl::_init(self, token, beneficiary, release_time)
             }
 
-            fn _token(&mut self) -> &mut PSP22Ref {
+            fn _token(&mut self) -> ink::prelude::boxed::Box<PSP22Ref> {
                 token_timelock::InternalImpl::_token(self)
             }
 

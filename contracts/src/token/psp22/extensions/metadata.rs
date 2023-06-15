@@ -27,13 +27,12 @@ pub use crate::{
         *,
     },
 };
-use openbrush::{
-    storage::Lazy,
-    traits::{
-        Storage,
-        StorageAccess,
-        String,
-    },
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
+use openbrush::traits::{
+    Storage,
+    StorageAccess,
+    String,
 };
 pub use psp22::{
     Internal as _,

@@ -28,8 +28,9 @@ pub use crate::{
     },
 };
 pub use capped::Internal as _;
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 use openbrush::{
-    storage::Lazy,
     traits::{
         Balance,
         Storage,

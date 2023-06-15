@@ -3,6 +3,8 @@
 #[openbrush::implementation(PSP22, PSP22Metadata)]
 #[openbrush::contract]
 pub mod my_psp22 {
+    use openbrush::traits::String;
+
     #[ink(storage)]
     #[derive(Default)]
     #[openbrush::storage]

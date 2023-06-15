@@ -44,7 +44,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
 
         quote_spanned! {span =>
             fn #method_ident(&self) -> #field_type {
-                self.data().#field_ident
+                self.get_or_default().#field_ident
             }
         }
     });
@@ -71,7 +71,9 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
 
         quote_spanned! {span =>
             fn #method_ident(&mut self, value: #field_type) {
-                self.data().#field_ident = value;
+                let mut self_ = self.get_or_default();
+                self_.#field_ident = value;
+                self.set(&self_);
             }
         }
     });
@@ -85,7 +87,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
             #(#trait_set_messages)*
         }
 
-        impl<T: Storage<#struct_ident>> #trait_ident for T {
+        impl<T: StorageAccess<#struct_ident>> #trait_ident for T {
             #(#get_impls)*
             #(#set_impls)*
         }

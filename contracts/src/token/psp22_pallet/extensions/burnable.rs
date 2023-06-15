@@ -30,6 +30,7 @@ use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
+    StorageAccess,
 };
 pub use pallet_assets_chain_extension::traits::Origin;
 pub use psp22_pallet::{
@@ -38,7 +39,9 @@ pub use psp22_pallet::{
     PSP22PalletImpl,
 };
 
-pub trait PSP22PalletBurnableImpl: Storage<psp22_pallet::Data> + psp22_pallet::Internal {
+pub trait PSP22PalletBurnableImpl:
+    Storage<psp22_pallet::DataType> + StorageAccess<psp22_pallet::Data> + psp22_pallet::Internal
+{
     fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._burn_from(account, amount)
     }

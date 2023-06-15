@@ -27,8 +27,11 @@ pub use crate::{
         *,
     },
 };
-use openbrush::traits::Storage;
 pub use openbrush::traits::String;
+use openbrush::traits::{
+    Storage,
+    StorageAccess,
+};
 pub use pallet_assets_chain_extension::traits::{
     Origin,
     PalletAssets,
@@ -39,9 +42,9 @@ pub use psp22_pallet::{
     PSP22PalletImpl,
 };
 
-pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
+pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::DataType> + StorageAccess<psp22_pallet::Data> {
     fn token_name(&self) -> Option<String> {
-        let self_ = self.data();
+        let self_ = self.get_or_default();
         let name = self_.pallet_assets.metadata_name(self_.asset_id);
 
         if name.is_empty() {
@@ -52,7 +55,7 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
     }
 
     fn token_symbol(&self) -> Option<String> {
-        let self_ = self.data();
+        let self_ = self.get_or_default();
         let symbol = self_.pallet_assets.metadata_symbol(self_.asset_id);
 
         if symbol.is_empty() {
@@ -63,7 +66,7 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
     }
 
     fn token_decimals(&self) -> u8 {
-        let self_ = self.data();
+        let self_ = self.get_or_default();
         self_.pallet_assets.metadata_decimals(self_.asset_id)
     }
 }

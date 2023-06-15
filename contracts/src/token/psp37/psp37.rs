@@ -410,7 +410,7 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<DataType> + StorageAcce
     }
 
     fn _total_supply(&self, id: &Option<&Id>) -> Balance {
-        self.data().supply.get(id).unwrap_or(0)
+        self.get_or_default().supply.get(id).unwrap_or(0)
     }
 
     fn _increase_balance(

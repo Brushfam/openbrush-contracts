@@ -215,7 +215,7 @@ pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + Bal
     }
 
     fn _mint_to(&mut self, to: AccountId, id: Id) -> Result<(), PSP34Error> {
-        if self.data().token_owner.get(&id).is_some() {
+        if self.get_or_default().token_owner.get(&id).is_some() {
             return Err(PSP34Error::TokenExists)
         }
         Internal::_before_token_transfer(self, None, Some(&to), &id)?;
@@ -310,12 +310,14 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<DataType> + StorageAcce
         });
 
         if increase_supply {
-            self.data().total_supply += 1;
+            with_data!(self, data, {
+                data.total_supply += 1;
+            });
         }
     }
 
     fn _decrease_balance(&mut self, owner: &Owner, _id: &Id, decrease_supply: bool) {
-        let from_balance = self.data().owned_tokens_count.get(owner).unwrap_or(0);
+        let from_balance = self.get_or_default().owned_tokens_count.get(owner).unwrap_or(0);
 
         with_data!(self, data, {
             data.owned_tokens_count

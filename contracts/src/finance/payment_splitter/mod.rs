@@ -61,23 +61,23 @@ pub type DataType = Data;
 
 pub trait PaymentSplitterImpl: Storage<DataType> + StorageAccess<Data> + Internal {
     fn total_shares(&self) -> Balance {
-        self.data().total_shares.clone()
+        self.get_or_default().total_shares.clone()
     }
 
     fn total_released(&self) -> Balance {
-        self.data().total_released.clone()
+        self.get_or_default().total_released.clone()
     }
 
     fn shares(&self, account: AccountId) -> Balance {
-        self.data().shares.get(&account).unwrap_or(0)
+        self.get_or_default().shares.get(&account).unwrap_or(0)
     }
 
     fn released(&self, account: AccountId) -> Balance {
-        self.data().released.get(&account).unwrap_or(0)
+        self.get_or_default().released.get(&account).unwrap_or(0)
     }
 
     fn payee(&self, index: u32) -> AccountId {
-        self.data()
+        self.get_or_default()
             .payees
             .get(index as usize)
             .cloned()

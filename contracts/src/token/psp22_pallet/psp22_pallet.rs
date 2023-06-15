@@ -27,10 +27,13 @@ pub use ink::{
     env::DefaultEnvironment,
     prelude::vec::Vec,
 };
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
+    StorageAccess,
     String,
 };
 pub use pallet_assets_chain_extension::{
@@ -62,19 +65,19 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait PSP22PalletImpl: Storage<Data> + Internal {
+pub trait PSP22PalletImpl: Storage<DataType> + StorageAccess<Data> + Internal {
     fn total_supply(&self) -> Balance {
-        let self_ = self.data();
+        let self_ = self.get_or_default();
         self_.pallet_assets.total_supply(self_.asset_id)
     }
 
     fn balance_of(&self, owner: AccountId) -> Balance {
-        let self_ = self.data();
+        let self_ = self.get_or_default();
         self_.pallet_assets.balance_of(self_.asset_id, owner)
     }
 
     fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance {
-        let self_ = self.data();
+        let self_ = self.get_or_default();
         self_.pallet_assets.allowance(self_.asset_id, owner, spender)
     }
 
@@ -83,10 +86,14 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
             return Ok(())
         }
 
-        let self_ = self.data();
+        let mut self_ = self.get_or_default();
         self_
             .pallet_assets
             .transfer(self_.origin, self_.asset_id, to.clone(), value)?;
+
+        // TODO: can we delete?
+        self.set(&self_);
+
         self._emit_transfer_event(Some(self._sender()), Some(to), value);
         Ok(())
     }
@@ -102,10 +109,14 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
             return Ok(())
         }
 
-        let self_ = self.data();
+        let mut self_ = self.get_or_default();
         self_
             .pallet_assets
             .transfer_approved(self_.origin, self_.asset_id, from.clone(), to.clone(), value)?;
+
+        // TODO: can we delete?
+        self.set(&self_);
+
         self._emit_transfer_event(Some(from), Some(to), value);
         Ok(())
     }
@@ -117,7 +128,7 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
 
         let caller = self._sender();
         let allowance = self.allowance(caller.clone(), spender.clone());
-        let self_ = self.data();
+        let mut self_ = self.get_or_default();
 
         if allowance > 0 {
             // First we reset the previous approve and after set a new one.
@@ -129,6 +140,10 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
         self_
             .pallet_assets
             .approve_transfer(self_.origin, self_.asset_id, spender, value)?;
+
+        // TODO: can we delete?
+        self.set(&self_);
+
         self._emit_approval_event(caller, spender, value);
         Ok(())
     }
@@ -140,11 +155,15 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
 
         let caller = self._sender();
         let allowance = self.allowance(caller.clone(), spender.clone());
-        let self_ = self.data();
+        let mut self_ = self.get_or_default();
         // `approve_transfer` increases by default
         self_
             .pallet_assets
             .approve_transfer(self_.origin, self_.asset_id, spender, delta_value)?;
+
+        // TODO: can we delete?
+        self.set(&self_);
+
         self._emit_approval_event(caller, spender, allowance + delta_value);
 
         Ok(())
@@ -191,21 +210,27 @@ pub trait Internal {
     fn _sender(&self) -> AccountId;
 }
 
-pub trait InternalImpl: Storage<Data> + Internal {
+pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
 
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        let self_ = self.data();
+        let mut self_ = self.get_or_default();
         self_.pallet_assets.mint(self_.asset_id, account.clone(), amount)?;
+
+        // TODO: can we delete?
+        self.set(&self_);
+
         Internal::_emit_transfer_event(self, None, Some(account), amount);
         Ok(())
     }
 
     fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        let self_ = self.data();
+        let mut self_ = self.get_or_default();
         self_.pallet_assets.burn(self_.asset_id, account.clone(), amount)?;
+        // TODO: can we delete?
+        self.set(&self_);
         Internal::_emit_transfer_event(self, Some(account), None, amount);
         Ok(())
     }
@@ -216,11 +241,14 @@ pub trait InternalImpl: Storage<Data> + Internal {
         admin: AccountId,
         min_balance: Balance,
     ) -> Result<(), Error<DefaultEnvironment>> {
-        self.data().pallet_assets.create(asset_id, admin, min_balance)
+        let mut self_ = self.get_or_default();
+        self_.pallet_assets.create(asset_id, admin, min_balance);
+        // TODO: can we delete?
+        self.set(&self_);
     }
 
     fn _sender(&self) -> AccountId {
-        match self.data().origin {
+        match self.get_or_default().origin {
             Origin::Caller => Self::env().caller(),
             Origin::Address => Self::env().account_id(),
         }

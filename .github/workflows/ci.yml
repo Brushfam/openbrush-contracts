@@ -33,7 +33,7 @@ jobs:
       - name: Install stable
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.69
           override: true
           components: rustfmt, clippy
           default: true

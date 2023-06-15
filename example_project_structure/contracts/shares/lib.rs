@@ -1,4 +1,5 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 /// This contract will be used to represent the shares of a user
 /// and other instance of this contract will be used to represent
@@ -10,15 +11,13 @@ pub mod shares {
     use openbrush::{
         contracts::ownable::*,
         modifiers,
-        traits::{
-            Storage,
-            String,
-        },
+        traits::String,
     };
 
     /// Define the storage for PSP22 data, Metadata data and Ownable data
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct SharesContract {
         #[storage_field]
         psp22: psp22::Data,

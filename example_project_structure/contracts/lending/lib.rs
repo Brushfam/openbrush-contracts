@@ -1,4 +1,5 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 /// This will be a simple lending contract where users can:
 ///
@@ -43,7 +44,6 @@ pub mod my_lending {
     use openbrush::{
         traits::{
             DefaultEnv,
-            Storage,
             String,
         },
         utils::xxhash_rust::const_xxh32::xxh32,
@@ -52,7 +52,8 @@ pub mod my_lending {
     use shares_contract::shares::SharesContractRef;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct LendingContract {
         #[storage_field]
         access: access_control::Data,

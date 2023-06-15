@@ -24,11 +24,12 @@ pub use crate::{
     traits::access_control::*,
 };
 pub use access_control::Internal as _;
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 use openbrush::{
     modifier_definition,
     modifiers,
     storage::{
-        Lazy,
         Mapping,
         TypeGuard,
         ValueGuard,

@@ -23,6 +23,8 @@ pub use crate::{
     ownable,
     traits::ownable::*,
 };
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 use openbrush::{
     modifier_definition,
     modifiers,

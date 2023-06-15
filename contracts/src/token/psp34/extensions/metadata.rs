@@ -29,6 +29,8 @@ pub use crate::{
 };
 pub use ink::prelude::vec::Vec;
 pub use metadata::Internal as _;
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 pub use openbrush::traits::String;
 use openbrush::{
     storage::{

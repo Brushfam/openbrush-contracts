@@ -28,9 +28,10 @@ pub use crate::{
     traits::psp34::*,
 };
 pub use ink::prelude::vec::Vec;
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 use openbrush::{
     storage::{
-        Lazy,
         Mapping,
         TypeGuard,
     },

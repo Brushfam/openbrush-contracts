@@ -32,9 +32,10 @@ pub use access_control::{
     Internal as _,
     InternalImpl as _,
 };
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 use openbrush::{
     storage::{
-        Lazy,
         MultiMapping,
         ValueGuard,
     },

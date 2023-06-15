@@ -13,13 +13,19 @@ use openbrush::{
         AccountId,
         Balance,
         Storage,
+        StorageAccess,
     },
 };
 
 pub const MANAGER: RoleType = ink::selector_id!("MANAGER");
 
 pub trait LendingPermissionedImpl:
-    access_control::Internal + Storage<access_control::Data> + lending_internal::Internal + Lending + Instantiator
+    access_control::Internal
+    + Storage<access_control::Data>
+    + StorageAccess<access_control::Data>
+    + lending_internal::Internal
+    + Lending
+    + Instantiator
 {
     #[modifiers(only_role(MANAGER))]
     fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError> {

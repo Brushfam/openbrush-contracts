@@ -1,18 +1,17 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 /// This is a simple `PSP22` which will be used as a stable coin and a collateral token in our lending contract
 #[openbrush::implementation(PSP22, PSP22Metadata, PSP22Mintable)]
 #[openbrush::contract]
 pub mod token {
     use lending_project::traits::stable_coin::*;
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::String;
 
     /// Define the storage for PSP22 data and Metadata data
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default)]
+    #[openbrush::storage]
     pub struct StableCoinContract {
         #[storage_field]
         psp22: psp22::Data,

@@ -159,7 +159,7 @@ pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + Dia
             panic!("Function is not registered");
         }
 
-        ink::env::call::build_call::<ink::env::DefaultEnvironment>()
+        let _ = ink::env::call::build_call::<ink::env::DefaultEnvironment>()
             .delegate(delegate_code.unwrap())
             .call_flags(
                 ink::env::CallFlags::default()
@@ -176,7 +176,7 @@ pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + Dia
     }
 
     fn _init_call(&self, call: InitCall) -> ! {
-        ink::env::call::build_call::<ink::env::DefaultEnvironment>()
+        let _ = ink::env::call::build_call::<ink::env::DefaultEnvironment>()
             .delegate(call.hash)
             .exec_input(ExecutionInput::new(InkSelector::new(call.selector)).push_arg(call.input))
             .call_flags(ink::env::CallFlags::default()

@@ -98,7 +98,7 @@ pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> {
     }
 
     fn _fallback(&self) -> ! {
-        ink::env::call::build_call::<ink::env::DefaultEnvironment>()
+        let _ = ink::env::call::build_call::<ink::env::DefaultEnvironment>()
             .delegate(self.get_or_default().forward_to.clone())
             .call_flags(
                 ink::env::CallFlags::default()

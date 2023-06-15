@@ -31,7 +31,6 @@ use openbrush::{
         Storage,
         StorageAccess,
     },
-    with_data,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);

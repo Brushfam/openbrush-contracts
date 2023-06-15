@@ -29,7 +29,11 @@ use ink::{
 };
 use openbrush::{
     modifier_definition,
-    traits::Storage,
+    traits::{
+        Storage,
+        StorageAccess,
+    },
+    with_data,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
@@ -60,22 +64,28 @@ const ENTERED: u8 = 1;
 #[modifier_definition]
 pub fn non_reentrant<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
 where
-    T: Storage<Data> + Storable,
+    T: Storage<DataType> + StorageAccess<Data> + Storable,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<ReentrancyGuardError>,
 {
-    if instance.data().status == ENTERED {
+    if instance.get_or_default().status == ENTERED {
         return Err(From::from(ReentrancyGuardError::ReentrantCall))
     }
     // Any calls to nonReentrant after this point will fail
-    instance.data().status = ENTERED;
+    with_data!(instance, data, {
+        data.status = ENTERED;
+    });
 
     // We want to flush storage before execution of inner function,
     // because ink! doesn't do it by default and `status` will not be updated in child calls
-    ink::env::set_contract_storage::<Key, Data>(&Default::default(), &instance.data());
+
+    // TODO: in PR #88
+    // ink::env::set_contract_storage::<Key, Data>(&Default::default(), &instance.data());
 
     let result = body(instance);
-    instance.data().status = NOT_ENTERED;
+    with_data!(instance, data, {
+        data.status = NOT_ENTERED;
+    });
 
     return result
 }

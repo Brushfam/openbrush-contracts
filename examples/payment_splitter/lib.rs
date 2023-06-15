@@ -1,10 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 #[openbrush::implementation(PaymentSplitter)]
 #[openbrush::contract]
 pub mod my_payment_splitter {
     use ink::prelude::vec::Vec;
-    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default)]

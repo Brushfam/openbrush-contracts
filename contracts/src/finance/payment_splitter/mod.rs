@@ -26,6 +26,8 @@ pub use crate::{
 pub use payment_splitter::Internal as _;
 
 use ink::prelude::vec::Vec;
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 use openbrush::{
     storage::Mapping,
     traits::{
@@ -33,8 +35,10 @@ use openbrush::{
         AccountIdExt,
         Balance,
         Storage,
+        StorageAccess,
         ZERO_ADDRESS,
     },
+    with_data,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
@@ -49,12 +53,13 @@ pub struct Data {
     pub payees: Vec<AccountId>,
     pub _reserved: Option<()>,
 }
+
 #[cfg(feature = "upgradeable")]
 pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait PaymentSplitterImpl: Storage<Data> + Internal {
+pub trait PaymentSplitterImpl: Storage<DataType> + StorageAccess<Data> + Internal {
     fn total_shares(&self) -> Balance {
         self.data().total_shares.clone()
     }
@@ -113,7 +118,7 @@ pub trait Internal {
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError>;
 }
 
-pub trait InternalImpl: Storage<Data> + Internal {
+pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
     fn _emit_payee_added_event(&self, _account: AccountId, _shares: Balance) {}
 
     fn _emit_payment_received_event(&self, _from: AccountId, _amount: Balance) {}
@@ -138,22 +143,25 @@ pub trait InternalImpl: Storage<Data> + Internal {
         if share == 0 {
             return Err(PaymentSplitterError::SharesAreZero)
         }
-        if self.data().shares.get(&payee).is_some() {
+        if self.get_or_default().shares.get(&payee).is_some() {
             return Err(PaymentSplitterError::AlreadyHasShares)
         }
 
-        self.data().payees.push(payee.clone());
-        self.data().shares.insert(&payee, &share);
-        self.data().total_shares += share;
+        with_data!(self, data, {
+            data.payees.push(payee.clone());
+            data.shares.insert(&payee, &share);
+            data.total_shares += share;
+        });
+
         Internal::_emit_payee_added_event(self, payee, share);
         Ok(())
     }
 
     fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
-        let len = self.data().payees.len();
+        let len = self.get_or_default().payees.len();
 
         for i in 0..len {
-            let account = self.data().payees[i];
+            let account = self.get_or_default().payees[i];
             Internal::_release(self, account)?;
         }
 
@@ -161,24 +169,26 @@ pub trait InternalImpl: Storage<Data> + Internal {
     }
 
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
-        if !self.data().shares.get(&account).is_some() {
+        if !self.get_or_default().shares.get(&account).is_some() {
             return Err(PaymentSplitterError::AccountHasNoShares)
         }
 
         let balance = Self::env().balance();
         let current_balance = balance.checked_sub(Self::env().minimum_balance()).unwrap_or_default();
-        let total_received = current_balance + self.data().total_released;
-        let shares = self.data().shares.get(&account).unwrap().clone();
-        let total_shares = self.data().total_shares;
-        let released = self.data().released.get(&account).unwrap_or_default();
+        let total_received = current_balance + self.get_or_default().total_released;
+        let shares = self.get_or_default().shares.get(&account).unwrap().clone();
+        let total_shares = self.get_or_default().total_shares;
+        let released = self.get_or_default().released.get(&account).unwrap_or_default();
         let payment = total_received * shares / total_shares - released;
 
         if payment == 0 {
             return Err(PaymentSplitterError::AccountIsNotDuePayment)
         }
 
-        self.data().released.insert(&account, &(released + payment));
-        self.data().total_released += payment;
+        with_data!(self, data, {
+            data.released.insert(&account, &(released + payment));
+            data.total_released += payment;
+        });
 
         let transfer_result = Self::env().transfer(account.clone(), payment);
         if transfer_result.is_err() {

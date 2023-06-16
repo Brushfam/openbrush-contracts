@@ -22,7 +22,7 @@ crate-type = [
 ]
 
 [dev-dependencies]
-ink_e2e = "4.1.0"
+ink_e2e = "4.2.1"
 test_helpers = { path = "../../test_helpers", default-features = false }
 rand = "0.8.5"
 

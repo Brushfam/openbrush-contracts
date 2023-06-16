@@ -41,7 +41,7 @@ crate-type = [
 ]
 
 [dev-dependencies]
-ink_e2e = "4.1.0"
+ink_e2e = "4.2.1"
 
 [features]
 default = ["std"]

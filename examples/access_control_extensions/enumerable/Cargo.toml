@@ -14,7 +14,7 @@ scale-info = { version = "2.3", default-features = false, features = ["derive"],
 openbrush = { path = "../../..", default-features = false, features = ["access_control"] }
 
 [dev-dependencies]
-ink_e2e = "4.1.0"
+ink_e2e = "4.2.1"
 test_helpers = { path = "../../test_helpers", default-features = false }
 
 [lib]

@@ -26,12 +26,16 @@ pub use crate::{
         *,
     },
 };
+pub use ink::env::DefaultEnvironment;
 use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
 };
-pub use pallet_assets_chain_extension::traits::Origin;
+pub use pallet_assets_chain_extension::traits::{
+    Error,
+    Origin,
+};
 pub use psp22_pallet::{
     Internal as _,
     InternalImpl as _,

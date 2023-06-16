@@ -1,8 +1,21 @@
+<div align="center">
+  <a href="https://patron.works/">
+    <img src="https://github.com/Brushfam/patron-backend/raw/master/Patron.png" alt="Logo"  >
+  </a>
+
+  <p align="left">
+    &#128226; &#128226; &#128226; We are thrilled to announce <a href="https://patron.works/">Patron</a>, which brings smart contract verification functionality to the Polkadot ecosystem. &#128226; &#128226; &#128226;
+  </p>
+</div>
+
+> Smart contract verification ensures the security, reliability, and trustworthiness of dApps and blockchain platforms. With [Patron](https://patron.works/), you can simplify the deployment flow, manage your builds and make the Polkadot ecosystem more secure and transparent.
+<br/>
+So, in other words,  <a href="https://patron.works/">Patron</a> is an all-in-one contracts platform, which allows you to build and verify ink! smart contracts inside of an isolated environment, explore contract verification details.
+
 ## Important!
 OpenBrush currently works with rustc 1.69-nightly and cargo-contract v 2.2.1.
 
 However, work on a version which will work with latest stable Rust and latest cargo contract is in progress!
-
 
 # 
 

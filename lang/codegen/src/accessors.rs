@@ -24,18 +24,6 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
 
     let fields: Vec<_> = extract_get_fields(s.clone());
 
-    let trait_get_messages = fields.iter().map(|field| {
-        let field_ident = field.ident.clone().unwrap();
-        let method_ident = format_ident!("get_{}", field_ident);
-        let field_type = field.ty.clone();
-        let span = field.span();
-
-        quote_spanned! {span =>
-            #[ink(message)]
-            fn #method_ident(&self) -> #field_type;
-        }
-    });
-
     let get_impls = fields.iter().map(|field| {
         let field_ident = field.ident.clone().unwrap();
         let method_ident = format_ident!("get_{}", field_ident);
@@ -43,6 +31,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
         let span = field.span();
 
         quote_spanned! {span =>
+            #[ink(message)]
             fn #method_ident(&self) -> #field_type {
                 self.data().#field_ident
             }
@@ -51,18 +40,6 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
 
     let fields: Vec<_> = extract_set_fields(s.clone());
 
-    let trait_set_messages = fields.iter().map(|field| {
-        let field_ident = field.ident.clone().unwrap();
-        let method_ident = format_ident!("set_{}", field_ident);
-        let field_type = field.ty.clone();
-        let span = field.span();
-
-        quote_spanned! {span =>
-            #[ink(message)]
-            fn #method_ident(&mut self, value: #field_type);
-        }
-    });
-
     let set_impls = fields.iter().map(|field| {
         let field_ident = field.ident.clone().unwrap();
         let method_ident = format_ident!("set_{}", field_ident);
@@ -70,6 +47,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
         let span = field.span();
 
         quote_spanned! {span =>
+            #[ink(message)]
             fn #method_ident(&mut self, value: #field_type) {
                 self.data().#field_ident = value;
             }
@@ -80,12 +58,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
         #item
 
         #[openbrush::trait_definition]
-        pub trait #trait_ident {
-            #(#trait_get_messages)*
-            #(#trait_set_messages)*
-        }
-
-        impl<T: Storage<#struct_ident>> #trait_ident for T {
+        pub trait #trait_ident : Storage<#struct_ident>{
             #(#get_impls)*
             #(#set_impls)*
         }

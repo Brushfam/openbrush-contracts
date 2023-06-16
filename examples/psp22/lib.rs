@@ -1,14 +1,29 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use my_psp22::*;
+// pub use my_psp22::*;
+pub use openbrush::traits::{
+    AccountId,
+    Storage,
+};
+
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
+
+// we need to expand this struct before the contract macro is expanded
+// that is why we declare it here for this example
+#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::accessors(HatedStorageAccessors)]
+#[derive(Debug)]
+pub struct HatedStorage {
+    #[get]
+    #[set]
+    pub hated_account: AccountId,
+}
 
 #[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 pub mod my_psp22 {
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use crate::*;
+    use openbrush::traits::String;
 
     #[ink(storage)]
     #[derive(Storage)]
@@ -17,17 +32,6 @@ pub mod my_psp22 {
         psp22: psp22::Data,
         #[storage_field]
         hated_storage: HatedStorage,
-    }
-
-    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
-
-    #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    #[openbrush::accessors(HatedStorageAccessors)]
-    #[derive(Debug)]
-    pub struct HatedStorage {
-        #[get]
-        #[set]
-        hated_account: AccountId,
     }
 
     #[overrider(psp22::Internal)]
@@ -43,6 +47,8 @@ pub mod my_psp22 {
         Ok(())
     }
 
+    impl HatedStorageAccessors for Contract {}
+
     impl Contract {
         #[ink(constructor)]
         pub fn new(total_supply: Balance) -> Self {
@@ -57,22 +63,12 @@ pub mod my_psp22 {
 
             instance
         }
-
-        #[ink(message)]
-        pub fn set_hated_account(&mut self, account: AccountId) {
-            self.hated_storage.hated_account = account;
-        }
-
-        #[ink(message)]
-        pub fn get_hated_account(&self) -> AccountId {
-            self.hated_storage.hated_account
-        }
     }
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
         use super::*;
-        use crate::my_psp22::hatedstorageaccessors_external::HatedStorageAccessors;
+        use crate::hatedstorageaccessors_external::HatedStorageAccessors;
         use ink_e2e::{
             build_message,
             PolkadotConfig,

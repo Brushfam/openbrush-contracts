@@ -1,7 +1,26 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use openbrush::traits::Storage;
+
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(AccessData);
+// we declare the data struct outside of the contract
+// since we need to expand the macroes on it before the openbrush::contract macro expansion
+#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::accessors(AccessDataAccessors)]
+#[derive(Default, Debug)]
+pub struct AccessData {
+    #[get]
+    #[set]
+    read_write: u32,
+    #[get]
+    read_only: u32,
+    #[set]
+    write_only: u32,
+}
+
 #[openbrush::contract]
 pub mod accessors_attr {
+    use crate::*;
     use openbrush::traits::Storage;
 
     #[ink(storage)]
@@ -11,20 +30,7 @@ pub mod accessors_attr {
         hated_logic: AccessData,
     }
 
-    #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    #[openbrush::accessors(AccessDataAccessors)]
-    #[derive(Default, Debug)]
-    pub struct AccessData {
-        #[get]
-        #[set]
-        read_write: u32,
-        #[get]
-        read_only: u32,
-        #[set]
-        write_only: u32,
-    }
-
-    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(AccessData);
+    impl AccessDataAccessors for Contract {}
 
     impl Contract {
         #[ink(constructor)]
@@ -45,11 +51,9 @@ pub mod accessors_attr {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use crate::accessors_attr::accessdataaccessors_external::AccessDataAccessors;
-        #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message};
+        use crate::accessdataaccessors_external::AccessDataAccessors;
+        use ink_e2e::build_message;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

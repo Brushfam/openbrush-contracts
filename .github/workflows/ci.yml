@@ -218,10 +218,14 @@ jobs:
         with:
           node-version: '16.x'
       - uses: actions/checkout@v3
-      - name: NPM install dependencies
-        run: |
-          npm i
-          npm i ts-node
+      - name: Install stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.69
+          override: true
+          default: true
+          target: wasm32-unknown-unknown
+          components: rust-src
 
       - name: Run Test
         run: |

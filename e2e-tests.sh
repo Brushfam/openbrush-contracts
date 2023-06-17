@@ -36,7 +36,7 @@ process_directory() {
     cd "$dir" || exit
 
     echo "Building contract in $dir"
-    cargo contract build --skip-wasm-validation --release || exit
+    cargo contract build  --release || exit
 
     echo "Running e2e-tests in $dir"
     cargo test --features e2e-tests --release || exit

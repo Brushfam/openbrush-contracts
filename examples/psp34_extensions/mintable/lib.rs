@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[openbrush::implementation(PSP34, PSP34Burnable)]
+#[openbrush::implementation(PSP34, PSP34Mintable)]
 #[openbrush::contract]
 pub mod my_psp34_mintable {
     use openbrush::traits::Storage;

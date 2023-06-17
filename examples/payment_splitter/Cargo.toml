@@ -36,6 +36,14 @@ std = [
 ink-as-dependency = []
 e2e-tests = []
 
+[package.metadata.wasm-pack]
+[package.metadata.wasm-pack.profile.dev]
+wasm-opt = ['--skip-validation']
+
 [profile.dev]
+codegen-units = 16
+overflow-checks = false
+
+[profile.release]
 codegen-units = 16
 overflow-checks = false

@@ -97,7 +97,7 @@ pub mod my_psp22_pallet_mintable {
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint_to(address_of!(bob), 1000));
+                    .call(|contract| contract.mint(address_of!(bob), 1000));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -139,7 +139,7 @@ pub mod my_psp22_pallet_mintable {
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint_to(address_of!(bob), 1000));
+                    .call(|contract| contract.mint(address_of!(bob), 1000));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await

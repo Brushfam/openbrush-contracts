@@ -39,7 +39,10 @@ jobs:
 
       - name: Build & Run all default unit tests
         run: |
-          RUSTFLAGS="-D warnings" cargo +nightly-2023-01-01 test --workspace --features test-all -- --test-threads=10
+          RUSTFLAGS="-D warnings" cargo +nightly-2023-01-01 test --workspace --features test-all -- --skip ui_tests --test-threads=10
+      - name: Build & Run ui tests
+        run: |
+          cargo +nightly-2023-01-01 test ui_tests -- --test-threads=10
       - name: Build & Run pallet unit tests
         run: |
           RUSTFLAGS="-D warnings" cargo +nightly-2023-01-01 test --workspace --features psp22_pallet -- --test-threads=10

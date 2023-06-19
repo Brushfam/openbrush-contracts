@@ -34,7 +34,7 @@ error: expected expression, found `;`
    |
    = note: this error originates in the attribute macro `openbrush::upgradeable_storage` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0107]: struct takes at least 1 generic argument but 0 generic arguments were supplied
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
  --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:7:16
   |
 7 |     pub owner: AccountId,
@@ -50,7 +50,7 @@ help: add missing generic argument
 7  |     pub owner: AKEYccountId,
    |                 +++
 
-error[E0107]: struct takes at least 1 generic argument but 0 generic arguments were supplied
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
  --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:8:20
   |
 8 |     pub _reserved: Option<()>,
@@ -66,7 +66,7 @@ help: add missing generic argument
 8  |     pub _reserved: OKEYption<()>,
    |                     +++
 
-error[E0107]: struct takes at least 1 generic argument but 0 generic arguments were supplied
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
   --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:16:18
    |
 16 |     pub forward: AccountId,
@@ -82,7 +82,7 @@ help: add missing generic argument
 16 |     pub forward: AKEYccountId,
    |                   +++
 
-error[E0107]: struct takes at least 1 generic argument but 0 generic arguments were supplied
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
   --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:17:20
    |
 17 |     pub _reserved: Option<()>,
@@ -98,7 +98,7 @@ help: add missing generic argument
 17 |     pub _reserved: OKEYption<()>,
    |                     +++
 
-error[E0107]: struct takes at least 1 generic argument but 0 generic arguments were supplied
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
   --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:23:20
    |
 23 |     pub _reserved: Option<()>,
@@ -114,7 +114,7 @@ help: add missing generic argument
 23 |     pub _reserved: OKEYption<()>,
    |                     +++
 
-error[E0107]: struct takes at least 1 generic argument but 0 generic arguments were supplied
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
  --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:5:1
   |
 5 | #[openbrush::upgradeable_storage()]
@@ -131,7 +131,7 @@ help: add missing generic argument
 5  | #KEY[openbrush::upgradeable_storage()]
    |  +++
 
-error[E0107]: struct takes at least 1 generic argument but 0 generic arguments were supplied
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
   --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:14:1
    |
 14 | #[openbrush::upgradeable_storage()]
@@ -148,7 +148,7 @@ help: add missing generic argument
 14 | #KEY[openbrush::upgradeable_storage()]
    |  +++
 
-error[E0107]: struct takes at least 1 generic argument but 0 generic arguments were supplied
+error[E0107]: this struct takes at least 1 generic argument but 0 generic arguments were supplied
   --> tests/ui/upgradeable_storage/fail/not-works-without-key.rs:21:1
    |
 21 | #[openbrush::upgradeable_storage()]

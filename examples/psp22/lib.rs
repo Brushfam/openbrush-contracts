@@ -11,7 +11,7 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
 
 // we need to expand this struct before the contract macro is expanded
 // that is why we declare it here for this example
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item(STORAGE_KEY)]
 #[openbrush::accessors(HatedStorageAccessors)]
 #[derive(Debug)]
 pub struct HatedStorage {
@@ -29,13 +29,11 @@ pub mod my_psp22 {
     #[ink(storage)]
     #[openbrush::storage]
     pub struct Contract {
-        #[upgradeable_storage_field]
+        #[storage_field]
         psp22: psp22::Data,
-        // #[storage_field]
+        #[storage_field]
         hated_storage: HatedStorage,
     }
-
-    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
 
     #[overrider(psp22::Internal)]
     fn _before_token_transfer(

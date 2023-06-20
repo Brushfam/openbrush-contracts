@@ -11,7 +11,7 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 # These dependencies
-openbrush = { path = "../..", default-features = false, features = ["psp22", "upgradeable"] }
+openbrush = { path = "../..", default-features = false, features = ["psp22"] }
 
 [dev-dependencies]
 ink_e2e = "4.2.1"

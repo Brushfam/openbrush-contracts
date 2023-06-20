@@ -3,10 +3,7 @@
 #[openbrush::implementation(PSP22, PSP22Capped, PSP22Mintable)]
 #[openbrush::contract]
 pub mod my_psp22_capped {
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::String;
 
     #[ink(storage)]
     #[derive(Default)]
@@ -27,7 +24,7 @@ pub mod my_psp22_capped {
     ) -> Result<(), PSP22Error> {
         // `is_none` means that it is minting
         if from.is_none() && capped::Internal::_is_cap_exceeded(self, amount) {
-            return Err(PSP22Error::Custom(String::from("Cap exceeded")))
+            return Err(PSP22Error::Custom(String::from("Cap exceeded")));
         }
         Ok(())
     }
@@ -49,10 +46,7 @@ pub mod my_psp22_capped {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
         use openbrush::contracts::psp22::{
-            extensions::{
-                capped::psp22capped_external::PSP22Capped,
-                mintable::psp22mintable_external::PSP22Mintable,
-            },
+            extensions::{capped::psp22capped_external::PSP22Capped, mintable::psp22mintable_external::PSP22Mintable},
             psp22_external::PSP22,
         };
 
@@ -61,10 +55,7 @@ pub mod my_psp22_capped {
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{
-            address_of,
-            balance_of,
-        };
+        use test_helpers::{address_of, balance_of};
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

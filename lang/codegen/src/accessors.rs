@@ -60,7 +60,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
         #item
 
         #[openbrush::trait_definition]
-        pub trait #trait_ident : ::openbrush::traits::StorageAccess<#struct_ident>{
+        pub trait #trait_ident : ::openbrush::traits::StorageAccess<#struct_ident> {
             #(#get_impls)*
             #(#set_impls)*
         }

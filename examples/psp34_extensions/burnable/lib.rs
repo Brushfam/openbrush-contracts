@@ -43,7 +43,6 @@ pub mod my_psp34_burnable {
         use test_helpers::{
             address_of,
             balance_of,
-            owner_of,
         };
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;

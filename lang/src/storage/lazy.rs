@@ -16,18 +16,9 @@ use crate::traits::StorageAccess;
 use core::marker::PhantomData;
 use ink::{
     primitives::Key,
-    storage::traits::{
-        AutoKey,
-        Storable,
-        StorableHint,
-        StorageKey,
-    },
+    storage::traits::{AutoKey, Storable, StorableHint, StorageKey},
 };
-use scale::{
-    Error,
-    Input,
-    Output,
-};
+use scale::{Error, Input, Output};
 
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 #[derive(Clone)]
@@ -156,11 +147,7 @@ where
 #[cfg(feature = "std")]
 const _: () = {
     use ink::{
-        metadata::layout::{
-            Layout,
-            LayoutKey,
-            RootLayout,
-        },
+        metadata::layout::{Layout, LayoutKey, RootLayout},
         storage::traits::StorageLayout,
     };
 
@@ -181,10 +168,6 @@ const _: () = {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::storage::{
-        Lazy,
-        ValueGuard,
-    };
     use ink::storage::traits::ManualKey;
 
     #[test]
@@ -202,9 +185,9 @@ mod tests {
     #[test]
     fn set_and_get_work_for_two_lazy_with_same_manual_key() {
         ink::env::test::run_test::<ink::env::DefaultEnvironment, _>(|_| {
-            let mut storage: Lazy<u8, ValueGuard<u8>, ManualKey<123>> = Lazy::new();
+            let mut storage: Lazy<u8, ManualKey<123>> = Lazy::new();
             storage.set(&2);
-            let storage2: Lazy<u8, ValueGuard<u8>, ManualKey<123>> = Lazy::new();
+            let storage2: Lazy<u8, ManualKey<123>> = Lazy::new();
             assert_eq!(storage2.get(), Some(2));
 
             Ok(())

@@ -41,7 +41,7 @@ pub mod my_psp22 {
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
         if to == Some(&self.hated_storage.hated_account) {
-            return Err(PSP22Error::Custom(String::from("I hate this account!")))
+            return Err(PSP22Error::Custom(String::from("I hate this account!")));
         }
         Ok(())
     }
@@ -68,15 +68,9 @@ pub mod my_psp22 {
     pub mod tests {
         use super::*;
         use crate::hatedstorageaccessors_external::HatedStorageAccessors;
-        use ink_e2e::{
-            build_message,
-            PolkadotConfig,
-        };
+        use ink_e2e::{build_message, PolkadotConfig};
         use openbrush::contracts::psp22::psp22_external::PSP22;
-        use test_helpers::{
-            address_of,
-            balance_of,
-        };
+        use test_helpers::{address_of, balance_of};
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

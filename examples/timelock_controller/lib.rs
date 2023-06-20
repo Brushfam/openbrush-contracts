@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(default_alloc_error_handler)]
 
 #[openbrush::implementation(AccessControl, TimelockController)]
 #[openbrush::contract]
@@ -39,7 +38,6 @@ pub mod my_timelock_controller {
         use super::*;
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
-        use ink_e2e::Client;
 
         use test_helpers::address_of;
 

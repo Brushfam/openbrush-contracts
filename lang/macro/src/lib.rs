@@ -65,20 +65,17 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///
 /// ```
 /// mod doc {
-/// use ink::prelude::collections::BTreeMap;
-/// use openbrush::traits::{ AccountId, Balance, Storage, OccupyStorage };
+/// use openbrush::traits::{ AccountId, Balance, StorageAccess };
+/// use openbrush::storage::Mapping;
 ///
 /// #[derive(Debug)]
+/// #[openbrush::storage_item(123)]
 /// pub struct Data {
-///     pub balances: BTreeMap<AccountId, Balance>,
-/// }
-///
-/// impl OccupyStorage for Data {
-///     const KEY: u32 = 0x123;
+///     pub balances: Mapping<AccountId, Balance>,
 /// }
 ///
 /// #[openbrush::trait_definition]
-/// pub trait PSP22: Storage<Data> {
+/// pub trait PSP22: StorageAccess<Data> {
 ///     /// Returns the account Balance for the specified `owner`.
 ///     #[ink(message)]
 ///     fn balance_of(&self, owner: AccountId) -> Balance {
@@ -108,6 +105,7 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 /// #[openbrush::contract]
 /// mod base_psp22 {
 ///     use ink::prelude::collections::BTreeMap;
+///     use openbrush::traits::StorageAccess;
 ///     use openbrush::traits::Storage;
 ///
 ///     const STORAGE_KEY: u32 = 123;
@@ -121,7 +119,7 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///     }
 ///
 ///     #[openbrush::trait_definition]
-///     pub trait PSP22Example: Storage<Data> {
+///     pub trait PSP22Example: StorageAccess<Data> + Storage<Data> {
 ///         /// Returns the account Balance for the specified `owner`.
 ///         #[ink(message)]
 ///         fn balance_of(&self, owner: AccountId) -> Balance {
@@ -145,17 +143,17 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///     }
 ///
 ///     #[ink(storage)]
-///     #[derive(Storage)]
+///     #[openbrush::storage]
 ///     pub struct PSP22Struct {
 ///         #[storage_field]
-///         example: Data,
+///         data: Data,
 ///         hated_account: AccountId,
 ///     }
 ///
 ///     impl Default for PSP22Struct {
 ///         fn default() -> Self {
 ///             Self {
-///                 example: Data::default(),
+///                 data: Data::default(),
 ///                 hated_account: AccountId::from([0x0; 32]),
 ///             }
 ///         }
@@ -168,9 +166,9 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///
 ///             let from_balance = self.balance_of(from);
 ///             assert!(from_balance >= amount, "InsufficientBalance");
-///             self.get_mut().balances.insert(from, from_balance - amount);
+///             self.data.balances.insert(from, from_balance - amount);
 ///             let to_balance = self.balance_of(to);
-///             self.get_mut().balances.insert(to, to_balance + amount);
+///             self.data.balances.insert(to, to_balance + amount);
 ///         }
 ///     }
 ///

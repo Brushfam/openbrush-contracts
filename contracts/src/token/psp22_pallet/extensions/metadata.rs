@@ -27,12 +27,14 @@ pub use crate::{
         *,
     },
 };
+pub use ink::env::DefaultEnvironment;
 pub use openbrush::traits::String;
 use openbrush::traits::{
     Storage,
     StorageAccess,
 };
 pub use pallet_assets_chain_extension::traits::{
+    Error,
     Origin,
     PalletAssets,
 };

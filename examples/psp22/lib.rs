@@ -1,11 +1,29 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(default_alloc_error_handler)]
 
-pub use my_psp22::*;
+// pub use my_psp22::*;
+pub use openbrush::traits::{
+    AccountId,
+    Storage,
+};
+
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
+
+// we need to expand this struct before the contract macro is expanded
+// that is why we declare it here for this example
+#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::accessors(HatedStorageAccessors)]
+#[derive(Debug)]
+pub struct HatedStorage {
+    #[get]
+    #[set]
+    pub hated_account: AccountId,
+}
 
 #[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 pub mod my_psp22 {
+    use crate::*;
     use openbrush::traits::String;
 
     #[ink(storage)]
@@ -19,15 +37,6 @@ pub mod my_psp22 {
 
     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
 
-    #[openbrush::storage_item(STORAGE_KEY)]
-    #[openbrush::accessors(HatedStorageAccessors)]
-    #[derive(Debug)]
-    pub struct HatedStorage {
-        #[get]
-        #[set]
-        hated_account: AccountId,
-    }
-
     #[overrider(psp22::Internal)]
     fn _before_token_transfer(
         &mut self,
@@ -40,6 +49,8 @@ pub mod my_psp22 {
         }
         Ok(())
     }
+
+    impl HatedStorageAccessors for Contract {}
 
     impl Contract {
         #[ink(constructor)]
@@ -55,22 +66,12 @@ pub mod my_psp22 {
 
             instance
         }
-
-        #[ink(message)]
-        pub fn set_hated_account(&mut self, account: AccountId) {
-            self.hated_storage.hated_account = account;
-        }
-
-        #[ink(message)]
-        pub fn get_hated_account(&self) -> AccountId {
-            self.hated_storage.hated_account
-        }
     }
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
         use super::*;
-        use crate::my_psp22::hatedstorageaccessors_external::HatedStorageAccessors;
+        use crate::hatedstorageaccessors_external::HatedStorageAccessors;
         use ink_e2e::{
             build_message,
             PolkadotConfig,

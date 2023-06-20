@@ -39,7 +39,6 @@ pub mod my_payment_splitter {
         use super::*;
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
-        use ink_e2e::Client;
 
         use test_helpers::{
             address_of,
@@ -106,7 +105,7 @@ pub mod my_payment_splitter {
 
             assert_eq!(total_released_before, 0);
 
-            let receive_tx = {
+            let _receive_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.receive());
                 client
                     .call(&ink_e2e::alice(), _msg, 1000000000000, None)
@@ -183,7 +182,7 @@ pub mod my_payment_splitter {
 
             assert_eq!(total_released_before, 0);
 
-            let receive_tx = {
+            let _receive_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.receive());
                 client
                     .call(&ink_e2e::alice(), _msg, 1000000000000, None)

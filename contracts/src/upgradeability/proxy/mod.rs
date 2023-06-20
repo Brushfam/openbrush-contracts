@@ -110,13 +110,8 @@ pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> {
                 .set_tail_call(true),
             )
             .try_invoke()
-            .unwrap_or_else(|err| {
-                panic!(
-                    "delegate call to {:?} failed due to {:?}",
-                    self.get_or_default().forward_to.clone(),
-                    err
-                )
-            });
+            .expect("Delegate call failed")
+            .expect("Delegate call failed");
         unreachable!("the _fallback call will never return since `tail_call` was set");
     }
 }

@@ -1,7 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(default_alloc_error_handler)]
 
-// pub use my_psp22::*;
 pub use openbrush::traits::{
     AccountId,
     Storage,

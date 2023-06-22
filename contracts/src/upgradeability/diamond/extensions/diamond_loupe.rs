@@ -33,7 +33,7 @@ pub use diamond::{
     Internal as _,
     InternalImpl as _,
 };
-pub use ink::prelude::vec::Vec;
+use ink::prelude::vec::Vec;
 use openbrush::{
     storage::{
         Mapping,

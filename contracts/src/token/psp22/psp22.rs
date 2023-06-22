@@ -23,7 +23,7 @@ pub use crate::{
     psp22,
     traits::psp22::*,
 };
-pub use ink::prelude::vec::Vec;
+use ink::prelude::vec::Vec;
 use openbrush::{
     storage::{
         Mapping,

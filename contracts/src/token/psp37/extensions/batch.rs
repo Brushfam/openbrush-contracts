@@ -28,7 +28,7 @@ pub use crate::{
     },
 };
 pub use batch::Internal as _;
-pub use ink::prelude::vec::Vec;
+use ink::prelude::vec::Vec;
 use openbrush::traits::{
     AccountId,
     AccountIdExt,

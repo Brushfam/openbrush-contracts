@@ -3,7 +3,6 @@
 #[openbrush::implementation(PSP37, PSP37Burnable)]
 #[openbrush::contract]
 pub mod my_psp37 {
-    use ink::prelude::vec::Vec;
     use openbrush::traits::Storage;
 
     #[derive(Default, Storage)]

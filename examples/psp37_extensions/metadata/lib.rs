@@ -34,15 +34,12 @@ pub mod my_psp37 {
     pub mod tests {
         use openbrush::contracts::psp37::{
             extensions::metadata::psp37metadata_external::PSP37Metadata,
-            psp37_external::PSP37,
         };
 
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
-        use test_helpers::address_of;
+        use ink_e2e::{build_message};
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

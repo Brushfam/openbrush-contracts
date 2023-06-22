@@ -36,6 +36,14 @@ impl<'a> ImplArgs<'a> {
     fn contract_name(&self) -> proc_macro2::Ident {
         format_ident!("{}", self.storage_struct_name)
     }
+
+    fn vec_import(&mut self) {
+        let vec_import = syn::parse2::<syn::ItemUse>(quote!(
+            use ink::prelude::vec::Vec;
+        ))
+        .expect("Should parse");
+        self.imports.insert("vec", vec_import);
+    }
 }
 
 pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
@@ -176,6 +184,7 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22", import);
+    impl_args.vec_import();
 
     override_functions("psp22::Internal", &mut internal, &impl_args.map);
     override_functions("PSP22", &mut psp22, &impl_args.map);
@@ -208,6 +217,7 @@ pub(crate) fn impl_psp22_mintable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Mintable", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Mintable", &mut mintable, &impl_args.map);
 
@@ -237,6 +247,7 @@ pub(crate) fn impl_psp22_burnable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Burnable", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Burnable", &mut burnable, &impl_args.map);
 
@@ -276,6 +287,7 @@ pub(crate) fn impl_psp22_metadata(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Metadata", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Metadata", &mut metadata, &impl_args.map);
 
@@ -327,6 +339,7 @@ pub(crate) fn impl_psp22_capped(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Capped", import);
+    impl_args.vec_import();
 
     override_functions("capped::Internal", &mut internal, &impl_args.map);
     override_functions("PSP22Capped", &mut capped, &impl_args.map);
@@ -398,6 +411,7 @@ pub(crate) fn impl_psp22_wrapper(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Wrapper", import);
+    impl_args.vec_import();
 
     override_functions("wrapper::Internal", &mut internal, &impl_args.map);
     override_functions("PSP22Wrapper", &mut wrapper, &impl_args.map);
@@ -471,6 +485,7 @@ pub(crate) fn impl_flashmint(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("Flashmint", import);
+    impl_args.vec_import();
 
     override_functions("flashmint::Internal", &mut internal, &impl_args.map);
     override_functions("FlashLender", &mut flashlender, &impl_args.map);
@@ -665,6 +680,7 @@ pub(crate) fn impl_psp22_pallet(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Pallet", import);
+    impl_args.vec_import();
 
     override_functions("psp22_pallet::Internal", &mut internal, &impl_args.map);
     override_functions("PSP22", &mut psp22, &impl_args.map);
@@ -697,6 +713,7 @@ pub(crate) fn impl_psp22_pallet_burnable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22PalletBurnable", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Burnable", &mut burnable, &impl_args.map);
 
@@ -736,6 +753,7 @@ pub(crate) fn impl_psp22_pallet_metadata(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22PalletMetadata", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Metadata", &mut burnable, &impl_args.map);
 
@@ -765,6 +783,7 @@ pub(crate) fn impl_psp22_pallet_mintable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22PalletMintable", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Mintable", &mut mintable, &impl_args.map);
 
@@ -914,6 +933,7 @@ pub(crate) fn impl_psp34(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP34", import);
+    impl_args.vec_import();
 
     override_functions("psp34::BalancesManager", &mut psp34_balances, &impl_args.map);
     override_functions("psp34::Internal", &mut internal, &impl_args.map);
@@ -954,6 +974,7 @@ pub(crate) fn impl_psp34_burnable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP34Burnable", import);
+    impl_args.vec_import();
 
     override_functions("PSP34Burnable", &mut burnable, &impl_args.map);
 
@@ -983,6 +1004,7 @@ pub(crate) fn impl_psp34_mintable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP34Mintable", import);
+    impl_args.vec_import();
 
     override_functions("PSP34Mintable", &mut mintable, &impl_args.map);
 
@@ -1030,6 +1052,7 @@ pub(crate) fn impl_psp34_metadata(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP34Metadata", import);
+    impl_args.vec_import();
 
     override_functions("metadata::Internal", &mut internal, &impl_args.map);
     override_functions("PSP34Mintable", &mut metadata, &impl_args.map);
@@ -1094,6 +1117,7 @@ pub(crate) fn impl_psp34_enumerable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP34Enumerable", import);
+    impl_args.vec_import();
 
     override_functions("psp34::BalancesManager", &mut psp34_balances, &impl_args.map);
     override_functions("PSP34Enumerable", &mut psp34_enumerable, &impl_args.map);
@@ -1293,6 +1317,7 @@ pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37", import);
+    impl_args.vec_import();
 
     override_functions("psp37::BalancesManager", &mut psp37_balances, &impl_args.map);
     override_functions("psp37::Internal", &mut internal, &impl_args.map);
@@ -1369,6 +1394,7 @@ pub(crate) fn impl_psp37_batch(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37Batch", import);
+    impl_args.vec_import();
 
     override_functions("batch::Internal", &mut internal, &impl_args.map);
     override_functions("PSP37Batch", &mut batch, &impl_args.map);
@@ -1401,6 +1427,7 @@ pub(crate) fn impl_psp37_burnable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37Burnable", import);
+    impl_args.vec_import();
 
     override_functions("PSP37Burnable", &mut burnable, &impl_args.map);
 
@@ -1452,6 +1479,7 @@ pub(crate) fn impl_psp37_metadata(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37Metadata", import);
+    impl_args.vec_import();
 
     override_functions("metadata::Internal", &mut internal, &impl_args.map);
     override_functions("PSP37Metadata", &mut metadata, &impl_args.map);
@@ -1484,6 +1512,7 @@ pub(crate) fn impl_psp37_mintable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37Mintable", import);
+    impl_args.vec_import();
 
     override_functions("PSP37Mintable", &mut mintable, &impl_args.map);
 
@@ -1556,6 +1585,7 @@ pub(crate) fn impl_psp37_enumerable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37Enumerable", import);
+    impl_args.vec_import();
 
     override_functions("psp37::BalancesManager", &mut psp37_balances, &impl_args.map);
     override_functions("PSP37Enumerable", &mut psp37_enumerable, &impl_args.map);

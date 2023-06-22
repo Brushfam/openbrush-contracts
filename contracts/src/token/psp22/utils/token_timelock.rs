@@ -78,7 +78,7 @@ pub trait PSP22TokenTimelockImpl: Storage<Data> + Internal {
 
     /// Returns the beneficiary of the tokens
     fn beneficiary(&self) -> AccountId {
-        self.data().beneficiary
+        self._beneficiary()
     }
 
     /// Returns the timestamp when the tokens are released

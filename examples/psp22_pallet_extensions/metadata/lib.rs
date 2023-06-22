@@ -46,21 +46,14 @@ pub mod my_psp22_pallet_metadata {
     pub mod tests {
         use openbrush::contracts::psp22_pallet::{
             extensions::{
-                burnable::psp22burnable_external::PSP22Burnable,
                 metadata::psp22metadata_external::PSP22Metadata,
             },
-            psp22_external::PSP22,
         };
 
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
-        use test_helpers::{
-            address_of,
-            balance_of,
-        };
+        use ink_e2e::{build_message};
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

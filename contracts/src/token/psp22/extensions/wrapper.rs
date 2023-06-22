@@ -27,8 +27,10 @@ pub use crate::{
         *,
     },
 };
-use ink::env::CallFlags;
-pub use ink::prelude::vec::Vec;
+use ink::{
+    env::CallFlags,
+    prelude::vec::Vec,
+};
 use openbrush::traits::{
     AccountId,
     Balance,

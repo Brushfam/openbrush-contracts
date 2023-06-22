@@ -2390,6 +2390,7 @@ pub(crate) fn impl_diamond(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("Diamond", import);
+    impl_args.vec_import();
 
     override_functions("DiamondCut", &mut cut, &impl_args.map);
     override_functions("diamond::Internal", &mut internal, &impl_args.map);
@@ -2462,6 +2463,7 @@ pub(crate) fn impl_diamond_loupe(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("DiamondLoupe", import);
+    impl_args.vec_import();
 
     override_functions("diamond::DiamondCut", &mut cut, &impl_args.map);
     override_functions("DiamondLoupe", &mut loupe, &impl_args.map);

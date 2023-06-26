@@ -195,7 +195,7 @@ pub mod my_access_control {
 
             let revoke_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.revoke_role(MINTER, address_of!(bob)));
+                    .call(|contract| contract.revoke_role(MINTER, Some(address_of!(bob))));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -223,7 +223,7 @@ pub mod my_access_control {
 
             let renounce_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.renounce_role(MINTER, address_of!(alice)));
+                    .call(|contract| contract.renounce_role(MINTER, Some(address_of!(alice))));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -253,7 +253,7 @@ pub mod my_access_control {
 
             let grant_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.grant_role(MINTER, address_of!(charlie)));
+                    .call(|contract| contract.grant_role(MINTER, Some(address_of!(charlie))));
                 client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
             }
             .return_value();
@@ -262,7 +262,7 @@ pub mod my_access_control {
 
             let revoke_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.revoke_role(MINTER, address_of!(charlie)));
+                    .call(|contract| contract.revoke_role(MINTER,Some( address_of!(charlie))));
                 client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
             }
             .return_value();
@@ -286,7 +286,7 @@ pub mod my_access_control {
 
             let renounce_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.renounce_role(MINTER, address_of!(bob)));
+                    .call(|contract| contract.renounce_role(MINTER, Some(address_of!(bob))));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();

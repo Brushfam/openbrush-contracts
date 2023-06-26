@@ -44,7 +44,7 @@ macro_rules! balance_of_37 {
 macro_rules! has_role {
     ($client:ident, $address:ident, $role:expr, $account:ident) => {{
         let _msg = build_message::<ContractRef>($address.clone())
-            .call(|contract| contract.has_role($role, address_of!($account)));
+            .call(|contract| contract.has_role($role, Some(address_of!($account))));
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await
@@ -56,7 +56,7 @@ macro_rules! has_role {
 macro_rules! grant_role {
     ($client:ident, $address:ident, $role:expr, $account:ident) => {{
         let _msg = build_message::<ContractRef>($address.clone())
-            .call(|contract| contract.grant_role($role, address_of!($account)));
+            .call(|contract| contract.grant_role($role, Some(address_of!($account))));
         $client
             .call(&ink_e2e::alice(), _msg, 0, None)
             .await
@@ -69,7 +69,7 @@ macro_rules! grant_role {
 macro_rules! revoke_role {
     ($client:ident, $address:ident, $role:expr, $account:ident) => {{
         let _msg = build_message::<ContractRef>($address.clone())
-            .call(|contract| contract.revoke_role($role, address_of!($account)));
+            .call(|contract| contract.revoke_role($role, Some(address_of!($account))));
         $client
             .call(&ink_e2e::alice(), _msg, 0, None)
             .await

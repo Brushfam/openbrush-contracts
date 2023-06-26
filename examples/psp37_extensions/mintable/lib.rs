@@ -24,7 +24,6 @@ pub mod my_psp37 {
     pub mod tests {
         use openbrush::contracts::psp37::{
             extensions::{
-                metadata::psp37metadata_external::PSP37Metadata,
                 mintable::psp37mintable_external::PSP37Mintable,
             },
             psp37_external::PSP37,

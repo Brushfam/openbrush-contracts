@@ -76,7 +76,7 @@ pub mod my_payment_splitter {
                     .return_value()
             };
 
-            assert_eq!(payee_0, address_of!(bob));
+            assert_eq!(payee_0, Some(address_of!(bob)));
 
             let payee_1 = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.payee(1));
@@ -86,7 +86,7 @@ pub mod my_payment_splitter {
                     .return_value()
             };
 
-            assert_eq!(payee_1, address_of!(alice));
+            assert_eq!(payee_1, Some(address_of!(alice)));
 
             Ok(())
         }

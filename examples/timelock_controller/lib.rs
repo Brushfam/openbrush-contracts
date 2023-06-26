@@ -53,7 +53,7 @@ pub mod my_timelock_controller {
                 .account_id;
 
             let transaction = Transaction {
-                callee: address.clone(),
+                callee: Some(address.clone()),
                 selector: [0, 0, 0, 0],
                 input: vec![],
                 transferred_value: 0,
@@ -130,7 +130,7 @@ pub mod my_timelock_controller {
                 .account_id;
 
             let transaction = Transaction {
-                callee: address.clone(),
+                callee: Some(address.clone()),
                 selector: ink::selector_bytes!("TimelockController::get_min_delay"),
                 input: vec![],
                 transferred_value: 0,
@@ -205,7 +205,7 @@ pub mod my_timelock_controller {
             let new_min_delay: u64 = 15;
 
             let transaction = Transaction {
-                callee: address.clone(),
+                callee: Some(address.clone()),
                 selector: ink::selector_bytes!("TimelockController::update_delay"),
                 input: new_min_delay.to_le_bytes().to_vec(),
                 transferred_value: 0,
@@ -267,7 +267,7 @@ pub mod my_timelock_controller {
                 .account_id;
 
             let transaction = Transaction {
-                callee: address.clone(),
+                callee: Some(address.clone()),
                 selector: [0, 0, 0, 0],
                 input: vec![],
                 transferred_value: 0,
@@ -298,7 +298,7 @@ pub mod my_timelock_controller {
                 .account_id;
 
             let transaction = Transaction {
-                callee: address.clone(),
+                callee: Some(address.clone()),
                 selector: [0, 0, 0, 0],
                 input: vec![],
                 transferred_value: 0,

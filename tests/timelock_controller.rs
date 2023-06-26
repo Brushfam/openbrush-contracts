@@ -226,7 +226,11 @@ mod timelock_controller {
             vec![accounts.bob, accounts.charlie],
             vec![accounts.eve, accounts.charlie],
         );
-        assert!(AccessControl::has_role(&timelock, TIMELOCK_ADMIN_ROLE, Some(accounts.alice)));
+        assert!(AccessControl::has_role(
+            &timelock,
+            TIMELOCK_ADMIN_ROLE,
+            Some(accounts.alice)
+        ));
         assert!(!AccessControl::has_role(&timelock, PROPOSER_ROLE, Some(accounts.alice)));
         assert!(!AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.alice)));
         assert_eq!(
@@ -238,10 +242,18 @@ mod timelock_controller {
         assert_eq!(TimelockController::get_min_delay(&timelock,), 10);
 
         assert!(AccessControl::has_role(&timelock, PROPOSER_ROLE, Some(accounts.bob)));
-        assert!(AccessControl::has_role(&timelock, PROPOSER_ROLE, Some(accounts.charlie)));
+        assert!(AccessControl::has_role(
+            &timelock,
+            PROPOSER_ROLE,
+            Some(accounts.charlie)
+        ));
         assert!(!AccessControl::has_role(&timelock, PROPOSER_ROLE, Some(accounts.eve)));
         assert!(AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.eve)));
-        assert!(AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.charlie)));
+        assert!(AccessControl::has_role(
+            &timelock,
+            EXECUTOR_ROLE,
+            Some(accounts.charlie)
+        ));
         assert!(!AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.bob)));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();

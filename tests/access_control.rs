@@ -229,7 +229,11 @@ mod access_control {
         assert!(AccessControl::grant_role(&mut access_control, PAUSER, Some(alice)).is_ok());
         assert!(AccessControl::grant_role(&mut access_control, MINTER, Some(alice)).is_ok());
 
-        assert!(AccessControl::has_role(&mut access_control, DEFAULT_ADMIN_ROLE, Some(alice)));
+        assert!(AccessControl::has_role(
+            &mut access_control,
+            DEFAULT_ADMIN_ROLE,
+            Some(alice)
+        ));
         assert!(AccessControl::has_role(&mut access_control, PAUSER, Some(alice)));
         assert!(AccessControl::has_role(&mut access_control, MINTER, Some(alice)));
 
@@ -245,7 +249,10 @@ mod access_control {
         let alice = accounts.alice;
         let mut access_control = AccessControlStruct::new(alice);
 
-        assert_eq!(AccessControl::grant_role(&mut access_control, PAUSER, Some(alice)), Ok(()));
+        assert_eq!(
+            AccessControl::grant_role(&mut access_control, PAUSER, Some(alice)),
+            Ok(())
+        );
         assert_eq!(
             AccessControl::grant_role(&mut access_control, PAUSER, Some(alice)),
             Err(AccessControlError::RoleRedundant)
@@ -261,7 +268,11 @@ mod access_control {
         assert!(AccessControl::has_role(&mut access_control, PAUSER, Some(accounts.bob)));
         assert!(AccessControl::revoke_role(&mut access_control, PAUSER, Some(accounts.bob)).is_ok());
 
-        assert!(!AccessControl::has_role(&mut access_control, PAUSER, Some(accounts.bob)));
+        assert!(!AccessControl::has_role(
+            &mut access_control,
+            PAUSER,
+            Some(accounts.bob)
+        ));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, Some(accounts.alice), None);
@@ -280,7 +291,11 @@ mod access_control {
         change_caller(accounts.eve);
         assert!(AccessControl::renounce_role(&mut access_control, PAUSER, Some(accounts.eve)).is_ok());
 
-        assert!(!AccessControl::has_role(&mut access_control, PAUSER, Some(accounts.eve)));
+        assert!(!AccessControl::has_role(
+            &mut access_control,
+            PAUSER,
+            Some(accounts.eve)
+        ));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, Some(accounts.alice), None);

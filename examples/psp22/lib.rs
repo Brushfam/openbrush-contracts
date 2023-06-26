@@ -32,16 +32,19 @@ impl Default for HatedStorage {
 #[openbrush::contract]
 pub mod my_psp22 {
     use crate::*;
-    use openbrush::traits::String;
+    use openbrush::traits::{
+        StorageAccess,
+        String,
+    };
 
     #[ink(storage)]
     #[openbrush::storage]
     pub struct Contract {
-        // #[upgradeable_storage_field]
-        #[storage_field]
+        #[upgradeable_storage_field]
+        // #[storage_field]
         psp22: psp22::Data,
-        // #[upgradeable_storage_field]
-        #[storage_field]
+        #[upgradeable_storage_field]
+        // #[storage_field]
         hated_storage: HatedStorage,
     }
 
@@ -52,9 +55,9 @@ pub mod my_psp22 {
         to: Option<&AccountId>,
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
-        // if to == Some(&self.hated_storage.hated_account) {
-        //     return Err(PSP22Error::Custom(String::from("I hate this account!")))
-        // }
+        if to == Some(&StorageAccess::<HatedStorage>::get_or_default(self).hated_account) {
+            return Err(PSP22Error::Custom(String::from("I hate this account!")))
+        }
         Ok(())
     }
 

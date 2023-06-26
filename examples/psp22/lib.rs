@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
+use openbrush::traits::ZERO_ADDRESS;
 pub use openbrush::traits::{
     AccountId,
     Storage,
@@ -18,6 +20,14 @@ pub struct HatedStorage {
     pub hated_account: AccountId,
 }
 
+impl Default for HatedStorage {
+    fn default() -> Self {
+        Self {
+            hated_account: ZERO_ADDRESS.into(),
+        }
+    }
+}
+
 #[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 pub mod my_psp22 {
@@ -27,8 +37,10 @@ pub mod my_psp22 {
     #[ink(storage)]
     #[openbrush::storage]
     pub struct Contract {
+        // #[upgradeable_storage_field]
         #[storage_field]
         psp22: psp22::Data,
+        // #[upgradeable_storage_field]
         #[storage_field]
         hated_storage: HatedStorage,
     }
@@ -40,9 +52,9 @@ pub mod my_psp22 {
         to: Option<&AccountId>,
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
-        if to == Some(&self.hated_storage.hated_account) {
-            return Err(PSP22Error::Custom(String::from("I hate this account!")));
-        }
+        // if to == Some(&self.hated_storage.hated_account) {
+        //     return Err(PSP22Error::Custom(String::from("I hate this account!")))
+        // }
         Ok(())
     }
 
@@ -53,9 +65,7 @@ pub mod my_psp22 {
         pub fn new(total_supply: Balance) -> Self {
             let mut instance = Self {
                 psp22: Default::default(),
-                hated_storage: HatedStorage {
-                    hated_account: [255; 32].into(),
-                },
+                hated_storage: Default::default(),
             };
 
             Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
@@ -68,9 +78,15 @@ pub mod my_psp22 {
     pub mod tests {
         use super::*;
         use crate::hatedstorageaccessors_external::HatedStorageAccessors;
-        use ink_e2e::{build_message, PolkadotConfig};
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
         use openbrush::contracts::psp22::psp22_external::PSP22;
-        use test_helpers::{address_of, balance_of};
+        use test_helpers::{
+            address_of,
+            balance_of,
+        };
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

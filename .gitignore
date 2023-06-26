@@ -24,3 +24,4 @@ yarn.lock
 .cargo/config.toml
 
 typechain-generated/
+clean.sh

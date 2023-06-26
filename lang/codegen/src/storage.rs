@@ -107,9 +107,10 @@ fn generate_storage_impls(s: synstructure::Structure, fields: Vec<Field>) -> Tok
                 let mut new_field = field.clone();
                 new_field.ty = Type::Verbatim(quote! { ::openbrush::storage::Lazy<#ty> });
 
-                convert_into_storage_field(&struct_ident, None, &salt(&s.ast().clone()), 0, &new_field)
-                    .ty
-                    .to_token_stream()
+                // convert_into_storage_field(&struct_ident, None, &salt(&s.ast().clone()), 0, &new_field)
+                //     .ty
+                //     .to_token_stream()
+                quote! { ::openbrush::storage::Lazy<#ty> }
             } else {
                 quote! { #ty }
             };
@@ -117,15 +118,15 @@ fn generate_storage_impls(s: synstructure::Structure, fields: Vec<Field>) -> Tok
             let span = field.span();
 
             quote_spanned!(span=>
-                impl #impls ::openbrush::traits::Storage<#storage_ty> for #struct_ident #types #where_clause {
-                    fn get(&self) -> &#storage_ty {
-                        &self.#field_ident
-                    }
-
-                    fn get_mut(&mut self) -> &mut #storage_ty {
-                        &mut self.#field_ident
-                    }
-                }
+                // impl #impls ::openbrush::traits::Storage<#storage_ty> for #struct_ident #types #where_clause {
+                //     fn get(&self) -> &#storage_ty {
+                //         &self.#field_ident
+                //     }
+                //
+                //     fn get_mut(&mut self) -> &mut #storage_ty {
+                //         &mut self.#field_ident
+                //     }
+                // }
 
                 impl #impls ::openbrush::traits::StorageAccess<#ty> for #struct_ident #types #where_clause {
                     fn get(&self) -> Option<#ty> {

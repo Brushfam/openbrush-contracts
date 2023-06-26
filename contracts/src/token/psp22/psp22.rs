@@ -41,12 +41,12 @@ use openbrush::{
         AccountId,
         AccountIdExt,
         Balance,
+        DefaultEnv,
         Storage,
         StorageAccess,
     },
     with_data,
 };
-
 pub use psp22::{
     Internal as _,
     InternalImpl as _,
@@ -65,7 +65,7 @@ pub struct Data {
 }
 
 #[cfg(feature = "upgradeable")]
-pub type DataType = Lazy<Data, ResolverKey<AutoKey, ManualKey<1533075381>>>;
+pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
@@ -75,7 +75,7 @@ impl<'a> TypeGuard<'a> for AllowancesKey {
     type Type = &'a (&'a AccountId, &'a AccountId);
 }
 
-pub trait PSP22Impl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait PSP22Impl: StorageAccess<Data> + Internal + Sized {
     fn total_supply(&self) -> Balance {
         self._total_supply()
     }
@@ -177,7 +177,7 @@ pub trait Internal {
     ) -> Result<(), PSP22Error>;
 }
 
-pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait InternalImpl: StorageAccess<Data> + Internal {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
 
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}

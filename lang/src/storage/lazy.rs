@@ -16,9 +16,18 @@ use crate::traits::StorageAccess;
 use core::marker::PhantomData;
 use ink::{
     primitives::Key,
-    storage::traits::{AutoKey, Storable, StorableHint, StorageKey},
+    storage::traits::{
+        AutoKey,
+        Storable,
+        StorableHint,
+        StorageKey,
+    },
 };
-use scale::{Error, Input, Output};
+use scale::{
+    Error,
+    Input,
+    Output,
+};
 
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 #[derive(Clone)]
@@ -147,7 +156,11 @@ where
 #[cfg(feature = "std")]
 const _: () = {
     use ink::{
-        metadata::layout::{Layout, LayoutKey, RootLayout},
+        metadata::layout::{
+            Layout,
+            LayoutKey,
+            RootLayout,
+        },
         storage::traits::StorageLayout,
     };
 

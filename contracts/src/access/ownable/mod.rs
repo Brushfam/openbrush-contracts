@@ -28,29 +28,18 @@ use openbrush::{
     modifiers,
     traits::{
         AccountId,
-        AccountIdExt,
         Storage,
-        ZERO_ADDRESS,
     },
 };
 pub use ownable::Internal as _;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
-    pub owner: AccountId,
+    pub owner: Option<AccountId>,
     pub _reserved: Option<()>,
-}
-
-impl Default for Data {
-    fn default() -> Self {
-        Self {
-            owner: ZERO_ADDRESS.into(),
-            _reserved: Default::default(),
-        }
-    }
 }
 
 /// Throws if called by any account other than the owner.
@@ -61,33 +50,30 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<OwnableError>,
 {
-    if instance.data().owner != T::env().caller() {
+    if instance.data().owner != Some(T::env().caller()) {
         return Err(From::from(OwnableError::CallerIsNotOwner))
     }
     body(instance)
 }
 
 pub trait OwnableImpl: Storage<Data> + Internal {
-    fn owner(&self) -> AccountId {
+    fn owner(&self) -> Option<AccountId> {
         self.data().owner.clone()
     }
 
     #[modifiers(only_owner)]
     fn renounce_ownership(&mut self) -> Result<(), OwnableError> {
         let old_owner = self.data().owner.clone();
-        self.data().owner = ZERO_ADDRESS.into();
-        self._emit_ownership_transferred_event(Some(old_owner), None);
+        self.data().owner = None;
+        self._emit_ownership_transferred_event(old_owner, None);
         Ok(())
     }
 
     #[modifiers(only_owner)]
     fn transfer_ownership(&mut self, new_owner: AccountId) -> Result<(), OwnableError> {
-        if new_owner.is_zero() {
-            return Err(OwnableError::NewOwnerIsZero)
-        }
         let old_owner = self.data().owner.clone();
-        self.data().owner = new_owner.clone();
-        self._emit_ownership_transferred_event(Some(old_owner), Some(new_owner));
+        self.data().owner = Some(new_owner);
+        self._emit_ownership_transferred_event(old_owner, Some(new_owner));
         Ok(())
     }
 }
@@ -103,7 +89,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
     fn _emit_ownership_transferred_event(&self, _previous: Option<AccountId>, _new: Option<AccountId>) {}
 
     fn _init_with_owner(&mut self, owner: AccountId) {
-        self.data().owner = owner;
+        self.data().owner = Some(owner);
         Internal::_emit_ownership_transferred_event(self, None, Some(owner));
     }
 }

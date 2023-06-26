@@ -44,11 +44,7 @@ pub mod my_psp22_pallet_metadata {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::psp22_pallet::{
-            extensions::{
-                metadata::psp22metadata_external::PSP22Metadata,
-            },
-        };
+        use openbrush::contracts::psp22_pallet::extensions::metadata::psp22metadata_external::PSP22Metadata;
 
         #[rustfmt::skip]
         use super::*;

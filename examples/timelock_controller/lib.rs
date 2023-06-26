@@ -23,8 +23,8 @@ pub mod my_timelock_controller {
             let caller = Self::env().caller();
             // `TimelockController` and `AccessControl` have `_init_with_admin` methods.
             // You need to call it for each trait separately, to initialize everything for these traits.
-            access_control::Internal::_init_with_admin(&mut instance, caller);
-            timelock_controller::Internal::_init_with_admin(&mut instance, caller, min_delay, proposers, executors);
+            access_control::Internal::_init_with_admin(&mut instance, Some(caller));
+            timelock_controller::Internal::_init_with_admin(&mut instance, Some(caller), min_delay, proposers, executors);
 
             instance
         }

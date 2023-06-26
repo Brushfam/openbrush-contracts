@@ -31,7 +31,6 @@ pub use batch::Internal as _;
 use ink::prelude::vec::Vec;
 use openbrush::traits::{
     AccountId,
-    AccountIdExt,
     Balance,
     Storage,
 };
@@ -85,10 +84,6 @@ pub trait InternalImpl: Internal + psp37::Internal + Storage<psp37::Data> + psp3
         let operator = Self::env().caller();
 
         for (id, value) in &ids_amounts {
-            if to.is_zero() {
-                return Err(PSP37Error::TransferToZeroAddress)
-            }
-
             if from != operator && &self._get_allowance(&from, &operator, &Some(id)) < value {
                 return Err(PSP37Error::NotAllowed)
             }

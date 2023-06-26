@@ -1,7 +1,4 @@
-use quote::{
-    format_ident,
-    quote,
-};
+use quote::{format_ident, quote};
 use std::collections::HashMap;
 use syn::Block;
 
@@ -379,7 +376,7 @@ pub(crate) fn impl_psp22_wrapper(impl_args: &mut ImplArgs) {
                 wrapper::InternalImpl::_init(self, underlying)
             }
 
-            fn _underlying(&mut self) -> &mut PSP22Ref {
+            fn _underlying(&mut self) -> Option<AccountId> {
                 wrapper::InternalImpl::_underlying(self)
             }
         }
@@ -522,11 +519,11 @@ pub(crate) fn impl_token_timelock(impl_args: &mut ImplArgs) {
                 token_timelock::InternalImpl::_init(self, token, beneficiary, release_time)
             }
 
-            fn _token(&mut self) -> &mut PSP22Ref {
+            fn _token(&self) -> Option<AccountId> {
                 token_timelock::InternalImpl::_token(self)
             }
 
-            fn _beneficiary(&self) -> AccountId {
+            fn _beneficiary(&self) -> Option<AccountId> {
                 token_timelock::InternalImpl::_beneficiary(self)
             }
         }
@@ -541,12 +538,12 @@ pub(crate) fn impl_token_timelock(impl_args: &mut ImplArgs) {
     let mut timelock = syn::parse2::<syn::ItemImpl>(quote!(
         impl PSP22TokenTimelock for #storage_struct_name {
             #[ink(message)]
-            fn token(&self) -> AccountId {
+            fn token(&self) -> Option<AccountId> {
                 PSP22TokenTimelockImpl::token(self)
             }
 
             #[ink(message)]
-            fn beneficiary(&self) -> AccountId {
+            fn beneficiary(&self) -> Option<AccountId> {
                 PSP22TokenTimelockImpl::beneficiary(self)
             }
 
@@ -1627,7 +1624,7 @@ pub(crate) fn impl_ownable(impl_args: &mut ImplArgs) {
     let mut ownable = syn::parse2::<syn::ItemImpl>(quote!(
         impl Ownable for #storage_struct_name {
             #[ink(message)]
-            fn owner(&self) -> AccountId {
+            fn owner(&self) -> Option<AccountId> {
                 OwnableImpl::owner(self)
             }
 
@@ -1727,7 +1724,7 @@ pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {
             }
 
             #[ink(message)]
-            fn payee(&self, index: u32) -> AccountId {
+            fn payee(&self, index: u32) -> Option<AccountId> {
                 PaymentSplitterImpl::payee(self, index)
             }
 
@@ -1772,11 +1769,11 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
                 access_control::InternalImpl::_emit_role_admin_changed(self, role, previous, new);
             }
 
-            fn _emit_role_granted(&mut self, role: RoleType, grantee: AccountId, grantor: Option<AccountId>) {
+            fn _emit_role_granted(&mut self, role: RoleType, grantee: Option<AccountId>, grantor: Option<AccountId>) {
                 access_control::InternalImpl::_emit_role_granted(self, role, grantee, grantor);
             }
 
-            fn _emit_role_revoked(&mut self, role: RoleType, account: AccountId, sender: AccountId) {
+            fn _emit_role_revoked(&mut self, role: RoleType, account: Option<AccountId>, sender: AccountId) {
                 access_control::InternalImpl::_emit_role_revoked(self, role, account, sender);
             }
 
@@ -1788,15 +1785,15 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
                 access_control::InternalImpl::_init_with_caller(self);
             }
 
-            fn _init_with_admin(&mut self, admin: AccountId) {
+            fn _init_with_admin(&mut self, admin: Option<AccountId>) {
                 access_control::InternalImpl::_init_with_admin(self, admin);
             }
 
-            fn _setup_role(&mut self, role: RoleType, member: AccountId) {
+            fn _setup_role(&mut self, role: RoleType, member: Option<AccountId>) {
                 access_control::InternalImpl::_setup_role(self, role, member);
             }
 
-            fn _do_revoke_role(&mut self, role: RoleType, account: AccountId) {
+            fn _do_revoke_role(&mut self, role: RoleType, account: Option<AccountId>) {
                 access_control::InternalImpl::_do_revoke_role(self, role, account);
             }
 
@@ -1804,7 +1801,7 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
                 access_control::InternalImpl::_set_role_admin(self, role, new_admin);
             }
 
-            fn _check_role(&self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            fn _check_role(&self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
                 access_control::InternalImpl::_check_role(self, role, account)
             }
 
@@ -1823,7 +1820,7 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
     let mut access_control = syn::parse2::<syn::ItemImpl>(quote!(
         impl AccessControl for #storage_struct_name {
             #[ink(message)]
-            fn has_role(&self, role: RoleType, address: AccountId) -> bool {
+            fn has_role(&self, role: RoleType, address: Option<AccountId>) -> bool {
                 AccessControlImpl::has_role(self, role, address)
             }
 
@@ -1833,17 +1830,17 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
             }
 
             #[ink(message)]
-            fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            fn grant_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
                 AccessControlImpl::grant_role(self, role, account)
             }
 
             #[ink(message)]
-            fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            fn revoke_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
                 AccessControlImpl::revoke_role(self, role, account)
             }
 
             #[ink(message)]
-            fn renounce_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            fn renounce_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
                 AccessControlImpl::renounce_role(self, role, account)
             }
         }
@@ -1857,15 +1854,15 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
 
     let mut members = syn::parse2::<syn::ItemImpl>(quote!(
         impl access_control::MembersManager for #storage_struct_name {
-            fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
+            fn _has_role(&self, role: RoleType, address: &Option<AccountId>) -> bool {
                 access_control::MembersManagerImpl::_has_role(self, role, address)
             }
 
-            fn _add(&mut self, role: RoleType, member: &AccountId) {
+            fn _add(&mut self, role: RoleType, member: &Option<AccountId>) {
                 access_control::MembersManagerImpl::_add(self, role, member)
             }
 
-            fn _remove(&mut self, role: RoleType, member: &AccountId) {
+            fn _remove(&mut self, role: RoleType, member: &Option<AccountId>) {
                 access_control::MembersManagerImpl::_remove(self, role, member)
             }
         }
@@ -1924,15 +1921,15 @@ pub(crate) fn impl_access_control_enumerable(impl_args: &mut ImplArgs) {
 
     let mut members = syn::parse2::<syn::ItemImpl>(quote!(
         impl access_control::MembersManager for #storage_struct_name {
-            fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
+            fn _has_role(&self, role: RoleType, address: &Option<AccountId>) -> bool {
                 enumerable::MembersManagerImpl::_has_role(self, role, address)
             }
 
-            fn _add(&mut self, role: RoleType, member: &AccountId) {
+            fn _add(&mut self, role: RoleType, member: &Option<AccountId>) {
                 enumerable::MembersManagerImpl::_add(self, role, member)
             }
 
-            fn _remove(&mut self, role: RoleType, member: &AccountId) {
+            fn _remove(&mut self, role: RoleType, member: &Option<AccountId>) {
                 enumerable::MembersManagerImpl::_remove(self, role, member)
             }
         }
@@ -2062,7 +2059,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
     
             fn _init_with_admin(
                 &mut self,
-                admin: AccountId,
+                admin: Option<AccountId>,
                 min_delay: Timestamp,
                 proposers: Vec<AccountId>,
                 executors: Vec<AccountId>,

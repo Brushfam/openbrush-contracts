@@ -91,12 +91,12 @@ mod access_control {
     }
 
     #[overrider(access_control::Internal)]
-    fn _emit_role_granted(&mut self, role: u32, grantee: AccountId, grantor: Option<AccountId>) {
+    fn _emit_role_granted(&mut self, role: u32, grantee: Option<AccountId>, grantor: Option<AccountId>) {
         self.env().emit_event(RoleGranted { role, grantee, grantor })
     }
 
     #[overrider(access_control::Internal)]
-    fn _emit_role_revoked(&mut self, role: u32, account: AccountId, sender: AccountId) {
+    fn _emit_role_revoked(&mut self, role: u32, account: Option<AccountId>, sender: AccountId) {
         self.env().emit_event(RoleRevoked {
             role,
             account,

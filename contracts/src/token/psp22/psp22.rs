@@ -31,7 +31,6 @@ use openbrush::{
     },
     traits::{
         AccountId,
-        AccountIdExt,
         Balance,
         Storage,
     },
@@ -185,13 +184,6 @@ pub trait InternalImpl: Storage<Data> + Internal {
         amount: Balance,
         _data: Vec<u8>,
     ) -> Result<(), PSP22Error> {
-        if from.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress)
-        }
-        if to.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         let from_balance = Internal::_balance_of(self, &from);
 
         if from_balance < amount {
@@ -212,23 +204,12 @@ pub trait InternalImpl: Storage<Data> + Internal {
     }
 
     fn _approve_from_to(&mut self, owner: AccountId, spender: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        if owner.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress)
-        }
-        if spender.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         self.data().allowances.insert(&(&owner, &spender), &amount);
         Internal::_emit_approval_event(self, owner, spender, amount);
         Ok(())
     }
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        if account.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         Internal::_before_token_transfer(self, None, Some(&account), &amount)?;
         let mut new_balance = Internal::_balance_of(self, &account);
         new_balance += amount;
@@ -241,10 +222,6 @@ pub trait InternalImpl: Storage<Data> + Internal {
     }
 
     fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        if account.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         let mut from_balance = Internal::_balance_of(self, &account);
 
         if from_balance < amount {

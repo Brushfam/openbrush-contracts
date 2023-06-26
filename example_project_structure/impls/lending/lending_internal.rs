@@ -4,7 +4,6 @@ use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
-    ZERO_ADDRESS,
 };
 pub use Internal as _;
 
@@ -21,14 +20,11 @@ pub trait Internal: Storage<Data> {
     }
 
     fn _disallow_lending(&mut self, asset_address: AccountId) {
-        let share_address = self
-            .data()
-            .asset_shares
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into());
-        self.data().asset_shares.remove(&asset_address);
-        self.data().shares_asset.remove(&share_address);
-        self.data().assets_lended.remove(&asset_address);
+        if let Some(share_address) = self.data().asset_shares.get(&asset_address) {
+            self.data().asset_shares.remove(&asset_address);
+            self.data().shares_asset.remove(&share_address);
+            self.data().assets_lended.remove(&asset_address);
+        }
     }
 
     /// this function will accept `asset_address` for using as collateral

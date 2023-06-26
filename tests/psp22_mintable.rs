@@ -32,7 +32,6 @@ mod psp22_mintable {
         traits::{
             Storage,
             String,
-            ZERO_ADDRESS,
         },
     };
 
@@ -161,7 +160,7 @@ mod psp22_mintable {
         let amount_to_mint = 10;
 
         assert_eq!(
-            PSP22Mintable::mint(&mut psp22, ZERO_ADDRESS.into(), amount_to_mint),
+            PSP22Mintable::mint(&mut psp22, None, amount_to_mint),
             Err(PSP22Error::ZeroRecipientAddress)
         );
     }

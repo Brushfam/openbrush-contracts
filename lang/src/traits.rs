@@ -117,19 +117,6 @@ pub trait StorageAsMut: StorageAsRef {
 impl<T> StorageAsRef for T {}
 impl<T: StorageAsRef> StorageAsMut for T {}
 
-pub const ZERO_ADDRESS: [u8; 32] = [255; 32];
-
-/// The trait provides some useful methods for `AccountId` type.
-pub trait AccountIdExt {
-    fn is_zero(&self) -> bool;
-}
-
-impl AccountIdExt for AccountId {
-    fn is_zero(&self) -> bool {
-        self == &ZERO_ADDRESS.into()
-    }
-}
-
 /// This trait is automatically implemented for storage structs.
 pub trait Flush: Storable + Sized + StorageKey {
     /// Method flushes the current state of `Self` into storage.

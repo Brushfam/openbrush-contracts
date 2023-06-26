@@ -29,11 +29,7 @@ mod ownable {
     };
     use openbrush::{
         test_utils::change_caller,
-        traits::{
-            AccountIdExt,
-            Storage,
-            ZERO_ADDRESS,
-        },
+        traits::Storage,
     };
 
     #[ink(event)]
@@ -113,7 +109,7 @@ mod ownable {
         let creator = Ownable::owner(&mut my_ownable);
         assert_eq!(creator, caller);
         assert!(Ownable::renounce_ownership(&mut my_ownable,).is_ok());
-        assert!(Ownable::owner(&mut my_ownable,).is_zero());
+        assert_eq!(Ownable::owner(&mut my_ownable), None);
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(2, emitted_events.len());
         assert_ownership_transferred_event(&emitted_events[0], None, Some(creator));
@@ -161,7 +157,7 @@ mod ownable {
     fn transfer_ownership_fails_zero_account() {
         let mut my_ownable = MyOwnable::new();
         assert_eq!(
-            Ownable::transfer_ownership(&mut my_ownable, ZERO_ADDRESS.into()),
+            Ownable::transfer_ownership(&mut my_ownable, None),
             Err(OwnableError::NewOwnerIsZero)
         );
     }

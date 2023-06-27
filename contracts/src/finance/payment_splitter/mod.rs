@@ -45,7 +45,6 @@ pub struct Data {
     pub shares: Mapping<AccountId, Balance>,
     pub released: Mapping<AccountId, Balance>,
     pub payees: Vec<AccountId>,
-    pub _reserved: Option<()>,
 }
 
 pub trait PaymentSplitterImpl: Storage<Data> + Internal {

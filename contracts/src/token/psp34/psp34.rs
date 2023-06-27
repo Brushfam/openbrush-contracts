@@ -55,7 +55,6 @@ pub struct Data {
     pub operator_approvals: Mapping<(Owner, Operator, Option<Id>), (), ApprovalsKey>,
     pub owned_tokens_count: Mapping<Owner, u32>,
     pub total_supply: Balance,
-    pub _reserved: Option<()>,
 }
 
 pub struct ApprovalsKey;

@@ -61,7 +61,6 @@ pub struct Data {
     pub hash_to_id: Mapping<Hash, u32>,
     // mapping of facet id to its facet
     pub id_to_hash: Mapping<u32, Hash, ValueGuard<u32>>,
-    pub _reserved: Option<()>,
 }
 
 pub trait DiamondCutLoupeImpl: Storage<Data> {

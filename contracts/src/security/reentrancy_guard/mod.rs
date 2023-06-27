@@ -38,7 +38,6 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 #[derive(Default, Debug)]
 pub struct Data {
     pub status: Lazy<u8>,
-    pub _reserved: Option<()>,
 }
 
 const NOT_ENTERED: u8 = 0;

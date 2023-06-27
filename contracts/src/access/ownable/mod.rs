@@ -39,7 +39,6 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
     pub owner: Option<AccountId>,
-    pub _reserved: Option<()>,
 }
 
 /// Throws if called by any account other than the owner.

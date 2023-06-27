@@ -54,7 +54,6 @@ pub struct Data {
     pub balances: Mapping<(AccountId, Option<Id>), Balance, BalancesKey>,
     pub supply: Mapping<Option<Id>, Balance, SupplyKey>,
     pub operator_approvals: Mapping<(AccountId, AccountId, Option<Id>), Balance, ApprovalsKey>,
-    pub _reserved: Option<()>,
 }
 
 pub struct BalancesKey;

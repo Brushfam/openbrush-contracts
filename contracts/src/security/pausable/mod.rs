@@ -43,7 +43,6 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
     pub paused: bool,
-    pub _reserved: Option<()>,
 }
 
 /// Modifier to make a function callable only when the contract is paused.

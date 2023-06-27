@@ -55,7 +55,6 @@ pub struct Data {
     pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey>,
     pub balances: Mapping<(AccountId, Id), Balance, BalancesKey>,
     pub supply: Mapping<Id, Balance>,
-    pub _reserved: Option<()>,
 }
 
 pub struct EnumerableKey;

@@ -54,7 +54,6 @@ pub struct Data {
     pub origin: Origin,
     /// Extension to interact with `pallet-assets`
     pub pallet_assets: AssetsExtension,
-    pub _reserved: Option<()>,
 }
 
 pub trait PSP22PalletImpl: Storage<Data> + Internal {

@@ -45,7 +45,6 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
     pub cap: Balance,
-    pub _reserved: Option<()>,
 }
 
 pub trait PSP22CappedImpl: Internal {

@@ -45,7 +45,6 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 pub struct Data {
     pub admin_roles: Mapping<RoleType, RoleType, ValueGuard<RoleType>>,
     pub members: Mapping<(RoleType, Option<AccountId>), (), MembersKey>,
-    pub _reserved: Option<()>,
 }
 
 pub struct MembersKey;

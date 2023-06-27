@@ -43,7 +43,6 @@ pub struct Data {
     pub name: Option<String>,
     pub symbol: Option<String>,
     pub decimals: u8,
-    pub _reserved: Option<()>,
 }
 
 pub trait PSP22MetadataImpl: Storage<Data> {

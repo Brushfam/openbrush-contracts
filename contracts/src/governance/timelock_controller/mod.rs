@@ -69,7 +69,6 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 pub struct Data {
     pub min_delay: Timestamp,
     pub timestamps: Mapping<OperationId, Timestamp>,
-    pub _reserved: Option<()>,
 }
 
 /// Modifier to make a function callable only by a certain role. In

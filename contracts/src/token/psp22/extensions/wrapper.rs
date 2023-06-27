@@ -50,7 +50,6 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
     pub underlying: Option<AccountId>,
-    pub _reserved: Option<()>,
 }
 
 pub trait PSP22WrapperImpl: Storage<Data> + Internal + psp22::Internal {

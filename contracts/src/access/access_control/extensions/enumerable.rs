@@ -49,7 +49,6 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
     pub role_members: MultiMapping<RoleType, Option<AccountId>, ValueGuard<RoleType>>,
-    pub _reserved: Option<()>,
 }
 
 pub trait MembersManagerImpl: Storage<Data> {

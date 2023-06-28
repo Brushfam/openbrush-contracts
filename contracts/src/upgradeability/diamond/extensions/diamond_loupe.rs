@@ -53,7 +53,7 @@ pub use ownable::{
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[ink::storage_item]
 pub struct Data {
     // number of registered code hashes
     pub code_hashes: u32,

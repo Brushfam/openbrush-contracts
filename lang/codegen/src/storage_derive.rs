@@ -57,12 +57,6 @@ pub fn storage_derive(item: TokenStream) -> TokenStream {
                         &mut self.#field_ident
                     }
                 }
-
-                impl #impls ::openbrush::traits::OccupiedStorage<{ <#ty as ::openbrush::traits::OccupyStorage>::KEY }>
-                    for #struct_ident #types #where_clause
-                {
-                    type WithData = #ty;
-                }
             )
         });
 

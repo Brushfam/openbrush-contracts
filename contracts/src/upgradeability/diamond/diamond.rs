@@ -56,7 +56,7 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 // TODO: Add support of Erc165
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[ink::storage_item]
 pub struct Data {
     pub selector_to_hash: Mapping<Selector, Hash>,
     // Facet mapped to all functions it supports

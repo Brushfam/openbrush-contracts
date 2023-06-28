@@ -51,8 +51,8 @@ pub use token_timelock::{
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[derive(Debug, Default)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[derive(Default, Debug)]
+#[ink::storage_item]
 pub struct Data {
     token: Option<AccountId>,
     beneficiary: Option<AccountId>,

@@ -46,8 +46,8 @@ pub use wrapper::Internal as _;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[derive(Debug, Default)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[derive(Default, Debug)]
+#[ink::storage_item]
 pub struct Data {
     pub underlying: Option<AccountId>,
 }

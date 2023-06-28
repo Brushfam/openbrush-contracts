@@ -43,8 +43,8 @@ pub use psp22::{
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
 #[derive(Default, Debug)]
+#[ink::storage_item]
 pub struct Data {
     pub supply: Balance,
     pub balances: Mapping<AccountId, Balance>,

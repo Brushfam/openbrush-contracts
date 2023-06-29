@@ -32,41 +32,43 @@ macro_rules! storage_unique_key {
     }};
 }
 
+#[macro_export]
+macro_rules! storage_unique_key2 {
+    ($string:expr) => {{
+        $crate::utils::ConstHasher::hash($crate::utils::const_format::concatcp!($string))
+    }};
+}
+
 #[test]
 fn correct_storage_key() {
-    use crate::{
-        traits::OccupyStorage,
-        utils::ConstHasher,
-    };
+    use crate::utils::ConstHasher;
+    use ink::storage::traits::StorageKey;
 
     mod contracts {
         pub mod psp22 {
-            use crate::traits::OccupyStorage;
+            use ink::storage::traits::StorageKey;
+
             pub struct Data;
 
-            impl OccupyStorage for Data {
+            impl StorageKey for Data {
                 const KEY: u32 = storage_unique_key!(Data);
             }
         }
 
         pub mod psp34 {
-            use crate::traits::OccupyStorage;
+            use ink::storage::traits::StorageKey;
+
             pub struct Data;
 
-            impl OccupyStorage for Data {
+            impl StorageKey for Data {
                 const KEY: u32 = storage_unique_key!(Data);
             }
         }
     }
 
     let expected_hash_psp22 = ConstHasher::hash("openbrush_lang::macros::contracts::psp22::Data");
-    assert_eq!(expected_hash_psp22, <contracts::psp22::Data as OccupyStorage>::KEY);
+    assert_eq!(expected_hash_psp22, <contracts::psp22::Data as StorageKey>::KEY);
 
     let expected_hash_psp34 = ConstHasher::hash("openbrush_lang::macros::contracts::psp34::Data");
-    assert_eq!(expected_hash_psp34, <contracts::psp34::Data as OccupyStorage>::KEY);
-#[macro_export]
-macro_rules! storage_unique_key2 {
-    ($string:expr) => {{
-        $crate::utils::ConstHasher::hash($crate::utils::const_format::concatcp!($string))
-    }};
+    assert_eq!(expected_hash_psp34, <contracts::psp34::Data as StorageKey>::KEY);
 }

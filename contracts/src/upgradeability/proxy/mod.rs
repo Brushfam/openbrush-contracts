@@ -30,6 +30,10 @@ pub use crate::{
         proxy::*,
     },
 };
+use ink::storage::{
+    traits::ManualKey,
+    Lazy,
+};
 use openbrush::{
     modifiers,
     traits::{
@@ -46,23 +50,23 @@ pub use proxy::{
     InternalImpl as _,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("proxy::forward_to");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub forward_to: Hash,
+    pub forward_to: Lazy<Hash, ManualKey<STORAGE_KEY>>,
 }
 
 pub trait ProxyImpl: Storage<Data> + Storage<ownable::Data> + Internal {
     fn get_delegate_code(&self) -> Hash {
-        self.data::<Data>().forward_to
+        self.data::<Data>().forward_to.get_or_default()
     }
 
     #[modifiers(ownable::only_owner)]
     fn change_delegate_code(&mut self, new_code_hash: Hash) -> Result<(), OwnableError> {
-        let old_code_hash = self.data::<Data>().forward_to.clone();
-        self.data::<Data>().forward_to = new_code_hash;
+        let old_code_hash = self.data::<Data>().forward_to.get_or_default();
+        self.data::<Data>().forward_to.set(&new_code_hash);
         self._emit_delegate_code_changed_event(Some(old_code_hash), Some(new_code_hash));
         Ok(())
     }
@@ -80,13 +84,13 @@ pub trait InternalImpl: Internal + Storage<Data> {
     fn _emit_delegate_code_changed_event(&self, _previous: Option<Hash>, _new: Option<Hash>) {}
 
     fn _init_with_forward_to(&mut self, forward_to: Hash) {
-        self.data().forward_to = forward_to;
+        self.data().forward_to.set(&forward_to);
         Internal::_emit_delegate_code_changed_event(self, None, Some(forward_to));
     }
 
     fn _fallback(&self) -> ! {
         ink::env::call::build_call::<ink::env::DefaultEnvironment>()
-            .delegate(self.data().forward_to.clone())
+            .delegate(self.data().forward_to.get_or_default())
             .call_flags(
                 ink::env::CallFlags::default()
                 // We don't plan to use the input data after the delegated call, so the 

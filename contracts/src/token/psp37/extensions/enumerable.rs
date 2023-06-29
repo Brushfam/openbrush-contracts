@@ -28,6 +28,7 @@ pub use crate::{
         *,
     },
 };
+use ink::storage::traits::ManualKey;
 use openbrush::{
     storage::{
         Mapping,
@@ -47,14 +48,16 @@ pub use psp37::{
     PSP37Impl,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Balances);
+pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("psp37::enumerable::enumerable");
+pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("psp37::enumerable::balances");
+pub const STORAGE_KEY_3: u32 = openbrush::storage_unique_key2!("psp37::enumerable::supply");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey>,
-    pub balances: Mapping<(AccountId, Id), Balance, BalancesKey>,
-    pub supply: Mapping<Id, Balance>,
+    pub enumerable: MultiMapping<Option<AccountId>, Id, ManualKey<STORAGE_KEY_1>, EnumerableKey>,
+    pub balances: Mapping<(AccountId, Id), Balance, ManualKey<STORAGE_KEY_2>, BalancesKey>,
+    pub supply: Mapping<Id, Balance, ManualKey<STORAGE_KEY_3>>,
 }
 
 pub struct EnumerableKey;

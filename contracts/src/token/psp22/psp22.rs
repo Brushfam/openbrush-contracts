@@ -23,7 +23,13 @@ pub use crate::{
     psp22,
     traits::psp22::*,
 };
-use ink::prelude::vec::Vec;
+use ink::{
+    prelude::vec::Vec,
+    storage::{
+        traits::ManualKey,
+        Lazy,
+    },
+};
 use openbrush::{
     storage::{
         Mapping,
@@ -41,14 +47,16 @@ pub use psp22::{
     PSP22Impl as _,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("psp22::supply");
+pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("psp22::balances");
+pub const STORAGE_KEY_3: u32 = openbrush::storage_unique_key2!("psp22::allowances");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub supply: Balance,
-    pub balances: Mapping<AccountId, Balance>,
-    pub allowances: Mapping<(AccountId, AccountId), Balance, AllowancesKey>,
+    pub supply: Lazy<Balance, ManualKey<STORAGE_KEY_1>>,
+    pub balances: Mapping<AccountId, Balance, ManualKey<STORAGE_KEY_2>>,
+    pub allowances: Mapping<(AccountId, AccountId), Balance, ManualKey<STORAGE_KEY_3>, AllowancesKey>,
 }
 
 pub struct AllowancesKey;
@@ -165,7 +173,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 
     fn _total_supply(&self) -> Balance {
-        self.data().supply.clone()
+        self.data().supply.get_or_default()
     }
 
     fn _balance_of(&self, owner: &AccountId) -> Balance {
@@ -213,7 +221,10 @@ pub trait InternalImpl: Storage<Data> + Internal {
         let mut new_balance = Internal::_balance_of(self, &account);
         new_balance += amount;
         self.data().balances.insert(&account, &new_balance);
-        self.data().supply += amount;
+
+        let new_supply = self.data().supply.get_or_default() + amount;
+        self.data().supply.set(&new_supply);
+
         Internal::_after_token_transfer(self, None, Some(&account), &amount)?;
         Internal::_emit_transfer_event(self, None, Some(account), amount);
 
@@ -231,7 +242,10 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
         from_balance -= amount;
         self.data().balances.insert(&account, &from_balance);
-        self.data().supply -= amount;
+
+        let new_supply = self.data().supply.get_or_default() - amount;
+        self.data().supply.set(&new_supply);
+
         Internal::_after_token_transfer(self, Some(&account), None, &amount)?;
         Internal::_emit_transfer_event(self, Some(account), None, amount);
 

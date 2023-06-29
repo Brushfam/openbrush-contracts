@@ -64,4 +64,9 @@ fn correct_storage_key() {
 
     let expected_hash_psp34 = ConstHasher::hash("openbrush_lang::macros::contracts::psp34::Data");
     assert_eq!(expected_hash_psp34, <contracts::psp34::Data as OccupyStorage>::KEY);
+#[macro_export]
+macro_rules! storage_unique_key2 {
+    ($string:expr) => {{
+        $crate::utils::ConstHasher::hash($crate::utils::const_format::concatcp!($string))
+    }};
 }

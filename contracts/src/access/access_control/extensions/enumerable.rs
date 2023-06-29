@@ -32,6 +32,7 @@ pub use access_control::{
     Internal as _,
     InternalImpl as _,
 };
+use ink::storage::traits::ManualKey;
 use openbrush::{
     storage::{
         MultiMapping,
@@ -43,12 +44,12 @@ use openbrush::{
     },
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("access_control::enumerable::role_members");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub role_members: MultiMapping<RoleType, Option<AccountId>, ValueGuard<RoleType>>,
+    pub role_members: MultiMapping<RoleType, Option<AccountId>, ManualKey<STORAGE_KEY>, ValueGuard<RoleType>>,
 }
 
 pub trait MembersManagerImpl: Storage<Data> {

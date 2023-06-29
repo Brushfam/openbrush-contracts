@@ -27,6 +27,7 @@ pub use crate::{
         *,
     },
 };
+use ink::storage::traits::ManualKey;
 pub use metadata::Internal as _;
 pub use openbrush::traits::String;
 use openbrush::{
@@ -45,12 +46,12 @@ pub use psp34::{
     PSP34Impl,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("psp34::metadata::attributes");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub attributes: Mapping<(Id, String), String, AttributesKey>,
+    pub attributes: Mapping<(Id, String), String, ManualKey<STORAGE_KEY>, AttributesKey>,
 }
 
 pub struct AttributesKey;

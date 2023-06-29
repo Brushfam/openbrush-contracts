@@ -24,9 +24,12 @@ pub use crate::{
     traits::psp37::*,
 };
 use core::result::Result;
-use ink::prelude::{
-    vec,
-    vec::Vec,
+use ink::{
+    prelude::{
+        vec,
+        vec::Vec,
+    },
+    storage::traits::ManualKey,
 };
 use openbrush::{
     storage::{
@@ -46,14 +49,17 @@ pub use psp37::{
     InternalImpl as _,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("psp37::balances");
+pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("psp37::supply");
+pub const STORAGE_KEY_3: u32 = openbrush::storage_unique_key2!("psp37::operator_approvals");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub balances: Mapping<(AccountId, Option<Id>), Balance, BalancesKey>,
-    pub supply: Mapping<Option<Id>, Balance, SupplyKey>,
-    pub operator_approvals: Mapping<(AccountId, AccountId, Option<Id>), Balance, ApprovalsKey>,
+    pub balances: Mapping<(AccountId, Option<Id>), Balance, ManualKey<STORAGE_KEY_1>, BalancesKey>,
+    pub supply: Mapping<Option<Id>, Balance, ManualKey<STORAGE_KEY_2>, SupplyKey>,
+    pub operator_approvals:
+        Mapping<(AccountId, AccountId, Option<Id>), Balance, ManualKey<STORAGE_KEY_3>, ApprovalsKey>,
 }
 
 pub struct BalancesKey;

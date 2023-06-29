@@ -24,6 +24,7 @@ pub use crate::{
     traits::access_control::*,
 };
 pub use access_control::Internal as _;
+use ink::storage::traits::ManualKey;
 use openbrush::{
     modifier_definition,
     modifiers,
@@ -38,13 +39,14 @@ use openbrush::{
     },
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("acces_control::admin_roles");
+pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("access_control::members");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub admin_roles: Mapping<RoleType, RoleType, ValueGuard<RoleType>>,
-    pub members: Mapping<(RoleType, Option<AccountId>), (), MembersKey>,
+    pub admin_roles: Mapping<RoleType, RoleType, ManualKey<STORAGE_KEY_1>, ValueGuard<RoleType>>,
+    pub members: Mapping<(RoleType, Option<AccountId>), (), ManualKey<STORAGE_KEY_2>, MembersKey>,
 }
 
 pub struct MembersKey;

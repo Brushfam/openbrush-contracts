@@ -23,8 +23,8 @@ pub mod my_psp22_pallet_mintable {
 
             psp22_pallet::Internal::_create(&mut instance, asset_id, Self::env().account_id(), min_balance)
                 .expect("Should create an asset");
-            instance.pallet.asset_id = asset_id;
-            instance.pallet.origin = Origin::Caller;
+            instance.pallet.asset_id.set(&asset_id);
+            instance.pallet.origin.set(&Origin::Caller);
             psp22_pallet::Internal::_mint_to(&mut instance, caller, total_supply).expect("Should mint_to");
 
             instance

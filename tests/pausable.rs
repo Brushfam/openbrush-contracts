@@ -119,7 +119,7 @@ mod pausable {
         let accounts = setup();
         let mut inst = MyFlipper::new();
         assert!(pausable::Internal::_pause(&mut inst).is_ok());
-        assert!(inst.pause.paused);
+        assert!(inst.pause.paused.get_or_default());
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_paused_event(&emitted_events[0], accounts.alice);
@@ -163,7 +163,7 @@ mod pausable {
 
         assert!(pausable::Internal::_pause(&mut inst).is_ok());
         assert!(pausable::Internal::_unpause(&mut inst).is_ok());
-        assert!(!inst.pause.paused);
+        assert!(!inst.pause.paused.get_or_default());
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_unpaused_event(&emitted_events[0], accounts.alice);
@@ -176,7 +176,7 @@ mod pausable {
 
         assert!(pausable::Internal::_pause(&mut inst).is_ok());
         assert!(pausable::Internal::_switch_pause(&mut inst).is_ok());
-        assert!(!inst.pause.paused);
+        assert!(!inst.pause.paused.get_or_default());
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_unpaused_event(&emitted_events[0], accounts.alice);

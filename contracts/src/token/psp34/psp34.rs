@@ -27,7 +27,13 @@ pub use crate::{
     },
     traits::psp34::*,
 };
-use ink::prelude::vec::Vec;
+use ink::{
+    prelude::vec::Vec,
+    storage::{
+        traits::ManualKey,
+        Lazy,
+    },
+};
 use openbrush::{
     storage::{
         Mapping,
@@ -46,15 +52,18 @@ pub use psp34::{
     PSP34Impl as _,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("psp34::token_owner");
+pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("psp34::operator_approvals");
+pub const STORAGE_KEY_3: u32 = openbrush::storage_unique_key2!("psp34::owned_tokens_count");
+pub const STORAGE_KEY_4: u32 = openbrush::storage_unique_key2!("psp34::total_supply");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub token_owner: Mapping<Id, Owner>,
-    pub operator_approvals: Mapping<(Owner, Operator, Option<Id>), (), ApprovalsKey>,
-    pub owned_tokens_count: Mapping<Owner, u32>,
-    pub total_supply: Balance,
+    pub token_owner: Mapping<Id, Owner, ManualKey<STORAGE_KEY_1>>,
+    pub operator_approvals: Mapping<(Owner, Operator, Option<Id>), (), ManualKey<STORAGE_KEY_2>, ApprovalsKey>,
+    pub owned_tokens_count: Mapping<Owner, u32, ManualKey<STORAGE_KEY_3>>,
+    pub total_supply: Lazy<Balance, ManualKey<STORAGE_KEY_4>>,
 }
 
 pub struct ApprovalsKey;
@@ -264,7 +273,8 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         let to_balance = self.data().owned_tokens_count.get(owner).unwrap_or(0);
         self.data().owned_tokens_count.insert(owner, &(to_balance + 1));
         if increase_supply {
-            self.data().total_supply += 1;
+            let new_supply = self.data().total_supply.get_or_default() + 1;
+            self.data().total_supply.set(&new_supply);
         }
     }
 
@@ -275,11 +285,12 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
             .insert(owner, &(from_balance.checked_sub(1).unwrap()));
 
         if decrease_supply {
-            self.data().total_supply -= 1;
+            let new_supply = self.data().total_supply.get_or_default() - 1;
+            self.data().total_supply.set(&new_supply);
         }
     }
 
     fn _total_supply(&self) -> u128 {
-        self.data().total_supply
+        self.data().total_supply.get_or_default()
     }
 }

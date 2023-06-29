@@ -24,7 +24,10 @@ pub use crate::{
     traits::errors::ReentrancyGuardError,
 };
 use ink::storage::{
-    traits::Storable,
+    traits::{
+        ManualKey,
+        Storable,
+    },
     Lazy,
 };
 use openbrush::{
@@ -32,12 +35,12 @@ use openbrush::{
     traits::Storage,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("reentrancy_guard::status");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub status: Lazy<u8>,
+    pub status: Lazy<u8, ManualKey<STORAGE_KEY>>,
 }
 
 const NOT_ENTERED: u8 = 0;

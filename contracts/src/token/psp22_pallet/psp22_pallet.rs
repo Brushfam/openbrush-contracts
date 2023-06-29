@@ -23,6 +23,10 @@ pub use crate::{
     psp22_pallet,
     traits::psp22::*,
 };
+use ink::storage::{
+    traits::ManualKey,
+    Lazy,
+};
 pub use ink::{
     env::DefaultEnvironment,
     prelude::vec::Vec,
@@ -43,33 +47,44 @@ pub use psp22_pallet::{
     PSP22PalletImpl as _,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("psp22_pallet::asset_id");
+pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("psp22_pallet::origin");
+pub const STORAGE_KEY_3: u32 = openbrush::storage_unique_key2!("psp22_pallet::pallet_assets");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
     /// Asset id of the token on the pallet.
-    pub asset_id: u32,
+    pub asset_id: Lazy<u32, ManualKey<STORAGE_KEY_1>>,
     /// Default origin of the contract.
-    pub origin: Origin,
+    pub origin: Lazy<Origin, ManualKey<STORAGE_KEY_2>>,
     /// Extension to interact with `pallet-assets`
-    pub pallet_assets: AssetsExtension,
+    pub pallet_assets: Lazy<AssetsExtension, ManualKey<STORAGE_KEY_3>>,
 }
 
 pub trait PSP22PalletImpl: Storage<Data> + Internal {
     fn total_supply(&self) -> Balance {
         let self_ = self.data();
-        self_.pallet_assets.total_supply(self_.asset_id)
+        self_
+            .pallet_assets
+            .get_or_default()
+            .total_supply(self_.asset_id.get_or_default())
     }
 
     fn balance_of(&self, owner: AccountId) -> Balance {
         let self_ = self.data();
-        self_.pallet_assets.balance_of(self_.asset_id, owner)
+        self_
+            .pallet_assets
+            .get_or_default()
+            .balance_of(self_.asset_id.get_or_default(), owner)
     }
 
     fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance {
         let self_ = self.data();
-        self_.pallet_assets.allowance(self_.asset_id, owner, spender)
+        self_
+            .pallet_assets
+            .get_or_default()
+            .allowance(self_.asset_id.get_or_default(), owner, spender)
     }
 
     fn transfer(&mut self, to: AccountId, value: Balance, _data: Vec<u8>) -> Result<(), PSP22Error> {
@@ -78,9 +93,12 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
         }
 
         let self_ = self.data();
-        self_
-            .pallet_assets
-            .transfer(self_.origin, self_.asset_id, to.clone(), value)?;
+        self_.pallet_assets.get_or_default().transfer(
+            self_.origin.get_or_default(),
+            self_.asset_id.get_or_default(),
+            to.clone(),
+            value,
+        )?;
         self._emit_transfer_event(Some(self._sender()), Some(to), value);
         Ok(())
     }
@@ -97,9 +115,13 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
         }
 
         let self_ = self.data();
-        self_
-            .pallet_assets
-            .transfer_approved(self_.origin, self_.asset_id, from.clone(), to.clone(), value)?;
+        self_.pallet_assets.get_or_default().transfer_approved(
+            self_.origin.get_or_default(),
+            self_.asset_id.get_or_default(),
+            from.clone(),
+            to.clone(),
+            value,
+        )?;
         self._emit_transfer_event(Some(from), Some(to), value);
         Ok(())
     }
@@ -115,14 +137,19 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
 
         if allowance > 0 {
             // First we reset the previous approve and after set a new one.
-            self_
-                .pallet_assets
-                .cancel_approval(self_.origin, self_.asset_id, spender.clone())?;
+            self_.pallet_assets.get_or_default().cancel_approval(
+                self_.origin.get_or_default(),
+                self_.asset_id.get_or_default(),
+                spender.clone(),
+            )?;
         }
 
-        self_
-            .pallet_assets
-            .approve_transfer(self_.origin, self_.asset_id, spender, value)?;
+        self_.pallet_assets.get_or_default().approve_transfer(
+            self_.origin.get_or_default(),
+            self_.asset_id.get_or_default(),
+            spender,
+            value,
+        )?;
         self._emit_approval_event(caller, spender, value);
         Ok(())
     }
@@ -136,9 +163,12 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
         let allowance = self.allowance(caller.clone(), spender.clone());
         let self_ = self.data();
         // `approve_transfer` increases by default
-        self_
-            .pallet_assets
-            .approve_transfer(self_.origin, self_.asset_id, spender, delta_value)?;
+        self_.pallet_assets.get_or_default().approve_transfer(
+            self_.origin.get_or_default(),
+            self_.asset_id.get_or_default(),
+            spender,
+            delta_value,
+        )?;
         self._emit_approval_event(caller, spender, allowance + delta_value);
 
         Ok(())
@@ -192,14 +222,20 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         let self_ = self.data();
-        self_.pallet_assets.mint(self_.asset_id, account.clone(), amount)?;
+        self_
+            .pallet_assets
+            .get_or_default()
+            .mint(self_.asset_id.get_or_default(), account.clone(), amount)?;
         Internal::_emit_transfer_event(self, None, Some(account), amount);
         Ok(())
     }
 
     fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         let self_ = self.data();
-        self_.pallet_assets.burn(self_.asset_id, account.clone(), amount)?;
+        self_
+            .pallet_assets
+            .get_or_default()
+            .burn(self_.asset_id.get_or_default(), account.clone(), amount)?;
         Internal::_emit_transfer_event(self, Some(account), None, amount);
         Ok(())
     }
@@ -210,11 +246,14 @@ pub trait InternalImpl: Storage<Data> + Internal {
         admin: AccountId,
         min_balance: Balance,
     ) -> Result<(), Error<DefaultEnvironment>> {
-        self.data().pallet_assets.create(asset_id, admin, min_balance)
+        self.data()
+            .pallet_assets
+            .get_or_default()
+            .create(asset_id, admin, min_balance)
     }
 
     fn _sender(&self) -> AccountId {
-        match self.data().origin {
+        match self.data().origin.get_or_default() {
             Origin::Caller => Self::env().caller(),
             Origin::Address => Self::env().account_id(),
         }

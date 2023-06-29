@@ -28,6 +28,10 @@ pub use crate::{
     },
 };
 pub use capped::Internal as _;
+use ink::storage::{
+    traits::ManualKey,
+    Lazy,
+};
 use openbrush::traits::{
     Balance,
     Storage,
@@ -39,12 +43,12 @@ pub use psp22::{
     PSP22Impl,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("psp22::capped::cap");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub cap: Balance,
+    pub cap: Lazy<Balance, ManualKey<STORAGE_KEY>>,
 }
 
 pub trait PSP22CappedImpl: Internal {
@@ -67,7 +71,7 @@ pub trait InternalImpl: Storage<Data> + Internal + PSP22 {
         if cap == 0 {
             return Err(PSP22Error::Custom(String::from("Cap must be above 0")))
         }
-        self.data().cap = cap;
+        self.data().cap.set(&cap);
         Ok(())
     }
 
@@ -79,6 +83,6 @@ pub trait InternalImpl: Storage<Data> + Internal + PSP22 {
     }
 
     fn _cap(&self) -> Balance {
-        self.data().cap.clone()
+        self.data().cap.get_or_default()
     }
 }

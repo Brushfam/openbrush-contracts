@@ -48,6 +48,10 @@ use ink::{
         vec,
         vec::Vec,
     },
+    storage::{
+        traits::ManualKey,
+        Lazy,
+    },
 };
 use openbrush::{
     modifier_definition,
@@ -62,13 +66,14 @@ use openbrush::{
 };
 pub use timelock_controller::Internal as _;
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("timelock_controller::min_delay");
+pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("timelock_controller::timestamps");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub min_delay: Timestamp,
-    pub timestamps: Mapping<OperationId, Timestamp>,
+    pub min_delay: Lazy<Timestamp, ManualKey<STORAGE_KEY_1>>,
+    pub timestamps: Mapping<OperationId, Timestamp, ManualKey<STORAGE_KEY_2>>,
 }
 
 /// Modifier to make a function callable only by a certain role. In
@@ -118,7 +123,7 @@ pub trait TimelockControllerImpl:
     }
 
     fn get_min_delay(&self) -> Timestamp {
-        self.data::<Data>().min_delay.clone()
+        self.data::<Data>().min_delay.get_or_default()
     }
 
     fn hash_operation(&self, transaction: Transaction, predecessor: Option<OperationId>, salt: [u8; 32]) -> Hash {
@@ -215,10 +220,10 @@ pub trait TimelockControllerImpl:
             return Err(TimelockControllerError::CallerMustBeTimeLock)
         }
 
-        let old_delay = self.data::<Data>().min_delay.clone();
+        let old_delay = self.data::<Data>().min_delay.get_or_default();
         self._emit_min_delay_change_event(old_delay, new_delay);
 
-        self.data::<Data>().min_delay = new_delay;
+        self.data::<Data>().min_delay.set(&new_delay);
         Ok(())
     }
 }
@@ -352,8 +357,8 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
             .into_iter()
             .for_each(|executor| self._setup_role(<Self as Internal>::_executor_role(), Some(executor)));
 
-        let old_delay = self.data::<Data>().min_delay.clone();
-        self.data::<Data>().min_delay = min_delay;
+        let old_delay = self.data::<Data>().min_delay.get_or_default();
+        self.data::<Data>().min_delay.set(&min_delay);
         Internal::_emit_min_delay_change_event(self, old_delay, min_delay);
     }
 
@@ -395,7 +400,7 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
         if Internal::_is_operation(self, id) {
             return Err(TimelockControllerError::OperationAlreadyScheduled)
         }
-        if delay < &self.data::<Data>().min_delay {
+        if delay < &self.data::<Data>().min_delay.get_or_default() {
             return Err(TimelockControllerError::InsufficientDelay)
         }
 

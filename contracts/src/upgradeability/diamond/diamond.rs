@@ -41,6 +41,7 @@ use ink::{
     },
     prelude::vec::Vec,
     primitives::Clear,
+    storage::traits::ManualKey,
 };
 use openbrush::{
     modifiers,
@@ -52,15 +53,16 @@ use openbrush::{
 };
 pub use ownable::Internal as _;
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("diamond::selector_to_hash");
+pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("diamond::hash_to_selectors");
 
 // TODO: Add support of Erc165
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub selector_to_hash: Mapping<Selector, Hash>,
+    pub selector_to_hash: Mapping<Selector, Hash, ManualKey<STORAGE_KEY_1>>,
     // Facet mapped to all functions it supports
-    pub hash_to_selectors: Mapping<Hash, Vec<Selector>>,
+    pub hash_to_selectors: Mapping<Hash, Vec<Selector>, ManualKey<STORAGE_KEY_2>>,
 }
 
 pub trait DiamondImpl: Internal + Storage<ownable::Data> {

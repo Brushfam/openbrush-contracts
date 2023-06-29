@@ -30,6 +30,10 @@ pub use crate::{
 use ink::{
     env::CallFlags,
     prelude::vec::Vec,
+    storage::{
+        traits::ManualKey,
+        Lazy,
+    },
 };
 use openbrush::traits::{
     AccountId,
@@ -44,12 +48,12 @@ pub use psp22::{
 };
 pub use wrapper::Internal as _;
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("psp22::wrapper::underlying");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub underlying: Option<AccountId>,
+    pub underlying: Lazy<Option<AccountId>, ManualKey<STORAGE_KEY>>,
 }
 
 pub trait PSP22WrapperImpl: Storage<Data> + Internal + psp22::Internal {
@@ -133,10 +137,10 @@ pub trait InternalImpl: Storage<Data> + Internal + psp22::Internal + PSP22 {
     }
 
     fn _init(&mut self, underlying: AccountId) {
-        self.data().underlying = Some(underlying);
+        self.data().underlying.set(&Some(underlying));
     }
 
     fn _underlying(&mut self) -> Option<AccountId> {
-        self.data().underlying
+        self.data().underlying.get_or_default()
     }
 }

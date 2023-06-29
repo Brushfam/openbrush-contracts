@@ -27,6 +27,10 @@ pub use crate::{
         *,
     },
 };
+use ink::storage::{
+    traits::ManualKey,
+    Lazy,
+};
 use openbrush::traits::Storage;
 pub use openbrush::traits::String;
 pub use psp22::{
@@ -35,26 +39,28 @@ pub use psp22::{
     PSP22Impl,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("psp22::metadata::name");
+pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("psp22::metadata::symbol");
+pub const STORAGE_KEY_3: u32 = openbrush::storage_unique_key2!("psp22::metadata::decimals");
 
 #[derive(Default, Debug)]
 #[ink::storage_item]
 pub struct Data {
-    pub name: Option<String>,
-    pub symbol: Option<String>,
-    pub decimals: u8,
+    pub name: Lazy<Option<String>, ManualKey<STORAGE_KEY_1>>,
+    pub symbol: Lazy<Option<String>, ManualKey<STORAGE_KEY_2>>,
+    pub decimals: Lazy<u8, ManualKey<STORAGE_KEY_3>>,
 }
 
 pub trait PSP22MetadataImpl: Storage<Data> {
     fn token_name(&self) -> Option<String> {
-        self.data().name.clone()
+        self.data().name.get_or_default()
     }
 
     fn token_symbol(&self) -> Option<String> {
-        self.data().symbol.clone()
+        self.data().symbol.get_or_default()
     }
 
     fn token_decimals(&self) -> u8 {
-        self.data().decimals.clone()
+        self.data().decimals.get_or_default()
     }
 }

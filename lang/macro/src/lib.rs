@@ -29,7 +29,6 @@ use openbrush_lang_codegen::{
     implementation,
     modifier_definition,
     modifiers,
-    storage,
     storage_derive,
     trait_definition,
     wrapper,
@@ -424,47 +423,6 @@ pub fn modifiers(_attrs: TokenStream, method: TokenStream) -> TokenStream {
 pub fn wrapper(attrs: TokenStream, input: TokenStream) -> TokenStream {
     wrapper::generate(attrs.into(), input.into()).into()
 }
-
-synstructure::decl_attribute!(
-    [upgradeable_storage] =>
-    /// That macro implemented `OccupyStorage`
-    ///
-    /// Also, that macro adds the code to initialize the structure if it wasn't initialized.
-    /// That macro requires one input argument - the storage key. It can be any Rust code that returns
-    /// `u32`.
-    ///
-    /// # Example:
-    /// ```
-    /// {
-    /// use openbrush::traits::AccountId;
-    /// pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(OwnableData);
-    ///
-    /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    /// pub struct OwnableData {
-    ///    pub owner: AccountId,
-    ///    pub _reserved: Option<()>,
-    /// }
-    ///
-    /// const PROXY_KEY : u32 = openbrush::storage_unique_key!(ProxyData);
-    ///
-    /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(PROXY_KEY)]
-    /// pub struct ProxyData {
-    ///    pub forward: AccountId,
-    ///    pub _reserved: Option<()>,
-    /// }
-    ///
-    /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(123)]
-    /// pub struct SomeData {
-    ///    pub _reserved: Option<()>,
-    /// }
-    ///
-    /// }
-    /// ```
-    storage::upgradeable_storage
-);
 
 /// The macro implements `openbrush::traits::Storage` and `openbrush::traits::OccupiedStorage`
 /// traits for each field marked by `#[storage_field]` attribute. Each field's type should implement

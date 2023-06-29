@@ -91,7 +91,7 @@ With this approach, you can order your units as you wish. You can add/remove/swa
 logic units and don't worry about storage layout because each logic unit will have its space 
 in the blockchain's storage. If storage keys are unique, those spaces don't overlap.
 
-OpenBrush provides [`openbrush::upgradeable_storage`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
+OpenBrush provides [`openbrush::upgradeable_storage`](https://github.com/Brushfam/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
 attribute macro that implements some of the required traits with specified storage key(storage key is required input argument to macro).
 This way, macro will define the storage key for this struct, but WILL NOT set this struct by it's storage key automatically.
 So, you will need to perform such actions manually, or use `Lazy` wrapper. All of the `Lazy` and `Mapping` units that are defined inside of the type
@@ -186,7 +186,7 @@ and maybe you have a lot of unique structures :D
 The storage key should be unique per each logic unit. You can assign each key manually or 
 use some hash function to automate it.
 
-OpenBrush provides [`openbrush::storage_unique_key!`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/src/macros.rs#L25) 
+OpenBrush provides [`openbrush::storage_unique_key!`](https://github.com/Brushfam/openbrush-contracts/blob/main/lang/src/macros.rs#L25) 
 macro that generates a storage key based on the path to the structure. 
 It has one required input argument - the name of the structure.
 

@@ -38,12 +38,12 @@ std = [
 ink-as-dependency = []
 ```
 
-By default, the `openbrush` crate provides [macros](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs)
-for simplification of the development and [traits](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/traits) of 
+By default, the `openbrush` crate provides [macros](https://github.com/Brushfam/openbrush-contracts/blob/main/lang/macro/src/lib.rs)
+for simplification of the development and [traits](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/traits) of 
 contracts(you can implement them by yourself, and you can use them for a cross-contract calls). 
 
 The OpenBrush also provides the default implementation of traits that can be enabled via crate features. 
-A list of all available features you can find [here](https://github.com/727-Ventures/openbrush-contracts/blob/main/Cargo.toml#L51).
+A list of all available features you can find [here](https://github.com/Brushfam/openbrush-contracts/blob/main/Cargo.toml#L51).
 The default implementation of traits requires the usage of the unstable feature [min-specialization](https://doc.rust-lang.org/beta/unstable-book/language-features/min-specialization.html).
 You can enable it by adding `#![feature(min_specialization)]` at the top of your root module(for more information check [rust official documentation](https://doc.rust-lang.org/rustdoc/unstable-features.html)). 
 
@@ -62,8 +62,8 @@ All default implementations of the traits provided by OpenBrush have the same pa
 Consequently, the re-usage of each implementation in your contract also has the same pattern.
 
 Each implementation of the contract has its module and its feature that enables that 
-module. A list of available modules you can find [here](https://github.com/727-Ventures/openbrush-contracts/blob/main/contracts/src/lib.rs#L33), 
-a list of available features [here](https://github.com/727-Ventures/openbrush-contracts/blob/main/Cargo.toml#L51). 
+module. A list of available modules you can find [here](https://github.com/Brushfam/openbrush-contracts/blob/main/contracts/src/lib.rs#L33), 
+a list of available features [here](https://github.com/Brushfam/openbrush-contracts/blob/main/Cargo.toml#L51). 
 Each module can be reached via the `openbrush::contracts::` namespace. For example, 
 to use the `psp22` module, you need to import `openbrush::contracts::psp22`; 
 to use the `ownable` module, you need to import `openbrush::contracts::ownable`.
@@ -201,7 +201,7 @@ the module and main trait. Some contract extensions require additional steps, so
 you can find instructions on how to work with them:
 
 * [PSP22](PSP22/psp22.md) is an example of how you can reuse the implementation of
-  [psp22](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/token/psp22). You also can find examples of how to reuse extensions.
+  [psp22](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp22). You also can find examples of how to reuse extensions.
   * [PSP22Metadata](PSP22/Extensions/metadata.md): metadata for PSP22.
   * [PSP22Mintable](PSP22/Extensions/mintable.md): creation of new tokens.
   * [PSP22Burnable](PSP22/Extensions/burnable.md): destruction of own tokens.
@@ -210,33 +210,33 @@ you can find instructions on how to work with them:
   * [PSP22Pausable](PSP22/Extensions/pausable.md): example of using pausable extension in the PSP22 contract.
   * [PSP22TokenTimelock](PSP22/Utils/token-timelock.md): Utility which allows token holders to lock their tokens for a specified amount of time.
 * [PSP34](PSP34/psp34.md) is an example of how you can reuse the implementation of
-  [psp34](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/token/psp34). You also can find examples of how to reuse extensions.
+  [psp34](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp34). You also can find examples of how to reuse extensions.
   * [PSP34Metadata](PSP34/Extensions/metadata.md): metadata for PSP34.
   * [PSP34Mintable](PSP34/Extensions/mintable.md): creation of new tokens.
   * [PSP34Burnable](PSP34/Extensions/burnable.md): destruction of own tokens.
   * [PSP34Enumerable](PSP34/Extensions/enumerable.md): iterating over contract's tokens.
 * [PSP37](PSP37/psp37.md) is an example of how you can reuse the implementation of
-  [psp37](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/token/psp37). You also can find examples of how to reuse extensions.
+  [psp37](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/token/psp37). You also can find examples of how to reuse extensions.
   * [PSP37Metadata](PSP37/Extensions/metadata.md): metadata for PSP37.
   * [PSP37Mintable](PSP37/Extensions/mintable.md): creation of new tokens.
   * [PSP37Burnable](PSP37/Extensions/burnable.md): destruction of own tokens.
   * [PSP37Batch](PSP37/Extensions/batch.md): batch transferring of tokens.
   * [PSP37Enumerable](PSP37/Extensions/enumerable.md): iterating over contract's tokens.
 * [Access Control](access-control/access-control.md) shows how you can use the implementation of
-  [access-control](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/access/access_control) and
-  [psp34](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/token/psp34) together to provide rights to mint and burn NFT tokens.
+  [access-control](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/access/access_control) and
+  [psp34](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp34) together to provide rights to mint and burn NFT tokens.
   * [AccessControlEnumerable](access-control/Extensions/enumerable.md): iterating over contract's roles.
 * [Ownable](ownable.md) shows how you can use the implementation of
-  [ownable](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/access/ownable) and
-  [psp37](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/token/psp37) together to provide rights to mint and burn tokens.
-* [ReentrancyGuard](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/security/reentrancy_guard)
+  [ownable](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/access/ownable) and
+  [psp37](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/token/psp37) together to provide rights to mint and burn tokens.
+* [ReentrancyGuard](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/security/reentrancy_guard)
   modifier to prevent reentrancy during certain functions.
 * [Pausable](pausable.md) shows how you can use the implementation of
-  [pausable](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/security/pausable)
+  [pausable](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/security/pausable)
   contract and modifiers.
 * [TimelockController](timelock-controller.md) shows how you can use the implementation of
-  [timelock-controller](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/governance/timelock_controller)
+  [timelock-controller](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/governance/timelock_controller)
   to execute a transaction with some delay via governance.
 * [PaymentSplitter](payment-splitter.md) shows how you can use the implementation of
-  [payment-splitter](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/finance/payment_splitter)
+  [payment-splitter](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/finance/payment_splitter)
   to split received native tokens between participants of the contract.

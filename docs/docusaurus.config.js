@@ -63,7 +63,7 @@ module.exports = {
         docs: {
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/727-Ventures/openbrush-contracts/tree/main/docs'
+          editUrl: 'https://github.com/Brushfam/openbrush-contracts/tree/main/docs'
         },
         theme: {
           customCss: [require.resolve('./src/css/custom.scss')]

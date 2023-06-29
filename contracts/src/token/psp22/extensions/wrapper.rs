@@ -38,7 +38,7 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        Storage,
+        DefaultEnv,
         StorageAccess,
         ZERO_ADDRESS,
     },
@@ -74,7 +74,7 @@ impl Default for Data {
     }
 }
 
-pub trait PSP22WrapperImpl: Storage<DataType> + StorageAccess<Data> + Internal + psp22::Internal {
+pub trait PSP22WrapperImpl: StorageAccess<Data> + Internal + psp22::Internal + Sized {
     fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._deposit(amount)?;
         psp22::Internal::_mint_to(self, account, amount)
@@ -109,7 +109,7 @@ pub trait Internal {
     fn _underlying(&mut self) -> Box<PSP22Ref>;
 }
 
-pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal + psp22::Internal + PSP22 {
+pub trait InternalImpl: StorageAccess<Data> + Internal + psp22::Internal + PSP22 + Sized {
     fn _recover(&mut self, account: AccountId) -> Result<Balance, PSP22Error> {
         let value = Internal::_underlying_balance(self) - self.total_supply();
         psp22::Internal::_mint_to(self, account, value)?;

@@ -32,7 +32,7 @@ use openbrush::storage::Lazy;
 use openbrush::traits::{
     AccountId,
     Balance,
-    Storage,
+    DefaultEnv,
     StorageAccess,
     String,
 };
@@ -65,7 +65,7 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait PSP22PalletImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait PSP22PalletImpl: StorageAccess<Data> + Internal + Sized {
     fn total_supply(&self) -> Balance {
         let self_ = self.get_or_default();
         self_.pallet_assets.total_supply(self_.asset_id)
@@ -210,7 +210,7 @@ pub trait Internal {
     fn _sender(&self) -> AccountId;
 }
 
-pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait InternalImpl: StorageAccess<Data> + Internal + Sized {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
 
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}

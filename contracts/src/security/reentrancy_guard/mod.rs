@@ -27,10 +27,7 @@ use ink::storage::traits::Storable;
 use openbrush::{
     modifier_definition,
     storage::Lazy,
-    traits::{
-        Storage,
-        StorageAccess,
-    },
+    traits::StorageAccess,
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
@@ -61,7 +58,7 @@ const ENTERED: u8 = 1;
 #[modifier_definition]
 pub fn non_reentrant<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
 where
-    T: Storage<DataType> + StorageAccess<Data> + Storable,
+    T: StorageAccess<Data> + Storable + Sized,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<ReentrancyGuardError>,
 {

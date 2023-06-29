@@ -31,7 +31,7 @@ use openbrush::{
     traits::{
         AccountId,
         AccountIdExt,
-        Storage,
+        DefaultEnv,
         StorageAccess,
         ZERO_ADDRESS,
     },
@@ -66,7 +66,7 @@ impl Default for Data {
 #[modifier_definition]
 pub fn only_owner<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
 where
-    T: Storage<DataType> + StorageAccess<Data>,
+    T: StorageAccess<Data> + Sized,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<OwnableError>,
 {
@@ -76,7 +76,7 @@ where
     body(instance)
 }
 
-pub trait OwnableImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait OwnableImpl: StorageAccess<Data> + Sized + Internal {
     fn owner(&self) -> AccountId {
         self.get_or_default().owner.clone()
     }
@@ -112,7 +112,7 @@ pub trait Internal {
     fn _init_with_owner(&mut self, owner: AccountId);
 }
 
-pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait InternalImpl: StorageAccess<Data> + Internal + Sized {
     fn _emit_ownership_transferred_event(&self, _previous: Option<AccountId>, _new: Option<AccountId>) {}
 
     fn _init_with_owner(&mut self, owner: AccountId) {

@@ -41,7 +41,7 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        Storage,
+        DefaultEnv,
         StorageAccess,
         Timestamp,
         ZERO_ADDRESS,
@@ -83,7 +83,7 @@ impl Default for Data {
     }
 }
 
-pub trait PSP22TokenTimelockImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait PSP22TokenTimelockImpl: StorageAccess<Data> + Internal + Sized {
     /// Returns the token address
     fn token(&self) -> AccountId {
         self.get_or_default().token
@@ -133,7 +133,7 @@ pub trait Internal {
     fn _beneficiary(&self) -> AccountId;
 }
 
-pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait InternalImpl: StorageAccess<Data> + Internal + Sized {
     fn _withdraw(&mut self, amount: Balance) -> Result<(), PSP22TokenTimelockError> {
         let beneficiary = Internal::_beneficiary(self);
         Internal::_token(self)

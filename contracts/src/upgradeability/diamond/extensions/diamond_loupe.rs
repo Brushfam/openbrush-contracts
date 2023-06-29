@@ -40,8 +40,8 @@ use openbrush::{
         ValueGuard,
     },
     traits::{
+        DefaultEnv,
         Hash,
-        Storage,
         StorageAccess,
     },
     with_data,
@@ -71,7 +71,7 @@ pub type DataType = Lazy<Data, ResolverKey<AutoKey>>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait DiamondCutLoupeImpl: Storage<DataType> + StorageAccess<Data> {
+pub trait DiamondCutLoupeImpl: StorageAccess<Data> + Sized {
     #[inline(always)]
     fn _on_add_facet(&mut self, code_hash: Hash) {
         let hash_id = self.get_or_default().code_hashes;
@@ -107,7 +107,7 @@ pub trait DiamondCutLoupeImpl: Storage<DataType> + StorageAccess<Data> {
 }
 
 pub trait DiamondLoupeImpl:
-    Storage<diamond::DataType> + StorageAccess<diamond::Data> + Storage<DataType> + StorageAccess<Data>
+    Storage<diamond::DataType> + StorageAccess<diamond::Data> + StorageAccess<Data> + Sized
 {
     fn facets(&self) -> Vec<FacetCut> {
         let mut out_vec = Vec::new();

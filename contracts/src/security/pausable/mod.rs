@@ -30,7 +30,7 @@ use openbrush::{
     modifiers,
     traits::{
         AccountId,
-        Storage,
+        DefaultEnv,
         StorageAccess,
     },
     with_data,
@@ -58,7 +58,7 @@ pub type DataType = Data;
 #[modifier_definition]
 pub fn when_paused<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
 where
-    T: Storage<DataType> + StorageAccess<Data>,
+    T: StorageAccess<Data> + Sized,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<PausableError>,
 {
@@ -72,7 +72,7 @@ where
 #[modifier_definition]
 pub fn when_not_paused<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
 where
-    T: Storage<DataType> + StorageAccess<Data>,
+    T: StorageAccess<Data> + Sized,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<PausableError>,
 {
@@ -82,7 +82,7 @@ where
     body(instance)
 }
 
-pub trait PausableImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait PausableImpl: StorageAccess<Data> + Internal + Sized {
     fn paused(&self) -> bool {
         self._paused()
     }
@@ -110,7 +110,7 @@ pub trait Internal {
     fn _switch_pause(&mut self) -> Result<(), PausableError>;
 }
 
-pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait InternalImpl: StorageAccess<Data> + Internal + Sized {
     fn _emit_paused_event(&self, _account: AccountId) {}
 
     fn _emit_unpaused_event(&self, _account: AccountId) {}

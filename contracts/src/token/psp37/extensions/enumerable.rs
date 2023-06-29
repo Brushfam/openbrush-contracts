@@ -38,7 +38,6 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        Storage,
         StorageAccess,
     },
     with_data,
@@ -79,7 +78,7 @@ impl<'a> TypeGuard<'a> for BalancesKey {
     type Type = &'a (&'a AccountId, &'a Id);
 }
 
-pub trait BalancesManagerImpl: Storage<DataType> + StorageAccess<Data> + psp37::BalancesManager {
+pub trait BalancesManagerImpl: StorageAccess<Data> + psp37::BalancesManager + Sized {
     fn _balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
         match id {
             None => self.get_or_default().enumerable.count(&Some(owner)),
@@ -181,7 +180,7 @@ pub trait BalancesManagerImpl: Storage<DataType> + StorageAccess<Data> + psp37::
     }
 }
 
-pub trait PSP37EnumerableImpl: Storage<DataType> + StorageAccess<Data> {
+pub trait PSP37EnumerableImpl: StorageAccess<Data> + Sized {
     fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Option<Id> {
         self.get_or_default().enumerable.get_value(&Some(&owner), &index)
     }

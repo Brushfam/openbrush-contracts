@@ -23,6 +23,7 @@ pub use crate::{
     payment_splitter,
     traits::payment_splitter::*,
 };
+use openbrush::traits::DefaultEnv;
 pub use payment_splitter::Internal as _;
 
 use ink::prelude::vec::Vec;
@@ -34,7 +35,6 @@ use openbrush::{
         AccountId,
         AccountIdExt,
         Balance,
-        Storage,
         StorageAccess,
         ZERO_ADDRESS,
     },
@@ -59,7 +59,7 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait PaymentSplitterImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait PaymentSplitterImpl: StorageAccess<Data> + Internal + Sized {
     fn total_shares(&self) -> Balance {
         self.get_or_default().total_shares.clone()
     }
@@ -118,7 +118,7 @@ pub trait Internal {
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError>;
 }
 
-pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal {
+pub trait InternalImpl: StorageAccess<Data> + Internal + Sized {
     fn _emit_payee_added_event(&self, _account: AccountId, _shares: Balance) {}
 
     fn _emit_payment_received_event(&self, _from: AccountId, _amount: Balance) {}

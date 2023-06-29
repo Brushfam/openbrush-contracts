@@ -42,7 +42,6 @@ use openbrush::{
         AccountIdExt,
         Balance,
         DefaultEnv,
-        Storage,
         StorageAccess,
     },
     with_data,

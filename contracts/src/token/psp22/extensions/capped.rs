@@ -33,7 +33,6 @@ use openbrush::storage::Lazy;
 use openbrush::{
     traits::{
         Balance,
-        Storage,
         StorageAccess,
         String,
     },
@@ -74,7 +73,7 @@ pub trait Internal {
     fn _cap(&self) -> Balance;
 }
 
-pub trait InternalImpl: Storage<DataType> + StorageAccess<Data> + Internal + PSP22 {
+pub trait InternalImpl: StorageAccess<Data> + Internal + PSP22 + Sized {
     fn _init_cap(&mut self, cap: Balance) -> Result<(), PSP22Error> {
         if cap == 0 {
             return Err(PSP22Error::Custom(String::from("Cap must be above 0")))

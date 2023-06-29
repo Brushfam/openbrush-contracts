@@ -33,7 +33,8 @@ pub use ink::prelude::vec::Vec;
 use openbrush::traits::{
     AccountId,
     Balance,
-    Storage,
+    DefaultEnv,
+    Flush,
     StorageAccess,
     String,
 };
@@ -43,9 +44,7 @@ pub use psp22::{
     PSP22Impl,
 };
 
-pub trait FlashLenderImpl:
-    Storage<psp22::DataType> + StorageAccess<psp22::Data> + psp22::Internal + PSP22 + Internal
-{
+pub trait FlashLenderImpl: StorageAccess<psp22::Data> + psp22::Internal + PSP22 + Internal + Sized {
     fn max_flashloan(&mut self, token: AccountId) -> Balance {
         if token == Self::env().account_id() {
             Balance::MAX - self.total_supply()
@@ -95,7 +94,7 @@ pub trait Internal {
     ) -> Result<(), FlashLenderError>;
 }
 
-pub trait InternalImpl: Storage<psp22::DataType> + StorageAccess<psp22::Data> + Internal {
+pub trait InternalImpl: StorageAccess<psp22::Data> + Internal + Sized + Flush {
     fn _get_fee(&self, _amount: Balance) -> Balance {
         0
     }

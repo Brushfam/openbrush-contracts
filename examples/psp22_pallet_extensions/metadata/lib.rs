@@ -1,4 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 #[openbrush::implementation(PSP22Pallet, PSP22PalletMetadata)]
 #[openbrush::contract]
@@ -48,17 +49,12 @@ pub mod my_psp22_pallet_metadata {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::psp22_pallet::{
-            extensions::{
-                metadata::psp22metadata_external::PSP22Metadata,
-            },
-        };
+        use openbrush::contracts::psp22_pallet::extensions::metadata::psp22metadata_external::PSP22Metadata;
 
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
-
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

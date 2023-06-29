@@ -21,8 +21,8 @@ pub const MANAGER: RoleType = ink::selector_id!("MANAGER");
 
 pub trait LendingPermissionedImpl:
     access_control::Internal
-    + Storage<access_control::Data>
     + StorageAccess<access_control::Data>
+    + Sized
     + lending_internal::Internal
     + Lending
     + Instantiator

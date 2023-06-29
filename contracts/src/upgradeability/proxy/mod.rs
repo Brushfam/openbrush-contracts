@@ -33,8 +33,8 @@ pub use crate::{
 use openbrush::{
     modifiers,
     traits::{
+        DefaultEnv,
         Hash,
-        Storage,
         StorageAccess,
     },
     with_data,
@@ -61,9 +61,7 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait ProxyImpl:
-    Storage<DataType> + StorageAccess<Data> + Storage<ownable::DataType> + StorageAccess<ownable::Data> + Internal
-{
+pub trait ProxyImpl: StorageAccess<Data> + StorageAccess<ownable::Data> + Sized + Internal {
     fn get_delegate_code(&self) -> Hash {
         StorageAccess::<Data>::get_or_default(self).forward_to
     }
@@ -87,7 +85,7 @@ pub trait Internal {
     fn _fallback(&self) -> !;
 }
 
-pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> {
+pub trait InternalImpl: Internal + StorageAccess<Data> + Sized {
     fn _emit_delegate_code_changed_event(&self, _previous: Option<Hash>, _new: Option<Hash>) {}
 
     fn _init_with_forward_to(&mut self, forward_to: Hash) {

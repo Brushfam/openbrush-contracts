@@ -61,7 +61,7 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait MembersManagerImpl: Storage<DataType> + StorageAccess<Data> {
+pub trait MembersManagerImpl: StorageAccess<Data> {
     fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
         self.get_or_default().role_members.contains_value(role, address)
     }
@@ -79,7 +79,7 @@ pub trait MembersManagerImpl: Storage<DataType> + StorageAccess<Data> {
     }
 }
 
-pub trait AccessControlEnumerableImpl: Storage<DataType> + StorageAccess<Data> {
+pub trait AccessControlEnumerableImpl: StorageAccess<Data> {
     fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
         self.get_or_default().role_members.get_value(role, &(index as u128))
     }

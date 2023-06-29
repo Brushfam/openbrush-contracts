@@ -1,4 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 /// This contract will be used to represent the shares of a user
 /// and other instance of this contract will be used to represent

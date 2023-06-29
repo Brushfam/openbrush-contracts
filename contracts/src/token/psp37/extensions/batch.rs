@@ -33,7 +33,7 @@ use openbrush::traits::{
     AccountId,
     AccountIdExt,
     Balance,
-    Storage,
+    DefaultEnv,
     StorageAccess,
 };
 pub use psp37::{
@@ -44,7 +44,7 @@ pub use psp37::{
     PSP37Impl,
 };
 
-pub trait PSP37BatchImpl: Internal + Storage<psp37::DataType> + StorageAccess<psp37::Data> {
+pub trait PSP37BatchImpl: Internal + StorageAccess<psp37::Data> + Sized {
     fn batch_transfer(
         &mut self,
         to: AccountId,
@@ -76,7 +76,7 @@ pub trait Internal {
 }
 
 pub trait InternalImpl:
-    Internal + psp37::Internal + Storage<psp37::DataType> + StorageAccess<psp37::Data> + psp37::BalancesManager
+    Internal + psp37::Internal + StorageAccess<psp37::Data> + psp37::BalancesManager + Sized
 {
     fn _batch_transfer_from(
         &mut self,

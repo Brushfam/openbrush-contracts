@@ -38,7 +38,7 @@ use openbrush::{
         TypeGuard,
     },
     traits::{
-        Storage,
+        DefaultEnv,
         StorageAccess,
     },
     with_data,
@@ -72,7 +72,7 @@ impl<'a> TypeGuard<'a> for AttributesKey {
     type Type = &'a (&'a Id, &'a String);
 }
 
-pub trait PSP34MetadataImpl: Storage<DataType> + StorageAccess<Data> {
+pub trait PSP34MetadataImpl: StorageAccess<Data> + Sized {
     fn get_attribute(&self, id: Id, key: String) -> Option<String> {
         self.get_or_default().attributes.get(&(&id, &key))
     }
@@ -85,7 +85,7 @@ pub trait Internal {
     fn _set_attribute(&mut self, id: Id, key: String, value: String);
 }
 
-pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> {
+pub trait InternalImpl: Internal + StorageAccess<Data> + Sized {
     fn _emit_attribute_set_event(&self, _id: Id, _key: String, _data: String) {}
 
     fn _set_attribute(&mut self, id: Id, key: String, value: String) {

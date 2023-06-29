@@ -20,7 +20,6 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::internal::{
-    convert_into_storage_field,
     is_attr,
     remove_attr,
 };
@@ -103,31 +102,9 @@ fn generate_storage_impls(s: synstructure::Structure, fields: Vec<Field>) -> Tok
             let field_ident = field.ident.clone();
             let ty = field.ty.clone();
 
-            let storage_ty = if is_attr(&field.attrs, "upgradeable_storage_field") {
-                let mut new_field = field.clone();
-                new_field.ty = Type::Verbatim(quote! { ::openbrush::storage::Lazy<#ty> });
-
-                // convert_into_storage_field(&struct_ident, None, &salt(&s.ast().clone()), 0, &new_field)
-                //     .ty
-                //     .to_token_stream()
-                quote! { ::openbrush::storage::Lazy<#ty> }
-            } else {
-                quote! { #ty }
-            };
-
             let span = field.span();
 
             quote_spanned!(span=>
-                // impl #impls ::openbrush::traits::Storage<#storage_ty> for #struct_ident #types #where_clause {
-                //     fn get(&self) -> &#storage_ty {
-                //         &self.#field_ident
-                //     }
-                //
-                //     fn get_mut(&mut self) -> &mut #storage_ty {
-                //         &mut self.#field_ident
-                //     }
-                // }
-
                 impl #impls ::openbrush::traits::StorageAccess<#ty> for #struct_ident #types #where_clause {
                     fn get(&self) -> Option<#ty> {
                         ::openbrush::traits::StorageAccess::<#ty>::get(&self.#field_ident)
@@ -147,30 +124,6 @@ fn generate_storage_impls(s: synstructure::Structure, fields: Vec<Field>) -> Tok
     quote! {
         #(#impls)*
     }
-}
-
-fn salt(s: &DeriveInput) -> TokenStream {
-    if let Some(param) = find_storage_key_salt(&s) {
-        param.ident.to_token_stream()
-    } else {
-        quote! { () }
-    }
-}
-
-fn find_storage_key_salt(input: &DeriveInput) -> Option<syn::TypeParam> {
-    input.generics.params.iter().find_map(|param| {
-        if let syn::GenericParam::Type(type_param) = param {
-            if let Some(syn::TypeParamBound::Trait(trait_bound)) = type_param.bounds.first() {
-                let segments = &trait_bound.path.segments;
-                if let Some(last) = segments.last() {
-                    if last.ident == "StorageKey" {
-                        return Some(type_param.clone())
-                    }
-                }
-            }
-        }
-        None
-    })
 }
 
 pub fn generate_struct(s: &synstructure::Structure, struct_item: syn::DataStruct) -> TokenStream {

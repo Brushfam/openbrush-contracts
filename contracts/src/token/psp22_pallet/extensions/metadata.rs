@@ -28,11 +28,8 @@ pub use crate::{
     },
 };
 pub use ink::env::DefaultEnvironment;
+use openbrush::traits::StorageAccess;
 pub use openbrush::traits::String;
-use openbrush::traits::{
-    Storage,
-    StorageAccess,
-};
 pub use pallet_assets_chain_extension::traits::{
     Error,
     Origin,
@@ -44,7 +41,7 @@ pub use psp22_pallet::{
     PSP22PalletImpl,
 };
 
-pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::DataType> + StorageAccess<psp22_pallet::Data> {
+pub trait PSP22PalletMetadataImpl: Sized + StorageAccess<psp22_pallet::Data> {
     fn token_name(&self) -> Option<String> {
         let self_ = self.get_or_default();
         let name = self_.pallet_assets.metadata_name(self_.asset_id);

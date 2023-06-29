@@ -14,7 +14,7 @@ pub trait Instantiator {
     fn _instantiate_shares_contract(&self, contract_name: &str, contract_symbol: &str) -> AccountId;
 }
 
-pub trait Internal: Storage<Data> + StorageAccess<Data> {
+pub trait Internal: StorageAccess<Data> + Sized {
     fn _accept_lending(&mut self, asset_address: AccountId, share_address: AccountId, reserve_address: AccountId) {
         self.get_or_default()
             .asset_shares

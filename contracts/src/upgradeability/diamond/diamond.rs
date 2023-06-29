@@ -46,8 +46,9 @@ use openbrush::{
     modifiers,
     storage::Mapping,
     traits::{
+        DefaultEnv,
+        Flush,
         Hash,
-        Storage,
         StorageAccess,
     },
     with_data,
@@ -70,7 +71,7 @@ pub type DataType = Lazy<Data, ResolverKey<AutoKey>>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait DiamondImpl: Internal + Storage<ownable::DataType> + StorageAccess<ownable::Data> {
+pub trait DiamondImpl: Internal + Sized + StorageAccess<ownable::Data> {
     #[modifiers(ownable::only_owner)]
     fn diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
         self._diamond_cut(diamond_cut, init)
@@ -93,7 +94,7 @@ pub trait Internal {
     fn _remove_selectors(&mut self, facet_cut: &FacetCut);
 }
 
-pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + DiamondCut {
+pub trait InternalImpl: Internal + StorageAccess<Data> + DiamondCut + Sized + Flush {
     fn _emit_diamond_cut_event(&self, _diamond_cut: &Vec<FacetCut>, _init: &Option<InitCall>) {}
 
     fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {

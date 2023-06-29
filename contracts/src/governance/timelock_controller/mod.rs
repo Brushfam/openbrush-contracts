@@ -57,8 +57,9 @@ use openbrush::{
     storage::Mapping,
     traits::{
         AccountId,
+        DefaultEnv,
+        Flush,
         Hash,
-        Storage,
         StorageAccess,
         Timestamp,
         ZERO_ADDRESS,
@@ -89,10 +90,7 @@ pub type DataType = Data;
 #[modifier_definition]
 pub fn only_role_or_open_role<T, F, R, E>(instance: &mut T, body: F, role: RoleType) -> Result<R, E>
 where
-    T: access_control::Internal
-        + access_control::MembersManager
-        + Storage<access_control::DataType>
-        + StorageAccess<access_control::Data>,
+    T: access_control::Internal + access_control::MembersManager + StorageAccess<access_control::Data> + Sized,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<AccessControlError>,
 {
@@ -110,12 +108,11 @@ pub const DONE_TIMESTAMP: Timestamp = 1;
 
 pub trait TimelockControllerImpl:
     Internal
-    + Storage<DataType>
     + StorageAccess<Data>
     + access_control::MembersManager
     + access_control::Internal
-    + Storage<access_control::DataType>
     + StorageAccess<access_control::Data>
+    + Sized
 {
     fn is_operation(&self, id: OperationId) -> bool {
         self._is_operation(id)
@@ -320,7 +317,7 @@ pub trait Internal {
     fn _get_timestamp(&self, id: OperationId) -> Timestamp;
 }
 
-pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + access_control::Internal {
+pub trait InternalImpl: Internal + StorageAccess<Data> + Sized + access_control::Internal + Flush {
     fn _emit_min_delay_change_event(&self, _old_delay: Timestamp, _new_delay: Timestamp) {}
 
     fn _emit_call_scheduled_event(

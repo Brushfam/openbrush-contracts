@@ -30,7 +30,6 @@ pub use crate::{
 #[cfg(feature = "upgradeable")]
 use openbrush::storage::Lazy;
 use openbrush::traits::{
-    Storage,
     StorageAccess,
     String,
 };
@@ -56,7 +55,7 @@ pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 
-pub trait PSP22MetadataImpl: Storage<DataType> + StorageAccess<Data> {
+pub trait PSP22MetadataImpl: StorageAccess<Data> + Sized {
     fn token_name(&self) -> Option<String> {
         self.get_or_default().name.clone()
     }

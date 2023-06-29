@@ -42,11 +42,7 @@ use openbrush::{
 pub const YEAR: Timestamp = 60 * 60 * 24 * 365;
 
 pub trait LendingImpl:
-    Storage<data::Data>
-    + StorageAccess<data::Data>
-    + lending_internal::Internal
-    + Storage<pausable::Data>
-    + StorageAccess<pausable::Data>
+    StorageAccess<data::Data> + lending_internal::Internal + Storage<pausable::Data> + StorageAccess<pausable::Data> + Sized
 {
     fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping

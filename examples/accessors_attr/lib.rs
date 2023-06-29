@@ -1,4 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
+#![feature(default_alloc_error_handler)]
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(AccessData);
 // we declare the data struct outside of the contract

@@ -36,12 +36,11 @@ use openbrush::{
     },
     traits::{
         AccountId,
-        Storage,
+        DefaultEnv,
         StorageAccess,
     },
     with_data,
 };
-
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[openbrush::storage_item(STORAGE_KEY)]
@@ -69,7 +68,7 @@ pub const DEFAULT_ADMIN_ROLE: RoleType = 0;
 #[modifier_definition]
 pub fn only_role<T, F, R, E>(instance: &mut T, body: F, role: RoleType) -> Result<R, E>
 where
-    T: Storage<DataType> + StorageAccess<Data> + Internal,
+    T: StorageAccess<Data> + Internal + Sized,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<AccessControlError>,
 {
@@ -79,7 +78,7 @@ where
     body(instance)
 }
 
-pub trait AccessControlImpl: Internal + Storage<DataType> + StorageAccess<Data> + MembersManager {
+pub trait AccessControlImpl: Internal + StorageAccess<Data> + MembersManager + Sized {
     fn has_role(&self, role: RoleType, address: AccountId) -> bool {
         self._has_role(role, &address)
     }
@@ -123,7 +122,7 @@ pub trait MembersManager {
     fn _remove(&mut self, role: RoleType, member: &AccountId);
 }
 
-pub trait MembersManagerImpl: Storage<DataType> + StorageAccess<Data> {
+pub trait MembersManagerImpl: StorageAccess<Data> + Sized {
     fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
         self.get_or_default().members.contains(&(role, address))
     }
@@ -166,7 +165,7 @@ pub trait Internal {
     fn _get_role_admin(&self, role: RoleType) -> RoleType;
 }
 
-pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + MembersManager {
+pub trait InternalImpl: Internal + StorageAccess<Data> + MembersManager + Sized {
     fn _emit_role_admin_changed(&mut self, _role: RoleType, _previous: RoleType, _new: RoleType) {}
 
     fn _emit_role_granted(&mut self, _role: RoleType, _grantee: AccountId, _grantor: Option<AccountId>) {}

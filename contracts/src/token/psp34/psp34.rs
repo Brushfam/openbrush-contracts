@@ -38,7 +38,7 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        Storage,
+        DefaultEnv,
         StorageAccess,
     },
     with_data,
@@ -73,7 +73,7 @@ impl<'a> TypeGuard<'a> for ApprovalsKey {
     type Type = &'a (&'a Owner, &'a Operator, &'a Option<&'a Id>);
 }
 
-pub trait PSP34Impl: Internal + Storage<DataType> + StorageAccess<Data> + PSP34 + BalancesManager {
+pub trait PSP34Impl: Internal + StorageAccess<Data> + PSP34 + BalancesManager + Sized {
     fn collection_id(&self) -> Id {
         let account_id = Self::env().account_id();
         Id::Bytes(<_ as AsRef<[u8; 32]>>::as_ref(&account_id).to_vec())
@@ -142,7 +142,7 @@ pub trait Internal {
     ) -> Result<(), PSP34Error>;
 }
 
-pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + BalancesManager {
+pub trait InternalImpl: Internal + StorageAccess<Data> + BalancesManager + Sized {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id) {}
 
     fn _emit_approval_event(&self, _from: AccountId, _to: AccountId, _id: Option<Id>, _approved: bool) {}
@@ -298,7 +298,7 @@ pub trait BalancesManager {
     fn _total_supply(&self) -> u128;
 }
 
-pub trait BalancesManagerImpl: BalancesManager + Storage<DataType> + StorageAccess<Data> {
+pub trait BalancesManagerImpl: BalancesManager + StorageAccess<Data> + Sized {
     fn _balance_of(&self, owner: &Owner) -> u32 {
         self.get_or_default().owned_tokens_count.get(owner).unwrap_or(0)
     }

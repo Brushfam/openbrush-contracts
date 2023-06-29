@@ -35,7 +35,7 @@ use openbrush::{
         AccountId,
         AccountIdExt,
         Balance,
-        Storage,
+        DefaultEnv,
         StorageAccess,
     },
     with_data,
@@ -81,7 +81,7 @@ impl<'a> TypeGuard<'a> for ApprovalsKey {
     type Type = &'a (&'a AccountId, &'a AccountId, &'a Option<&'a Id>);
 }
 
-pub trait PSP37Impl: Internal + Storage<DataType> + StorageAccess<Data> + BalancesManager {
+pub trait PSP37Impl: Internal + StorageAccess<Data> + BalancesManager + Sized {
     fn balance_of(&self, owner: AccountId, id: Option<Id>) -> Balance {
         self._balance_of(&owner, &id.as_ref())
     }
@@ -195,7 +195,7 @@ pub trait Internal {
     ) -> Result<(), PSP37Error>;
 }
 
-pub trait InternalImpl: Internal + Storage<DataType> + StorageAccess<Data> + BalancesManager {
+pub trait InternalImpl: Internal + StorageAccess<Data> + BalancesManager + Sized {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id, _amount: Balance) {}
 
     fn _emit_transfer_batch_event(
@@ -404,7 +404,7 @@ pub trait BalancesManager {
         -> Result<(), PSP37Error>;
 }
 
-pub trait BalancesManagerImpl: BalancesManager + Storage<DataType> + StorageAccess<Data> {
+pub trait BalancesManagerImpl: BalancesManager + StorageAccess<Data> + Sized {
     fn _balance_of(&self, owner: &AccountId, id: &Option<&Id>) -> Balance {
         self.get_or_default().balances.get(&(owner, id)).unwrap_or(0)
     }

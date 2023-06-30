@@ -20,12 +20,11 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::internal::is_attr;
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{format_ident, quote, quote_spanned, ToTokens};
-use std::fmt::format;
-use syn::{parse2, spanned::Spanned, Data, DataEnum, DataStruct, DataUnion, Field, Fields};
+use syn::{spanned::Spanned, Data, DataEnum, DataStruct, DataUnion, Field, Fields};
 
-fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<syn::Field>, Vec<Option<TokenStream>>) {
+fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>, Vec<Option<TokenStream>>) {
     fields
         .iter()
         .map(|field| {
@@ -54,7 +53,6 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<syn::Fi
                 (new_field, Some(storage_key))
             } else {
                 let mut new_field = field.clone();
-                let ty = field.ty.clone().to_token_stream();
                 let span = field.ty.span();
                 let field_name = field.ident.as_ref().unwrap().to_string();
 
@@ -106,7 +104,7 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<syn::Fi
         .unzip()
 }
 
-fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct, storage_key: &TokenStream) -> TokenStream {
+fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct) -> TokenStream {
     let struct_ident = s.ast().ident.clone();
     let vis = s.ast().vis.clone();
     let types = s.ast().generics.clone();
@@ -139,7 +137,7 @@ fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct, storage
     }
 }
 
-fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum, storage_key: &TokenStream) -> TokenStream {
+fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum) -> TokenStream {
     let enum_ident = s.ast().ident.clone();
     let vis = s.ast().vis.clone();
     let attrs = s.ast().attrs.clone();
@@ -159,7 +157,7 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum, storage_key: 
             .fields
             .iter()
             .enumerate()
-            .map(|(i, field)| field.to_token_stream())
+            .map(|(_, field)| field.to_token_stream())
             .collect();
 
         let fields = match variant.fields {
@@ -182,7 +180,7 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum, storage_key: 
     }
 }
 
-fn generate_union(s: &synstructure::Structure, _union_item: DataUnion, _storage_key: &TokenStream) -> TokenStream {
+fn generate_union(s: &synstructure::Structure, _union_item: DataUnion) -> TokenStream {
     // nothing to change
     let union = s.ast().to_token_stream();
 
@@ -191,13 +189,11 @@ fn generate_union(s: &synstructure::Structure, _union_item: DataUnion, _storage_
     }
 }
 
-pub fn storage_item(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
-    let storage_key = attrs.clone();
-
+pub fn storage_item(_attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
     let item = match s.ast().data.clone() {
-        Data::Struct(struct_item) => generate_struct(&s, struct_item, &storage_key),
-        Data::Enum(enum_item) => generate_enum(&s, enum_item, &storage_key),
-        Data::Union(union_item) => generate_union(&s, union_item, &storage_key),
+        Data::Struct(struct_item) => generate_struct(&s, struct_item),
+        Data::Enum(enum_item) => generate_enum(&s, enum_item),
+        Data::Union(union_item) => generate_union(&s, union_item),
     };
 
     let out = quote! {

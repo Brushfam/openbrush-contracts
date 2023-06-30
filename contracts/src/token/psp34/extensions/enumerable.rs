@@ -22,13 +22,30 @@
 pub use crate::{
     psp34,
     psp34::extensions::enumerable,
-    traits::psp34::{extensions::enumerable::*, *},
+    traits::psp34::{
+        extensions::enumerable::*,
+        *,
+    },
 };
 use openbrush::{
-    storage::{MultiMapping, TypeGuard},
-    traits::{AccountId, Balance, Storage},
+    storage::{
+        MultiMapping,
+        TypeGuard,
+    },
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
 };
-pub use psp34::{BalancesManager as _, Internal as _, InternalImpl as _, Operator, Owner, PSP34Impl};
+pub use psp34::{
+    BalancesManager as _,
+    Internal as _,
+    InternalImpl as _,
+    Operator,
+    Owner,
+    PSP34Impl,
+};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]

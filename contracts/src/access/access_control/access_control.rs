@@ -19,12 +19,23 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{access_control, traits::access_control::*};
+pub use crate::{
+    access_control,
+    traits::access_control::*,
+};
 pub use access_control::Internal as _;
 use openbrush::{
-    modifier_definition, modifiers,
-    storage::{Mapping, TypeGuard, ValueGuard},
-    traits::{AccountId, Storage},
+    modifier_definition,
+    modifiers,
+    storage::{
+        Mapping,
+        TypeGuard,
+        ValueGuard,
+    },
+    traits::{
+        AccountId,
+        Storage,
+    },
 };
 
 #[derive(Default, Debug)]
@@ -51,7 +62,7 @@ where
     E: From<AccessControlError>,
 {
     if let Err(err) = instance._check_role(role, Some(T::env().caller())) {
-        return Err(From::from(err));
+        return Err(From::from(err))
     }
     body(instance)
 }
@@ -68,7 +79,7 @@ pub trait AccessControlImpl: Internal + Storage<Data> + MembersManager {
     #[modifiers(only_role(self.get_role_admin(role)))]
     fn grant_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
         if self._has_role(role, &account) {
-            return Err(AccessControlError::RoleRedundant);
+            return Err(AccessControlError::RoleRedundant)
         }
         self._add(role, &account);
         self._emit_role_granted(role, account, Some(Self::env().caller()));
@@ -84,7 +95,7 @@ pub trait AccessControlImpl: Internal + Storage<Data> + MembersManager {
 
     fn renounce_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
         if account != Some(Self::env().caller()) {
-            return Err(AccessControlError::InvalidCaller);
+            return Err(AccessControlError::InvalidCaller)
         }
         self._check_role(role, account)?;
         self._do_revoke_role(role, account);
@@ -183,7 +194,7 @@ pub trait InternalImpl: Internal + Storage<Data> + MembersManager {
 
     fn _check_role(&self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
         if !self._has_role(role, &account) {
-            return Err(AccessControlError::MissingRole);
+            return Err(AccessControlError::MissingRole)
         }
         Ok(())
     }

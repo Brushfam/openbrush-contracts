@@ -19,14 +19,32 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{psp37, traits::psp37::*};
-use core::result::Result;
-use ink::prelude::{vec, vec::Vec};
-use openbrush::{
-    storage::{Mapping, TypeGuard},
-    traits::{AccountId, Balance, Storage},
+pub use crate::{
+    psp37,
+    traits::psp37::*,
 };
-pub use psp37::{BalancesManager as _, BalancesManagerImpl as _, Internal as _, InternalImpl as _};
+use core::result::Result;
+use ink::prelude::{
+    vec,
+    vec::Vec,
+};
+use openbrush::{
+    storage::{
+        Mapping,
+        TypeGuard,
+    },
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
+};
+pub use psp37::{
+    BalancesManager as _,
+    BalancesManagerImpl as _,
+    Internal as _,
+    InternalImpl as _,
+};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -183,7 +201,7 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
 
     fn _mint_to(&mut self, to: AccountId, mut ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
         if ids_amounts.is_empty() {
-            return Ok(());
+            return Ok(())
         }
 
         Internal::_before_token_transfer(self, None, Some(&to), &ids_amounts)?;
@@ -208,7 +226,7 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
         Internal::_before_token_transfer(self, Some(&from), None, &ids_amounts)?;
 
         if ids_amounts.is_empty() {
-            return Ok(());
+            return Ok(())
         }
 
         for (id, amount) in ids_amounts.iter() {
@@ -239,7 +257,7 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
         let ids_amounts = vec![(id.clone(), value)];
 
         if from != operator && Internal::_get_allowance(self, &from, &operator, &Some(&id)) < value {
-            return Err(PSP37Error::NotAllowed);
+            return Err(PSP37Error::NotAllowed)
         }
 
         Internal::_before_token_transfer(self, Some(&from), Some(&to), &ids_amounts)?;
@@ -254,14 +272,14 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
         return match self.data().operator_approvals.get(&(owner, operator, &None)) {
             None => self.data().operator_approvals.get(&(owner, operator, id)).unwrap_or(0),
             _ => Balance::MAX,
-        };
+        }
     }
 
     fn _approve_for(&mut self, operator: AccountId, id: Option<Id>, value: Balance) -> Result<(), PSP37Error> {
         let caller = Self::env().caller();
 
         if caller == operator {
-            return Err(PSP37Error::SelfApprove);
+            return Err(PSP37Error::SelfApprove)
         }
 
         if let Some(id) = &id {
@@ -295,17 +313,17 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
         value: Balance,
     ) -> Result<(), PSP37Error> {
         if owner == operator {
-            return Ok(());
+            return Ok(())
         }
 
         let initial_allowance = Internal::_get_allowance(self, owner, operator, &Some(id));
 
         if initial_allowance == Balance::MAX {
-            return Ok(());
+            return Ok(())
         }
 
         if initial_allowance < value {
-            return Err(PSP37Error::InsufficientBalance);
+            return Err(PSP37Error::InsufficientBalance)
         }
 
         self.data()
@@ -378,7 +396,7 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         let amount = *amount;
 
         if amount == 0 {
-            return Ok(());
+            return Ok(())
         }
 
         let id = &Some(id);
@@ -418,7 +436,7 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         let amount = *amount;
 
         if amount == 0 {
-            return Ok(());
+            return Ok(())
         }
 
         let id = &Some(id);

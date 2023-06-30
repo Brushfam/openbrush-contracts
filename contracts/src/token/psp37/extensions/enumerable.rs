@@ -23,13 +23,29 @@ use crate::psp37::BalancesManager;
 pub use crate::{
     psp37,
     psp37::extensions::enumerable,
-    traits::psp37::{extensions::enumerable::*, *},
+    traits::psp37::{
+        extensions::enumerable::*,
+        *,
+    },
 };
 use openbrush::{
-    storage::{Mapping, MultiMapping, TypeGuard},
-    traits::{AccountId, Balance, Storage},
+    storage::{
+        Mapping,
+        MultiMapping,
+        TypeGuard,
+    },
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
 };
-pub use psp37::{BalancesManager as _, Internal as _, InternalImpl as _, PSP37Impl};
+pub use psp37::{
+    BalancesManager as _,
+    Internal as _,
+    InternalImpl as _,
+    PSP37Impl,
+};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -77,7 +93,7 @@ pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
         let amount = *amount;
 
         if amount == 0 {
-            return Ok(());
+            return Ok(())
         }
 
         let balance_before = BalancesManager::_balance_of(self, owner, &Some(id));
@@ -113,7 +129,7 @@ pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
         let amount = *amount;
 
         if amount == 0 {
-            return Ok(());
+            return Ok(())
         }
 
         let balance_after = BalancesManager::_balance_of(self, owner, &Some(id))

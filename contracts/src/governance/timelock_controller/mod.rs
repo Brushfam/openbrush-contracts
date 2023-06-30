@@ -20,23 +20,45 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::{
-    access_control, timelock_controller,
-    traits::{access_control::*, timelock_controller::*},
+    access_control,
+    timelock_controller,
+    traits::{
+        access_control::*,
+        timelock_controller::*,
+    },
 };
-pub use access_control::{AccessControlImpl, Internal as _, InternalImpl as _};
+pub use access_control::{
+    AccessControlImpl,
+    Internal as _,
+    InternalImpl as _,
+};
 use core::convert::TryFrom;
 use ink::{
     env::{
-        call::{build_call, Call, ExecutionInput},
+        call::{
+            build_call,
+            Call,
+            ExecutionInput,
+        },
         hash::Blake2x256,
-        CallFlags, DefaultEnvironment,
+        CallFlags,
+        DefaultEnvironment,
     },
-    prelude::{vec, vec::Vec},
+    prelude::{
+        vec,
+        vec::Vec,
+    },
 };
 use openbrush::{
-    modifier_definition, modifiers,
+    modifier_definition,
+    modifiers,
     storage::Mapping,
-    traits::{AccountId, Hash, Storage, Timestamp},
+    traits::{
+        AccountId,
+        Hash,
+        Storage,
+        Timestamp,
+    },
 };
 pub use timelock_controller::Internal as _;
 
@@ -148,7 +170,7 @@ pub trait TimelockControllerImpl:
     #[modifiers(access_control::only_role(<Self as Internal>::_proposal_role()))]
     fn cancel(&mut self, id: OperationId) -> Result<(), TimelockControllerError> {
         if !self.is_operation_pending(id) {
-            return Err(TimelockControllerError::OperationCannonBeCanceled);
+            return Err(TimelockControllerError::OperationCannonBeCanceled)
         }
         self.data::<Data>().timestamps.remove(&id);
 
@@ -189,7 +211,7 @@ pub trait TimelockControllerImpl:
 
     fn update_delay(&mut self, new_delay: Timestamp) -> Result<(), TimelockControllerError> {
         if Self::env().account_id() != Self::env().caller() {
-            return Err(TimelockControllerError::CallerMustBeTimeLock);
+            return Err(TimelockControllerError::CallerMustBeTimeLock)
         }
 
         let old_delay = self.data::<Data>().min_delay.get_or_default();
@@ -370,10 +392,10 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
 
     fn _schedule(&mut self, id: OperationId, delay: &Timestamp) -> Result<(), TimelockControllerError> {
         if Internal::_is_operation(self, id) {
-            return Err(TimelockControllerError::OperationAlreadyScheduled);
+            return Err(TimelockControllerError::OperationAlreadyScheduled)
         }
         if delay < &self.data::<Data>().min_delay.get_or_default() {
-            return Err(TimelockControllerError::InsufficientDelay);
+            return Err(TimelockControllerError::InsufficientDelay)
         }
 
         self.data::<Data>()
@@ -384,14 +406,14 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
 
     fn _before_call(&self, predecessor: Option<OperationId>) -> Result<(), TimelockControllerError> {
         if predecessor.is_some() && !Internal::_is_operation_done(self, predecessor.unwrap()) {
-            return Err(TimelockControllerError::MissingDependency);
+            return Err(TimelockControllerError::MissingDependency)
         }
         Ok(())
     }
 
     fn _after_call(&mut self, id: OperationId) -> Result<(), TimelockControllerError> {
         if !Internal::_is_operation_ready(self, id) {
-            return Err(TimelockControllerError::OperationIsNotReady);
+            return Err(TimelockControllerError::OperationIsNotReady)
         }
 
         self.data::<Data>()

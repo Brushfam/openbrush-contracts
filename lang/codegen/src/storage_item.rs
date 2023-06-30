@@ -34,7 +34,11 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>,
                 let span = field.ty.span();
                 let field_name = field.ident.as_ref().unwrap().to_string();
 
-                let key_name = format_ident!("STORAGE_KEY_{}_{}", structure_name, field_name);
+                let key_name = format_ident!(
+                    "STORAGE_KEY_{}_{}",
+                    structure_name.to_uppercase(),
+                    field_name.to_uppercase()
+                );
 
                 new_field.ty = syn::Type::Verbatim(quote_spanned!(span =>
                     ::ink::storage::Lazy<#ty, ::ink::storage::traits::ManualKey<#key_name>>

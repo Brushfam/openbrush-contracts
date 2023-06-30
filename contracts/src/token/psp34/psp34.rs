@@ -21,15 +21,30 @@
 
 pub use crate::{
     psp34,
-    psp34::{Operator, Owner},
+    psp34::{
+        Operator,
+        Owner,
+    },
     traits::psp34::*,
 };
 use ink::prelude::vec::Vec;
 use openbrush::{
-    storage::{Mapping, TypeGuard},
-    traits::{AccountId, Balance, Storage},
+    storage::{
+        Mapping,
+        TypeGuard,
+    },
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
 };
-pub use psp34::{BalancesManager as _, Internal as _, InternalImpl as _, PSP34Impl as _};
+pub use psp34::{
+    BalancesManager as _,
+    Internal as _,
+    InternalImpl as _,
+    PSP34Impl as _,
+};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -128,11 +143,11 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
             let owner = self.data().token_owner.get(id).ok_or(PSP34Error::TokenNotExists)?;
 
             if approved && owner == to {
-                return Err(PSP34Error::SelfApprove);
+                return Err(PSP34Error::SelfApprove)
             }
 
             if owner != caller && !Internal::_allowance(self, &owner, &caller, &None) {
-                return Err(PSP34Error::NotApproved);
+                return Err(PSP34Error::NotApproved)
             };
             caller = owner;
         }
@@ -158,7 +173,7 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
         let caller = Self::env().caller();
 
         if owner != caller && !Internal::_allowance(self, &owner, &caller, &Some(&id)) {
-            return Err(PSP34Error::NotApproved);
+            return Err(PSP34Error::NotApproved)
         }
 
         Internal::_before_token_transfer(self, Some(&owner), Some(&to), &id)?;
@@ -177,7 +192,7 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
 
     fn _mint_to(&mut self, to: AccountId, id: Id) -> Result<(), PSP34Error> {
         if self.data().token_owner.get(&id).is_some() {
-            return Err(PSP34Error::TokenExists);
+            return Err(PSP34Error::TokenExists)
         }
         Internal::_before_token_transfer(self, None, Some(&to), &id)?;
 

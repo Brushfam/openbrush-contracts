@@ -3,9 +3,11 @@
 #[openbrush::implementation(PSP22, Upgradeable, Ownable)]
 #[openbrush::contract]
 pub mod contract_v1 {
-    use openbrush::traits::Storage;
-    use openbrush::modifiers;
-    
+    use openbrush::{
+        modifiers,
+        traits::Storage,
+    };
+
     #[ink(storage)]
     #[derive(Storage, Default)]
     pub struct Contract {
@@ -25,6 +27,7 @@ pub mod contract_v1 {
             let mut instance = Self::default();
 
             psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
+            ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
 
             instance
         }

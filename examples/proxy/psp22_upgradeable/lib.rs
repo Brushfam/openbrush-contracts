@@ -5,7 +5,10 @@
 pub mod my_psp22_upgradeable {
     use openbrush::{
         modifiers,
-        traits::Storage,
+        traits::{
+            Storage,
+            String,
+        },
     };
 
     #[ink(storage)]
@@ -30,9 +33,12 @@ pub mod my_psp22_upgradeable {
 
         #[ink(message)]
         #[modifiers(only_owner)]
-        pub fn initialize(&mut self, total_supply: Balance) -> Result<(), OwnableError> {
-            psp22::Internal::_mint_to(self, Ownable::owner(self), total_supply).expect("Should mint");
-            Ok(())
+        pub fn initialize(&mut self, total_supply: Balance) -> Result<(), PSP22Error> {
+            if let Some(owner) = Ownable::owner(self) {
+                psp22::Internal::_mint_to(self, owner, total_supply)
+            } else {
+                Err(PSP22Error::Custom(String::from("Owner not set!")))
+            }
         }
     }
 }

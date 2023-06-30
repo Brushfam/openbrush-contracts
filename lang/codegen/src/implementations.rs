@@ -2506,7 +2506,6 @@ pub(crate) fn impl_upgradeable(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(upgradeable_impl));
 }
 
-
 fn override_functions(trait_name: &str, implementation: &mut syn::ItemImpl, map: &OverridenFnMap) {
     if let Some(overrides) = map.get(trait_name) {
         // we will find which fns we wanna override

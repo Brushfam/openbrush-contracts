@@ -429,7 +429,7 @@ synstructure::decl_attribute!(
     /// ```skip
     ///
     /// use openbrush::traits::Storage;
-    /// 
+    ///
     /// #[openbrush::accessors(SomeStructGetters)]
     /// #[derive(Default)]
     /// #[ink::storage_item]
@@ -440,7 +440,7 @@ synstructure::decl_attribute!(
     ///     #[set]
     ///     c: u32,
     /// }
-    /// 
+    ///
     /// #[openbrush::contract]
     /// pub mod contract {
     ///     use crate::*;
@@ -454,7 +454,7 @@ synstructure::decl_attribute!(
     ///     }
     ///
     ///     impl SomeStructGetters for Contract {}
-    /// 
+    ///
     ///     impl Contract {
     ///         #[ink(constructor)]
     ///         pub fn new() -> Self {

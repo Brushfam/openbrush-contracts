@@ -30,6 +30,15 @@ macro_rules! storage_unique_key {
             ::core::stringify!($struct)
         ))
     }};
+    ($struct:literal, $field:literal) => {{
+        $crate::utils::ConstHasher::hash($crate::utils::const_format::concatcp!(
+            ::core::module_path!(),
+            "::",
+            $struct,
+            "::",
+            $field
+        ))
+    }};
 }
 
 #[macro_export]

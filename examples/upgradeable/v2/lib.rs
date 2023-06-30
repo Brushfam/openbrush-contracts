@@ -73,10 +73,12 @@ pub mod contract_v2 {
             let mut instance = Self::default();
 
             psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
+            ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
 
             instance
         }
 
+        #[ink(message)]
         #[modifiers(only_owner)]
         pub fn set_fee_collector(&mut self, account: AccountId) -> Result<(), OwnableError> {
             self.fee_collector.set(&account);

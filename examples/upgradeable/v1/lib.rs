@@ -27,6 +27,7 @@ pub mod contract_v1 {
             let mut instance = Self::default();
 
             psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
+            ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
 
             instance
         }

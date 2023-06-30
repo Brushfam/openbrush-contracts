@@ -110,6 +110,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "Proxy" => impl_proxy(&mut impl_args),
             "Diamond" => impl_diamond(&mut impl_args),
             "DiamondLoupe" => impl_diamond_loupe(&mut impl_args),
+            "Upgradeable" => impl_upgradeable(&mut impl_args),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }

@@ -2477,6 +2477,36 @@ pub(crate) fn impl_diamond_loupe(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(loupe));
 }
 
+pub(crate) fn impl_upgradeable(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let upgradeable_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl UpgradeableImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let mut upgradeable = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Upgradeable for #storage_struct_name {
+            #[ink(message)]
+            fn set_code_hash(&mut self, new_code_hash: Hash)  -> Result<(),UpgradeableError>  {
+                upgradeable::UpgradeableImpl::set_code_hash(self,new_code_hash)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::upgradeable::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("Upgradeable", import);
+
+    override_functions("Upgradeable", &mut upgradeable, &impl_args.map);
+
+    impl_args.items.push(syn::Item::Impl(upgradeable));
+    impl_args.items.push(syn::Item::Impl(upgradeable_impl));
+}
+
+
 fn override_functions(trait_name: &str, implementation: &mut syn::ItemImpl, map: &OverridenFnMap) {
     if let Some(overrides) = map.get(trait_name) {
         // we will find which fns we wanna override

@@ -64,6 +64,7 @@ pausable = ["openbrush_contracts/pausable"]
 timelock_controller = ["openbrush_contracts/timelock_controller"]
 proxy = ["openbrush_contracts/proxy"]
 diamond = ["openbrush_contracts/diamond"]
+upgradeable = ["openbrush_contracts/upgradeable"]
 
 test-all = [
     "psp22",

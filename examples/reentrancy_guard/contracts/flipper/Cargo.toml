@@ -18,9 +18,7 @@ openbrush = { path = "../../../..", default-features = false }
 name = "my_flipper_guard"
 path = "lib.rs"
 
-crate-type = [
-    "cdylib",
-]
+
 
 [features]
 default = ["std"]

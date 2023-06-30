@@ -43,7 +43,7 @@ impl Contract {
 Define the forward function to make delegate calls of upgradeable contract through proxy contract.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod proxy {

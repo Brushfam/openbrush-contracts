@@ -16,9 +16,7 @@ openbrush = { path = "../../..", default-features = false, features = ["psp22", 
 [lib]
 name = "contract_v1"
 path = "lib.rs"
-crate-type = [
-    "cdylib",
-]
+
 
 [features]
 default = ["std"]

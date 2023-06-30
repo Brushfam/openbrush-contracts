@@ -12,7 +12,7 @@ First, you should implement basic version of [PSP34](/smart-contracts/PSP34).
 Import **everything** from `openbrush::contracts::psp34::extensions::enumerable`.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_psp34 {
@@ -45,7 +45,7 @@ impl PSP34Enumerable for Contract {}
 ## Final code
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_psp34_enumerable {

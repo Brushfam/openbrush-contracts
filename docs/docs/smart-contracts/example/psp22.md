@@ -48,7 +48,7 @@ extension to our contract. We will add a `openbrush::contract` macro to our cont
 and add some imports:
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This is a simple `PSP22` which will be used as a stable coin and a collateral token in our lending contract
 #[openbrush::contract]

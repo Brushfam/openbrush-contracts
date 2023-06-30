@@ -13,7 +13,7 @@ Use `openbrush::contract` macro instead of `ink::contract`. Import **everything*
 `openbrush::contracts::psp34::extensions::metadata`.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_psp34_metadata {
@@ -67,7 +67,7 @@ impl Contract {
 ## Final code
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_psp34_metadata {

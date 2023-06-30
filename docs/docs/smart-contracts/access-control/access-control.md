@@ -44,7 +44,7 @@ Customize it by adding access control logic. We will add a `restricted_function`
 which will use the `only_role` modifier with `CALLER` parameter, which verifies that the caller has the `CALLER` role. 
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_access_control {

@@ -1,11 +1,13 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::implementation(PSP22, Upgradeable, Ownable)]
 #[openbrush::contract]
 pub mod contract_v1 {
-    use openbrush::traits::Storage;
-    use openbrush::modifiers;
-    
+    use openbrush::{
+        modifiers,
+        traits::Storage,
+    };
+
     #[ink(storage)]
     #[derive(Storage, Default)]
     pub struct Contract {

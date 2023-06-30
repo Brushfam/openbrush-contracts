@@ -19,7 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 use proc_macro::TokenStream;
 
@@ -429,7 +429,7 @@ synstructure::decl_attribute!(
     /// ```skip
     ///
     /// use openbrush::traits::Storage;
-    /// 
+    ///
     /// #[openbrush::accessors(SomeStructGetters)]
     /// #[derive(Default)]
     /// #[ink::storage_item]
@@ -440,7 +440,7 @@ synstructure::decl_attribute!(
     ///     #[set]
     ///     c: u32,
     /// }
-    /// 
+    ///
     /// #[openbrush::contract]
     /// pub mod contract {
     ///     use crate::*;
@@ -454,7 +454,7 @@ synstructure::decl_attribute!(
     ///     }
     ///
     ///     impl SomeStructGetters for Contract {}
-    /// 
+    ///
     ///     impl Contract {
     ///         #[ink(constructor)]
     ///         pub fn new() -> Self {

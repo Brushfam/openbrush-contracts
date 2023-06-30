@@ -35,7 +35,7 @@ which will be increased with each newly minted token. This way we will make sure
 there will always be added a token with a unique id. 
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_psp34 {

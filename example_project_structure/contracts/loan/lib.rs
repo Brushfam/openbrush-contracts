@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This contract will represent the loan of a user
 #[openbrush::implementation(PSP34, Ownable, PSP34Metadata)]

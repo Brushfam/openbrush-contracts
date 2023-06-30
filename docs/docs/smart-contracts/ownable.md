@@ -37,7 +37,7 @@ Customize it by adding ownable logic. We will add a `owner_function` to `MyOwnab
 and add the `only_owner` modifier, which will verify that the caller of the function is the owner.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_ownable {

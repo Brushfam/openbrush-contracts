@@ -16,9 +16,7 @@ openbrush = { path = "../..", default-features = false, features = ["proxy"] }
 [lib]
 name = "my_proxy"
 path = "lib.rs"
-crate-type = [
-    "cdylib",
-]
+
 
 [features]
 default = ["std"]

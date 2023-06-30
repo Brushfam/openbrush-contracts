@@ -16,7 +16,7 @@ as described in [that section](/smart-contracts/overview#reuse-implementation-of
 Use `psp22_pallet` storage and implement `PSP22` trait for your contract.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_psp22_pallet {
@@ -41,7 +41,7 @@ pub mod my_psp22_pallet {
 Add constructor for your contract, create asset and mint tokens to caller.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_psp22_pallet {

@@ -13,7 +13,7 @@ Use `openbrush::contract` macro instead of `ink::contract`. Import **everything*
 `openbrush::contracts::psp22::extensions::wrapper`.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_psp22_wrapper {
@@ -70,7 +70,7 @@ impl Contract {
 ## Final code
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
 pub mod my_psp22_wrapper {

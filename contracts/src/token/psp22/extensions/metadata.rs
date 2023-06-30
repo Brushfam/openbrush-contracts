@@ -22,33 +22,21 @@
 pub use crate::{
     psp22,
     psp22::extensions::metadata,
-    traits::psp22::{
-        extensions::metadata::*,
-        *,
-    },
-};
-use ink::storage::{
-    traits::ManualKey,
-    Lazy,
+    traits::psp22::{extensions::metadata::*, *},
 };
 use openbrush::traits::Storage;
 pub use openbrush::traits::String;
-pub use psp22::{
-    Internal as _,
-    InternalImpl as _,
-    PSP22Impl,
-};
-
-pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("psp22::metadata::name");
-pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("psp22::metadata::symbol");
-pub const STORAGE_KEY_3: u32 = openbrush::storage_unique_key2!("psp22::metadata::decimals");
+pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
 
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
-    pub name: Lazy<Option<String>, ManualKey<STORAGE_KEY_1>>,
-    pub symbol: Lazy<Option<String>, ManualKey<STORAGE_KEY_2>>,
-    pub decimals: Lazy<u8, ManualKey<STORAGE_KEY_3>>,
+    #[lazy_field]
+    pub name: Option<String>,
+    #[lazy_field]
+    pub symbol: Option<String>,
+    #[lazy_field]
+    pub decimals: u8,
 }
 
 pub trait PSP22MetadataImpl: Storage<Data> {

@@ -64,7 +64,7 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>,
 
                 let is_mapping = if let syn::Type::Path(path) = &field.ty {
                     if let Some(segment) = path.path.segments.last() {
-                        segment.ident == "Mapping"
+                        segment.ident == "Mapping" || segment.ident == "MultiMapping"
                     } else {
                         false
                     }
@@ -74,7 +74,7 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>,
 
                 if let syn::Type::Path(path) = &mut new_field.ty {
                     if let Some(segment) = path.path.segments.last_mut() {
-                        if segment.ident == "Mapping" {
+                        if segment.ident == "Mapping" || segment.ident == "MultiMapping" {
                             let mut args = segment.arguments.clone();
                             if let syn::PathArguments::AngleBracketed(args) = &mut args {
                                 if let Some(arg) = args.args.iter_mut().nth(1) {

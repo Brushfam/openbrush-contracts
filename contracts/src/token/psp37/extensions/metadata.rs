@@ -22,37 +22,19 @@
 pub use crate::{
     psp37,
     psp37::extensions::metadata,
-    traits::psp37::{
-        extensions::metadata::*,
-        *,
-    },
+    traits::psp37::{extensions::metadata::*, *},
 };
-use ink::storage::traits::ManualKey;
 pub use metadata::Internal as _;
 use openbrush::{
-    storage::{
-        Mapping,
-        TypeGuard,
-    },
-    traits::{
-        Storage,
-        String,
-    },
+    storage::{Mapping, TypeGuard},
+    traits::{Storage, String},
 };
-pub use psp37::{
-    BalancesManager as _,
-    BalancesManagerImpl as _,
-    Internal as _,
-    InternalImpl as _,
-    PSP37Impl,
-};
-
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("psp37::metadata::attributes");
+pub use psp37::{BalancesManager as _, BalancesManagerImpl as _, Internal as _, InternalImpl as _, PSP37Impl};
 
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
-    pub attributes: Mapping<(Id, String), String, ManualKey<STORAGE_KEY>, AttributesKey>,
+    pub attributes: Mapping<(Id, String), String, AttributesKey>,
 }
 
 pub struct AttributesKey;

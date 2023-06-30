@@ -22,34 +22,20 @@
 pub use crate::{
     access_control,
     access_control::extensions::enumerable,
-    traits::access_control::{
-        extensions::enumerable::*,
-        *,
-    },
+    traits::access_control::{extensions::enumerable::*, *},
 };
-pub use access_control::{
-    AccessControlImpl,
-    Internal as _,
-    InternalImpl as _,
-};
-use ink::storage::traits::ManualKey;
+pub use access_control::{AccessControlImpl, Internal as _, InternalImpl as _};
 use openbrush::{
-    storage::{
-        MultiMapping,
-        ValueGuard,
-    },
-    traits::{
-        AccountId,
-        Storage,
-    },
+    storage::{MultiMapping, ValueGuard},
+    traits::{AccountId, Storage},
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("access_control::enumerable::role_members");
 
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
-    pub role_members: MultiMapping<RoleType, Option<AccountId>, ManualKey<STORAGE_KEY>, ValueGuard<RoleType>>,
+    pub role_members: MultiMapping<RoleType, Option<AccountId>, ValueGuard<RoleType>>,
 }
 
 pub trait MembersManagerImpl: Storage<Data> {

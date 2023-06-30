@@ -22,38 +22,18 @@
 pub use crate::{
     psp34,
     psp34::extensions::enumerable,
-    traits::psp34::{
-        extensions::enumerable::*,
-        *,
-    },
+    traits::psp34::{extensions::enumerable::*, *},
 };
-use ink::storage::traits::ManualKey;
 use openbrush::{
-    storage::{
-        MultiMapping,
-        TypeGuard,
-    },
-    traits::{
-        AccountId,
-        Balance,
-        Storage,
-    },
+    storage::{MultiMapping, TypeGuard},
+    traits::{AccountId, Balance, Storage},
 };
-pub use psp34::{
-    BalancesManager as _,
-    Internal as _,
-    InternalImpl as _,
-    Operator,
-    Owner,
-    PSP34Impl,
-};
-
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("psp34::enumerable::enumerable");
+pub use psp34::{BalancesManager as _, Internal as _, InternalImpl as _, Operator, Owner, PSP34Impl};
 
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
-    pub enumerable: MultiMapping<Option<AccountId>, Id, ManualKey<STORAGE_KEY>, EnumerableKey>,
+    pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey>,
 }
 
 pub struct EnumerableKey;

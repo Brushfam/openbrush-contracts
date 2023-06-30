@@ -19,28 +19,15 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    reentrancy_guard,
-    traits::errors::ReentrancyGuardError,
-};
-use ink::storage::{
-    traits::{
-        ManualKey,
-        Storable,
-    },
-    Lazy,
-};
-use openbrush::{
-    modifier_definition,
-    traits::Storage,
-};
-
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("reentrancy_guard::status");
+pub use crate::{reentrancy_guard, traits::errors::ReentrancyGuardError};
+use ink::storage::traits::Storable;
+use openbrush::{modifier_definition, traits::Storage};
 
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
-    pub status: Lazy<u8, ManualKey<STORAGE_KEY>>,
+    #[lazy_field]
+    pub status: u8,
 }
 
 const NOT_ENTERED: u8 = 0;
@@ -62,7 +49,7 @@ where
     E: From<ReentrancyGuardError>,
 {
     if instance.data().status.get_or_default() == ENTERED {
-        return Err(From::from(ReentrancyGuardError::ReentrantCall))
+        return Err(From::from(ReentrancyGuardError::ReentrantCall));
     }
     // Any calls to nonReentrant after this point will fail
     instance.data().status.set(&ENTERED);
@@ -70,5 +57,5 @@ where
     let result = body(instance);
     instance.data().status.set(&NOT_ENTERED);
 
-    return result
+    return result;
 }

@@ -22,38 +22,18 @@
 pub use crate::{
     psp22,
     psp22::extensions::wrapper,
-    traits::psp22::{
-        extensions::wrapper::*,
-        *,
-    },
+    traits::psp22::{extensions::wrapper::*, *},
 };
-use ink::{
-    env::CallFlags,
-    prelude::vec::Vec,
-    storage::{
-        traits::ManualKey,
-        Lazy,
-    },
-};
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Storage,
-    String,
-};
-pub use psp22::{
-    Internal as _,
-    InternalImpl as _,
-    PSP22Impl,
-};
+use ink::{env::CallFlags, prelude::vec::Vec};
+use openbrush::traits::{AccountId, Balance, Storage, String};
+pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
 pub use wrapper::Internal as _;
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("psp22::wrapper::underlying");
-
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
-    pub underlying: Lazy<Option<AccountId>, ManualKey<STORAGE_KEY>>,
+    #[lazy_field]
+    pub underlying: Option<AccountId>,
 }
 
 pub trait PSP22WrapperImpl: Storage<Data> + Internal + psp22::Internal {

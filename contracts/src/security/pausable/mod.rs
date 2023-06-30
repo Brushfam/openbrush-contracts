@@ -19,34 +19,18 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    pausable,
-    traits::pausable::*,
-};
-use ink::storage::{
-    traits::ManualKey,
-    Lazy,
-};
+pub use crate::{pausable, traits::pausable::*};
 use openbrush::{
-    modifier_definition,
-    modifiers,
-    traits::{
-        AccountId,
-        Storage,
-    },
+    modifier_definition, modifiers,
+    traits::{AccountId, Storage},
 };
-pub use pausable::{
-    Internal as _,
-    InternalImpl as _,
-    PausableImpl as _,
-};
-
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("pausable::paused");
+pub use pausable::{Internal as _, InternalImpl as _, PausableImpl as _};
 
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
-    pub paused: Lazy<bool, ManualKey<STORAGE_KEY>>,
+    #[lazy_field]
+    pub paused: bool,
 }
 
 /// Modifier to make a function callable only when the contract is paused.
@@ -58,7 +42,7 @@ where
     E: From<PausableError>,
 {
     if !instance.data().paused.get_or_default() {
-        return Err(From::from(PausableError::NotPaused))
+        return Err(From::from(PausableError::NotPaused));
     }
     body(instance)
 }
@@ -72,7 +56,7 @@ where
     E: From<PausableError>,
 {
     if instance.data().paused.get_or_default() {
-        return Err(From::from(PausableError::Paused))
+        return Err(From::from(PausableError::Paused));
     }
     body(instance)
 }

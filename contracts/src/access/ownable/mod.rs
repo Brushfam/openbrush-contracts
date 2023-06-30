@@ -19,30 +19,18 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    ownable,
-    traits::ownable::*,
-};
-use ink::storage::{
-    traits::ManualKey,
-    Lazy,
-};
+pub use crate::{ownable, traits::ownable::*};
 use openbrush::{
-    modifier_definition,
-    modifiers,
-    traits::{
-        AccountId,
-        Storage,
-    },
+    modifier_definition, modifiers,
+    traits::{AccountId, Storage},
 };
 pub use ownable::Internal as _;
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("ownable::owner");
-
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
-    pub owner: Lazy<Option<AccountId>, ManualKey<STORAGE_KEY>>,
+    #[lazy_field]
+    pub owner: Option<AccountId>,
 }
 
 /// Throws if called by any account other than the owner.
@@ -54,7 +42,7 @@ where
     E: From<OwnableError>,
 {
     if instance.data().owner.get_or_default() != Some(T::env().caller()) {
-        return Err(From::from(OwnableError::CallerIsNotOwner))
+        return Err(From::from(OwnableError::CallerIsNotOwner));
     }
     body(instance)
 }

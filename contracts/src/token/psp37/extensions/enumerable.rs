@@ -23,41 +23,20 @@ use crate::psp37::BalancesManager;
 pub use crate::{
     psp37,
     psp37::extensions::enumerable,
-    traits::psp37::{
-        extensions::enumerable::*,
-        *,
-    },
+    traits::psp37::{extensions::enumerable::*, *},
 };
-use ink::storage::traits::ManualKey;
 use openbrush::{
-    storage::{
-        Mapping,
-        MultiMapping,
-        TypeGuard,
-    },
-    traits::{
-        AccountId,
-        Balance,
-        Storage,
-    },
+    storage::{Mapping, MultiMapping, TypeGuard},
+    traits::{AccountId, Balance, Storage},
 };
-pub use psp37::{
-    BalancesManager as _,
-    Internal as _,
-    InternalImpl as _,
-    PSP37Impl,
-};
-
-pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("psp37::enumerable::enumerable");
-pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("psp37::enumerable::balances");
-pub const STORAGE_KEY_3: u32 = openbrush::storage_unique_key2!("psp37::enumerable::supply");
+pub use psp37::{BalancesManager as _, Internal as _, InternalImpl as _, PSP37Impl};
 
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
-    pub enumerable: MultiMapping<Option<AccountId>, Id, ManualKey<STORAGE_KEY_1>, EnumerableKey>,
-    pub balances: Mapping<(AccountId, Id), Balance, ManualKey<STORAGE_KEY_2>, BalancesKey>,
-    pub supply: Mapping<Id, Balance, ManualKey<STORAGE_KEY_3>>,
+    pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey>,
+    pub balances: Mapping<(AccountId, Id), Balance, BalancesKey>,
+    pub supply: Mapping<Id, Balance>,
 }
 
 pub struct EnumerableKey;
@@ -98,7 +77,7 @@ pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
         let amount = *amount;
 
         if amount == 0 {
-            return Ok(())
+            return Ok(());
         }
 
         let balance_before = BalancesManager::_balance_of(self, owner, &Some(id));
@@ -134,7 +113,7 @@ pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
         let amount = *amount;
 
         if amount == 0 {
-            return Ok(())
+            return Ok(());
         }
 
         let balance_after = BalancesManager::_balance_of(self, owner, &Some(id))

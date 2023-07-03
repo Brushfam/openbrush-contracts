@@ -10,10 +10,7 @@ pub mod shares {
     use openbrush::{
         contracts::ownable::*,
         modifiers,
-        traits::{
-            Storage,
-            String,
-        },
+        traits::{Storage, String},
     };
 
     /// Define the storage for PSP22 data, Metadata data and Ownable data
@@ -47,9 +44,9 @@ pub mod shares {
         pub fn new(name: Option<String>, symbol: Option<String>) -> Self {
             let mut instance = Self::default();
             let caller = Self::env().caller();
-            instance.metadata.name = name;
-            instance.metadata.symbol = symbol;
-            instance.metadata.decimals = 18;
+            instance.metadata.name.set(&name);
+            instance.metadata.symbol.set(&symbol);
+            instance.metadata.decimals.set(&18);
             ownable::Internal::_init_with_owner(&mut instance, caller);
 
             instance

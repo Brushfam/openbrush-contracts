@@ -5,10 +5,7 @@
 #[openbrush::contract]
 pub mod token {
     use lending_project::traits::stable_coin::*;
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::{Storage, String};
 
     /// Define the storage for PSP22 data and Metadata data
     #[ink(storage)]
@@ -29,9 +26,9 @@ pub mod token {
         pub fn new(name: Option<String>, symbol: Option<String>) -> Self {
             let mut instance = Self::default();
 
-            instance.metadata.name = name;
-            instance.metadata.symbol = symbol;
-            instance.metadata.decimals = 18;
+            instance.metadata.name.set(&name);
+            instance.metadata.symbol.set(&symbol);
+            instance.metadata.decimals.set(&18);
             let total_supply = 1_000_000 * 10_u128.pow(18);
             assert!(psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).is_ok());
 

@@ -20,7 +20,6 @@ openbrush = { path = "../../..", default-features = false, features = ["pausable
 name = "lending_contract"
 path = "lib.rs"
 
-
 [features]
 default = ["std"]
 std = [

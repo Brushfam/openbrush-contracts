@@ -10,7 +10,10 @@ pub mod shares {
     use openbrush::{
         contracts::ownable::*,
         modifiers,
-        traits::{Storage, String},
+        traits::{
+            Storage,
+            String,
+        },
     };
 
     /// Define the storage for PSP22 data, Metadata data and Ownable data

@@ -41,7 +41,11 @@ pub mod my_lending {
     use lending_project::impls::lending::*;
     use loan_contract::loan::LoanContractRef;
     use openbrush::{
-        traits::{DefaultEnv, Storage, String},
+        traits::{
+            DefaultEnv,
+            Storage,
+            String,
+        },
         utils::xxhash_rust::const_xxh32::xxh32,
     };
     use scale::Encode;

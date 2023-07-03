@@ -21,8 +21,21 @@
 
 use crate::internal::is_attr;
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Data, DataEnum, DataStruct, DataUnion, Field, Fields};
+use quote::{
+    format_ident,
+    quote,
+    quote_spanned,
+    ToTokens,
+};
+use syn::{
+    spanned::Spanned,
+    Data,
+    DataEnum,
+    DataStruct,
+    DataUnion,
+    Field,
+    Fields,
+};
 
 fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>, Vec<Option<TokenStream>>) {
     fields

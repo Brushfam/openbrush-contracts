@@ -5,7 +5,10 @@
 #[openbrush::contract]
 pub mod token {
     use lending_project::traits::stable_coin::*;
-    use openbrush::traits::{Storage, String};
+    use openbrush::traits::{
+        Storage,
+        String,
+    };
 
     /// Define the storage for PSP22 data and Metadata data
     #[ink(storage)]

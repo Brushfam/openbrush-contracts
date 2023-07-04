@@ -33,13 +33,7 @@ pub use diamond::{
     Internal as _,
     InternalImpl as _,
 };
-use ink::{
-    prelude::vec::Vec,
-    storage::{
-        traits::ManualKey,
-        Lazy,
-    },
-};
+use ink::prelude::vec::Vec;
 use openbrush::{
     storage::{
         Mapping,
@@ -56,19 +50,16 @@ pub use ownable::{
     OwnableImpl,
 };
 
-pub const STORAGE_KEY_1: u32 = openbrush::storage_unique_key2!("diamond::loupe::code_hashes");
-pub const STORAGE_KEY_2: u32 = openbrush::storage_unique_key2!("diamond::loupe::hash_to_id");
-pub const STORAGE_KEY_3: u32 = openbrush::storage_unique_key2!("diamond::loupe::id_to_hash");
-
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
     // number of registered code hashes
-    pub code_hashes: Lazy<u32, ManualKey<STORAGE_KEY_1>>,
+    #[lazy_field]
+    pub code_hashes: u32,
     // mapping of facet to its position in all facets list
-    pub hash_to_id: Mapping<Hash, u32, ManualKey<STORAGE_KEY_2>>,
+    pub hash_to_id: Mapping<Hash, u32>,
     // mapping of facet id to its facet
-    pub id_to_hash: Mapping<u32, Hash, ManualKey<STORAGE_KEY_3>, ValueGuard<u32>>,
+    pub id_to_hash: Mapping<u32, Hash, ValueGuard<u32>>,
 }
 
 pub trait DiamondCutLoupeImpl: Storage<Data> {

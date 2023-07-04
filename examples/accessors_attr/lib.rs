@@ -2,7 +2,6 @@
 
 use openbrush::traits::Storage;
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(AccessData);
 // we declare the data struct outside of the contract
 // since we need to expand the macroes on it before the openbrush::contract macro expansion
 

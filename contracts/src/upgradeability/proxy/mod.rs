@@ -30,10 +30,6 @@ pub use crate::{
         proxy::*,
     },
 };
-use ink::storage::{
-    traits::ManualKey,
-    Lazy,
-};
 use openbrush::{
     modifiers,
     traits::{
@@ -50,12 +46,11 @@ pub use proxy::{
     InternalImpl as _,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("proxy::forward_to");
-
 #[derive(Default, Debug)]
-#[ink::storage_item]
+#[openbrush::storage_item]
 pub struct Data {
-    pub forward_to: Lazy<Hash, ManualKey<STORAGE_KEY>>,
+    #[lazy_field]
+    pub forward_to: Hash,
 }
 
 pub trait ProxyImpl: Storage<Data> + Storage<ownable::Data> + Internal {

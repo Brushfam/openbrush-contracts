@@ -43,8 +43,6 @@ use openbrush::{
     },
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("access_control::enumerable::role_members");
-
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {

@@ -19,7 +19,10 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::psp37::BalancesManager;
+use crate::psp37::{
+    ApprovalsKey,
+    BalancesManager,
+};
 pub use crate::{
     psp37,
     psp37::extensions::enumerable,
@@ -53,6 +56,7 @@ pub struct Data {
     pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey>,
     pub balances: Mapping<(AccountId, Id), Balance, BalancesKey>,
     pub supply: Mapping<Id, Balance>,
+    pub operator_approvals: Mapping<(AccountId, AccountId, Option<Id>), Balance, ApprovalsKey>,
 }
 
 pub struct EnumerableKey;
@@ -152,6 +156,24 @@ pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
             }
         }
         Ok(())
+    }
+
+    fn _insert_operator_approvals(
+        &mut self,
+        owner: &AccountId,
+        operator: &AccountId,
+        id: &Option<&Id>,
+        amount: &Balance,
+    ) {
+        self.data().operator_approvals.insert(&(owner, operator, id), &amount);
+    }
+
+    fn _get_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Option<Balance> {
+        self.data().operator_approvals.get(&(owner, operator, id))
+    }
+
+    fn _remove_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) {
+        self.data().operator_approvals.remove(&(owner, operator, id));
     }
 }
 

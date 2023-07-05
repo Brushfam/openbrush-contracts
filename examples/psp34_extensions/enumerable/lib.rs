@@ -9,8 +9,6 @@ pub mod my_psp34_enumerable {
     #[ink(storage)]
     pub struct Contract {
         #[storage_field]
-        psp34: psp34::Data,
-        #[storage_field]
         enumerable: enumerable::Data,
     }
 

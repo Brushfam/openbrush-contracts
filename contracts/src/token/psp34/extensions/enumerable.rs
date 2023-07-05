@@ -19,6 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::psp34::ApprovalsKey;
 pub use crate::{
     psp34,
     psp34::extensions::enumerable,
@@ -54,12 +55,6 @@ pub struct Data {
     pub token_owner: Mapping<Id, Owner>,
     pub operator_approvals: Mapping<(Owner, Operator, Option<Id>), (), ApprovalsKey>,
     pub balances: MultiMapping<Option<AccountId>, Id, EnumerableKey>,
-}
-
-pub struct ApprovalsKey;
-
-impl<'a> TypeGuard<'a> for ApprovalsKey {
-    type Type = &'a (&'a Owner, &'a Operator, &'a Option<&'a Id>);
 }
 
 pub struct EnumerableKey;

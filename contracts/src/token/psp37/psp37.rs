@@ -36,6 +36,7 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
+        DefaultEnv,
         Storage,
     },
 };
@@ -72,7 +73,7 @@ impl<'a> TypeGuard<'a> for ApprovalsKey {
     type Type = &'a (&'a AccountId, &'a AccountId, &'a Option<&'a Id>);
 }
 
-pub trait PSP37Impl: Internal + Storage<Data> + BalancesManager {
+pub trait PSP37Impl: Internal + BalancesManager + Sized {
     fn balance_of(&self, owner: AccountId, id: Option<Id>) -> Balance {
         self._balance_of(&owner, &id.as_ref())
     }
@@ -186,7 +187,7 @@ pub trait Internal {
     ) -> Result<(), PSP37Error>;
 }
 
-pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
+pub trait InternalImpl: Internal + BalancesManager + Sized {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _id: Id, _amount: Balance) {}
 
     fn _emit_transfer_batch_event(
@@ -269,8 +270,8 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
     }
 
     fn _get_allowance(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Balance {
-        return match self.data().operator_approvals.get(&(owner, operator, &None)) {
-            None => self.data().operator_approvals.get(&(owner, operator, id)).unwrap_or(0),
+        return match self._get_operator_approvals(owner, operator, &None) {
+            None => self._get_operator_approvals(owner, operator, id).unwrap_or(0),
             _ => Balance::MAX,
         }
     }
@@ -284,19 +285,15 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
 
         if let Some(id) = &id {
             if value == 0 {
-                self.data().operator_approvals.remove(&(&caller, &operator, &Some(id)));
+                self._remove_operator_approvals(&caller, &operator, &Some(id));
             } else {
-                self.data()
-                    .operator_approvals
-                    .insert(&(&caller, &operator, &Some(id)), &value);
+                self._insert_operator_approvals(&caller, &operator, &Some(id), &value);
             }
         } else {
             if value == 0 {
-                self.data().operator_approvals.remove(&(&caller, &operator, &None));
+                self._remove_operator_approvals(&caller, &operator, &None);
             } else {
-                self.data()
-                    .operator_approvals
-                    .insert(&(&caller, &operator, &None), &Balance::MAX);
+                self._insert_operator_approvals(&caller, &operator, &None, &Balance::MAX);
             }
         }
 
@@ -326,9 +323,7 @@ pub trait InternalImpl: Internal + Storage<Data> + BalancesManager {
             return Err(PSP37Error::InsufficientBalance)
         }
 
-        self.data()
-            .operator_approvals
-            .insert(&(owner, operator, &Some(id)), &(initial_allowance - value));
+        self._insert_operator_approvals(&owner, &operator, &Some(id), &(initial_allowance - value));
 
         Ok(())
     }
@@ -375,6 +370,18 @@ pub trait BalancesManager {
 
     fn _decrease_balance(&mut self, owner: &AccountId, id: &Id, amount: &Balance, burn: bool)
         -> Result<(), PSP37Error>;
+
+    fn _insert_operator_approvals(
+        &mut self,
+        owner: &AccountId,
+        operator: &AccountId,
+        id: &Option<&Id>,
+        amount: &Balance,
+    );
+
+    fn _get_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Option<Balance>;
+
+    fn _remove_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>);
 }
 
 pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
@@ -466,5 +473,23 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
             }
         }
         Ok(())
+    }
+
+    fn _insert_operator_approvals(
+        &mut self,
+        owner: &AccountId,
+        operator: &AccountId,
+        id: &Option<&Id>,
+        amount: &Balance,
+    ) {
+        self.data().operator_approvals.insert(&(owner, operator, id), &amount);
+    }
+
+    fn _get_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Option<Balance> {
+        self.data().operator_approvals.get(&(owner, operator, id))
+    }
+
+    fn _remove_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) {
+        self.data().operator_approvals.remove(&(owner, operator, id));
     }
 }

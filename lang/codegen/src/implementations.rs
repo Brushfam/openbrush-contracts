@@ -1362,6 +1362,23 @@ pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
             ) -> Result<(), PSP37Error> {
                 psp37::BalancesManagerImpl::_decrease_balance(self, owner, id, amount, burn)
             }
+
+            fn _insert_operator_approvals(
+                &mut self,
+                owner: &AccountId,
+                operator: &AccountId,
+                id: &Option<&Id>,
+                amount: &Balance,
+            ) {
+                psp37::BalancesManagerImpl::_insert_operator_approvals(self, owner, operator, id, amount)
+            }
+
+            fn _get_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Option<Balance> {
+                psp37::BalancesManagerImpl::_get_operator_approvals(self, owner, operator, id)
+            }
+            fn _remove_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) {
+                psp37::BalancesManagerImpl::_remove_operator_approvals(self, owner, operator, id)
+            }
         }
     ))
     .expect("Should parse");
@@ -1383,7 +1400,11 @@ pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
         .entry("psp37::BalancesManager")
         .or_insert(syn::Item::Impl(psp37_balances));
 
-    impl_args.items.push(syn::Item::Impl(psp37_balances_impl));
+    impl_args
+        .overriden_traits
+        .entry("psp37::BalancesManagerImpl")
+        .or_insert(syn::Item::Impl(psp37_balances_impl));
+
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
     impl_args.items.push(syn::Item::Impl(psp37_impl));
@@ -1630,6 +1651,24 @@ pub(crate) fn impl_psp37_enumerable(impl_args: &mut ImplArgs) {
             ) -> Result<(), PSP37Error> {
                 enumerable::BalancesManagerImpl::_decrease_balance(self, owner, id, amount, burn)
             }
+
+            fn _insert_operator_approvals(
+                &mut self,
+                owner: &AccountId,
+                operator: &AccountId,
+                id: &Option<&Id>,
+                amount: &Balance,
+            ) {
+                enumerable::BalancesManagerImpl::_insert_operator_approvals(self, owner, operator, id, amount)
+            }
+
+            fn _get_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Option<Balance> {
+                enumerable::BalancesManagerImpl::_get_operator_approvals(self, owner, operator, id)
+            }
+
+            fn _remove_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>){
+                enumerable::BalancesManagerImpl::_remove_operator_approvals(self, owner, operator, id)
+            }
         }
     ))
     .expect("Should parse");
@@ -1647,8 +1686,10 @@ pub(crate) fn impl_psp37_enumerable(impl_args: &mut ImplArgs) {
     impl_args
         .overriden_traits
         .insert("psp37::BalancesManager", syn::Item::Impl(psp37_balances));
+    impl_args
+        .overriden_traits
+        .insert("psp37::BalancesManagerImpl", syn::Item::Impl(psp37_balances_impl));
 
-    impl_args.items.push(syn::Item::Impl(psp37_balances_impl));
     impl_args.items.push(syn::Item::Impl(enumerable_impl));
     impl_args.items.push(syn::Item::Impl(psp37_enumerable));
 }

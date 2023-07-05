@@ -21,14 +21,27 @@
 
 use crate::internal::is_attr;
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Data, DataEnum, DataStruct, DataUnion, Field, Fields};
+use quote::{
+    format_ident,
+    quote,
+    quote_spanned,
+    ToTokens,
+};
+use syn::{
+    spanned::Spanned,
+    Data,
+    DataEnum,
+    DataStruct,
+    DataUnion,
+    Field,
+    Fields,
+};
 
 fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>, Vec<Option<TokenStream>>) {
     fields
         .iter()
         .map(|field| {
-            if is_attr(&field.attrs, "lazy_field") {
+            if is_attr(&field.attrs, "lazy") {
                 let mut new_field = field.clone();
                 let ty = field.ty.clone().to_token_stream();
                 let span = field.ty.span();
@@ -46,7 +59,7 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>,
                 new_field.attrs = field
                     .attrs
                     .iter()
-                    .filter(|attr| !attr.path.is_ident("lazy_field"))
+                    .filter(|attr| !attr.path.is_ident("lazy"))
                     .cloned()
                     .collect();
 

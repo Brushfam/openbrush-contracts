@@ -1868,6 +1868,14 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
             fn _remove(&mut self, role: RoleType, member: &Option<AccountId>) {
                 access_control::MembersManagerImpl::_remove(self, role, member)
             }
+
+            fn _get_role_admin(&self, role: RoleType) -> Option<RoleType> {
+                access_control::MembersManagerImpl::_get_role_admin(self, role)
+            }
+
+            fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType) {
+                access_control::MembersManagerImpl::_set_role_admin(self, role, new_admin)
+            }
         }
     ))
     .expect("Should parse");
@@ -1882,13 +1890,17 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
     override_functions("access_control::Internal", &mut internal, &impl_args.map);
     override_functions("AccessControl", &mut access_control, &impl_args.map);
 
-    // only insert this if it is not present
+    // only insert these if it is not present
+    impl_args
+        .overriden_traits
+        .entry("access_control::MembersManagerImpl")
+        .or_insert(syn::Item::Impl(members_impl));
+
     impl_args
         .overriden_traits
         .entry("access_control::MembersManager")
         .or_insert(syn::Item::Impl(members));
 
-    impl_args.items.push(syn::Item::Impl(members_impl));
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
     impl_args.items.push(syn::Item::Impl(access_control_impl));
@@ -1935,6 +1947,14 @@ pub(crate) fn impl_access_control_enumerable(impl_args: &mut ImplArgs) {
             fn _remove(&mut self, role: RoleType, member: &Option<AccountId>) {
                 enumerable::MembersManagerImpl::_remove(self, role, member)
             }
+
+            fn _get_role_admin(&self, role: RoleType) -> Option<RoleType> {
+                enumerable::MembersManagerImpl::_get_role_admin(self, role)
+            }
+
+            fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType) {
+                enumerable::MembersManagerImpl::_set_role_admin(self, role, new_admin)
+            }
         }
     ))
     .expect("Should parse");
@@ -1950,9 +1970,11 @@ pub(crate) fn impl_access_control_enumerable(impl_args: &mut ImplArgs) {
 
     impl_args
         .overriden_traits
+        .insert("access_control::MembersManagerImpl", syn::Item::Impl(members_impl));
+    impl_args
+        .overriden_traits
         .insert("access_control::MembersManager", syn::Item::Impl(members));
 
-    impl_args.items.push(syn::Item::Impl(members_impl));
     impl_args.items.push(syn::Item::Impl(enumerable_impl));
     impl_args.items.push(syn::Item::Impl(enumerable));
 }

@@ -38,11 +38,11 @@ pub use psp22::{
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy_field]
+    #[lazy]
     pub name: Option<String>,
-    #[lazy_field]
+    #[lazy]
     pub symbol: Option<String>,
-    #[lazy_field]
+    #[lazy]
     pub decimals: u8,
 }
 

@@ -65,7 +65,7 @@ pub use timelock_controller::Internal as _;
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy_field]
+    #[lazy]
     pub min_delay: Timestamp,
     pub timestamps: Mapping<OperationId, Timestamp>,
 }

@@ -6,8 +6,6 @@ pub use openbrush::traits::{
     Storage,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
-
 // we need to expand this struct before the contract macro is expanded
 // that is why we declare it here for this example
 #[ink::storage_item]

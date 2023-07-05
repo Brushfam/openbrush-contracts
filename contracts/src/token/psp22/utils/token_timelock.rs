@@ -52,11 +52,11 @@ pub use token_timelock::{
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy_field]
+    #[lazy]
     token: Option<AccountId>,
-    #[lazy_field]
+    #[lazy]
     beneficiary: Option<AccountId>,
-    #[lazy_field]
+    #[lazy]
     release_time: Timestamp,
 }
 

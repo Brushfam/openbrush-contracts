@@ -9,8 +9,6 @@ pub mod my_access_control {
     #[derive(Default, Storage)]
     pub struct Contract {
         #[storage_field]
-        access: access_control::Data,
-        #[storage_field]
         enumerable: enumerable::Data,
     }
 

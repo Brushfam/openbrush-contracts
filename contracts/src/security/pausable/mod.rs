@@ -40,7 +40,7 @@ pub use pausable::{
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy_field]
+    #[lazy]
     pub paused: bool,
 }
 

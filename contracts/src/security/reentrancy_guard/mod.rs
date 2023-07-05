@@ -32,7 +32,7 @@ use openbrush::{
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy_field]
+    #[lazy]
     pub status: u8,
 }
 

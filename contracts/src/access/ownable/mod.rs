@@ -36,7 +36,7 @@ pub use ownable::Internal as _;
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy_field]
+    #[lazy]
     pub owner: Option<AccountId>,
 }
 

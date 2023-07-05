@@ -39,10 +39,10 @@ and add the `only_owner` modifier, which will verify that the caller of the func
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(Ownable)]
 #[openbrush::contract]
 pub mod my_ownable {
     use openbrush::{
-        contracts::ownable::*,
         modifiers,
     };
     use openbrush::traits::Storage;
@@ -54,8 +54,6 @@ pub mod my_ownable {
       #[storage_field]
       ownable: ownable::Data,
    }
-
-   impl Ownable for Contract {}
     
    impl Contract {
       #[ink(constructor)]

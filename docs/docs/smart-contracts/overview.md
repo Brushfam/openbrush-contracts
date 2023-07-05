@@ -25,7 +25,7 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 # OpenBrush dependency
-openbrush = { git = "https://github.com/727-Ventures/openbrush-contracts", version = "~3.1.1", default-features = false }
+openbrush = { git = "https://github.com/brushfam/openbrush-contracts", version = "~3.1.1", default-features = false }
 
 [features]
 default = ["std"]
@@ -47,7 +47,7 @@ OpenBrush also provides the default implementation of traits that can be enabled
 A list of all available features you can find [here](https://github.com/727-Ventures/openbrush-contracts/blob/main/Cargo.toml#L51).
 The default features are implemented by a `#[openbrush::implentation]` macro, and functions from the default implementation can be overriden using the `#[overrider]` attribute. Some default implementations come with several traits containing methods that can be overriden. We can override any function in any trait with the overrider attribute.
 
-> **_Note:_** ink! requires to put `#![cfg_attr(not(feature = "std"), no_std)]` at the top of root crate.
+> **_Note:_** ink! requires to put `#![cfg_attr(not(feature = "std"), no_std, no_main)]` at the top of root crate.
 
 #### Reuse implementation of traits from OpenBrush
 

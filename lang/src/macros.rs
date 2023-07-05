@@ -41,13 +41,6 @@ macro_rules! storage_unique_key {
     }};
 }
 
-#[macro_export]
-macro_rules! storage_unique_key2 {
-    ($string:expr) => {{
-        $crate::utils::ConstHasher::hash($crate::utils::const_format::concatcp!($string))
-    }};
-}
-
 #[test]
 fn correct_storage_key() {
     use crate::utils::ConstHasher;

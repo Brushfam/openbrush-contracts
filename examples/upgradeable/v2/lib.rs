@@ -12,7 +12,7 @@ pub mod contract_v2 {
         traits::Storage,
     };
 
-    const STORAGE_KEY: u32 = openbrush::storage_unique_key2!("contract_v2::fee_collector");
+    const STORAGE_KEY: u32 = openbrush::storage_unique_key!("contract_v2", "fee_collector");
 
     #[ink(storage)]
     #[derive(Storage, Default)]

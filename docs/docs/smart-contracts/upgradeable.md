@@ -7,13 +7,13 @@ title: Upgradeable contract
 
 ## Overview
 
-Code of a smart contract deployed on chain is immutable, however, we can update the code hash of a contract to point to a different code (therefore changing the code of the smart contract). This functionality can be used for bug fixing and potential product improvements. To do this, we need to first deploy a smart contract with the new code to register its code hash to the chain, and then call the `ink::env::set_code_hash` function. This function needs to be exposed in the smart contract API. You can check an example [here](https://github.com/paritytech/ink/tree/master/examples/upgradeable-contracts/set-code-hash).
+Code of a smart contract deployed on chain is immutable, however, we can update the code hash of a contract to point to a different code (therefore changing the code of the smart contract). This functionality can be used for bug fixing and potential product improvements. To do this, we need to first deploy a smart contract with the new code to register its code hash to the chain, and then call the `ink::env::set_code_hash` function. This function needs to be exposed in the smart contract API. You can check an example [here](https://github.com/paritytech/ink/tree/master/examples/upgradeable-contracts/set-code-hash). Openbrush also provides `Upgradeable` trait, which exposes this function. When using this, be sure to add some access modifiers, so only the admin of the contract can call the function.
 
-Upgradeability allows experimenting and deploying the product at the early stage, always leaving the chance to fix vulnerabilities and progressively add features. It is more actual right now while ink! and contract-pallet are under active development. Upgradeable contracts are not a Bug if they are developed consciously with decentralization in mind.
+Upgradeability allows experimenting and deploying the product at the early stage, always leaving the chance to fix vulnerabilities and progressively add features. Upgradeable contracts are not a Bug if they are developed consciously with decentralization in mind.
 
 Decentralization can be achieved by providing the right to upgrade only to decentralized authority like governance, multisig, or another analog.
 
-There is also a possibility of smart contract upgradeability via `Proxy` and `Diamond` patterns, but these use `DelegateCall`.
+There is also a possibility of smart contract upgradeability via `Proxy` and `Diamond` patterns, which use `DelegateCall` to perform operations over own storage with code of a different deployed contract.
 
 ## Storage layout
 
@@ -28,8 +28,7 @@ During compilation ink! inserts code to work with storage and ink! knows how to 
 each type in which storage cell. How exactly it works is not a part of this tutorial, 
 but you can read about that [here](https://use.ink/basics/upgradeable-contracts). 
 The main point is that each type knows how to operate with each field and operate with 
-storage, because of a unique identifier. In the old version of ink! the identifier is 
-`[u8; 32]` in a [new version](https://github.com/paritytech/ink/issues/1134) it is `u32`.
+storage, because of a unique identifier of type `u32`.
 
 So, each data is stored under its unique identifier - the storage key. The value of the 
 key is the sequence of bytes - serialized (by SCALE codec) data type. The logic layer 
@@ -81,14 +80,10 @@ of fields. In the scope of the logic unit, you can use automatically calculated 
 offset with the storage key of the logic unit, or you can use the same approach 
 again and split logic into more units.
 
-With this approach, you can order your units as you wish. You can add/remove/swap 
-logic units and don't worry about storage layout because each logic unit will have its space 
-in the blockchain's storage. If storage keys are unique, those spaces don't overlap.
+Remember to use unique storage keys so the storage spaces don't overlap.
 
 OpenBrush provides [`openbrush::storage_item`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
-attribute macro that implements some of the required traits with specified storage key(storage key is required input argument to macro).
-This way, macro will automatically generate storage keys for all fields in the structure, that are marked as `#[lazy]` or they are `Mapping`/`MultiMapping`.
-You can access those storage keys as consts in the generated code. The format of the storage key is `STORAGE_KEY_{storage_key}_{field_name}`, where `storage_key` and `field_name` are uppercase.
+attribute macro that implements the required traits for a struct, as well as automatically generating unqiue storage keys for each of the struct's  fields which are either marked as `#[lazy]` or are of type `Mapping`/`MultiMapping`. You can access those storage keys as consts in the generated code. The format of the storage key is `STORAGE_KEY_{struct_name}_{field_name}`, where `struct_name` and `field_name` are uppercase.
 
 > **Note**: Each logic unit should have a unique storage key.
 The storage key should be used only once in the contract.

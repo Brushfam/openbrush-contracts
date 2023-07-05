@@ -87,7 +87,7 @@ in the blockchain's storage. If storage keys are unique, those spaces don't over
 
 OpenBrush provides [`openbrush::storage_item`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
 attribute macro that implements some of the required traits with specified storage key(storage key is required input argument to macro).
-This way, macro will automatically generate storage keys for all fields in the structure, that are marked as `#[lazy_field]` or they are `Mapping`/`MultiMapping`.
+This way, macro will automatically generate storage keys for all fields in the structure, that are marked as `#[lazy]` or they are `Mapping`/`MultiMapping`.
 You can access those storage keys as consts in the generated code. The format of the storage key is `STORAGE_KEY_{storage_key}_{field_name}`, where `storage_key` and `field_name` are uppercase.
 
 > **Note**: Each logic unit should have a unique storage key.
@@ -104,7 +104,7 @@ You can include all fields into logic unit, like this:
 #[openbrush::storage_item]
 pub struct Data {
     balances: Mapping<Owner, Balance>,
-    #[lazy_field]
+    #[lazy]
     total_owners: u128,
 }
 ```

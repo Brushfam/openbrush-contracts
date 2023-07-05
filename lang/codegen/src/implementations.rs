@@ -186,8 +186,8 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22", import);
     impl_args.vec_import();
 
-    override_functions("psp22::Internal", &mut internal, &impl_args.map);
-    override_functions("PSP22", &mut psp22, &impl_args.map);
+    override_functions("psp22::Internal", &mut internal, impl_args.map);
+    override_functions("PSP22", &mut psp22, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -219,7 +219,7 @@ pub(crate) fn impl_psp22_mintable(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22Mintable", import);
     impl_args.vec_import();
 
-    override_functions("PSP22Mintable", &mut mintable, &impl_args.map);
+    override_functions("PSP22Mintable", &mut mintable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(mintable_impl));
     impl_args.items.push(syn::Item::Impl(mintable));
@@ -249,7 +249,7 @@ pub(crate) fn impl_psp22_burnable(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22Burnable", import);
     impl_args.vec_import();
 
-    override_functions("PSP22Burnable", &mut burnable, &impl_args.map);
+    override_functions("PSP22Burnable", &mut burnable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(burnable_impl));
     impl_args.items.push(syn::Item::Impl(burnable));
@@ -289,7 +289,7 @@ pub(crate) fn impl_psp22_metadata(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22Metadata", import);
     impl_args.vec_import();
 
-    override_functions("PSP22Metadata", &mut metadata, &impl_args.map);
+    override_functions("PSP22Metadata", &mut metadata, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(metadata_impl));
     impl_args.items.push(syn::Item::Impl(metadata));
@@ -341,8 +341,8 @@ pub(crate) fn impl_psp22_capped(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22Capped", import);
     impl_args.vec_import();
 
-    override_functions("capped::Internal", &mut internal, &impl_args.map);
-    override_functions("PSP22Capped", &mut capped, &impl_args.map);
+    override_functions("capped::Internal", &mut internal, impl_args.map);
+    override_functions("PSP22Capped", &mut capped, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -413,8 +413,8 @@ pub(crate) fn impl_psp22_wrapper(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22Wrapper", import);
     impl_args.vec_import();
 
-    override_functions("wrapper::Internal", &mut internal, &impl_args.map);
-    override_functions("PSP22Wrapper", &mut wrapper, &impl_args.map);
+    override_functions("wrapper::Internal", &mut internal, impl_args.map);
+    override_functions("PSP22Wrapper", &mut wrapper, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -487,8 +487,8 @@ pub(crate) fn impl_flashmint(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("Flashmint", import);
     impl_args.vec_import();
 
-    override_functions("flashmint::Internal", &mut internal, &impl_args.map);
-    override_functions("FlashLender", &mut flashlender, &impl_args.map);
+    override_functions("flashmint::Internal", &mut internal, impl_args.map);
+    override_functions("FlashLender", &mut flashlender, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -569,8 +569,8 @@ pub(crate) fn impl_token_timelock(impl_args: &mut ImplArgs) {
     .expect("Should parse");
     impl_args.imports.insert("PSP22TokenTimelock", import);
 
-    override_functions("token_timelock::Internal", &mut internal, &impl_args.map);
-    override_functions("PSP22TokenTimelock", &mut timelock, &impl_args.map);
+    override_functions("token_timelock::Internal", &mut internal, impl_args.map);
+    override_functions("PSP22TokenTimelock", &mut timelock, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -682,8 +682,8 @@ pub(crate) fn impl_psp22_pallet(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22Pallet", import);
     impl_args.vec_import();
 
-    override_functions("psp22_pallet::Internal", &mut internal, &impl_args.map);
-    override_functions("PSP22", &mut psp22, &impl_args.map);
+    override_functions("psp22_pallet::Internal", &mut internal, impl_args.map);
+    override_functions("PSP22", &mut psp22, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -715,7 +715,7 @@ pub(crate) fn impl_psp22_pallet_burnable(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22PalletBurnable", import);
     impl_args.vec_import();
 
-    override_functions("PSP22Burnable", &mut burnable, &impl_args.map);
+    override_functions("PSP22Burnable", &mut burnable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(burnable_impl));
     impl_args.items.push(syn::Item::Impl(burnable));
@@ -755,7 +755,7 @@ pub(crate) fn impl_psp22_pallet_metadata(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22PalletMetadata", import);
     impl_args.vec_import();
 
-    override_functions("PSP22Metadata", &mut burnable, &impl_args.map);
+    override_functions("PSP22Metadata", &mut burnable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(metadata_impl));
     impl_args.items.push(syn::Item::Impl(burnable));
@@ -785,7 +785,7 @@ pub(crate) fn impl_psp22_pallet_mintable(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22PalletMintable", import);
     impl_args.vec_import();
 
-    override_functions("PSP22Mintable", &mut mintable, &impl_args.map);
+    override_functions("PSP22Mintable", &mut mintable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(mintable_impl));
     impl_args.items.push(syn::Item::Impl(mintable));
@@ -959,9 +959,9 @@ pub(crate) fn impl_psp34(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP34", import);
     impl_args.vec_import();
 
-    override_functions("psp34::BalancesManager", &mut psp34_balances, &impl_args.map);
-    override_functions("psp34::Internal", &mut internal, &impl_args.map);
-    override_functions("PSP34", &mut psp34, &impl_args.map);
+    override_functions("psp34::BalancesManager", &mut psp34_balances, impl_args.map);
+    override_functions("psp34::Internal", &mut internal, impl_args.map);
+    override_functions("PSP34", &mut psp34, impl_args.map);
 
     // only insert this if it is not present
     impl_args
@@ -1004,7 +1004,7 @@ pub(crate) fn impl_psp34_burnable(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP34Burnable", import);
     impl_args.vec_import();
 
-    override_functions("PSP34Burnable", &mut burnable, &impl_args.map);
+    override_functions("PSP34Burnable", &mut burnable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(burnable_impl));
     impl_args.items.push(syn::Item::Impl(burnable));
@@ -1034,7 +1034,7 @@ pub(crate) fn impl_psp34_mintable(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP34Mintable", import);
     impl_args.vec_import();
 
-    override_functions("PSP34Mintable", &mut mintable, &impl_args.map);
+    override_functions("PSP34Mintable", &mut mintable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(mintable_impl));
     impl_args.items.push(syn::Item::Impl(mintable));
@@ -1082,8 +1082,8 @@ pub(crate) fn impl_psp34_metadata(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP34Metadata", import);
     impl_args.vec_import();
 
-    override_functions("metadata::Internal", &mut internal, &impl_args.map);
-    override_functions("PSP34Mintable", &mut metadata, &impl_args.map);
+    override_functions("metadata::Internal", &mut internal, impl_args.map);
+    override_functions("PSP34Mintable", &mut metadata, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -1171,8 +1171,8 @@ pub(crate) fn impl_psp34_enumerable(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP34Enumerable", import);
     impl_args.vec_import();
 
-    override_functions("psp34::BalancesManager", &mut psp34_balances, &impl_args.map);
-    override_functions("PSP34Enumerable", &mut psp34_enumerable, &impl_args.map);
+    override_functions("psp34::BalancesManager", &mut psp34_balances, impl_args.map);
+    override_functions("PSP34Enumerable", &mut psp34_enumerable, impl_args.map);
 
     impl_args
         .overriden_traits
@@ -1390,9 +1390,9 @@ pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP37", import);
     impl_args.vec_import();
 
-    override_functions("psp37::BalancesManager", &mut psp37_balances, &impl_args.map);
-    override_functions("psp37::Internal", &mut internal, &impl_args.map);
-    override_functions("PSP37", &mut psp37, &impl_args.map);
+    override_functions("psp37::BalancesManager", &mut psp37_balances, impl_args.map);
+    override_functions("psp37::Internal", &mut internal, impl_args.map);
+    override_functions("PSP37", &mut psp37, impl_args.map);
 
     // only insert this if it is not present
     impl_args
@@ -1471,8 +1471,8 @@ pub(crate) fn impl_psp37_batch(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP37Batch", import);
     impl_args.vec_import();
 
-    override_functions("batch::Internal", &mut internal, &impl_args.map);
-    override_functions("PSP37Batch", &mut batch, &impl_args.map);
+    override_functions("batch::Internal", &mut internal, impl_args.map);
+    override_functions("PSP37Batch", &mut batch, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -1504,7 +1504,7 @@ pub(crate) fn impl_psp37_burnable(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP37Burnable", import);
     impl_args.vec_import();
 
-    override_functions("PSP37Burnable", &mut burnable, &impl_args.map);
+    override_functions("PSP37Burnable", &mut burnable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(burnable_impl));
     impl_args.items.push(syn::Item::Impl(burnable));
@@ -1556,8 +1556,8 @@ pub(crate) fn impl_psp37_metadata(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP37Metadata", import);
     impl_args.vec_import();
 
-    override_functions("metadata::Internal", &mut internal, &impl_args.map);
-    override_functions("PSP37Metadata", &mut metadata, &impl_args.map);
+    override_functions("metadata::Internal", &mut internal, impl_args.map);
+    override_functions("PSP37Metadata", &mut metadata, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -1589,7 +1589,7 @@ pub(crate) fn impl_psp37_mintable(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP37Mintable", import);
     impl_args.vec_import();
 
-    override_functions("PSP37Mintable", &mut mintable, &impl_args.map);
+    override_functions("PSP37Mintable", &mut mintable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(mintable_impl));
     impl_args.items.push(syn::Item::Impl(mintable));
@@ -1680,8 +1680,8 @@ pub(crate) fn impl_psp37_enumerable(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP37Enumerable", import);
     impl_args.vec_import();
 
-    override_functions("psp37::BalancesManager", &mut psp37_balances, &impl_args.map);
-    override_functions("PSP37Enumerable", &mut psp37_enumerable, &impl_args.map);
+    override_functions("psp37::BalancesManager", &mut psp37_balances, impl_args.map);
+    override_functions("PSP37Enumerable", &mut psp37_enumerable, impl_args.map);
 
     impl_args
         .overriden_traits
@@ -1745,8 +1745,8 @@ pub(crate) fn impl_ownable(impl_args: &mut ImplArgs) {
     .expect("Should parse");
     impl_args.imports.insert("Ownable", import);
 
-    override_functions("ownable::Internal", &mut internal, &impl_args.map);
-    override_functions("Ownable", &mut ownable, &impl_args.map);
+    override_functions("ownable::Internal", &mut internal, impl_args.map);
+    override_functions("Ownable", &mut ownable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -1845,8 +1845,8 @@ pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {
     .expect("Should parse");
     impl_args.imports.insert("PaymentSplitter", import);
 
-    override_functions("payment_splitter::Internal", &mut internal, &impl_args.map);
-    override_functions("PaymentSplitter", &mut payment_splitter, &impl_args.map);
+    override_functions("payment_splitter::Internal", &mut internal, impl_args.map);
+    override_functions("PaymentSplitter", &mut payment_splitter, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -1981,9 +1981,9 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
     .expect("Should parse");
     impl_args.imports.insert("AccessControl", import);
 
-    override_functions("access_control::MembersManager", &mut members, &impl_args.map);
-    override_functions("access_control::Internal", &mut internal, &impl_args.map);
-    override_functions("AccessControl", &mut access_control, &impl_args.map);
+    override_functions("access_control::MembersManager", &mut members, impl_args.map);
+    override_functions("access_control::Internal", &mut internal, impl_args.map);
+    override_functions("AccessControl", &mut access_control, impl_args.map);
 
     // only insert these if it is not present
     impl_args
@@ -2060,8 +2060,8 @@ pub(crate) fn impl_access_control_enumerable(impl_args: &mut ImplArgs) {
     .expect("Should parse");
     impl_args.imports.insert("AccessControlEnumerable", import);
 
-    override_functions("access_control::MembersManager", &mut members, &impl_args.map);
-    override_functions("AccessControlEnumerable", &mut enumerable, &impl_args.map);
+    override_functions("access_control::MembersManager", &mut members, impl_args.map);
+    override_functions("AccessControlEnumerable", &mut enumerable, impl_args.map);
 
     impl_args
         .overriden_traits
@@ -2131,8 +2131,8 @@ pub(crate) fn impl_pausable(impl_args: &mut ImplArgs) {
     .expect("Should parse");
     impl_args.imports.insert("Pausable", import);
 
-    override_functions("pausable::Internal", &mut internal, &impl_args.map);
-    override_functions("Pausable", &mut pausable, &impl_args.map);
+    override_functions("pausable::Internal", &mut internal, impl_args.map);
+    override_functions("Pausable", &mut pausable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -2370,8 +2370,8 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
     .expect("Should parse");
     impl_args.imports.insert("TimelockController", import);
 
-    override_functions("timelock_controller::Internal", &mut internal, &impl_args.map);
-    override_functions("TimelockController", &mut timelock_controller, &impl_args.map);
+    override_functions("timelock_controller::Internal", &mut internal, impl_args.map);
+    override_functions("TimelockController", &mut timelock_controller, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -2429,8 +2429,8 @@ pub(crate) fn impl_proxy(impl_args: &mut ImplArgs) {
     .expect("Should parse");
     impl_args.imports.insert("Proxy", import);
 
-    override_functions("proxy::Internal", &mut internal, &impl_args.map);
-    override_functions("Proxy", &mut proxy, &impl_args.map);
+    override_functions("proxy::Internal", &mut internal, impl_args.map);
+    override_functions("Proxy", &mut proxy, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
@@ -2509,9 +2509,9 @@ pub(crate) fn impl_diamond(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("Diamond", import);
     impl_args.vec_import();
 
-    override_functions("DiamondCut", &mut cut, &impl_args.map);
-    override_functions("diamond::Internal", &mut internal, &impl_args.map);
-    override_functions("Diamond", &mut diamond, &impl_args.map);
+    override_functions("DiamondCut", &mut cut, impl_args.map);
+    override_functions("diamond::Internal", &mut internal, impl_args.map);
+    override_functions("Diamond", &mut diamond, impl_args.map);
 
     // only insert this if it is not present
     impl_args
@@ -2582,8 +2582,8 @@ pub(crate) fn impl_diamond_loupe(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("DiamondLoupe", import);
     impl_args.vec_import();
 
-    override_functions("diamond::DiamondCut", &mut cut, &impl_args.map);
-    override_functions("DiamondLoupe", &mut loupe, &impl_args.map);
+    override_functions("diamond::DiamondCut", &mut cut, impl_args.map);
+    override_functions("DiamondLoupe", &mut loupe, impl_args.map);
 
     impl_args
         .overriden_traits
@@ -2617,7 +2617,7 @@ pub(crate) fn impl_upgradeable(impl_args: &mut ImplArgs) {
     .expect("Should parse");
     impl_args.imports.insert("Upgradeable", import);
 
-    override_functions("Upgradeable", &mut upgradeable, &impl_args.map);
+    override_functions("Upgradeable", &mut upgradeable, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(upgradeable));
     impl_args.items.push(syn::Item::Impl(upgradeable_impl));

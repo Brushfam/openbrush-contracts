@@ -13,7 +13,7 @@ use syn::{
 };
 
 pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
-    let trait_ident = attrs.clone();
+    let trait_ident = attrs;
 
     let struct_ident = s.ast().ident.clone();
 

@@ -43,7 +43,7 @@ use syn::{
     TraitItem,
 };
 
-const TEMP_FOLDER: &'static str = "__openbrush_metadata_folder";
+const TEMP_FOLDER: &str = "__openbrush_metadata_folder";
 
 pub(crate) struct TraitDefinition(ItemTrait);
 

@@ -39,7 +39,7 @@ use syn::{
     ItemImpl,
 };
 
-pub(crate) const BRUSH_PREFIX: &'static str = "__openbrush";
+pub(crate) const BRUSH_PREFIX: &str = "__openbrush";
 
 pub(crate) struct MetaList {
     pub path: syn::Path,
@@ -120,7 +120,7 @@ impl Parse for AttributeArgs {
             }
             let _: syn::token::Comma = input.parse()?;
         }
-        Ok(AttributeArgs { 0: attrs })
+        Ok(AttributeArgs(attrs))
     }
 }
 
@@ -241,7 +241,7 @@ pub(crate) fn impl_external_trait(
         }
     });
 
-    let ink_methods_iter = ink_methods.iter().map(|(_, value)| value);
+    let ink_methods_iter = ink_methods.values();
 
     let self_ty = impl_item.self_ty.as_ref().clone();
     let external_impl: ItemImpl = syn::parse2(quote! {
@@ -255,28 +255,23 @@ pub(crate) fn impl_external_trait(
     let internal_impl = impl_item;
 
     vec![
-        syn::Item::from(internal_impl.clone()),
-        syn::Item::from(external_impl.clone()),
+        syn::Item::from(internal_impl),
+        syn::Item::from(external_impl),
     ]
 }
 
 #[inline]
-pub(crate) fn is_attr(attrs: &Vec<syn::Attribute>, ident: &str) -> bool {
-    if let None = attrs
+pub(crate) fn is_attr(attrs: &[syn::Attribute], ident: &str) -> bool {
+    attrs
         .iter()
-        .find(|attr| attr.path.segments.last().expect("No segments in path").ident == ident)
-    {
-        false
-    } else {
-        true
-    }
+        .any(|attr| attr.path.segments.last().expect("No segments in path").ident == ident)
 }
 
 #[inline]
 #[allow(dead_code)]
-pub(crate) fn get_attr(attrs: &Vec<syn::Attribute>, ident: &str) -> Option<syn::Attribute> {
+pub(crate) fn get_attr(attrs: &[syn::Attribute], ident: &str) -> Option<syn::Attribute> {
     for attr in attrs.iter() {
-        if is_attr(&vec![attr.clone()], ident) {
+        if is_attr(&[attr.clone()], ident) {
             return Some(attr.clone())
         }
     }
@@ -284,12 +279,12 @@ pub(crate) fn get_attr(attrs: &Vec<syn::Attribute>, ident: &str) -> Option<syn::
 }
 
 #[inline]
-pub(crate) fn remove_attr(attrs: &Vec<syn::Attribute>, ident: &str) -> Vec<syn::Attribute> {
+pub(crate) fn remove_attr(attrs: &[syn::Attribute], ident: &str) -> Vec<syn::Attribute> {
     attrs
-        .clone()
-        .into_iter()
+    .iter()
+        .cloned()
         .filter_map(|attr| {
-            if is_attr(&vec![attr.clone()], ident) {
+            if is_attr(&[attr.clone()], ident) {
                 None
             } else {
                 Some(attr)
@@ -303,9 +298,9 @@ pub(crate) fn extract_attr(attrs: &mut Vec<syn::Attribute>, ident: &str) -> Vec<
     let extracted = attrs
         .clone()
         .into_iter()
-        .filter(|attr| is_attr(&vec![attr.clone()], ident))
+        .filter(|attr| is_attr(&[attr.clone()], ident))
         .collect();
-    attrs.retain(|attr| !is_attr(&vec![attr.clone()], ident));
+    attrs.retain(|attr| !is_attr(&[attr.clone()], ident));
     extracted
 }
 

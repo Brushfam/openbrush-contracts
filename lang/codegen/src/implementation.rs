@@ -37,9 +37,9 @@ use syn::{
 
 pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     if internal::skip() {
-        return (quote! {}).into()
+        return quote! {}
     }
-    let input: TokenStream = ink_module.into();
+    let input: TokenStream = ink_module;
 
     // map attribute args to default contract names
     let args = syn::parse2::<AttributeArgs>(attrs)
@@ -47,13 +47,13 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
         .iter()
         .map(|arg| {
             match arg {
-                NestedMeta::Path(method) => method.to_token_stream().to_string().replace(" ", ""),
+                NestedMeta::Path(method) => method.to_token_stream().to_string().replace(' ', ""),
                 _ => panic!("Expected names of OpenBrush traits to implement in the contract!"),
             }
         })
         .collect::<Vec<String>>();
 
-    let mut module = syn::parse2::<syn::ItemMod>(input.clone()).expect("Can't parse contract module");
+    let mut module = syn::parse2::<syn::ItemMod>(input).expect("Can't parse contract module");
     let (braces, items) = match module.clone().content {
         Some((brace, items)) => (brace, items),
         None => {
@@ -115,7 +115,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
         }
     }
 
-    cleanup_imports(&mut impl_args.imports);
+    cleanup_imports(impl_args.imports);
 
     // add the imports
     impl_args.items.append(
@@ -123,21 +123,20 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             .imports
             .values()
             .cloned()
-            .map(|item_use| syn::Item::Use(item_use))
+            .map(syn::Item::Use)
             .collect(),
     );
 
     // add overriden traits
     impl_args
         .items
-        .append(&mut impl_args.overriden_traits.values().cloned().map(|item| item).collect());
+        .append(&mut impl_args.overriden_traits.values().cloned().collect());
 
-    module.content = Some((braces.clone(), items));
+    module.content = Some((braces, items));
 
-    let result = quote! {
+    quote! {
         #module
-    };
-    result.into()
+    }
 }
 
 fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
@@ -199,7 +198,7 @@ fn consume_overriders(items: Vec<syn::Item>) -> (OverridenFnMap, Vec<syn::Item>)
                 // we will remove the overrider attribute since some other attributes might be interesting to us
                 let to_remove_idx = attributes
                     .iter()
-                    .position(|attr| is_attr(&vec![attr.clone()], attr_name))
+                    .position(|attr| is_attr(&[attr.clone()], attr_name))
                     .expect("No {attr_name} attribute found!");
                 let overrider_attribute = attributes.remove(to_remove_idx);
 
@@ -208,7 +207,7 @@ fn consume_overriders(items: Vec<syn::Item>) -> (OverridenFnMap, Vec<syn::Item>)
                     .expect("Expected overriden trait identifier")
                     .to_token_stream()
                     .to_string()
-                    .replace(" ", "");
+                    .replace(' ', "");
 
                 let mut vec = map.get(&trait_name).unwrap_or(&vec![]).clone();
                 vec.push((fn_name, (code, attributes, attr_name == "default_impl")));
@@ -224,16 +223,16 @@ fn consume_overriders(items: Vec<syn::Item>) -> (OverridenFnMap, Vec<syn::Item>)
     (map, result)
 }
 
-fn extract_storage_struct_name(items: &Vec<syn::Item>) -> String {
+fn extract_storage_struct_name(items: &[syn::Item]) -> String {
     let contract_storage_struct = items
         .iter()
-        .filter(|item| {
+        .find(|item| {
             if let Item::Struct(structure) = item {
                 let ink_attr_maybe = structure
                     .attrs
                     .iter()
                     .cloned()
-                    .find(|attr| is_attr(&vec![attr.clone()], "ink"));
+                    .find(|attr| is_attr(&[attr.clone()], "ink"));
 
                 if let Some(ink_attr) = ink_attr_maybe {
                     if let Ok(path) = ink_attr.parse_args::<Path>() {
@@ -245,7 +244,6 @@ fn extract_storage_struct_name(items: &Vec<syn::Item>) -> String {
                 false
             }
         })
-        .nth(0)
         .expect("Contract storage struct not found!");
     match contract_storage_struct {
         Item::Struct(structure) => structure.ident.to_string(),

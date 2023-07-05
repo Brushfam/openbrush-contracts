@@ -49,7 +49,7 @@ pub use proxy::{
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy_field]
+    #[lazy]
     pub forward_to: Hash,
 }
 

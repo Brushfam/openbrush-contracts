@@ -37,13 +37,13 @@ pub use payment_splitter::Internal as _;
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy_field]
+    #[lazy]
     pub total_shares: Balance,
-    #[lazy_field]
+    #[lazy]
     pub total_released: Balance,
     pub shares: Mapping<AccountId, Balance>,
     pub released: Mapping<AccountId, Balance>,
-    #[lazy_field]
+    #[lazy]
     pub payees: Vec<AccountId>,
 }
 

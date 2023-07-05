@@ -54,7 +54,7 @@ pub use ownable::{
 #[openbrush::storage_item]
 pub struct Data {
     // number of registered code hashes
-    #[lazy_field]
+    #[lazy]
     pub code_hashes: u32,
     // mapping of facet to its position in all facets list
     pub hash_to_id: Mapping<Hash, u32>,

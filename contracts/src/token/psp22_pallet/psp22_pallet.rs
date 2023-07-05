@@ -47,13 +47,13 @@ pub use psp22_pallet::{
 #[openbrush::storage_item]
 pub struct Data {
     /// Asset id of the token on the pallet.
-    #[lazy_field]
+    #[lazy]
     pub asset_id: u32,
     /// Default origin of the contract.
-    #[lazy_field]
+    #[lazy]
     pub origin: Origin,
     /// Extension to interact with `pallet-assets`
-    #[lazy_field]
+    #[lazy]
     pub pallet_assets: AssetsExtension,
 }
 

@@ -924,6 +924,30 @@ pub(crate) fn impl_psp34(impl_args: &mut ImplArgs) {
             fn _total_supply(&self) -> u128 {
                 psp34::BalancesManagerImpl::_total_supply(self)
             }
+
+            fn _owner_of(&self, id: &Id) -> Option<AccountId> {
+                psp34::BalancesManagerImpl::_owner_of(self, id)
+            }
+
+            fn _operator_approvals(&self, owner: &Owner, operator: &Operator, id: &Option<&Id>) -> Option<()> {
+                psp34::BalancesManagerImpl::_operator_approvals(self, owner, operator, id)
+            }
+
+            fn _insert_operator_approvals(&mut self, owner: &Owner, operator: &Operator, id: &Option<&Id>) {
+                psp34::BalancesManagerImpl::_insert_operator_approvals(self, owner, operator, id)
+            }
+
+            fn _remove_operator_approvals(&mut self, owner: &Owner, operator: &Operator, id: &Option<&Id>) {
+                psp34::BalancesManagerImpl::_remove_operator_approvals(self, owner, operator, id)
+            }
+
+            fn _insert_token_owner(&mut self, id: &Id, to: &AccountId) {
+                psp34::BalancesManagerImpl::_insert_token_owner(self, id, to)
+            }
+
+            fn _remove_token_owner(&mut self, id: &Id) {
+                psp34::BalancesManagerImpl::_remove_token_owner(self, id)
+            }
         }
     ))
     .expect("Should parse");
@@ -945,7 +969,11 @@ pub(crate) fn impl_psp34(impl_args: &mut ImplArgs) {
         .entry("psp34::BalancesManager")
         .or_insert(syn::Item::Impl(psp34_balances));
 
-    impl_args.items.push(syn::Item::Impl(psp34_balances_impl));
+    impl_args
+        .overriden_traits
+        .entry("psp34::BalancesManagerImpl")
+        .or_insert(syn::Item::Impl(psp34_balances_impl));
+
     impl_args.items.push(syn::Item::Impl(internal_impl));
     impl_args.items.push(syn::Item::Impl(internal));
     impl_args.items.push(syn::Item::Impl(psp34_impl));

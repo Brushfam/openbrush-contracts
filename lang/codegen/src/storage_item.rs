@@ -147,6 +147,7 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum) -> TokenStrea
     let attrs = s.ast().attrs.clone();
     let types = s.ast().generics.clone();
     let (_, _, where_closure) = s.ast().generics.split_for_impl();
+    let mut all_storage_keys: Vec<Option<TokenStream>> = vec![];
 
     let variants = enum_item.variants.into_iter().map(|variant| {
         let attrs = variant.attrs;
@@ -157,12 +158,10 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum) -> TokenStrea
             quote! {}
         };
 
-        let fields: Vec<_> = variant
-            .fields
-            .iter()
-            .enumerate()
-            .map(|(_, field)| field.to_token_stream())
-            .collect();
+        let (fields, storage_keys) = wrap_upgradeable_fields(
+            format!("{}_{}", enum_ident, variant_ident).as_str(),
+            variant.fields.clone(),
+        );
 
         let fields = match variant.fields {
             Fields::Named(_) => quote! { { #(#fields),* } },
@@ -170,9 +169,11 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum) -> TokenStrea
             Fields::Unit => quote! {},
         };
 
+        all_storage_keys.extend(storage_keys);
+
         quote! {
             #(#attrs)*
-            #variant_ident #fields #discriminant
+            #variant_ident #fields #discriminant,
         }
     });
 
@@ -181,15 +182,25 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum) -> TokenStrea
         #vis enum #enum_ident #types #where_closure {
             #(#variants),*
         }
+
+        #(#all_storage_keys)*
     }
 }
 
-fn generate_union(s: &synstructure::Structure, _union_item: DataUnion) -> TokenStream {
-    // nothing to change
-    let union = s.ast().to_token_stream();
+fn generate_union(s: &synstructure::Structure, union_item: DataUnion) -> TokenStream {
+    let union_ident = s.ast().ident.clone();
+    let vis = s.ast().vis.clone();
+    let attrs = s.ast().attrs.clone();
+    let types = s.ast().generics.clone();
+    let (_, _, where_closure) = s.ast().generics.split_for_impl();
+
+    let fields = union_item.fields.named.iter().enumerate().map(|(_i, field)| field);
 
     quote! {
-        #union
+        #(#attrs)*
+        #vis union #union_ident #types #where_closure {
+            #(#fields),*
+        }
     }
 }
 

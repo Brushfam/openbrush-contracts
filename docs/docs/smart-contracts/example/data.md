@@ -72,7 +72,7 @@ Also, you can use the `openbrush::upgradeable_storage` macro that implements tha
 and also prepare the storage to be upgradeable.
 
 ```rust
-#[openbrush::upgradeable_storage(openbrush::storage_unique_key!(PointData))]
+#[openbrush::storage_item]
 pub struct PointData {
     pub x: u32,
     pub y: u32,

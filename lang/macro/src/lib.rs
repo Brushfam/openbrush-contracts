@@ -24,15 +24,8 @@
 use proc_macro::TokenStream;
 
 use openbrush_lang_codegen::{
-    accessors,
-    contract,
-    implementation,
-    modifier_definition,
-    modifiers,
-    storage_derive,
-    storage_item,
-    trait_definition,
-    wrapper,
+    accessors, contract, implementation, modifier_definition, modifiers, storage_derive, storage_item,
+    trait_definition, wrapper,
 };
 
 /// Entry point for use openbrush's macros in ink! smart contracts.

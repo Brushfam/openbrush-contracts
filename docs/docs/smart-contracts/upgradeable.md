@@ -14,13 +14,6 @@ Upgradeability allows experimenting and deploying the product at the early stage
 Decentralization can be achieved by providing the right to upgrade only to decentralized authority like governance, multisig, or another analog.
 
 There is also a possibility of smart contract upgradeability via `Proxy` and `Diamond` patterns, but these use `DelegateCall`.
-Right now contracts that use `DelegateCall` are not supported by OpenBrush due to latest ink! changes, for more information, please check the following issues:
-
-- https://github.com/paritytech/ink/pull/1331#discussion_r953736863
-- https://github.com/Brushfam/openbrush-contracts/issues/36
-
-Our team is currently working on the new approach of working with `DelegateCall`. For now, we recommend using `Lazy` struct
-for the upgradeable contracts. `Lazy` is a wrapper for a storage field, that allows you to set it to its definite storage key.
 
 ## Storage layout
 
@@ -32,7 +25,8 @@ its key and occupy storage cell. It is called storage layout.
 ![](assets/20220719_075309_F016550A-65D2-4DCD-A60A-D1A70B38D813.jpeg)
 
 During compilation ink! inserts code to work with storage and ink! knows how to store 
-each type in which storage cell. How exactly it works is not a part of this tutorial. 
+each type in which storage cell. How exactly it works is not a part of this tutorial, 
+but you can read about that [here](https://use.ink/basics/upgradeable-contracts). 
 The main point is that each type knows how to operate with each field and operate with 
 storage, because of a unique identifier. In the old version of ink! the identifier is 
 `[u8; 32]` in a [new version](https://github.com/paritytech/ink/issues/1134) it is `u32`.
@@ -91,12 +85,10 @@ With this approach, you can order your units as you wish. You can add/remove/swa
 logic units and don't worry about storage layout because each logic unit will have its space 
 in the blockchain's storage. If storage keys are unique, those spaces don't overlap.
 
-OpenBrush provides [`openbrush::upgradeable_storage`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
+OpenBrush provides [`openbrush::storage_item`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
 attribute macro that implements some of the required traits with specified storage key(storage key is required input argument to macro).
-This way, macro will define the storage key for this struct, but WILL NOT set this struct by it's storage key automatically.
-So, you will need to perform such actions manually, or use `Lazy` wrapper. All of the `Lazy` and `Mapping` units that are defined inside of the type
-will have their definite storage keys to prevent storage corruption, also it will implement traits to ease the work with storage,
-like `Storage` to be accessible by using `.data()` method later.
+This way, macro will automatically generate storage keys for all fields in the structure, that are marked as `#[lazy_field]` or they are `Mapping`/`MultiMapping`.
+You can access those storage keys as consts in the generated code. The format of the storage key is `STORAGE_KEY_{storage_key}_{field_name}`, where `storage_key` and `field_name` are uppercase.
 
 > **Note**: Each logic unit should have a unique storage key.
 The storage key should be used only once in the contract.
@@ -109,72 +101,38 @@ key several times, which is a collision.
 
 You can include all fields into logic unit, like this:
 ```rust
-#[openbrush::upgradeable_storage(0x123)]
+#[openbrush::storage_item]
 pub struct Data {
     balances: Mapping<Owner, Balance>,
+    #[lazy_field]
     total_owners: u128,
 }
+```
+
+And in the result, you will have the following expanded code:
+```rust
+#[ink::storage_item]
+pub struct Data {
+    balances: Mapping<Owner, Balance, ManualKey<STORAGE_KEY_DATA_BALANCES>>,
+    total_owners: ::ink::Lazy<u128, ManualKey<STORAGE_KEY_DATA_TOTAL_OWNERS>>,
+}
+
+pub const STORAGE_KEY_DATA_BALANCES: u32 = 2312123323;
+pub const STORAGE_KEY_DATA_TOTAL_OWNERS: u32 = 13123212132;
 ```
 
 It makes your code readable and segregated by business logic. 
 But it will add some limitations to future upgrades.
-
-##### Limitations for future upgrades
-
-Each field that doesn't have a separate space in the storage almost always depends 
-on the field ordering(and maybe naming if you use a new ink!). So you can't remove 
-fields or change the ordering(and naming). 
-
-But you can add new fields. For that, you can reserve one field with empty type `Option<()>` 
-in your contract for future type.
-
-```rust
-#[openbrush::upgradeable_storage(0x123)]
-pub struct Data {
-    balances: Mapping<Owner, Balance>,
-    total_owners: u128,
-    _reserved: Option<()>,
-}
-```
-
-The default value of that field is `None`. But in the future, you can init it with some useful type and value.
-
-```rust
-#[openbrush::upgradeable_storage(0x123)]
-pub struct Data {
-    balances: Mapping<Owner, Balance>,
-    total_owners: u128,
-    _reserved: Option<DataExtend>,
-}
-
-impl Data {
-    fn extension(&mut self) -> &mut DataExtension {
-        &mut self._reserved.unwrap_or_default()
-    }
-}
-
-#[derive(Default)]
-pub struct DataExtension {
-  owners_blacklist: Mapping<Owner, ()>,
-  _reserved: Option<()>,
-}
-```
-
-So if you modify your contract many times in the future,
-it can cause a deep stack of `_reserved` fields, or many dead fields.
-You can always create a new logic unit and embed the old one. So you should decide what 
-is better for you right now. Create a new logic unit that will include the old one, 
-or add a new field into the current.
 
 #### Logic unit per each field
 
 You can create a unique type for each field like:
 
 ```rust
-#[openbrush::upgradeable_storage(0x123)]
+#[openbrush::storage_item]
 pub struct Balances(openbrush::storage::Mapping<AccountId, Balance>);
 
-#[openbrush::upgradeable_storage(0x124)]
+#[openbrush::storage_item]
 pub struct TotalOwners(u128);
 ```
 
@@ -191,24 +149,20 @@ macro that generates a storage key based on the path to the structure.
 It has one required input argument - the name of the structure.
 
 ```rust
-#[openbrush::upgradeable_storage(openbrush::storage_unique_key!(Data))]
+#[openbrush::storage_item]
 pub struct Data {
     balances: Mapping<Owner, Balance>,
     total_owners: u128,
-    _reserved: Option<()>,
 }
 ```
 
 or 
 
 ```rust
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
-
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item]
 pub struct Data {
     balances: Mapping<Owner, Balance>,
     total_owners: u128,
-    _reserved: Option<()>,
 }
 ```
 
@@ -356,16 +310,14 @@ This is the illustration how `Proxy` contract with delegate_call looks like:
 
 OpenBrush provides default implementation for `Proxy` pattern.
 It has `proxy::Data` logic unit that stores `forward_to` inside.
-The storage unit occupies the `proxy::STORAGE_KEY` storage key.
+The storage unit is wrapped in `Lazy` and occupies the `proxy::STORAGE_KEY_DATA_FORWARD_TO` storage key.
 The `forward_to` is the code hash of the logic layer's source code. It also contains
 `change_delegate_call` method to update code hash for `forward_to` value inside
 the contract. Only the owner is able to call the `change_delegate_call` method.
 
 ```rust
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
-
 #[derive(Debug)]
-#[openbrush::storage(STORAGE_KEY)]
+#[openbrush::storage_item]
 pub struct Data {
     pub forward_to: Hash,
 }
@@ -439,7 +391,7 @@ As an example, we will define logic units for `PSP22` and `Ownable` facets.
 
 ```rust
 // OpenBrush uses the same logic unit for the default implementation of the `PSP22` trait.
-#[openbrush::upgradeable_storage(openbrush::storage_unique_key!(PSP22Data))]
+#[openbrush::storage_item]
 pub struct PSP22Data {
     // Total supply of the `PSP22`
     pub supply: Balance,
@@ -447,18 +399,14 @@ pub struct PSP22Data {
     pub balances: Mapping<AccountId, Balance>,
     // Allowance to send tokens from one user to another
     pub allowances: Mapping<(AccountId, AccountId), Balance>,
-    // Reserved fields for future upgrades
-    pub _reserved: Option<()>,
 }
 
 // OpenBrush uses the same logic unit for the default implementation of the `Ownable` trait.
 // It simply stores the `AccountId` of the owner of the contract.
-#[openbrush::upgradeable_storage(openbrush::storage_unique_key!(OwnableData))]
+#[openbrush::storage_item]
 pub struct OwnableData {
     // Owner of the contract
     pub owner: AccountId,
-    // Reserved fields for future upgrades
-    pub _reserved: Option<()>,
 }
 ```
 

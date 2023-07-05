@@ -217,11 +217,11 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
 
     fn _allowance(&self, owner: &Owner, operator: &Operator, id: &Option<&Id>) -> bool {
         self._operator_approvals(owner, operator, &None).is_some()
-            || id != &None && self._operator_approvals(owner, operator, id).is_some()
+            || id.is_some() && self._operator_approvals(owner, operator, id).is_some()
     }
 
     fn _check_token_exists(&self, id: &Id) -> Result<AccountId, PSP34Error> {
-        Internal::_owner_of(self, &id).ok_or(PSP34Error::TokenNotExists)
+        Internal::_owner_of(self, id).ok_or(PSP34Error::TokenNotExists)
     }
 
     fn _before_token_transfer(

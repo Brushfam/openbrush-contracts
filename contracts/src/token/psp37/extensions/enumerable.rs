@@ -165,7 +165,7 @@ pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
         id: &Option<&Id>,
         amount: &Balance,
     ) {
-        self.data().operator_approvals.insert(&(owner, operator, id), &amount);
+        self.data().operator_approvals.insert(&(owner, operator, id), amount);
     }
 
     fn _get_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Option<Balance> {

@@ -20,7 +20,6 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[allow(clippy::module_inception)]
-
 mod psp22;
 
 pub use psp22::*;

@@ -254,10 +254,7 @@ pub(crate) fn impl_external_trait(
 
     let internal_impl = impl_item;
 
-    vec![
-        syn::Item::from(internal_impl),
-        syn::Item::from(external_impl),
-    ]
+    vec![syn::Item::from(internal_impl), syn::Item::from(external_impl)]
 }
 
 #[inline]
@@ -281,7 +278,7 @@ pub(crate) fn get_attr(attrs: &[syn::Attribute], ident: &str) -> Option<syn::Att
 #[inline]
 pub(crate) fn remove_attr(attrs: &[syn::Attribute], ident: &str) -> Vec<syn::Attribute> {
     attrs
-    .iter()
+        .iter()
         .cloned()
         .filter_map(|attr| {
             if is_attr(&[attr.clone()], ident) {

@@ -95,9 +95,9 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>,
                             let mut args = segment.arguments.clone();
                             if let syn::PathArguments::AngleBracketed(args) = &mut args {
                                 if let Some(syn::GenericArgument::Type(ty)) = args.args.iter_mut().nth(1) {
-                                        *ty = syn::Type::Verbatim(quote_spanned!(span =>
-                                            #ty, ::ink::storage::traits::ManualKey<#key_name>
-                                        ));
+                                    *ty = syn::Type::Verbatim(quote_spanned!(span =>
+                                        #ty, ::ink::storage::traits::ManualKey<#key_name>
+                                    ));
                                 }
                             }
                             segment.arguments = args;

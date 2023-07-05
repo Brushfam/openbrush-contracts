@@ -129,7 +129,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
         }
 
         let mut payees = self.data().payees.get_or_default();
-        payees.push(payee.clone());
+        payees.push(payee);
         self.data().payees.set(&payees);
 
         self.data().shares.insert(&payee, &share);
@@ -145,16 +145,15 @@ pub trait InternalImpl: Storage<Data> + Internal {
         let payees = self.data().payees.get_or_default();
         let len = payees.len();
 
-        for i in 0..len {
-            let account = payees[i];
-            Internal::_release(self, account)?;
+        for account in payees.iter().take(len) {
+            Internal::_release(self, *account)?;
         }
 
         Ok(())
     }
 
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
-        if !self.data().shares.get(&account).is_some() {
+        if self.data().shares.get(&account).is_none() {
             return Err(PaymentSplitterError::AccountHasNoShares)
         }
 
@@ -162,7 +161,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
         let current_balance = balance.checked_sub(Self::env().minimum_balance()).unwrap_or_default();
         let total_released = self.data().total_released.get_or_default();
         let total_received = current_balance + total_released;
-        let shares = self.data().shares.get(&account).unwrap().clone();
+        let shares = self.data().shares.get(&account).unwrap();
         let total_shares = self.data().total_shares.get_or_default();
         let released = self.data().released.get(&account).unwrap_or_default();
         let payment = total_received * shares / total_shares - released;
@@ -174,7 +173,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
         self.data().released.insert(&account, &(released + payment));
         self.data().total_released.set(&(total_released + payment));
 
-        let transfer_result = Self::env().transfer(account.clone(), payment);
+        let transfer_result = Self::env().transfer(account, payment);
         if transfer_result.is_err() {
             return Err(PaymentSplitterError::TransferFailed)
         }

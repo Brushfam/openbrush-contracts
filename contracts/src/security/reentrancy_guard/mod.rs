@@ -63,5 +63,5 @@ where
     let result = body(instance);
     instance.data().status.set(&NOT_ENTERED);
 
-    return result
+    result
 }

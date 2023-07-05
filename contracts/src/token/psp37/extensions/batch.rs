@@ -92,7 +92,7 @@ pub trait InternalImpl: Internal + psp37::Internal + Storage<psp37::Data> + psp3
         self._before_token_transfer(Some(&from), Some(&to), &ids_amounts)?;
 
         for (id, value) in &ids_amounts {
-            self._decrease_allowance(&from, &operator, id, value.clone())?;
+            self._decrease_allowance(&from, &operator, id, *value)?;
 
             self._decrease_balance(&from, id, value, false)?;
         }

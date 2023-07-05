@@ -218,14 +218,15 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
                 })
                 .map(|pat_type| pat_type.ty.clone())
                 .collect::<Vec<_>>();
-            let arg_list = input_types.iter().cloned().fold(
-                quote! { ::ink::env::call::utils::EmptyArgumentList },
-                |rest, arg| {
-                    quote! {
-                        ::ink::env::call::utils::ArgumentList<::ink::env::call::utils::Argument<#arg>, #rest>
-                    }
-                },
-            );
+            let arg_list =
+                input_types
+                    .iter()
+                    .cloned()
+                    .fold(quote! { ::ink::env::call::utils::EmptyArgumentList }, |rest, arg| {
+                        quote! {
+                            ::ink::env::call::utils::ArgumentList<::ink::env::call::utils::Argument<#arg>, #rest>
+                        }
+                    });
             let panic_str = format!(
                 "encountered error while calling <AccountId as {}>::{}",
                 trait_ident, message_ident,

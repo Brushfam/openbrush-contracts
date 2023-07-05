@@ -94,7 +94,7 @@ mod psp37 {
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,
-        _ids: &Vec<(Id, Balance)>,
+        _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error> {
         if self.return_err_on_before {
             return Err(PSP37Error::Custom(String::from("Error on _before_token_transfer")))
@@ -107,7 +107,7 @@ mod psp37 {
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,
-        _ids: &Vec<(Id, Balance)>,
+        _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error> {
         if self.return_err_on_after {
             return Err(PSP37Error::Custom(String::from("Error on _after_token_transfer")))

@@ -169,21 +169,21 @@ pub trait Internal {
         to: &AccountId,
         id: Id,
         amount: Balance,
-        data: &Vec<u8>,
+        data: &[u8],
     ) -> Result<(), PSP37Error>;
 
     fn _before_token_transfer(
         &mut self,
         from: Option<&AccountId>,
         to: Option<&AccountId>,
-        ids: &Vec<(Id, Balance)>,
+        ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error>;
 
     fn _after_token_transfer(
         &mut self,
         from: Option<&AccountId>,
         to: Option<&AccountId>,
-        ids: &Vec<(Id, Balance)>,
+        ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error>;
 }
 
@@ -270,7 +270,7 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
     }
 
     fn _get_allowance(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Balance {
-        return match self._get_operator_approvals(owner, operator, &None) {
+        match self._get_operator_approvals(owner, operator, &None) {
             None => self._get_operator_approvals(owner, operator, id).unwrap_or(0),
             _ => Balance::MAX,
         }
@@ -289,12 +289,10 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
             } else {
                 self._insert_operator_approvals(&caller, &operator, &Some(id), &value);
             }
+        } else if value == 0 {
+            self._remove_operator_approvals(&caller, &operator, &None);
         } else {
-            if value == 0 {
-                self._remove_operator_approvals(&caller, &operator, &None);
-            } else {
-                self._insert_operator_approvals(&caller, &operator, &None, &Balance::MAX);
-            }
+            self._insert_operator_approvals(&caller, &operator, &None, &Balance::MAX);
         }
 
         Internal::_emit_approval_event(self, caller, operator, id, value);
@@ -323,7 +321,7 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
             return Err(PSP37Error::InsufficientBalance)
         }
 
-        self._insert_operator_approvals(&owner, &operator, &Some(id), &(initial_allowance - value));
+        self._insert_operator_approvals(owner, operator, &Some(id), &(initial_allowance - value));
 
         Ok(())
     }
@@ -334,7 +332,7 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
         to: &AccountId,
         id: Id,
         value: Balance,
-        _data: &Vec<u8>,
+        _data: &[u8],
     ) -> Result<(), PSP37Error> {
         self._decrease_balance(from, &id, &value, false)?;
         self._increase_balance(to, &id, &value, false)?;
@@ -345,7 +343,7 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,
-        _ids: &Vec<(Id, Balance)>,
+        _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error> {
         Ok(())
     }
@@ -354,7 +352,7 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
         &mut self,
         _from: Option<&AccountId>,
         _to: Option<&AccountId>,
-        _ids: &Vec<(Id, Balance)>,
+        _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error> {
         Ok(())
     }
@@ -482,7 +480,7 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         id: &Option<&Id>,
         amount: &Balance,
     ) {
-        self.data().operator_approvals.insert(&(owner, operator, id), &amount);
+        self.data().operator_approvals.insert(&(owner, operator, id), amount);
     }
 
     fn _get_operator_approvals(&self, owner: &AccountId, operator: &AccountId, id: &Option<&Id>) -> Option<Balance> {

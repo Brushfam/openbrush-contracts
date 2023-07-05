@@ -118,14 +118,9 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     cleanup_imports(impl_args.imports);
 
     // add the imports
-    impl_args.items.append(
-        &mut impl_args
-            .imports
-            .values()
-            .cloned()
-            .map(syn::Item::Use)
-            .collect(),
-    );
+    impl_args
+        .items
+        .append(&mut impl_args.imports.values().cloned().map(syn::Item::Use).collect());
 
     // add overriden traits
     impl_args

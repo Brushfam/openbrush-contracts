@@ -69,7 +69,7 @@ pub trait DiamondImpl: Internal + Storage<ownable::Data> {
 }
 
 pub trait Internal {
-    fn _emit_diamond_cut_event(&self, diamond_cut: &Vec<FacetCut>, init: &Option<InitCall>);
+    fn _emit_diamond_cut_event(&self, diamond_cut: &[FacetCut], init: &Option<InitCall>);
 
     fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError>;
 
@@ -85,7 +85,7 @@ pub trait Internal {
 }
 
 pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
-    fn _emit_diamond_cut_event(&self, _diamond_cut: &Vec<FacetCut>, _init: &Option<InitCall>) {}
+    fn _emit_diamond_cut_event(&self, _diamond_cut: &[FacetCut], _init: &Option<InitCall>) {}
 
     fn _diamond_cut(&mut self, diamond_cut: Vec<FacetCut>, init: Option<InitCall>) -> Result<(), DiamondError> {
         for facet_cut in diamond_cut.iter() {
@@ -94,9 +94,9 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
 
         Internal::_emit_diamond_cut_event(self, &diamond_cut, &init);
 
-        if init.is_some() {
+        if let Some(init) = init {
             self.flush();
-            Internal::_init_call(self, init.unwrap());
+            Internal::_init_call(self, init);
         }
 
         Ok(())
@@ -112,9 +112,9 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
             Internal::_remove_facet(self, code_hash);
         } else {
             for selector in facet_cut.selectors.iter() {
-                let selector_hash = self.data().selector_to_hash.get(&selector);
+                let selector_hash = self.data().selector_to_hash.get(selector);
 
-                if selector_hash.and_then(|hash| Some(hash == code_hash)).unwrap_or(false) {
+                if selector_hash.map(|hash| hash == code_hash).unwrap_or(false) {
                     // selector already registered to this hash -> no action
                     continue
                 } else if selector_hash.is_some() {
@@ -122,7 +122,7 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
                     return Err(DiamondError::ReplaceExisting(selector_hash.unwrap()))
                 } else {
                     // map selector to its facet
-                    self.data().selector_to_hash.insert(&selector, &code_hash);
+                    self.data().selector_to_hash.insert(selector, &code_hash);
                 }
             }
 
@@ -181,7 +181,7 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
     fn _remove_facet(&mut self, code_hash: Hash) {
         let vec = self.data().hash_to_selectors.get(&code_hash).unwrap();
         vec.iter().for_each(|old_selector| {
-            self.data().selector_to_hash.remove(&old_selector);
+            self.data().selector_to_hash.remove(old_selector);
         });
         self.data().hash_to_selectors.remove(&code_hash);
         self._on_remove_facet(code_hash);
@@ -194,8 +194,8 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
             .get(&facet_cut.hash)
             .unwrap_or(Vec::<Selector>::new());
         for selector in selectors.iter() {
-            if !facet_cut.selectors.contains(&selector) {
-                self.data().selector_to_hash.remove(&selector);
+            if !facet_cut.selectors.contains(selector) {
+                self.data().selector_to_hash.remove(selector);
             }
         }
     }

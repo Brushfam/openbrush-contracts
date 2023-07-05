@@ -70,8 +70,7 @@ fn consume_traits(items: Vec<syn::Item>) -> Vec<syn::Item> {
             if is_attr(&item_trait.attrs, "trait_definition") {
                 item_trait.attrs = remove_attr(&item_trait.attrs, "trait_definition");
 
-                let stream: TokenStream =
-                    trait_definition::generate(TokenStream::new(), item_trait.to_token_stream());
+                let stream: TokenStream = trait_definition::generate(TokenStream::new(), item_trait.to_token_stream());
                 let mod_item = syn::parse2::<syn::ItemMod>(quote! {
                     mod jora {
                         #stream

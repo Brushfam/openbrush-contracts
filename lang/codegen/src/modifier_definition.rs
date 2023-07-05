@@ -63,11 +63,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
     }
 
     let return_ty = fn_item.sig.output.clone();
-    let mut fn_string = format!(
-        "Fn({}) {}",
-        instance_ty.to_token_stream(),
-        return_ty.to_token_stream()
-    );
+    let mut fn_string = format!("Fn({}) {}", instance_ty.to_token_stream(), return_ty.to_token_stream());
 
     let mut fn_mut_string = format!(
         "FnMut({}) {}",

@@ -162,7 +162,7 @@ pub trait TimelockControllerImpl:
         self._schedule(id, &delay)?;
 
         for (i, transaction) in transactions.into_iter().enumerate() {
-            self._emit_call_scheduled_event(id.clone(), i as u8, transaction, predecessor.clone(), delay.clone());
+            self._emit_call_scheduled_event(id, i as u8, transaction, predecessor, delay);
         }
         Ok(())
     }
@@ -258,7 +258,7 @@ pub trait Internal {
 
     fn _hash_operation_batch(
         &self,
-        transactions: &Vec<Transaction>,
+        transactions: &[Transaction],
         predecessor: &Option<OperationId>,
         salt: &[u8; 32],
     ) -> OperationId;
@@ -375,7 +375,7 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
 
     fn _hash_operation_batch(
         &self,
-        transactions: &Vec<Transaction>,
+        transactions: &[Transaction],
         predecessor: &Option<OperationId>,
         salt: &[u8; 32],
     ) -> OperationId {

@@ -1254,7 +1254,7 @@ pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
                 to: &AccountId,
                 id: Id,
                 amount: Balance,
-                data: &Vec<u8>,
+                data: &[u8],
             ) -> Result<(), PSP37Error> {
                 psp37::InternalImpl::_transfer_token(self, from, to, id, amount, data)
             }
@@ -1263,7 +1263,7 @@ pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
                 &mut self,
                 from: Option<&AccountId>,
                 to: Option<&AccountId>,
-                ids: &Vec<(Id, Balance)>,
+                ids: &[(Id, Balance)],
             ) -> Result<(), PSP37Error> {
                 psp37::InternalImpl::_before_token_transfer(self, from, to, ids)
             }
@@ -1272,7 +1272,7 @@ pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
                 &mut self,
                 from: Option<&AccountId>,
                 to: Option<&AccountId>,
-                ids: &Vec<(Id, Balance)>,
+                ids: &[(Id, Balance)],
             ) -> Result<(), PSP37Error> {
                 psp37::InternalImpl::_after_token_transfer(self, from, to, ids)
             }
@@ -2198,7 +2198,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
     
             fn _hash_operation_batch(
                 &self,
-                transactions: &Vec<Transaction>,
+                transactions: &[Transaction],
                 predecessor: &Option<OperationId>,
                 salt: &[u8; 32],
             ) -> OperationId {
@@ -2447,7 +2447,7 @@ pub(crate) fn impl_diamond(impl_args: &mut ImplArgs) {
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl diamond::Internal for #storage_struct_name {
-            fn _emit_diamond_cut_event(&self, diamond_cut: &Vec<FacetCut>, init: &Option<InitCall>) {
+            fn _emit_diamond_cut_event(&self, diamond_cut: &[FacetCut], init: &Option<InitCall>) {
                 diamond::InternalImpl::_emit_diamond_cut_event(self, diamond_cut, init)
             }
 

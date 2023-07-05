@@ -49,7 +49,7 @@ pub(crate) struct TraitDefinition(ItemTrait);
 
 impl TraitDefinition {
     pub(crate) fn new(item: ItemTrait) -> Self {
-        Self { 0: item }
+        Self(item)
     }
 
     pub(crate) fn methods(&self) -> Vec<syn::TraitItemMethod> {
@@ -80,7 +80,7 @@ impl LockedTrait {
         let token_string: String = serde_json::from_reader(reader).unwrap_or_default();
 
         let stream = TokenStream::from_str(token_string.as_str()).unwrap_or_default();
-        let trait_item = syn::parse2::<ItemTrait>(stream).map_or(None, |item| Some(item));
+        let trait_item = syn::parse2::<ItemTrait>(stream).ok();
         let trait_definition;
 
         if let Some(trait_item) = trait_item {
@@ -113,7 +113,7 @@ fn get_locked_file(name: String) -> File {
 
     let target: String = env::args()
         .find(|arg| arg.contains(INK_PREFIX))
-        .expect(format!("Unable to find PREFIX: {:?}", env::args()).as_str());
+        .unwrap_or_else(|| panic!("Unable to find PREFIX: {:?}", env::args()));
     let target: String = target
         .chars()
         .skip(INK_PREFIX.len())

@@ -318,5 +318,5 @@ pub(crate) const INK_PREFIX: &str = "ink=";
 
 #[inline]
 pub(crate) fn skip() -> bool {
-    std::env::args().find(|arg| arg.contains(INK_PREFIX)).is_none()
+    !std::env::args().any(|arg| arg.contains(INK_PREFIX))
 }

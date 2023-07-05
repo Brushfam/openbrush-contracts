@@ -46,6 +46,7 @@ use scale::{
 /// A mapping of one key to many values. The mapping provides iteration functionality over all
 /// key's values.
 pub struct MultiMapping<K, V, KeyType: StorageKey = AutoKey, TGK = RefGuard<K>, TGV = ValueGuard<V>> {
+    #[allow(clippy::type_complexity)]
     _marker: PhantomData<fn() -> (K, V, TGK, TGV, KeyType)>,
 }
 
@@ -136,8 +137,7 @@ where
             Some(index) => index,
         };
         self.value_to_index().insert(&(key, value), &index);
-        let size = self.index_to_value().insert(&(key, &index), value);
-        size
+        self.index_to_value().insert(&(key, &index), value)
     }
 
     /// Returns the count of values stored under the `key`.
@@ -305,7 +305,7 @@ where
                 .expect("The value under the last index should exist")
                 .into();
             self.index_to_value().insert(&(key, index), last_value);
-            self.value_to_index().insert(&(key, last_value), &index);
+            self.value_to_index().insert(&(key, last_value), index);
         }
 
         self.index_to_value().remove(&(key, last_index));

@@ -35,14 +35,13 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
     let fn_item: ItemFn = parse2(_input).unwrap();
 
     if fn_item.sig.inputs.len() < 2 {
-        return (quote_spanned! {
+        return quote_spanned! {
             fn_item.sig.inputs.span() =>
                 compile_error!(
                     "Modifier must take at least two arguments, \
                     where first is a reference to instance `instance: \
                     & Trait/Struct` and second is Fn, FnMut or FnOnce");
-        })
-        .into()
+        }
     }
 
     let instance_ty: syn::TypeReference;
@@ -51,37 +50,35 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
         if let syn::Type::Reference(refer) = pat.ty.as_ref() {
             instance_ty = refer.clone();
         } else {
-            return (quote_spanned! {
+            return quote_spanned! {
                 pat.ty.as_ref().span() =>
                     compile_error!("First argument of modifier must be a reference to instance `&T` or `&mut T`");
-            })
-            .into()
+            }
         }
     } else {
-        return (quote_spanned! {
+        return quote_spanned! {
             first.span() =>
                 compile_error!("First argument of modifier can't be `self`");
-        })
-        .into()
+        }
     }
 
     let return_ty = fn_item.sig.output.clone();
     let mut fn_string = format!(
         "Fn({}) {}",
-        instance_ty.to_token_stream().to_string(),
-        return_ty.to_token_stream().to_string()
+        instance_ty.to_token_stream(),
+        return_ty.to_token_stream()
     );
 
     let mut fn_mut_string = format!(
         "FnMut({}) {}",
-        instance_ty.to_token_stream().to_string(),
-        return_ty.to_token_stream().to_string()
+        instance_ty.to_token_stream(),
+        return_ty.to_token_stream()
     );
 
     let mut fn_once_string = format!(
         "FnOnce({}) {}",
-        instance_ty.to_token_stream().to_string(),
-        return_ty.to_token_stream().to_string()
+        instance_ty.to_token_stream(),
+        return_ty.to_token_stream()
     );
     let err_message = format!(
         "Second argument of modifier must be body `{}`, `{}` or `{}`",
@@ -94,7 +91,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
     fn_mut_string.retain(|c| !c.is_whitespace());
     fn_once_string.retain(|c| !c.is_whitespace());
 
-    let second = fn_item.sig.inputs.iter().skip(1).next().unwrap();
+    let second = fn_item.sig.inputs.iter().nth(1).unwrap();
     if let syn::FnArg::Typed(pat) = second {
         let mut found = false;
         let mut found_ty = None;
@@ -103,7 +100,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
         t.retain(|c| !c.is_whitespace());
         if t.contains(&fn_string) || t.contains(&fn_mut_string) || t.contains(&fn_once_string) {
             found_ty = Some(t.clone());
-            found_span = Some(pat.ty.span().clone());
+            found_span = Some(pat.ty.span());
             found = true;
         }
 
@@ -119,7 +116,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
                     None
                 }
             })
-            .find(|type_param| type_param.ident.to_string() == t);
+            .find(|type_param| type_param.ident == t);
 
         if let Some(generic) = generic {
             if let Some(generic_bound) = &generic.bounds.first() {
@@ -127,7 +124,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
                 t.retain(|c| !c.is_whitespace());
                 if t.contains(&fn_string) || t.contains(&fn_mut_string) || t.contains(&fn_once_string) {
                     found_ty = Some(t);
-                    found_span = Some(generic_bound.span().clone());
+                    found_span = Some(generic_bound.span());
                     found = true;
                 }
             }
@@ -152,7 +149,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
                     t.retain(|c| !c.is_whitespace());
                     if t.contains(&fn_string) || t.contains(&fn_mut_string) || t.contains(&fn_once_string) {
                         found_ty = Some(t);
-                        found_span = Some(pred_bound.span().clone());
+                        found_span = Some(pred_bound.span());
                         found = true;
                     }
                 }
@@ -160,11 +157,10 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
         }
 
         if !found {
-            return (quote_spanned! {
+            return quote_spanned! {
                 pat.ty.span() =>
                     compile_error!(#err_message);
-            })
-            .into()
+            }
         } else {
             let mut modifier_ty_str = fn_item.sig.output.to_token_stream().to_string();
             modifier_ty_str.retain(|c| !c.is_whitespace());
@@ -174,42 +170,37 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
             let found_ty_str = &found_ty[found_index..];
 
             if found_ty_str != modifier_ty_str {
-                return (quote_spanned! {
+                return quote_spanned! {
                     found_span.unwrap().span() =>
                         compile_error!("Return type of body mismatched with return type of modifier");
-                })
-                .into()
+                }
             }
         }
     } else if let syn::FnArg::Receiver(rec) = first {
-        return (quote_spanned! {
+        return quote_spanned! {
             rec.span() =>
                 compile_error!("Second argument of modifier can't be `self`");
-        })
-        .into()
+        }
     }
 
     for arg in fn_item.sig.inputs.iter().skip(2) {
         if let syn::FnArg::Typed(arg) = arg {
             if let syn::Type::Reference(refer) = arg.ty.as_ref() {
-                return (quote_spanned! {
+                return quote_spanned! {
                     refer.span() =>
                         compile_error!("The argument is a reference. \
                         Modifier only accepts arguments which implement `Clone` trait and only by value.");
-                })
-                .into()
+                }
             }
         } else {
-            return (quote_spanned! {
+            return quote_spanned! {
                 arg.span() =>
                     compile_error!("`self` is not allowed.");
-            })
-            .into()
+            }
         }
     }
 
-    let code = quote! {
+    quote! {
         #fn_item
-    };
-    code.into()
+    }
 }

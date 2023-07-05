@@ -94,12 +94,10 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>,
                         if segment.ident == "Mapping" || segment.ident == "MultiMapping" {
                             let mut args = segment.arguments.clone();
                             if let syn::PathArguments::AngleBracketed(args) = &mut args {
-                                if let Some(arg) = args.args.iter_mut().nth(1) {
-                                    if let syn::GenericArgument::Type(ty) = arg {
+                                if let Some(syn::GenericArgument::Type(ty)) = args.args.iter_mut().nth(1) {
                                         *ty = syn::Type::Verbatim(quote_spanned!(span =>
                                             #ty, ::ink::storage::traits::ManualKey<#key_name>
                                         ));
-                                    }
                                 }
                             }
                             segment.arguments = args;
@@ -224,10 +222,8 @@ pub fn storage_item(_attrs: TokenStream, s: synstructure::Structure) -> TokenStr
         Data::Union(union_item) => generate_union(&s, union_item),
     };
 
-    let out = quote! {
+    quote! {
         #[::ink::storage_item]
         #item
-    };
-
-    out.into()
+    }
 }

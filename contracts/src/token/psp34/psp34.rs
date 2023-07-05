@@ -27,7 +27,6 @@ pub use crate::{
     },
     traits::psp34::*,
 };
-use openbrush::traits::DefaultEnv;
 use ink::prelude::vec::Vec;
 use openbrush::{
     storage::{
@@ -37,6 +36,7 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
+        DefaultEnv,
         Storage,
     },
 };

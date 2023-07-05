@@ -1136,6 +1136,30 @@ pub(crate) fn impl_psp34_enumerable(impl_args: &mut ImplArgs) {
             fn _total_supply(&self) -> u128 {
                 enumerable::BalancesManagerImpl::_total_supply(self)
             }
+
+            fn _owner_of(&self, id: &Id) -> Option<AccountId> {
+                enumerable::BalancesManagerImpl::_owner_of(self, id)
+            }
+
+            fn _operator_approvals(&self, owner: &Owner, operator: &Operator, id: &Option<&Id>) -> Option<()> {
+                enumerable::BalancesManagerImpl::_operator_approvals(self, owner, operator, id)
+            }
+
+            fn _insert_operator_approvals(&mut self, owner: &Owner, operator: &Operator, id: &Option<&Id>) {
+                enumerable::BalancesManagerImpl::_insert_operator_approvals(self, owner, operator, id)
+            }
+
+            fn _remove_operator_approvals(&mut self, owner: &Owner, operator: &Operator, id: &Option<&Id>) {
+                enumerable::BalancesManagerImpl::_remove_operator_approvals(self, owner, operator, id)
+            }
+
+            fn _insert_token_owner(&mut self, id: &Id, to: &AccountId) {
+                enumerable::BalancesManagerImpl::_insert_token_owner(self, id, to)
+            }
+
+            fn _remove_token_owner(&mut self, id: &Id) {
+                enumerable::BalancesManagerImpl::_remove_token_owner(self, id)
+            }
         }
     ))
     .expect("Should parse");
@@ -1153,8 +1177,10 @@ pub(crate) fn impl_psp34_enumerable(impl_args: &mut ImplArgs) {
     impl_args
         .overriden_traits
         .insert("psp34::BalancesManager", syn::Item::Impl(psp34_balances));
+    impl_args
+        .overriden_traits
+        .insert("psp34::BalancesManagerImpl", syn::Item::Impl(psp34_balances_impl));
 
-    impl_args.items.push(syn::Item::Impl(psp34_balances_impl));
     impl_args.items.push(syn::Item::Impl(enumerable_impl));
     impl_args.items.push(syn::Item::Impl(psp34_enumerable));
 }

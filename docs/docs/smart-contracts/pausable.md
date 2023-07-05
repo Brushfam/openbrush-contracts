@@ -9,7 +9,7 @@ This example shows how you can reuse the implementation of
 ## Step 1: Import default implementation
 
 With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
-you need to import the `pausable` module, enable the corresponding feature, and embed the module data structure
+you need to enable `pausable` feature, embed modules data structures and implement them via `#[openbrush::implementation]` macro
 as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
 
 The main trait is `Pausable`.
@@ -34,9 +34,9 @@ Customize it by adding flipper logic. We will implement `flip` method marked wit
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(Pausable)]
 #[openbrush::contract]
 pub mod my_pausable {
-    use openbrush::contracts::pausable::*;
     use openbrush::traits::Storage;
 
     #[ink(storage)]
@@ -62,16 +62,19 @@ pub mod my_pausable {
 
         #[ink(message)]
         pub fn pause(&mut self) -> Result<(), PausableError> {
-            self._pause()
+            Internal::_pause(self)
         }
 
         #[ink(message)]
         pub fn unpause(&mut self) -> Result<(), PausableError> {
-            self._unpause()
+            Internal::_unpause(self)
+        }
+
+        #[ink(message)]
+        pub fn change_state(&mut self) -> Result<(), PausableError> {
+            Internal::_switch_pause(self)
         }
     }
-
-    impl Pausable for Contract {}
 }
 ```
 

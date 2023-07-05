@@ -394,6 +394,7 @@ As an example, we will define logic units for `PSP22` and `Ownable` facets.
 #[openbrush::storage_item]
 pub struct PSP22Data {
     // Total supply of the `PSP22`
+    #[lazy]
     pub supply: Balance,
     // Balance of each user
     pub balances: Mapping<AccountId, Balance>,
@@ -406,6 +407,7 @@ pub struct PSP22Data {
 #[openbrush::storage_item]
 pub struct OwnableData {
     // Owner of the contract
+    #[lazy]
     pub owner: AccountId,
 }
 ```
@@ -422,25 +424,24 @@ add the initialization method and methods related to business logic.
 Example uses logic units defined in the previous section.
 
 ```rust
+#[openbrush::implementation(PSP22, Ownable)]
 #[openbrush::contract]
 pub mod facet_a {
-    ...
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
+    #[derive(Default, Storage)]
     pub struct FacetA {
-        psp22: PSP22Data,
-        ownable: OwnableData,
+        #[storage_field]
+        psp22: psp22::Data,
+        #[storage_field]
+        ownable: ownable::Data,
     }
     
     // Your own implementation of `PSP22` trait.
-    impl PSP22 for FacetA {
-        ...
-        
-        #[ink(message)]
-        fn balance_of(&self, owner: AccountId) -> Balance {
-            ...
-        }
-    }
+    #[openbrush::overrider(PSP22)]
+    pub fn balance_of(&self) {...}
+    
 
     impl FacetA {
         #[ink(constructor)]
@@ -481,6 +482,7 @@ feature of OpenBrush to do cross-contract call.
 > **Note**: The trait should be defined with `openbrush::trait_definition`.
 
 ```rust
+#[openbrush::implementation(PSP22, Ownable)]
 #[openbrush::contract]
 pub mod facet_b {
     ...
@@ -517,17 +519,21 @@ If you use OpenBrush and follow suggestions above, your logic units are independ
 It allows you to embed any logic unit into any facet(logic layer) without corruption of the storage.
 
 ```rust
+#[openbrush::implementation(PSP22, Ownable)]
 #[openbrush::contract]
 pub mod facet_b {
     ...
-
+    
     #[ink(storage)]
+    #[derive(Default, Storage)]
     pub struct FacetB {
         // You embed `PSP22Data` logic unit from `FacetA`. 
         // It works with the same storage as `FacetA`. 
         // So you have access to data of `FacetA`.
-        psp22: PSP22Data,
+        #[storage_field]
+        psp22: psp22::Data,
         // Some data for `FacetB`.
+        #[storage_field]
         foo: BarData,
     }
 
@@ -570,19 +576,19 @@ So, if you embed `psp22:Data` in your `FacetB` contract. Then you can call `self
 ```rust
 // Code of facet A
 #[openbrush::contract]
+#[openbrush::implementation(PSP22, Ownable)]
 pub mod facet_a {
-    use openbrush::contracts::psp22::*;
-    use openbrush::contracts::ownable::*;
     ...
 
     #[ink(storage)]
+    #[derive(Default, Storage)]
     pub struct FacetA {
+        #[storage_field]
         psp22: psp22::Data,
+        #[storage_field]
         ownable: ownable::Data,
     }
-
-    impl PSP22 for FacetA {}
-
+    
     impl FacetA {
         #[ink(constructor)]
         pub fn new() -> Self {
@@ -600,16 +606,18 @@ pub mod facet_a {
 }
 
 // Code of facet B
+#[openbrush::implementation(PSP22, Ownable)]
 #[openbrush::contract]
 pub mod facet_b {
-    use openbrush::contracts::psp22::*;
     ...
 
     #[ink(storage)]
     pub struct FacetB {
         // The same logic unit is used in `FacetA`.
+        #[storage_field]
         psp22: psp22::Data,
         // Some data for `FacetB`.
+        #[storage_field]
         foo: BarData,
     }
 

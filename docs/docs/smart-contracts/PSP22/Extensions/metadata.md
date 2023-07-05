@@ -14,9 +14,11 @@ Use `openbrush::contract` macro instead of `ink::contract`. Import **everything*
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP22, PSP22Metadata)]
 #[openbrush::contract]
 pub mod my_psp22 {
-    use openbrush::contracts::psp22::extensions::metadata::*;
+    ...
+}
 ```
 
 ## Step 2: Define storage
@@ -30,26 +32,14 @@ the `#[storage_field]` attribute. Deriving this trait allows you to reuse the
 #[ink(storage)]
 #[derive(Default, Storage)]
 pub struct Contract {
-    ...
+    #[storage_field]
+    psp22: psp22::Data,
     #[storage_field]
     metadata: metadata::Data,
 }
 ```
 
-## Step 3: Inherit logic
-
-Inherit the implementation of the `PSP22Metadata` trait. You can customize (override) 
-methods in this `impl` block.
-
-Inherit the implementation of the `PSP22` trait.
-
-```rust
-impl PSP22 for Contract {}
-
-impl PSP22Metadata for Contract {}
-```
-
-## Step 4: Define constructor
+## Step 3: Define constructor
 
 Define constructor. Your `PSP22Metadata` contract is ready!
 
@@ -58,14 +48,14 @@ impl Contract {
     #[ink(constructor)]
     pub fn new(total_supply: Balance, name: Option<String>, symbol: Option<String>, decimal: u8) -> Self {
         let mut instance = Self::default();
+        let caller = instance.env().caller();
 
-        instance.metadata.name = name;
-        instance.metadata.symbol = symbol;
-        instance.metadata.decimals = decimal;
-        instance
-            ._mint_to(Self::env().caller(), total_supply)
-            .expect("Should mint total_supply");
-        
+        instance.metadata.name.set(&name);
+        instance.metadata.symbol.set(&symbol);
+        instance.metadata.decimals.set(&decimal);
+
+        psp22::Internal::_mint_to(&mut instance, caller, total_supply).expect("Should mint total_supply");
+
         instance
     }
 }
@@ -76,13 +66,10 @@ impl Contract {
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP22, PSP22Metadata)]
 #[openbrush::contract]
 pub mod my_psp22 {
-    use openbrush::traits::String;
-    use openbrush::{
-        contracts::psp22::extensions::metadata::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -93,22 +80,18 @@ pub mod my_psp22 {
         metadata: metadata::Data,
     }
 
-    impl PSP22 for Contract {}
-
-    impl PSP22Metadata for Contract {}
-
     impl Contract {
         #[ink(constructor)]
         pub fn new(total_supply: Balance, name: Option<String>, symbol: Option<String>, decimal: u8) -> Self {
             let mut instance = Self::default();
+            let caller = instance.env().caller();
 
-            instance.metadata.name = name;
-            instance.metadata.symbol = symbol;
-            instance.metadata.decimals = decimal;
-            instance
-                ._mint_to(Self::env().caller(), total_supply)
-                .expect("Should mint total_supply");
-            
+            instance.metadata.name.set(&name);
+            instance.metadata.symbol.set(&symbol);
+            instance.metadata.decimals.set(&decimal);
+
+            psp22::Internal::_mint_to(&mut instance, caller, total_supply).expect("Should mint total_supply");
+
             instance
         }
     }

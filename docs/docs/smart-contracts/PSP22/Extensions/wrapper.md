@@ -9,16 +9,17 @@ First, you should implement basic version of [PSP22](/smart-contracts/PSP22).
 
 ## Step 1: Add imports and enable unstable feature
 
-Use `openbrush::contract` macro instead of `ink::contract`. Import **everything** from 
-`openbrush::contracts::psp22::extensions::wrapper`.
+- Use `openbrush::contract` macro instead of `ink::contract`. 
+- Use `openbrush::implementation` macro to inherit implementations of `PSP22` and `PSP22Wrapper` traits.
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP22, PSP22Wrapper)]
 #[openbrush::contract]
 pub mod my_psp22_wrapper {
-    use openbrush::contracts::psp22::extensions::wrapper::*;
-...
+    ...
+}
 ```
 
 ## Step 2: Define storage
@@ -39,30 +40,25 @@ pub struct Contract {
 }
 ```
 
-## Step 3: Inherit logic
+## Step 3: Define constructor
 
-Inherit implementations of `PSP22` and `PSP22Wrapper` traits. 
-You can customize (override) methods in this `impl` block.
-
-```rust
-impl PSP22 for Contract {}
-
-impl PSP22Wrapper for Contract {}
-```
-
-## Step 4: Define constructor
-
-Define constructor where you init address of wrapper fungible token(PSP22).
+Define constructor where you init address of wrapper fungible token(PSP22) and `recover` message.
 
 ```rust
 impl Contract {
-   #[ink(constructor)]
-   pub fn new(token_address: AccountId) -> Self {
-       let mut instance = Self::default();
+    #[ink(constructor)]
+    pub fn new(token_address: AccountId) -> Self {
+        let mut instance = Self::default();
 
-       instance._init(token_address);
-       
-       instance
+        Internal::_init(&mut instance, token_address);
+
+        instance
+    }
+
+    /// Exposes the `_recover` function for message caller
+    #[ink(message)]
+    pub fn recover(&mut self) -> Result<Balance, PSP22Error> {
+        Internal::_recover(self, Self::env().caller())
     }
 }
 ```
@@ -72,12 +68,10 @@ impl Contract {
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP22, PSP22Wrapper)]
 #[openbrush::contract]
 pub mod my_psp22_wrapper {
-    use openbrush::{
-        contracts::psp22::extensions::wrapper::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -88,27 +82,24 @@ pub mod my_psp22_wrapper {
         wrapper: wrapper::Data,
     }
 
-    impl PSP22 for Contract {}
-
-    impl PSP22Wrapper for Contract {}
-
     impl Contract {
         #[ink(constructor)]
         pub fn new(token_address: AccountId) -> Self {
             let mut instance = Self::default();
 
-            instance._init(token_address);
-            
+            Internal::_init(&mut instance, token_address);
+
             instance
         }
 
         /// Exposes the `_recover` function for message caller
         #[ink(message)]
         pub fn recover(&mut self) -> Result<Balance, PSP22Error> {
-            self._recover(Self::env().caller())
+            Internal::_recover(self, Self::env().caller())
         }
     }
 }
+
 ```
 
 You can check an example of the usage of [PSP22 Wrapper](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/psp22_extensions/wrapper).

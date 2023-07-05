@@ -10,15 +10,33 @@ This example shows how you can reuse the implementation of [PSP37](https://githu
 First, you should implement basic version of [PSP37](/smart-contracts/PSP37).
 
 For your smart contract to use this extension, you only need to implement the 
-`PSP37Mintable` trait in your `PSP37` smart contract. Add import for 
-`openbrush::contracts::psp37::extensions::mintable::*`, inherit the implementation for 
-`PSP37Mintable` trait, where you can also customize (override) the original functions 
-from `PSP37Mintable`.
+`PSP37Mintable` via `#[openbrush::implementation(PSP37Mintable)]` attribute.
 
-```rust6
-use openbrush::contracts::psp37::extensions::mintable::*;
+## Final code
 
-impl PSP37Mintable for Contract {}
+```rust
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
+
+#[openbrush::implementation(PSP37, PSP37Mintable)]
+#[openbrush::contract]
+pub mod my_psp37 {
+    use openbrush::traits::Storage;
+
+    #[derive(Default, Storage)]
+    #[ink(storage)]
+    pub struct Contract {
+        #[storage_field]
+        psp37: psp37::Data,
+    }
+
+    impl Contract {
+        /// contract constructor
+        #[ink(constructor)]
+        pub fn new() -> Self {
+            Self::default()
+        }
+    }
+}
 ```
 
 And that's it! Your `PSP37` is now extended by the `PSP37Mintable` extension and ready to use its functions!

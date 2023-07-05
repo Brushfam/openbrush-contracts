@@ -9,11 +9,7 @@ This example shows how you can reuse the implementation of [PSP34](https://githu
 
 First, you should implement basic version of [PSP34](/smart-contracts/PSP34).
 
-For your smart contract to use this extension, you only need to implement the 
-`PSP34Mintable` trait in your `PSP34` smart contract. Add import for 
-`openbrush::contracts::psp34::extensions::mintable::*`, inherit the 
-implementation for `PSP34Mintable` trait, where you can also customize 
-(override) the original functions from `PSP34Mintable`.
+After you can just add implementation of PSP34Mintable via `#[openbrush::implementation(PSP34Mintable)]` attribute.
 
 ```rust
 use openbrush::contracts::psp34::extensions::mintable::*;

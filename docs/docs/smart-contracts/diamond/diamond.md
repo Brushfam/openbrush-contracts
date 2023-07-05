@@ -12,7 +12,7 @@ Delegate calls [were marked](https://github.com/paritytech/ink/pull/1331#discuss
 ## Step 1: Import default implementation
 
 With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
-you need to import the `diamond` and `owner` modules, enable corresponding features, and embed modules data structures
+you need to enable `diamond` feature, embed modules data structures and implement them via `#[openbrush::implementation]` macro
 as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
 
 The main trait are `Ownable` and `Diamond`.
@@ -24,12 +24,10 @@ Define the constructor and initialize the owner with the contract initiator.
 ```rust
 impl Contract {
     #[ink(constructor)]
-    pub fn new(owner: AccountId, diamond_hash: Hash) -> Self {
+    pub fn new(owner: AccountId) -> Self {
         let mut instance = Self::default();
-        
-        instance._init_with_owner(owner);
-        instance.diamond.self_hash = diamond_hash;
-        
+        ownable::Internal::_init_with_owner(&mut instance, owner);
+
         instance
     }
 }
@@ -43,7 +41,7 @@ Define the forward function to make delegate calls of facet contracts through th
 impl Contract {
     #[ink(message, payable, selector = _)]
     pub fn forward(&self) {
-        self._fallback();
+        diamond::Internal::_fallback(self)
     }
 }
 ```

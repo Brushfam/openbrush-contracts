@@ -9,16 +9,43 @@ This example shows how you can reuse the implementation of [PSP34](https://githu
 
 First, you should implement basic version of [PSP34](/smart-contracts/PSP34).
 
-For your smart contract to use this extension, you only need to implement the 
-`PSP34Burnable` trait in your `PSP34` smart contract. Add import for 
-`openbrush::contracts::psp34::extensions::burnable::*`, inherit the 
-implementation for `PSP34Burnable` trait, where you can also customize (override) 
-the original functions from `PSP34Burnable`.
+After you can just add implementation of PSP34Burnable via `#[openbrush::implementation(PSP34Burnable)]` attribute.
+
+## Final code
 
 ```rust
-use openbrush::contracts::psp34::extensions::burnable::*;
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-impl PSP34Burnable for Contract {}
+#[openbrush::implementation(PSP34, PSP34Burnable)]
+#[openbrush::contract]
+pub mod my_psp34_burnable {
+    use openbrush::traits::Storage;
+
+    #[derive(Default, Storage)]
+    #[ink(storage)]
+    pub struct Contract {
+        #[storage_field]
+        psp34: psp34::Data,
+    }
+
+    impl Contract {
+        /// The constructor
+        #[ink(constructor)]
+        pub fn new() -> Self {
+            let mut instance = Self::default();
+
+            psp34::Internal::_mint_to(&mut instance, Self::env().caller(), Id::U8(0u8))
+                .expect("Should mint token with id 0");
+            psp34::Internal::_mint_to(&mut instance, Self::env().caller(), Id::U8(1u8))
+                .expect("Should mint token with id 1");
+            psp34::Internal::_mint_to(&mut instance, Self::env().caller(), Id::U8(2u8))
+                .expect("Should mint token with id 2");
+
+            instance
+        }
+    }
+}
+
 ```
 
 And that's it! Your `PSP34` is now extended by the `PSP34Burnable` extension and ready to use its functions!

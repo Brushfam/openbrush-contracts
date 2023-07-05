@@ -8,7 +8,7 @@ This example shows how you can reuse the implementation of [PSP22](https://githu
 ## Step 1: Import default implementation
 
 With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
-you need to import the `psp22` module, enable the corresponding feature, and embed the module data structure
+you need to enable `psp22` feature, embed modules data structures and implement them via `#[openbrush::implementation]` macro
 as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
 
 The main trait is `PSP22`.
@@ -21,11 +21,14 @@ Define constructor where you mint tokens to caller.
 impl Contract {
     #[ink(constructor)]
     pub fn new(total_supply: Balance) -> Self {
-        let mut instance = Self::default();
+        let mut instance = Self {
+            psp22: Default::default(),
+            hated_storage: HatedStorage {
+                hated_account: [255; 32].into(),
+            },
+        };
 
-        instance
-            ._mint_to(Self::env().caller(), total_supply)
-            .expect("Should mint");
+        Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
 
         instance
     }
@@ -41,63 +44,70 @@ and we will add the `hated_account: AccountId` field to the structure.
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+// pub use my_psp22::*;
+pub use openbrush::traits::{
+    AccountId,
+    Storage,
+};
+
+// we need to expand this struct before the contract macro is expanded
+// that is why we declare it here for this example
+#[ink::storage_item]
+#[openbrush::accessors(HatedStorageAccessors)]
+#[derive(Debug)]
+pub struct HatedStorage {
+    #[get]
+    #[set]
+    pub hated_account: AccountId,
+}
+
+#[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 pub mod my_psp22 {
+    use crate::*;
     use openbrush::traits::String;
-    use openbrush::{
-        contracts::psp22::*,
-        traits::Storage,
-    };
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Storage)]
     pub struct Contract {
         #[storage_field]
         psp22: psp22::Data,
-        // fields for hater logic
-        hated_account: AccountId,
+        #[storage_field]
+        hated_storage: HatedStorage,
     }
 
-    impl Transfer for Contract {
-        // Let's override method to reject transactions to bad account
-        fn _before_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            to: Option<&AccountId>,
-            _amount: &Balance,
-        ) -> Result<(), PSP22Error> {
-            if to == Some(&self.hated_account) {
-                return Err(PSP22Error::Custom(String::from("I hate this account!")));
-            }
-            Ok(())
+    #[overrider(psp22::Internal)]
+    fn _before_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        if to == Some(&self.hated_storage.hated_account) {
+            return Err(PSP22Error::Custom(String::from("I hate this account!")))
         }
+        Ok(())
     }
 
-    impl PSP22 for Contract {}
+    impl HatedStorageAccessors for Contract {}
 
     impl Contract {
         #[ink(constructor)]
         pub fn new(total_supply: Balance) -> Self {
-            let mut instance = Self::default();
+            let mut instance = Self {
+                psp22: Default::default(),
+                hated_storage: HatedStorage {
+                    hated_account: [255; 32].into(),
+                },
+            };
+
+            Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
 
             instance
-                ._mint_to(Self::env().caller(), total_supply)
-                .expect("Should mint");
-            
-            instance
-        }
-
-        #[ink(message)]
-        pub fn set_hated_account(&mut self, hated: AccountId) {
-            self.hated_account = hated;
-        }
-
-        #[ink(message)]
-        pub fn get_hated_account(&self) -> AccountId {
-            self.hated_account.clone()
         }
     }
 }
+
 ```
 
 You can check an example of the usage of [PSP22](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/psp22).

@@ -10,16 +10,44 @@ This example shows how you can reuse the implementation of
 
 First, you should implement basic version of [PSP22](/smart-contracts/PSP22).
 
-For your smart contract to use this extension, you only need to implement the 
-`PSP22Burnable` trait in your `PSP22` smart contract. Add import for 
-`openbrush::contracts::psp22::extensions::burnable::*`, inherit the 
-implementation for `PSP22Burnable` trait, where you can also customize (override) 
-the original functions from `PSP22Burnable`.
+After you can just add implementation of PSP22Burnable via `#[openbrush::implementation(PSP22Burnable)]` attribute.
+
+## Final code 
 
 ```rust
-use openbrush::contracts::psp22::extensions::burnable::*;
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-impl PSP22Burnable for Contract {}
+#[openbrush::implementation(PSP22, PSP22Burnable)]
+#[openbrush::contract]
+pub mod my_psp22_burnable {
+    use openbrush::traits::Storage;
+
+    #[ink(storage)]
+    #[derive(Default, Storage)]
+    pub struct Contract {
+        #[storage_field]
+        psp22: psp22::Data,
+    }
+
+    impl Contract {
+        #[ink(constructor)]
+        pub fn new(total_supply: Balance) -> Self {
+            let mut instance = Self::default();
+
+            psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
+
+            instance
+        }
+
+        #[ink(message)]
+        pub fn burn_from_many(&mut self, accounts: Vec<(AccountId, Balance)>) -> Result<(), PSP22Error> {
+            for account in accounts.iter() {
+                PSP22Burnable::burn(self, account.0, account.1)?;
+            }
+            Ok(())
+        }
+    }
+}
 ```
 
 And that's it! Your `PSP22` is now extended by the `PSP22Burnable` extension and ready to use its functions!

@@ -1,25 +1,22 @@
 [package]
-name = "rust_diamond"
+name = "contract_v2"
 version = "3.1.1"
 authors = ["Brushfam <dominik.krizo@727.ventures>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.1.0", default-features = false}
+ink = { version = "4.2.1", default-features = false}
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
-scale-info = { version = "2.3", default-features = false, features = ["derive"], optional = true }
+scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 # These dependencies
-openbrush = { path = "../../../..", default-features = false, features = ["diamond", "ownable"] }
-paste = "1.0"
+openbrush = { path = "../../..", default-features = false, features = ["psp22", "upgradeable", "ownable"] }
 
 [lib]
-name = "rust_diamond"
+name = "contract_v2"
 path = "lib.rs"
-crate-type = [
-    "cdylib",
-]
+
 
 [features]
 default = ["std"]
@@ -27,8 +24,10 @@ std = [
     "ink/std",
     "scale/std",
     "scale-info/std",
-    # These dependencies
     "openbrush/std",
 ]
 ink-as-dependency = []
+e2e-tests = []
 
+[profile.dev]
+codegen-units = 16

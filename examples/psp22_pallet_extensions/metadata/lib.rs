@@ -1,16 +1,9 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
-#![feature(default_alloc_error_handler)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP22Pallet, PSP22PalletMetadata)]
 #[openbrush::contract]
 pub mod my_psp22_pallet_metadata {
-    use openbrush::{
-        contracts::psp22_pallet::extensions::metadata::*,
-        traits::{
-            Storage,
-            String,
-        },
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -18,10 +11,6 @@ pub mod my_psp22_pallet_metadata {
         #[storage_field]
         pallet: psp22_pallet::Data,
     }
-
-    impl PSP22 for Contract {}
-
-    impl PSP22Metadata for Contract {}
 
     impl Contract {
         /// During instantiation of the contract, you need to pass native tokens as a deposit
@@ -38,19 +27,17 @@ pub mod my_psp22_pallet_metadata {
         ) -> Self {
             let mut instance = Self::default();
 
-            instance
-                ._create(asset_id, Self::env().account_id(), min_balance)
+            psp22_pallet::Internal::_create(&mut instance, asset_id, Self::env().account_id(), min_balance)
                 .expect("Should create an asset");
-            instance.pallet.asset_id = asset_id;
-            instance.pallet.origin = Origin::Caller;
-            assert!(instance
+            instance.pallet.asset_id.set(&asset_id);
+            instance.pallet.origin.set(&Origin::Caller);
+            instance
                 .pallet
                 .pallet_assets
+                .get_or_default()
                 .set_metadata(asset_id, name.into(), symbol.into(), decimal)
-                .is_ok());
-            instance
-                ._mint_to(Self::env().caller(), total_supply)
-                .expect("Should mint");
+                .expect("Should set metadata");
+            psp22_pallet::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
 
             instance
         }
@@ -58,23 +45,12 @@ pub mod my_psp22_pallet_metadata {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::psp22_pallet::{
-            extensions::{
-                burnable::psp22burnable_external::PSP22Burnable,
-                metadata::psp22metadata_external::PSP22Metadata,
-            },
-            psp22_external::PSP22,
-        };
+        use openbrush::contracts::psp22_pallet::extensions::metadata::psp22metadata_external::PSP22Metadata;
 
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
-        use test_helpers::{
-            address_of,
-            balance_of,
-        };
+        use ink_e2e::{build_message};
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

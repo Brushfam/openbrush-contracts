@@ -27,7 +27,7 @@ describe('LENDING_CONTRACT', () => {
     const bob = signers[1]
 
     const contractFactory = new ConstructorsCoin(api, defaultSigner)
-    const contractAddress = (await contractFactory.new('Stable Coin' as unknown as string[], 'SC' as unknown as string[])).address
+    const contractAddress = (await contractFactory.new('Stable Coin', 'SC')).address
     const contract = new ContractCoin(contractAddress, defaultSigner, api)
 
     return {
@@ -79,7 +79,7 @@ describe('LENDING_CONTRACT', () => {
     const bob = signers[1]
 
     const contractFactory = new ConstructorsShares(api, defaultSigner)
-    const contractAddress = (await contractFactory.new([], [])).address
+    const contractAddress = (await contractFactory.new('', '')).address
     const contract = new ContractShares(contractAddress, defaultSigner, api)
 
     return {
@@ -131,7 +131,7 @@ describe('LENDING_CONTRACT', () => {
     const bob = signers[1]
 
     const contractFactory = new ConstructorsCoin(api, defaultSigner)
-    const contractAddress = (await contractFactory.new('Green Coin' as unknown as string[], 'GC' as unknown as string[])).address
+    const contractAddress = (await contractFactory.new('Green Coin', 'GC')).address
     const contract = new ContractCoin(contractAddress, defaultSigner, api)
 
     return {

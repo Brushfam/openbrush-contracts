@@ -32,11 +32,11 @@ pub type PSP22TokenTimelockRef = dyn PSP22TokenTimelock;
 pub trait PSP22TokenTimelock {
     /// Returns the token address
     #[ink(message)]
-    fn token(&self) -> AccountId;
+    fn token(&self) -> Option<AccountId>;
 
     /// Returns the beneficiary of the tokens
     #[ink(message)]
-    fn beneficiary(&self) -> AccountId;
+    fn beneficiary(&self) -> Option<AccountId>;
 
     /// Returns the timestamp when the tokens are released
     #[ink(message)]

@@ -72,7 +72,7 @@ Also, you can use the `openbrush::upgradeable_storage` macro that implements tha
 and also prepare the storage to be upgradeable.
 
 ```rust
-#[openbrush::upgradeable_storage(openbrush::storage_unique_key!(PointData))]
+#[openbrush::storage_item]
 pub struct PointData {
     pub x: u32,
     pub y: u32,
@@ -102,7 +102,6 @@ pub trait Point: PointStorage {
 ```
 or a generic implementation:
 ```rust
-#![feature(min_specialization)]
 
 pub trait Point {
     fn x(&self) -> u32;
@@ -113,15 +112,15 @@ pub trait Point {
 }
 
 impl<T: PointStorage> Point for T {
-    default fn x(&self) -> u32 {
+    fn x(&self) -> u32 {
         PointStorage::get(self).x
     }
 
-    default fn y(&self) -> u32 {
+    fn y(&self) -> u32 {
         PointStorage::get(self).y
     }
 
-    default fn name(&self) -> String {
+    fn name(&self) -> String {
         "AlphaPoint".to_string()
     }
 }
@@ -145,7 +144,6 @@ pub trait Point: openbrush::traits::Storage<PointData> {
 ```
 or a generic implementation with `openbrush::traits::Storage`:
 ```rust
-#![feature(min_specialization)]
 
 pub trait Point {
     fn x(&self) -> u32;
@@ -156,15 +154,15 @@ pub trait Point {
 }
 
 impl<T: openbrush::traits::Storage<PointData>> Point for T {
-    default fn x(&self) -> u32 {
+    fn x(&self) -> u32 {
         self.data().x
     }
 
-    default fn y(&self) -> u32 {
+    fn y(&self) -> u32 {
         self.data().y
     }
 
-    default fn name(&self) -> String {
+    fn name(&self) -> String {
         "AlphaPoint".to_string()
     }
 }

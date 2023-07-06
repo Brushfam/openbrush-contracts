@@ -17,7 +17,7 @@ edition = "2018"
 
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/727-Ventures/openbrush-contracts"
+repository = "https://github.com/Brushfam/openbrush-contracts"
 documentation = "https://docs.openbrush.io"
 homepage = "https://727.ventures"
 description = "OpenBrush library for smart contract development on ink!."
@@ -26,9 +26,9 @@ categories = ["no-std", "embedded"]
 include = ["Cargo.toml", "src/**/*.rs"]
 
 [dependencies]
-ink = { version = "4.1.0", default-features = false}
+ink = { version = "4.2.1", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
-scale-info = { version = "2.3", default-features = false, features = ["derive"] }
+scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 openbrush_contracts = { version = "~3.1.1", path = "contracts", default-features = false }
 openbrush_lang = { version = "~3.1.1", path = "lang", default-features = false }
@@ -41,9 +41,9 @@ crate-type = [
 ]
 
 [dev-dependencies]
-ink_e2e = "4.1.0"
-ink_env = "4.1.0"
+ink_env = "4.2.1"
 trybuild = "1.0.80"
+ink_e2e = "4.2.1"
 
 [features]
 default = ["std"]
@@ -66,6 +66,7 @@ pausable = ["openbrush_contracts/pausable"]
 timelock_controller = ["openbrush_contracts/timelock_controller"]
 proxy = ["openbrush_contracts/proxy"]
 diamond = ["openbrush_contracts/diamond"]
+upgradeable = ["openbrush_contracts/upgradeable"]
 
 test-all = [
     "psp22",

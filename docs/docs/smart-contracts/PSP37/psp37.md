@@ -3,14 +3,14 @@ sidebar_position: 1
 title: PSP37
 ---
 
-This example shows how you can reuse the implementation of [PSP37](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/token/psp37) 
+This example shows how you can reuse the implementation of [PSP37](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/token/psp37) 
 token. Also, this example shows how you can customize the logic, for example, to 
 track the number of token types with `unique_ids`, adding a new token type with the `add_type` function.
 
 ## Step 1: Import default implementation
 
 With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
-you need to import the `psp37` module, enable the corresponding feature, and embed the module data structure
+you need to enable `psp37` feature, embed modules data structures and implement them via `#[openbrush::implementation]` macro
 as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
 
 The main trait is `PSP37`.
@@ -36,19 +36,18 @@ Id will be added to `denied_ids` map.
 If someone tries to mint token with denied id, we will reject transaction.
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP37)]
 #[openbrush::contract]
 pub mod my_psp37 {
-    use openbrush::traits::String;
-    use ink::prelude::{
-        vec,
-    };
+    use ink::prelude::vec;
     use openbrush::{
-        contracts::psp37::*,
         storage::Mapping,
-        traits::Storage,
+        traits::{
+            Storage,
+            String,
+        },
     };
 
     #[derive(Default, Storage)]
@@ -58,8 +57,6 @@ pub mod my_psp37 {
         psp37: psp37::Data,
         denied_ids: Mapping<Id, ()>,
     }
-
-    impl PSP37 for Contract {}
 
     impl Contract {
         #[ink(constructor)]
@@ -77,12 +74,12 @@ pub mod my_psp37 {
             if self.denied_ids.get(&id).is_some() {
                 return Err(PSP37Error::Custom(String::from("Id is denied")))
             }
-            self._mint_to(Self::env().caller(), vec![(id, amount)])
+            psp37::Internal::_mint_to(self, Self::env().caller(), vec![(id, amount)])
         }
     }
 }
 ```
-You can check an example of the usage of [PSP37](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/psp37).
+You can check an example of the usage of [PSP37](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/psp37).
 
 Also you can use extensions for PSP37 token:
 

@@ -1,13 +1,10 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP22Metadata)]
 #[openbrush::contract]
 pub mod my_psp22_metadata_facet {
     use openbrush::{
-        contracts::{
-            ownable::*,
-            psp22::extensions::metadata::*,
-        },
+        contracts::ownable::*,
         modifiers,
         traits::{
             Storage,
@@ -25,8 +22,6 @@ pub mod my_psp22_metadata_facet {
         ownable: ownable::Data,
     }
 
-    impl PSP22Metadata for PSP22Facet {}
-
     impl PSP22Facet {
         #[ink(constructor)]
         pub fn new() -> Self {
@@ -36,9 +31,9 @@ pub mod my_psp22_metadata_facet {
         #[ink(message)]
         #[modifiers(only_owner)]
         pub fn init_metadata(&mut self) -> Result<(), PSP22Error> {
-            self.metadata.name = Some(String::from("PSP22 Diamond"));
-            self.metadata.symbol = Some(String::from("PSP22D"));
-            self.metadata.decimals = 18;
+            self.metadata.name.set(&Some(String::from("PSP22 Diamond")));
+            self.metadata.symbol.set(&Some(String::from("PSP22D")));
+            self.metadata.decimals.set(&18);
             Ok(())
         }
     }

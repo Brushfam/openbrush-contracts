@@ -1,19 +1,13 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This is a simple `PSP22` which will be used as a stable coin and a collateral token in our lending contract
+#[openbrush::implementation(PSP22, PSP22Metadata, PSP22Mintable)]
 #[openbrush::contract]
 pub mod token {
     use lending_project::traits::stable_coin::*;
-    use openbrush::{
-        contracts::psp22::extensions::{
-            metadata::*,
-            mintable::*,
-        },
-        traits::{
-            Storage,
-            String,
-        },
+    use openbrush::traits::{
+        Storage,
+        String,
     };
 
     /// Define the storage for PSP22 data and Metadata data
@@ -26,15 +20,6 @@ pub mod token {
         metadata: metadata::Data,
     }
 
-    /// Implement PSP22 Trait for our coin
-    impl PSP22 for StableCoinContract {}
-
-    /// Implement PSP22Metadata Trait for our coin
-    impl PSP22Metadata for StableCoinContract {}
-
-    /// implement PSP22Mintable Trait for our coin
-    impl PSP22Mintable for StableCoinContract {}
-
     // It forces the compiler to check that you implemented all super traits
     impl StableCoin for StableCoinContract {}
 
@@ -44,11 +29,11 @@ pub mod token {
         pub fn new(name: Option<String>, symbol: Option<String>) -> Self {
             let mut instance = Self::default();
 
-            instance.metadata.name = name;
-            instance.metadata.symbol = symbol;
-            instance.metadata.decimals = 18;
+            instance.metadata.name.set(&name);
+            instance.metadata.symbol.set(&symbol);
+            instance.metadata.decimals.set(&18);
             let total_supply = 1_000_000 * 10_u128.pow(18);
-            assert!(instance._mint_to(Self::env().caller(), total_supply).is_ok());
+            assert!(psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).is_ok());
 
             instance
         }

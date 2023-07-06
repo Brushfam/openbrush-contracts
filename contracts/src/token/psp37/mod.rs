@@ -23,8 +23,6 @@ pub mod psp37;
 
 pub use psp37::*;
 
-pub mod balances;
-
 pub mod extensions {
     pub mod batch;
     pub mod burnable;

@@ -45,14 +45,15 @@ use scale::{
 // TODO: More doc
 /// A mapping of one key to many values. The mapping provides iteration functionality over all
 /// key's values.
-pub struct MultiMapping<K, V, TGK = RefGuard<K>, TGV = ValueGuard<V>, KeyType: StorageKey = AutoKey> {
+pub struct MultiMapping<K, V, KeyType: StorageKey = AutoKey, TGK = RefGuard<K>, TGV = ValueGuard<V>> {
+    #[allow(clippy::type_complexity)]
     _marker: PhantomData<fn() -> (K, V, TGK, TGV, KeyType)>,
 }
 
 type ValueToIndex<'a, TGK, TGV> = &'a (<TGK as TypeGuard<'a>>::Type, &'a <TGV as TypeGuard<'a>>::Type);
 type IndexToValue<'a, TGK> = &'a (<TGK as TypeGuard<'a>>::Type, &'a u128);
 
-impl<K, V, TGK, TGV, KeyType> MultiMapping<K, V, TGK, TGV, KeyType>
+impl<K, V, TGK, TGV, KeyType> MultiMapping<K, V, KeyType, TGK, TGV>
 where
     KeyType: StorageKey,
 {
@@ -93,7 +94,7 @@ where
     }
 }
 
-impl<K, V, TGK, TGV, KeyType> Default for MultiMapping<K, V, TGK, TGV, KeyType>
+impl<K, V, TGK, TGV, KeyType> Default for MultiMapping<K, V, KeyType, TGK, TGV>
 where
     KeyType: StorageKey,
 {
@@ -104,7 +105,7 @@ where
     }
 }
 
-impl<K, V, TGK, TGV, KeyType> core::fmt::Debug for MultiMapping<K, V, TGK, TGV, KeyType>
+impl<K, V, TGK, TGV, KeyType> core::fmt::Debug for MultiMapping<K, V, KeyType, TGK, TGV>
 where
     KeyType: StorageKey,
 {
@@ -113,7 +114,7 @@ where
     }
 }
 
-impl<K, V, TGK, TGV, KeyType> MultiMapping<K, V, TGK, TGV, KeyType>
+impl<K, V, TGK, TGV, KeyType> MultiMapping<K, V, KeyType, TGK, TGV>
 where
     K: Packed,
     V: Packed,
@@ -136,8 +137,7 @@ where
             Some(index) => index,
         };
         self.value_to_index().insert(&(key, value), &index);
-        let size = self.index_to_value().insert(&(key, &index), value);
-        size
+        self.index_to_value().insert(&(key, &index), value)
     }
 
     /// Returns the count of values stored under the `key`.
@@ -305,7 +305,7 @@ where
                 .expect("The value under the last index should exist")
                 .into();
             self.index_to_value().insert(&(key, index), last_value);
-            self.value_to_index().insert(&(key, last_value), &index);
+            self.value_to_index().insert(&(key, last_value), index);
         }
 
         self.index_to_value().remove(&(key, last_index));
@@ -332,7 +332,7 @@ const _: () = {
         TypeInfo,
     };
 
-    impl<K, V, TGK, TGV, KeyType> TypeInfo for MultiMapping<K, V, TGK, TGV, KeyType>
+    impl<K, V, TGK, TGV, KeyType> TypeInfo for MultiMapping<K, V, KeyType, TGK, TGV>
     where
         K: TypeInfo + 'static,
         V: TypeInfo + 'static,
@@ -350,7 +350,7 @@ const _: () = {
         }
     }
 
-    impl<K, V, TGK, TGV, KeyType> StorageLayout for MultiMapping<K, V, TGK, TGV, KeyType>
+    impl<K, V, TGK, TGV, KeyType> StorageLayout for MultiMapping<K, V, KeyType, TGK, TGV>
     where
         K: scale_info::TypeInfo + 'static,
         V: Packed + StorageLayout + scale_info::TypeInfo + 'static,
@@ -367,7 +367,7 @@ const _: () = {
     }
 };
 
-impl<K, V, TGK, TGV, KeyType> Storable for MultiMapping<K, V, TGK, TGV, KeyType>
+impl<K, V, TGK, TGV, KeyType> Storable for MultiMapping<K, V, KeyType, TGK, TGV>
 where
     V: Packed,
     KeyType: StorageKey,
@@ -381,17 +381,17 @@ where
     }
 }
 
-impl<K, V, Key, InnerKey, TGK, TGV> StorableHint<Key> for MultiMapping<K, V, TGK, TGV, InnerKey>
+impl<K, V, Key, InnerKey, TGK, TGV> StorableHint<Key> for MultiMapping<K, V, InnerKey, TGK, TGV>
 where
     V: Packed,
     Key: StorageKey,
     InnerKey: StorageKey,
 {
-    type Type = MultiMapping<K, V, TGK, TGV, Key>;
+    type Type = MultiMapping<K, V, Key, TGK, TGV>;
     type PreferredKey = InnerKey;
 }
 
-impl<K, V, TGK, TGV, KeyType> StorageKey for MultiMapping<K, V, TGK, TGV, KeyType>
+impl<K, V, TGK, TGV, KeyType> StorageKey for MultiMapping<K, V, KeyType, TGK, TGV>
 where
     V: Packed,
     KeyType: StorageKey,

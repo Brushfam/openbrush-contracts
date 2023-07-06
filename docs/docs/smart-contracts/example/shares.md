@@ -54,8 +54,7 @@ be restricted. Therefore, on top of the imports in the previous contract,
 we also need these imports:
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This contract will be used to represent the shares of a user
 /// and other instance of this contract will be used to represent

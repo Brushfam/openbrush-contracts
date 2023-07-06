@@ -1,8 +1,21 @@
-# 
+<div align="center">
+  <a href="https://patron.works/">
+    <img src="https://github.com/Brushfam/patron-backend/raw/master/Patron.png" alt="Logo"  >
+  </a>
 
+  <p align="left">
+    &#128226; &#128226; &#128226; We are thrilled to announce <a href="https://patron.works/">Patron</a>, which brings smart contract verification functionality to the Polkadot ecosystem. &#128226; &#128226; &#128226;
+  </p>
+</div>
+
+> Smart contract verification ensures the security, reliability, and trustworthiness of dApps and blockchain platforms. With [Patron](https://patron.works/), you can simplify the deployment flow, manage your builds and make the Polkadot ecosystem more secure and transparent.
+<br/>
+So, in other words,  <a href="https://patron.works/">Patron</a> is an all-in-one contracts platform, which allows you to build and verify ink! smart contracts inside of an isolated environment, explore contract verification details.
+
+## Important!
 ![OpenBrush](https://user-images.githubusercontent.com/88630083/218825486-accc2d8c-bc5c-4b92-a278-a5b9009fd6f5.png)
 
-[![Docs](https://img.shields.io/badge/docs-%F0%9F%93%84-blue)](https://727-Ventures.github.io/openbrush-contracts)
+[![Docs](https://img.shields.io/badge/docs-%F0%9F%93%84-blue)](https://Brushfam.github.io/openbrush-contracts)
 [![telegram chat](https://img.shields.io/badge/Telegram-blue.svg?style=flat-square)](https://t.me/openbrush)
 [![element chat](https://img.shields.io/badge/Element-green.svg?style=flat-square)](https://matrix.to/#/!utTuYglskDvqRRMQta:matrix.org?via=matrix.org&via=t2bot.io&via=matrix.parity.io)
 [![discord chat](https://img.shields.io/badge/Discord-purple.svg?style=flat-square)](https://discord.com/invite/EARg6RCThP)
@@ -63,7 +76,7 @@ You can use our useful contracts to use as modifiers, or define your own modifie
 // Before execution of `mint` method, `only_owner` should verify that caller is the owner.
 #[ink(message)]
 #[modifiers(only_owner)]
-fn mint(&mut self, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP1155Error> {
+fn mint(&mut self, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
   self._mint_to(Self::env().caller(), ids_amounts)
 }
 ```
@@ -118,85 +131,18 @@ The identifiers of events must be based on the name of the trait. At the moment,
 but it must be fixed with this [issue](https://github.com/paritytech/ink/issues/809).
 
 ### Issues to be resolved before the library becomes production-ready:
-* [Standard token naming convention](https://github.com/Brushfam/openbrush-contracts/issues/1)
 * [Event's identifiers are based on the naming of the storage structure](https://github.com/Brushfam/openbrush-contracts/issues/2)
-
-### Other Issues open:
-
-* [#[ink::trait_definition] doesn't support generics and default implementation](https://github.com/Brushfam/openbrush-contracts/issues/4)
-* [Library provides implementation in Rust level instead of ink! level](https://github.com/Brushfam/openbrush-contracts/issues/5)
-* [List of issues, solving each of them can simplify usage of library](https://github.com/Brushfam/openbrush-contracts/issues/8)
-* After [Storage rework](https://github.com/paritytech/ink/pull/1217) we need to refactor upgradeable contracts.
 
 ## Roadmap 🚗
 
-OpenBrush participates in the Web3 Grants, you can find the roadmap [here](https://github.com/w3f/Grants-Program/blob/master/applications/openbrush-follow-up-2.md)
-
-<details><summary>More common roadmap of tasks</summary>
-    
-- [x] Implement fungible, non-fungible, and multi tokens.
-- [x] Implement AccessControl and Ownable.
-- [x] Add examples of how to reuse ERC20, ERC721, AccessControl implementations.
-- [x] Stub implementations for `token` and `access` folders.
-- [x] Add base description of project
-- [x] Remove the boilerplate to make the internal implementation external.
-- - [x] Implement `openbrush::contract` macro to consume all openbrush's stuff before ink!.
-- - [x] Implement `openbrush::trait_definition` which stores definition of trait and allow to use it in `openbrush::contract` macro.
-- - [x] Implement `impl_trait!` macro which reuse internal implementation in external impl section.
-- [x] Refactor examples and tests with new macros.
-- [x] Decide how to handle errors and implement it in library (Decided to use `panic!` and `assert!`).
-- [x] Create derive macro for storage traits. This macro must adds fields to contract's struct.
-- [x] Cover all contracts with unit tests and integration tests.
-- [x] Create documentation based on readme. Add comments to macros with example of usage.
-- [x] Add `Ownable` + `ERC1155` example.
-- [x] Support simple modifiers (which can only call functions without code injection).
-- [x] Instead of `impl_trait!` macro add support of default implementation in external trait definition.
-- [x] Add Pausable, TimelockController and PaymentSplitter contracts.
-- [x] Support code injection in modifiers.
-- [x] Implement a reentrancy guard and example of usage.
-- [x] Add more examples and documentation on how to use the library.
-- [x] Finalize PSP for fungible tokens. Refactor of implementation.
-- [x] Agnostic traits.
-- [x] Wrapper around the trait definition to do a cross-contract calls.
-- [X] PSP for NFT token and refactoring according new interface.
-- [x] PSP for Multi token and refactoring according new interface.
-- [x] Add extension: `PSP34Enumerable`.
-- [x] Import all extensions for tokens from OpenZeppelin.
-- [x] Add support of upgradeable contracts to ink!/contract-pallet level.
-- [x] Implement `Proxy` pattern.
-- [x] Implement `Diamond` standard.
-- [x] Publish `openbrush` into [crates.io](https://crates.io/crates/openbrush)
-- [x] Add documentation for upgradeable contracts.
-- [x] Add extension: `AccessControlEnumerable`.
-- [x] Add extension: `PSP37Enumerable`.
-- [ ] Force/help ink! to create new independent events. During this task decide how ink! can generate metadata for
-  events/traits from other crates.
-- [x] Cover everything with UT and integration tests.
-- [ ] Improve ink! to allow code injection to have default implementation on ink! level instead Rust level.
-- [ ] Refactor the OpenBrush to use default implementation from the ink!.
-- [x] Implement `AssetChainExtension` to work with `asset-pallet`.
-- [x] Implement `PSP22` via `AssetChainExtension`.
-- [ ] Implement `UniquesChainExtension` to work with `uniques-pallet`.
-- [ ] Implement `PSP34` via `UniquesChainExtension`.
-- [ ] Audit.
-    
-</details>
+Current OpenBrush Roadmap includes: https://docs.google.com/document/d/1b49juyKJN0W-UBHoJ4iS3P_I0Z5a94YoNLxylIf-As8
 
 ## Installation & Testing
-To work with project you need to install a specific rust nightly-2023-01-01 toolchain, ink! toolchain and NodeJS's dependencies.
+To work with project you need to install ink! toolchain and NodeJS's dependencies.
 
-
-1. Before installing a specific rust nightly-2023-01-01 toolchain, you'll need an actual installer [rustup](https://www.rust-lang.org/tools/install).
-2. Then install a toolchain:
-```
-$ rustup toolchain install nightly-2023-01-01
-```
-3. Set the toolchain as default:
-```
-$ rustup default nightly-2023-01-01
-```
-4. [ink! toolchain](https://use.ink/getting-started/setup)
-5. NodeJS deps you can install via `yarn` command
+1. So, you need an actual installer [rustup](https://www.rust-lang.org/tools/install).
+2. [ink! toolchain](https://use.ink/getting-started/setup)
+3. NodeJS deps you can install via `yarn` command
 
 ### Build
 ```
@@ -209,7 +155,7 @@ $ yarn build:release
 
 ### Tests
 
-You can run unit tests by `RUSTFLAGS="-D warnings" cargo +nightly test --workspace --features test-all -- --test-threads=10` command from the root of the directory.
+You can run unit tests by `RUSTFLAGS="-D warnings" cargo test --workspace --features test-all -- --test-threads=10` command from the root of the directory.
 
 To run integration test you need to start the node with contract-pallet.
 - [Setup and start the node with contract-pallet](https://github.com/paritytech/substrate-contracts-node)
@@ -221,11 +167,7 @@ After you can run tests by `npm run test` command. It will build all contracts r
 ### Was it audited?
 
 Contracts in this repository have not yet been audited and contain several vulnerabilities due to the specific of the ink!. 
-We know about them and will fix them with a new versions of ink!.
-ink! will have soon several major changes, so it does not make sense to audit it now.
-ink! is not ready for production at the moment. It requires resolving some issues.
-
-After that, we plan to do an audit.
+Since ink! is audited now, OpenBrush is going to be audited after major breaking changes regarding switching to stable toolchain and adapting to latest ink! will be released.
 
 ## License
 

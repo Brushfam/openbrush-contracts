@@ -1,5 +1,0 @@
-error: Second argument of modifier must be body `Fn(& self) `, `FnMut(& self) ` or `FnOnce(& self) `
-  --> tests/ui/modifier_definition/fail/first-arg-self.rs:15:71
-   |
-15 |         fn once<BodyFn: FnOnce(&mut Contract)>(instance: &self, body: BodyFn) {
-   |                                                                       ^^^^^^

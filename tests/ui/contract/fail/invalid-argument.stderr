@@ -1,5 +1,0 @@
-error: encountered unknown or unsupported ink! configuration argument
- --> tests/ui/contract/fail/invalid-argument.rs:1:23
-  |
-1 | #[openbrush::contract(test_invalid_arg = true)]
-  |                       ^^^^^^^^^^^^^^^^^^^^^^^

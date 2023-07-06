@@ -41,6 +41,8 @@ crate-type = [
 ]
 
 [dev-dependencies]
+ink_env = "4.2.1"
+trybuild = "1.0.80"
 ink_e2e = "4.2.1"
 
 [features]

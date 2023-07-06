@@ -158,8 +158,8 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
                 .set_tail_call(true),
             )
             .try_invoke()
-            .expect("Delegate call failed")
-            .expect("Delegate call failed");
+            .unwrap_or_else(|err| panic!("delegate call to {:?} failed due to {:?}", delegate_code, err))
+            .unwrap_or_else(|err| panic!("delegate call to {:?} failed due to {:?}", delegate_code, err));
         unreachable!("the _fallback call will never return since `tail_call` was set");
     }
 
@@ -173,8 +173,8 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
             .set_tail_call(true))
             .returns::<()>()
             .try_invoke()
-            .expect("Delegate call failed")
-            .expect("Delegate call failed");
+            .unwrap_or_else(|err| panic!("init call failed due to {:?}", err))
+            .unwrap_or_else(|err| panic!("init call failed due to {:?}", err));
         unreachable!("the _init_call call will never return since `tail_call` was set");
     }
 

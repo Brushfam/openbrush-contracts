@@ -33,7 +33,7 @@ jobs:
       - name: Install stable
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.69
           override: true
           components: rustfmt, clippy
           default: true
@@ -80,7 +80,7 @@ jobs:
           path: artifacts
           key: cache-contract-artifacts-${{ github.sha }}
 
-      - name: Typechain Сompile examples
+      - name: Typechain Compile examples
         run: |
           chown -R root .
           chmod -R a+rwx .
@@ -221,7 +221,7 @@ jobs:
       - name: Install stable
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.69
           override: true
           default: true
           target: wasm32-unknown-unknown
@@ -246,6 +246,14 @@ jobs:
         with:
           node-version: '16.x'
       - uses: actions/checkout@v3
+      - name: Install stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.69
+          override: true
+          default: true
+          target: wasm32-unknown-unknown
+          components: rust-src
       - name: Yarn install dependencies
         run: |
           yarn

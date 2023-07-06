@@ -1,6 +1,6 @@
 {
   "name": "openbrush-contracts",
-  "version": "2.4.0",
+  "version": "4.0.0-beta",
   "private": true,
   "dependencies": {
     "@babel/core": "^7.7.4",
@@ -28,7 +28,7 @@
   "scripts": {
     "build": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json",
     "build:release:no-compile": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --release --noCompile",
-    "build:release": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --release --toolchain stable",
+    "build:release": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --release --toolchain 1.69",
     "typechain": "npx @727-ventures/typechain-polkadot --in artifacts --out ./typechain-generated",
     "test:mocha": "mocha --require @babel/register --require ts-node/register --recursive ./tests --extension \".ts\" --exit --timeout 20000",
     "test:mocha-single": "mocha --require @babel/register --require ts-node/register --extension \".ts\" --exit --timeout 20000",

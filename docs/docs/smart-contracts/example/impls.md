@@ -209,7 +209,7 @@ use openbrush::traits::Storage;
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[ink::storage_item]
 /// define the struct with the data that our smart contract will be using
 /// this will isolate the logic of our smart contract from its storage
 pub struct Data {
@@ -297,7 +297,7 @@ where
 
 The all methods in `LendingPermissioned` are restricted and requires `#[modifiers(only_role(MANAGER))]`.
 That means that only accounts with `MANAGER` role can execute these methods.
-Usage of `only_role` modifier from [access_control](https://github.com/727-Ventures/openbrush-contracts/blob/main/contracts/src/access/access_control/mod.rs#L30)
+Usage of `only_role` modifier from [access_control](https://github.com/Brushfam/openbrush-contracts/blob/main/contracts/src/access/access_control/mod.rs#L30)
 requires that the contract should implement `Storage<access_control::Data>`.
 For that we also require the same restriction on the generic type.
 
@@ -305,7 +305,7 @@ In the implementation of `LendingPermissioned`, we want to use methods from
 `Lending`. For that, the set of restrictions for generic in the `Lending` implementation
 should be a subset(<=) of restrictions for generic in the `LendingPermissioned` implementation.
 The `Lending` implementation requires `Storage<lending::Data>` and `Storage<pausable::Data>` to use `when_paused` 
-modifier from [pausable](https://github.com/727-Ventures/openbrush-contracts/blob/main/contracts/src/security/pausable/mod.rs#L24).
+modifier from [pausable](https://github.com/Brushfam/openbrush-contracts/blob/main/contracts/src/security/pausable/mod.rs#L24).
 So we should have the same restriction in our generic implementation.
 
 In the logic of the trait `LendingPermissioned` we need to instantiate 
@@ -360,7 +360,6 @@ use openbrush::{
         Balance,
         OccupiedStorage,
         Storage,
-        ZERO_ADDRESS,
     },
 };
 
@@ -450,14 +449,14 @@ fn accept_lending<T: Storage<data::Data>>(
 }
 
 fn disallow_lending<T: Storage<data::Data>>(instance: &mut T, asset_address: AccountId) {
-    let share_address = instance
+    if let Some(share_address) = instance
         .data()
         .asset_shares
-        .get(&asset_address)
-        .unwrap_or(ZERO_ADDRESS.into());
-    instance.data().asset_shares.remove(&asset_address);
-    instance.data().shares_asset.remove(&share_address);
-    instance.data().assets_lended.remove(&asset_address);
+        .get(&asset_address) {
+            instance.data().asset_shares.remove(&asset_address);
+            instance.data().shares_asset.remove(&share_address);
+            instance.data().assets_lended.remove(&asset_address);
+    }
 }
 
 /// this function will accept `asset_address` for using as collateral
@@ -471,7 +470,7 @@ fn set_collateral_accepted<T: Storage<data::Data>>(instance: &mut T, asset_addre
 The same logic is used during definition of the implementation for `Lending` trait.
 
 The `Storage<pausable::Data>` restriction is required to use `when_paused`, `when_not_paused` modifiers 
-from [pausable](https://github.com/727-Ventures/openbrush-contracts/blob/main/contracts/src/security/pausable/mod.rs#L24).
+from [pausable](https://github.com/Brushfam/openbrush-contracts/blob/main/contracts/src/security/pausable/mod.rs#L24).
 
 ```rust
 // Importing everything publicly from traits allows you to import 
@@ -509,11 +508,9 @@ use openbrush::{
     modifiers,
     traits::{
         AccountId,
-        AccountIdExt,
         Balance,
         Storage,
         Timestamp,
-        ZERO_ADDRESS,
     },
 };
 
@@ -522,33 +519,30 @@ pub const YEAR: Timestamp = 60 * 60 * 24 * 365;
 impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
     fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
-        let mapped_asset = self
+        if let Some(mapped_asset) = self
             .data::<data::Data>()
             .assets_lended
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into());
-        // return error if the asset is not supported
-        if mapped_asset.is_zero() {
-            return Err(LendingError::AssetNotSupported)
+            .get(&asset_address){
+                let contract = Self::env().account_id();
+                let available = PSP22Ref::balance_of(&asset_address, contract);
+                let unavailable = PSP22Ref::balance_of(&mapped_asset, contract);
+                Ok(available + unavailable)
+        }else {
+            // return error if the asset is not supported
+            Err(LendingError::AssetNotSupported)
         }
-        let contract = Self::env().account_id();
-        let available = PSP22Ref::balance_of(&asset_address, contract);
-        let unavailable = PSP22Ref::balance_of(&mapped_asset, contract);
-        Ok(available + unavailable)
     }
 
     fn total_shares(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
-        let mapped_asset = self
+        if let Some(mapped_asset) = self
             .data::<data::Data>()
             .asset_shares
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into());
-        // return error if the asset is not supported
-        if mapped_asset.is_zero() {
-            return Err(LendingError::AssetNotSupported)
+            .get(&asset_address) {
+            Ok(PSP22Ref::total_supply(&mapped_asset))
+        } else {
+            Err(LendingError::AssetNotSupported)
         }
-        Ok(PSP22Ref::total_supply(&mapped_asset))
     }
   
     fn get_asset_shares(&self, asset_address: AccountId) -> Result<AccountId, LendingError> {
@@ -560,12 +554,11 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
     }
   
     fn is_accepted_lending(&self, asset_address: AccountId) -> bool {
-        !self
+        self
             .data::<data::Data>()
             .asset_shares
             .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into())
-            .is_zero()
+            .is_some()
     }
 
     fn is_accepted_collateral(&self, asset_address: AccountId) -> bool {
@@ -680,7 +673,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         let loan_account = self.data::<data::Data>().loan_account;
         let apy = 1000;
         // initiator must own the nft
-        if LoanRef::owner_of(&loan_account, loan_id.clone()).unwrap_or(ZERO_ADDRESS.into()) != initiator {
+        if LoanRef::owner_of(&loan_account, loan_id.clone()) != Some(initiator) {
             return Err(LendingError::NotTheOwner)
         }
         let loan_info = LoanRef::get_loan_info(&loan_account, loan_id.clone())?;

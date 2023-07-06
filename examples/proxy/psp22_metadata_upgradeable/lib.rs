@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::implementation(Ownable, PSP22, PSP22Metadata)]
 #[openbrush::contract]
@@ -38,12 +38,15 @@ pub mod my_psp22 {
             name: Option<String>,
             symbol: Option<String>,
             decimal: u8,
-        ) -> Result<(), OwnableError> {
-            self.metadata.name = name;
-            self.metadata.symbol = symbol;
-            self.metadata.decimals = decimal;
-            psp22::Internal::_mint_to(self, Ownable::owner(self), total_supply).expect("Should mint");
-            Ok(())
+        ) -> Result<(), PSP22Error> {
+            self.metadata.name.set(&name);
+            self.metadata.symbol.set(&symbol);
+            self.metadata.decimals.set(&decimal);
+            if let Some(owner) = Ownable::owner(self) {
+                psp22::Internal::_mint_to(self, owner, total_supply)
+            } else {
+                Err(PSP22Error::Custom(String::from("Owner not set!")))
+            }
         }
     }
 }

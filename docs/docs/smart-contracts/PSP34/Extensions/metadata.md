@@ -3,21 +3,18 @@ sidebar_position: 1
 title: PSP34 Metadata
 ---
 
-This example shows how you can reuse the implementation of [PSP34](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/token/psp34) token with [PSP34Metadata](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/token/psp34/extensions/metadata.rs) extension.
+This example shows how you can reuse the implementation of [PSP34](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp34) token with [PSP34Metadata](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp34/extensions/metadata.rs) extension.
 
 First, you should implement basic version of [PSP34](/smart-contracts/PSP34).
 
-## Step 1: Add imports and enable unstable feature
-
-Use `openbrush::contract` macro instead of `ink::contract`. Import **everything** from 
-`openbrush::contracts::psp34::extensions::metadata`.
+## Step 1: Implement features
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP34, PSP34Metadata)]
 #[openbrush::contract]
 pub mod my_psp34_metadata {
-    use openbrush::contracts::psp34::extensions::metadata::*;
 ...
 ```
 
@@ -29,36 +26,32 @@ the `#[storage_field]` attribute. Deriving this trait allows you to reuse the
 `PSP34Metadata` extension in your `PSP34` implementation.
 
 ```rust
-#[ink(storage)]
 #[derive(Default, Storage)]
+#[ink(storage)]
 pub struct Contract {
-    ...
+    #[storage_field]
+    psp34: psp34::Data,
     #[storage_field]
     metadata: metadata::Data,
 }
 ```
 
-## Step 3: Inherit logic
-
-Inherit implementation of the `PSP34Metadata` trait. You can customize (override) methods in this `impl` block.
-
-```rust
-impl PSP34Metadata for Contract {}
-```
-
-## Step 4: Define constructor
+## Step 3: Define constructor
 
 Define constructor. Your `PSP34Metadata` contract is ready!
 
 ```rust
 impl Contract {
+    /// A constructor which mints the first token to the owner
     #[ink(constructor)]
     pub fn new(id: Id, name: String, symbol: String) -> Self {
         let mut instance = Self::default();
 
-        instance._set_attribute(id.clone(), String::from("name"), name);
-        instance._set_attribute(id, String::from("symbol"), symbol);
-        
+        let name_key = String::from("name");
+        let symbol_key = String::from("symbol");
+        metadata::Internal::_set_attribute(&mut instance, id.clone(), name_key, name);
+        metadata::Internal::_set_attribute(&mut instance, id, symbol_key, symbol);
+
         instance
     }
 }
@@ -67,18 +60,12 @@ impl Contract {
 ## Final code
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP34, PSP34Metadata)]
 #[openbrush::contract]
 pub mod my_psp34_metadata {
-    use openbrush::traits::String;
-    use ink::prelude::{
-        vec::Vec,
-    };
-    use openbrush::{
-        contracts::psp34::extensions::metadata::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[derive(Default, Storage)]
     #[ink(storage)]
@@ -89,27 +76,23 @@ pub mod my_psp34_metadata {
         metadata: metadata::Data,
     }
 
-    impl PSP34 for Contract {}
-
-    impl PSP34Metadata for Contract {}
-
     impl Contract {
         /// A constructor which mints the first token to the owner
         #[ink(constructor)]
         pub fn new(id: Id, name: String, symbol: String) -> Self {
             let mut instance = Self::default();
 
-            let name_key: Vec<u8> = String::from("name");
-            let symbol_key: Vec<u8> = String::from("symbol");
-            instance._set_attribute(id.clone(), name_key, name);
-            instance._set_attribute(id, symbol_key, symbol);
-            
+            let name_key = String::from("name");
+            let symbol_key = String::from("symbol");
+            metadata::Internal::_set_attribute(&mut instance, id.clone(), name_key, name);
+            metadata::Internal::_set_attribute(&mut instance, id, symbol_key, symbol);
+
             instance
         }
     }
 }
 ```
 
-You can check an example of the usage of [PSP34 Metadata](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/psp34_extensions/metadata).
+You can check an example of the usage of [PSP34 Metadata](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/psp34_extensions/metadata).
 
 You can also check the documentation for the basic implementation of [PSP34](/smart-contracts/PSP34).

@@ -29,11 +29,7 @@ mod ownable {
     };
     use openbrush::{
         test_utils::change_caller,
-        traits::{
-            AccountIdExt,
-            Storage,
-            ZERO_ADDRESS,
-        },
+        traits::Storage,
     };
 
     #[ink(event)]
@@ -96,14 +92,14 @@ mod ownable {
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(1, emitted_events.len());
 
-        assert_ownership_transferred_event(&emitted_events[0], None, Some(Ownable::owner(&instance)))
+        assert_ownership_transferred_event(&emitted_events[0], None, Ownable::owner(&instance))
     }
 
     #[ink::test]
     fn owner_works() {
         let my_ownable = MyOwnable::new();
         let caller = my_ownable.env().caller();
-        assert_eq!(Ownable::owner(&my_ownable), caller)
+        assert_eq!(Ownable::owner(&my_ownable), Some(caller))
     }
 
     #[ink::test]
@@ -111,13 +107,13 @@ mod ownable {
         let mut my_ownable = MyOwnable::new();
         let caller = my_ownable.env().caller();
         let creator = Ownable::owner(&mut my_ownable);
-        assert_eq!(creator, caller);
+        assert_eq!(creator, Some(caller));
         assert!(Ownable::renounce_ownership(&mut my_ownable,).is_ok());
-        assert!(Ownable::owner(&mut my_ownable,).is_zero());
+        assert_eq!(Ownable::owner(&mut my_ownable), None);
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(2, emitted_events.len());
-        assert_ownership_transferred_event(&emitted_events[0], None, Some(creator));
-        assert_ownership_transferred_event(&emitted_events[1], Some(creator), None);
+        assert_ownership_transferred_event(&emitted_events[0], None, creator);
+        assert_ownership_transferred_event(&emitted_events[1], creator, None);
     }
 
     #[ink::test]
@@ -135,14 +131,14 @@ mod ownable {
         let mut my_ownable = MyOwnable::new();
         let caller = my_ownable.env().caller();
         let creator = Ownable::owner(&mut my_ownable);
-        assert_eq!(creator, caller);
+        assert_eq!(creator, Some(caller));
         let new_owner = AccountId::from([5u8; 32]);
         assert!(Ownable::transfer_ownership(&mut my_ownable, new_owner).is_ok());
-        assert_eq!(Ownable::owner(&mut my_ownable,), new_owner);
+        assert_eq!(Ownable::owner(&mut my_ownable), Some(new_owner));
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(2, emitted_events.len());
-        assert_ownership_transferred_event(&emitted_events[0], None, Some(creator));
-        assert_ownership_transferred_event(&emitted_events[1], Some(creator), Some(new_owner));
+        assert_ownership_transferred_event(&emitted_events[0], None, creator);
+        assert_ownership_transferred_event(&emitted_events[1], creator, Some(new_owner));
     }
 
     #[ink::test]
@@ -154,15 +150,6 @@ mod ownable {
         assert_eq!(
             Ownable::transfer_ownership(&mut my_ownable, new_owner),
             Err(OwnableError::CallerIsNotOwner)
-        );
-    }
-
-    #[ink::test]
-    fn transfer_ownership_fails_zero_account() {
-        let mut my_ownable = MyOwnable::new();
-        assert_eq!(
-            Ownable::transfer_ownership(&mut my_ownable, ZERO_ADDRESS.into()),
-            Err(OwnableError::NewOwnerIsZero)
         );
     }
 }

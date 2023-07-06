@@ -65,7 +65,6 @@ impl<T> DefaultEnv for T {}
 /// `StorageAsRef` or `StorageAsMut`.
 pub trait Storage<Data>
 where
-    Data: OccupyStorage,
     Self: Flush + StorageAsRef + StorageAsMut + DefaultEnv,
 {
     #[deprecated(since = "2.1.0", note = "please use `StorageAsRef::data` instead")]
@@ -75,25 +74,11 @@ where
     fn get_mut(&mut self) -> &mut Data;
 }
 
-/// Trait describes that the storage `KEY` already is occupied by `WithData` type.
-/// Implementation of that trait for each storage field prevents the user from occupying
-/// the same storage cells.
-pub trait OccupiedStorage<const KEY: u32> {
-    type WithData: OccupyStorage;
-}
-
-/// Each upgradeable storage type should occupy its storage key. The trait helps to describe what
-/// storage key is occupied by the type.
-pub trait OccupyStorage {
-    const KEY: u32;
-}
-
 /// Helper trait for `Storage` to provide user-friendly API to retrieve data as reference.
 pub trait StorageAsRef {
     #[inline(always)]
     fn data<Data>(&self) -> &Data
     where
-        Data: OccupyStorage,
         Self: Storage<Data>,
     {
         #[allow(deprecated)]
@@ -106,7 +91,6 @@ pub trait StorageAsMut: StorageAsRef {
     #[inline(always)]
     fn data<Data>(&mut self) -> &mut Data
     where
-        Data: OccupyStorage,
         Self: Storage<Data>,
     {
         #[allow(deprecated)]
@@ -116,19 +100,6 @@ pub trait StorageAsMut: StorageAsRef {
 
 impl<T> StorageAsRef for T {}
 impl<T: StorageAsRef> StorageAsMut for T {}
-
-pub const ZERO_ADDRESS: [u8; 32] = [255; 32];
-
-/// The trait provides some useful methods for `AccountId` type.
-pub trait AccountIdExt {
-    fn is_zero(&self) -> bool;
-}
-
-impl AccountIdExt for AccountId {
-    fn is_zero(&self) -> bool {
-        self == &ZERO_ADDRESS.into()
-    }
-}
 
 /// This trait is automatically implemented for storage structs.
 pub trait Flush: Storable + Sized + StorageKey {

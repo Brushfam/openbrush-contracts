@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::implementation(AccessControl, AccessControlEnumerable)]
 #[openbrush::contract]
@@ -8,8 +8,6 @@ pub mod my_access_control {
     #[ink(storage)]
     #[derive(Default, Storage)]
     pub struct Contract {
-        #[storage_field]
-        access: access_control::Data,
         #[storage_field]
         enumerable: enumerable::Data,
     }
@@ -26,9 +24,9 @@ pub mod my_access_control {
             let mut instance = Self::default();
 
             let caller = Self::env().caller();
-            access_control::Internal::_init_with_admin(&mut instance, caller);
+            access_control::Internal::_init_with_admin(&mut instance, Some(caller));
             // We grant minter role to caller in constructor, so he can mint/burn tokens
-            AccessControl::grant_role(&mut instance, MINTER, caller).expect("Should grant MINTER role");
+            AccessControl::grant_role(&mut instance, MINTER, Some(caller)).expect("Should grant MINTER role");
             assert_eq!(AccessControlEnumerable::get_role_member_count(&instance, MINTER), 1);
 
             instance

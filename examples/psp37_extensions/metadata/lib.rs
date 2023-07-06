@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::implementation(PSP37, PSP37Metadata)]
 #[openbrush::contract]
@@ -32,9 +32,7 @@ pub mod my_psp37 {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::psp37::{
-            extensions::metadata::psp37metadata_external::PSP37Metadata,
-        };
+        use openbrush::contracts::psp37::extensions::metadata::psp37metadata_external::PSP37Metadata;
 
         #[rustfmt::skip]
         use super::*;

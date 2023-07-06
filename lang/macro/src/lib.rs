@@ -19,7 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 use proc_macro::TokenStream;
 
@@ -29,8 +29,8 @@ use openbrush_lang_codegen::{
     implementation,
     modifier_definition,
     modifiers,
-    storage,
     storage_derive,
+    storage_item,
     trait_definition,
     wrapper,
 };
@@ -65,16 +65,13 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///
 /// ```
 /// mod doc {
-/// use ink::prelude::collections::BTreeMap;
-/// use openbrush::traits::{ AccountId, Balance, Storage, OccupyStorage };
+/// use ink::storage::Mapping;
+/// use openbrush::traits::{ AccountId, Balance, Storage };
 ///
 /// #[derive(Debug)]
+/// #[ink::storage_item]
 /// pub struct Data {
-///     pub balances: BTreeMap<AccountId, Balance>,
-/// }
-///
-/// impl OccupyStorage for Data {
-///     const KEY: u32 = 0x123;
+///     pub balances: Mapping<AccountId, Balance>,
 /// }
 ///
 /// #[openbrush::trait_definition]
@@ -82,7 +79,7 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///     /// Returns the account Balance for the specified `owner`.
 ///     #[ink(message)]
 ///     fn balance_of(&self, owner: AccountId) -> Balance {
-///         self.data().balances.get(&owner).copied().unwrap_or(0)
+///         self.data().balances.get(&owner).unwrap_or(0)
 ///     }
 ///
 ///     /// Transfers `value` amount of tokens from the caller's account to account `to`.
@@ -94,9 +91,9 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///     fn _transfer_from_to(&mut self, from: AccountId, to: AccountId, amount: Balance) {
 ///         let from_balance = self.balance_of(from);
 ///         assert!(from_balance >= amount, "InsufficientBalance");
-///         self.data().balances.insert(from, from_balance - amount);
+///         self.data().balances.insert(from, &(from_balance - amount));
 ///         let to_balance = self.balance_of(to);
-///         self.data().balances.insert(to, to_balance + amount);
+///         self.data().balances.insert(to, &(to_balance + amount));
 ///     }
 /// }
 /// }
@@ -107,17 +104,21 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 /// ```
 /// #[openbrush::contract]
 /// mod base_psp22 {
-///     use ink::prelude::collections::BTreeMap;
+///     use ink::storage::traits::ManualKey;
+///     use ink::storage::Mapping;
+///     use ink::storage::Lazy;
 ///     use openbrush::traits::Storage;
 ///
-///     const STORAGE_KEY: u32 = 123;
+///     const STORAGE_KEY_1: u32 = 101;
+///     const STORAGE_KEY_2: u32 = 102;
+///     const STORAGE_KEY_3: u32 = 103;
 ///
 ///     #[derive(Default, Debug)]
-///     #[openbrush::upgradeable_storage(STORAGE_KEY)]
+///     #[ink::storage_item]
 ///     pub struct Data {
-///         pub supply: Balance,
-///         pub balances: BTreeMap<AccountId, Balance>,
-///         pub allowances: BTreeMap<(AccountId, AccountId), Balance>,
+///         pub supply: Lazy<Balance, ManualKey<STORAGE_KEY_1>>,
+///         pub balances: Mapping<AccountId, Balance, ManualKey<STORAGE_KEY_2>>,
+///         pub allowances: Mapping<(AccountId, AccountId), Balance, ManualKey<STORAGE_KEY_3>>,
 ///     }
 ///
 ///     #[openbrush::trait_definition]
@@ -125,7 +126,7 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///         /// Returns the account Balance for the specified `owner`.
 ///         #[ink(message)]
 ///         fn balance_of(&self, owner: AccountId) -> Balance {
-///             self.data().balances.get(&owner).copied().unwrap_or(0)
+///             self.data().balances.get(&owner).unwrap_or(0)
 ///         }
 ///
 ///         /// Transfers `value` amount of tokens from the caller's account to account `to`.
@@ -138,47 +139,27 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///         fn _transfer_from_to(&mut self, from: AccountId, to: AccountId, amount: Balance) {
 ///             let from_balance = self.balance_of(from);
 ///             assert!(from_balance >= amount, "InsufficientBalance");
-///             self.data().balances.insert(from, from_balance - amount);
+///             self.data().balances.insert(from, &(from_balance - amount));
 ///             let to_balance = self.balance_of(to);
-///             self.data().balances.insert(to, to_balance + amount);
+///             self.data().balances.insert(to, &(to_balance + amount));
 ///         }
 ///     }
 ///
 ///     #[ink(storage)]
-///     #[derive(Storage)]
+///     #[derive(Storage, Default)]
 ///     pub struct PSP22Struct {
 ///         #[storage_field]
 ///         example: Data,
-///         hated_account: AccountId,
+///         hated_account: Option<AccountId>,
 ///     }
 ///
-///     impl Default for PSP22Struct {
-///         fn default() -> Self {
-///             Self {
-///                 example: Data::default(),
-///                 hated_account: AccountId::from([0x0; 32]),
-///             }
-///         }
-///     }
-///
-///     impl PSP22Example for PSP22Struct {
-///         // Let's override method to reject transactions to bad account
-///         fn _transfer_from_to(&mut self, from: AccountId, to: AccountId, amount: Balance) {
-///             assert!(to != self.hated_account, "I hate this account!");
-///
-///             let from_balance = self.balance_of(from);
-///             assert!(from_balance >= amount, "InsufficientBalance");
-///             self.get_mut().balances.insert(from, from_balance - amount);
-///             let to_balance = self.balance_of(to);
-///             self.get_mut().balances.insert(to, to_balance + amount);
-///         }
-///     }
+///     impl PSP22Example for PSP22Struct {}
 ///
 ///     impl PSP22Struct {
 ///         #[ink(constructor)]
 ///         pub fn new(hated_account: AccountId) -> Self {
 ///             let mut instance = Self::default();
-///             instance.hated_account = hated_account;
+///             instance.hated_account = Some(hated_account);
 ///             instance
 ///         }
 ///     }
@@ -425,47 +406,6 @@ pub fn wrapper(attrs: TokenStream, input: TokenStream) -> TokenStream {
     wrapper::generate(attrs.into(), input.into()).into()
 }
 
-synstructure::decl_attribute!(
-    [upgradeable_storage] =>
-    /// That macro implemented `OccupyStorage`
-    ///
-    /// Also, that macro adds the code to initialize the structure if it wasn't initialized.
-    /// That macro requires one input argument - the storage key. It can be any Rust code that returns
-    /// `u32`.
-    ///
-    /// # Example:
-    /// ```
-    /// {
-    /// use openbrush::traits::AccountId;
-    /// pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(OwnableData);
-    ///
-    /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    /// pub struct OwnableData {
-    ///    pub owner: AccountId,
-    ///    pub _reserved: Option<()>,
-    /// }
-    ///
-    /// const PROXY_KEY : u32 = openbrush::storage_unique_key!(ProxyData);
-    ///
-    /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(PROXY_KEY)]
-    /// pub struct ProxyData {
-    ///    pub forward: AccountId,
-    ///    pub _reserved: Option<()>,
-    /// }
-    ///
-    /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(123)]
-    /// pub struct SomeData {
-    ///    pub _reserved: Option<()>,
-    /// }
-    ///
-    /// }
-    /// ```
-    storage::upgradeable_storage
-);
-
 /// The macro implements `openbrush::traits::Storage` and `openbrush::traits::OccupiedStorage`
 /// traits for each field marked by `#[storage_field]` attribute. Each field's type should implement
 /// the `openbrush::traits::OccupyStorage` trait with a unique storage key. Each occupied storage
@@ -488,7 +428,23 @@ synstructure::decl_attribute!(
     ///
     /// # Example:
     /// ```skip
-    /// {
+    ///
+    /// use openbrush::traits::Storage;
+    ///
+    /// #[openbrush::accessors(SomeStructGetters)]
+    /// #[derive(Default)]
+    /// #[ink::storage_item]
+    /// pub struct SomeStruct {
+    ///     #[get]
+    ///     a: u32,
+    ///     b: u32,
+    ///     #[set]
+    ///     c: u32,
+    /// }
+    ///
+    /// #[openbrush::contract]
+    /// pub mod contract {
+    ///     use crate::*;
     ///     use openbrush::traits::Storage;
     ///
     ///     #[ink(storage)]
@@ -498,20 +454,14 @@ synstructure::decl_attribute!(
     ///         some_struct: SomeStruct,
     ///     }
     ///
-    ///     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(SomeStruct);
-    ///
-    ///     #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    ///     #[openbrush::accessors(SomeStructGetters)]
-    ///     #[derive(Default)]
-    ///     pub struct SomeStruct {
-    ///         #[get]
-    ///         a: u32,
-    ///         b: u32,
-    ///         #[set]
-    ///         c: u32,
-    ///     }
-    ///
     ///     impl SomeStructGetters for Contract {}
+    ///
+    ///     impl Contract {
+    ///         #[ink(constructor)]
+    ///         pub fn new() -> Self {
+    ///             Self::default()
+    ///         }
+    ///     }
     /// }
     /// ```
     accessors::accessors
@@ -572,3 +522,8 @@ synstructure::decl_attribute!(
 pub fn implementation(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     implementation::generate(attrs.into(), ink_module.into()).into()
 }
+
+synstructure::decl_attribute!(
+    [storage_item] =>
+    storage_item::storage_item
+);

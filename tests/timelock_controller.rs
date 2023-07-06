@@ -126,8 +126,8 @@ mod timelock_controller {
         #[ink(constructor)]
         pub fn new(admin: AccountId, delay: Timestamp, proposers: Vec<AccountId>, executors: Vec<AccountId>) -> Self {
             let mut instance = Self::default();
-            access_control::Internal::_init_with_admin(&mut instance, admin);
-            timelock_controller::Internal::_init_with_admin(&mut instance, admin, delay, proposers, executors);
+            access_control::Internal::_init_with_admin(&mut instance, Some(admin));
+            timelock_controller::Internal::_init_with_admin(&mut instance, Some(admin), delay, proposers, executors);
             instance
         }
     }
@@ -226,9 +226,13 @@ mod timelock_controller {
             vec![accounts.bob, accounts.charlie],
             vec![accounts.eve, accounts.charlie],
         );
-        assert!(AccessControl::has_role(&timelock, TIMELOCK_ADMIN_ROLE, accounts.alice));
-        assert!(!AccessControl::has_role(&timelock, PROPOSER_ROLE, accounts.alice));
-        assert!(!AccessControl::has_role(&timelock, EXECUTOR_ROLE, accounts.alice));
+        assert!(AccessControl::has_role(
+            &timelock,
+            TIMELOCK_ADMIN_ROLE,
+            Some(accounts.alice)
+        ));
+        assert!(!AccessControl::has_role(&timelock, PROPOSER_ROLE, Some(accounts.alice)));
+        assert!(!AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.alice)));
         assert_eq!(
             AccessControl::get_role_admin(&timelock, TIMELOCK_ADMIN_ROLE),
             TIMELOCK_ADMIN_ROLE
@@ -237,12 +241,20 @@ mod timelock_controller {
         assert_eq!(AccessControl::get_role_admin(&timelock, EXECUTOR_ROLE), EXECUTOR_ROLE);
         assert_eq!(TimelockController::get_min_delay(&timelock,), 10);
 
-        assert!(AccessControl::has_role(&timelock, PROPOSER_ROLE, accounts.bob));
-        assert!(AccessControl::has_role(&timelock, PROPOSER_ROLE, accounts.charlie));
-        assert!(!AccessControl::has_role(&timelock, PROPOSER_ROLE, accounts.eve));
-        assert!(AccessControl::has_role(&timelock, EXECUTOR_ROLE, accounts.eve));
-        assert!(AccessControl::has_role(&timelock, EXECUTOR_ROLE, accounts.charlie));
-        assert!(!AccessControl::has_role(&timelock, EXECUTOR_ROLE, accounts.bob));
+        assert!(AccessControl::has_role(&timelock, PROPOSER_ROLE, Some(accounts.bob)));
+        assert!(AccessControl::has_role(
+            &timelock,
+            PROPOSER_ROLE,
+            Some(accounts.charlie)
+        ));
+        assert!(!AccessControl::has_role(&timelock, PROPOSER_ROLE, Some(accounts.eve)));
+        assert!(AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.eve)));
+        assert!(AccessControl::has_role(
+            &timelock,
+            EXECUTOR_ROLE,
+            Some(accounts.charlie)
+        ));
+        assert!(!AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.bob)));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_min_delay_change_event(&emitted_events[0], 0, 10);
@@ -381,7 +393,7 @@ mod timelock_controller {
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_call_scheduled_event(&emitted_events[1], id, 0, Transaction::default(), None, min_delay + 1);
 
-        assert!(AccessControl::revoke_role(&mut timelock, PROPOSER_ROLE, accounts.alice).is_ok());
+        assert!(AccessControl::revoke_role(&mut timelock, PROPOSER_ROLE, Some(accounts.alice)).is_ok());
         assert_eq!(
             Err(TimelockControllerError::AccessControlError(
                 AccessControlError::MissingRole

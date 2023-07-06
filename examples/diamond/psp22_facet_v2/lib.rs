@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::implementation(PSP22)]
 #[openbrush::contract]
@@ -6,10 +6,7 @@ pub mod my_psp22_facet_v2 {
     use ink::codegen::Env;
     use openbrush::{
         contracts::ownable::*,
-        traits::{
-            Storage,
-            ZERO_ADDRESS,
-        },
+        traits::Storage,
     };
 
     #[ink(storage)]
@@ -25,12 +22,9 @@ pub mod my_psp22_facet_v2 {
     #[overrider(PSP22)]
     fn transfer(&mut self, to: AccountId, value: Balance, data: Vec<u8>) -> Result<(), PSP22Error> {
         let from = self.env().caller();
-        let is_tax = to != ZERO_ADDRESS.into() && from != ZERO_ADDRESS.into();
         // we will burn 10% of transfer to and from non-zero accounts
-        let burned = if is_tax { value / 10 } else { 0 };
-        if is_tax {
-            psp22::Internal::_burn_from(self, from, burned)?;
-        }
+        let burned = value / 10;
+        psp22::Internal::_burn_from(self, from, burned)?;
         psp22::Internal::_transfer_from_to(self, from, to, value - burned, data)?;
         Ok(())
     }

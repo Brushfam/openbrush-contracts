@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::implementation(PSP34, PSP34Mintable, PSP34Burnable, PSP34Enumerable)]
 #[openbrush::contract]
@@ -8,8 +8,6 @@ pub mod my_psp34_enumerable {
     #[derive(Default, Storage)]
     #[ink(storage)]
     pub struct Contract {
-        #[storage_field]
-        psp34: psp34::Data,
         #[storage_field]
         enumerable: enumerable::Data,
     }

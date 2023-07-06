@@ -20,9 +20,7 @@ test_helpers = { path = "../test_helpers", default-features = false }
 [lib]
 name = "my_timelock_controller"
 path = "lib.rs"
-crate-type = [
-    "cdylib",
-]
+
 
 [features]
 default = ["std"]

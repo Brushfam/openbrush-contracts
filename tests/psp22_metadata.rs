@@ -44,9 +44,9 @@ mod psp22_metadata {
         #[ink(constructor)]
         pub fn new(name: Option<String>, symbol: Option<String>, decimal: u8) -> Self {
             let mut instance = Self::default();
-            instance.metadata.name = name;
-            instance.metadata.symbol = symbol;
-            instance.metadata.decimals = decimal;
+            instance.metadata.name.set(&name);
+            instance.metadata.symbol.set(&symbol);
+            instance.metadata.decimals.set(&decimal);
             instance
         }
     }

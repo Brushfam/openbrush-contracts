@@ -1,0 +1,6 @@
+error: missing ink! storage struct
+ --> tests/ui/contract/fail/empty_mod.rs:2:1
+  |
+2 | / mod base_psp22 {
+3 | | }
+  | |_^

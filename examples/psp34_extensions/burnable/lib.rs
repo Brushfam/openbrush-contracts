@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::implementation(PSP34, PSP34Burnable)]
 #[openbrush::contract]
@@ -44,7 +44,6 @@ pub mod my_psp34_burnable {
         use test_helpers::{
             address_of,
             balance_of,
-            owner_of,
         };
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;

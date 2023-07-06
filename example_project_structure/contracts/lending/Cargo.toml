@@ -19,9 +19,6 @@ openbrush = { path = "../../..", default-features = false, features = ["pausable
 [lib]
 name = "lending_contract"
 path = "lib.rs"
-crate-type = [
-    "cdylib",
-]
 
 [features]
 default = ["std"]

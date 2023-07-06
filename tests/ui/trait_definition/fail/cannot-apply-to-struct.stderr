@@ -1,0 +1,7 @@
+error: custom attribute panicked
+ --> tests/ui/trait_definition/fail/cannot-apply-to-struct.rs:1:1
+  |
+1 | #[openbrush::trait_definition]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = help: message: called `Result::unwrap()` on an `Err` value: Error("expected `trait`")

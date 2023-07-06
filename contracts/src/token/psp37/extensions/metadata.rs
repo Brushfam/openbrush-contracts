@@ -46,13 +46,10 @@ pub use psp37::{
     PSP37Impl,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
-
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item]
 pub struct Data {
     pub attributes: Mapping<(Id, String), String, AttributesKey>,
-    pub _reserved: Option<()>,
 }
 
 pub struct AttributesKey;
@@ -79,12 +76,12 @@ pub trait InternalImpl: Internal + Storage<Data> {
     fn _emit_attribute_set_event(&self, _id: &Id, _key: &String, _data: &String) {}
 
     fn _set_attribute(&mut self, id: &Id, key: &String, data: &String) -> Result<(), PSP37Error> {
-        self.data().attributes.insert(&(&id, &key), data);
+        self.data().attributes.insert(&(id, key), data);
         Internal::_emit_attribute_set_event(self, id, key, data);
         Ok(())
     }
 
     fn _get_attribute(&self, id: &Id, key: &String) -> Option<String> {
-        self.data().attributes.get(&(&id, &key))
+        self.data().attributes.get(&(id, key))
     }
 }

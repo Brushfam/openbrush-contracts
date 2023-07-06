@@ -4,7 +4,7 @@ title: PSP22 Pallet Burnable
 ---
 
 This example shows how you can reuse the implementation of
-[PSP22](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/token/psp22_pallet) token with [PSP22Burnable](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/token/psp22_pallet/extensions/burnable.rs) extension via `pallet-assets` chain extension.
+[PSP22](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp22_pallet) token with [PSP22Burnable](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp22_pallet/extensions/burnable.rs) extension via `pallet-assets` chain extension.
 
 ## How to use this extension
 

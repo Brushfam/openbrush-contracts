@@ -3,7 +3,7 @@ sidebar_position: 3
 title: Ownable
 ---
 
-This example shows how you can use the implementation of [ownable](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/access/ownable) to provide `only owner` rights for contract's functions.
+This example shows how you can use the implementation of [ownable](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/access/ownable) to provide `only owner` rights for contract's functions.
 
 ## Step 1: Import default implementation
 
@@ -30,7 +30,7 @@ impl Contract {
 
 ## Step 3: Customize your contract
 
-Customize it by adding ownable logic. We will add a `owner_function` to `MyOwnable` implemenation 
+Customize it by adding ownable logic. We will add a `owner_function` to `MyOwnable` implementation 
 and add the `only_owner` modifier, which will verify that the caller of the function is the owner.
 
 ```rust
@@ -73,4 +73,4 @@ pub mod ownable {
 
 ```
 
-You can check an example of the usage of [Ownable](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/ownable).
+You can check an example of the usage of [Ownable](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/ownable).

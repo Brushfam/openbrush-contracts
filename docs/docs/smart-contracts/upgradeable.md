@@ -85,7 +85,7 @@ With this approach, you can order your units as you wish. You can add/remove/swa
 logic units and don't worry about storage layout because each logic unit will have its space 
 in the blockchain's storage. If storage keys are unique, those spaces don't overlap.
 
-OpenBrush provides [`openbrush::storage_item`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
+OpenBrush provides [`openbrush::storage_item`](https://github.com/Brushfam/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
 attribute macro that implements some of the required traits with specified storage key(storage key is required input argument to macro).
 This way, macro will automatically generate storage keys for all fields in the structure, that are marked as `#[lazy]` or they are `Mapping`/`MultiMapping`.
 You can access those storage keys as consts in the generated code. The format of the storage key is `STORAGE_KEY_{storage_key}_{field_name}`, where `storage_key` and `field_name` are uppercase.
@@ -144,7 +144,7 @@ and maybe you have a lot of unique structures :D
 The storage key should be unique per each logic unit. You can assign each key manually or 
 use some hash function to automate it.
 
-OpenBrush provides [`openbrush::storage_unique_key!`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/src/macros.rs#L25) 
+OpenBrush provides [`openbrush::storage_unique_key!`](https://github.com/Brushfam/openbrush-contracts/blob/main/lang/src/macros.rs#L25) 
 macro that generates a storage key based on the path to the structure. 
 It has one required input argument - the name of the structure.
 
@@ -170,7 +170,7 @@ pub struct Data {
 
 ### Disclaimer
 
-The following information describes `Proxy` and `Diamond` patterns of upgradeable storage, which currently don't work in ink! 4 due to `DelegateCall`, but we will leave it here for the future updates of this feature (and also for the OpenBrush versions before `3.0.0`).
+The following information describes `Proxy` and `Diamond` patterns of upgradeable storage.
 
 Uploading your contract on the blockchain with `contract-pallet` has two phases:
 - Deploy - deploys source code to the blockchain. After deploying, the network uses the hash of the source code as an identifier for future instantiation of the contract. Now anyone can instantiate the contract by source code hash.
@@ -412,8 +412,7 @@ pub struct OwnableData {
 }
 ```
 
-`PSP22Data` and `OwnableData` have their storage keys. Both contain an additional field 
-unrelated to business logic `_reserved` for future upgrades(it adds overhead in one byte).
+`PSP22Data` and `OwnableData` have their storage keys
 
 #### Definition of the facet (logic layer)
 
@@ -476,7 +475,7 @@ You have two options for how to do that:
 ##### Cross-contract call to itself
 
 If your `FacetA` implements some trait, then you can use the 
-[wrapper around trait](https://github.com/727-Ventures/openbrush-contracts#wrapper-around-traits) 
+[wrapper around trait](https://github.com/Brushfam/openbrush-contracts#wrapper-around-traits) 
 feature of OpenBrush to do cross-contract call.
 
 > **Note**: The trait should be defined with `openbrush::trait_definition`.

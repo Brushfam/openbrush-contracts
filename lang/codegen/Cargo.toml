@@ -5,7 +5,7 @@ authors = ["Brushfam <green@727.ventures>"]
 edition = "2021"
 
 license = "MIT"
-repository = "https://github.com/727-Ventures/openbrush-contracts"
+repository = "https://github.com/Brushfam/openbrush-contracts"
 documentation = "https://docs.openbrush.io"
 homepage = "https://727.ventures"
 description = "OpenBrush codegeneration for macros in `openbrush_lang_macro`."

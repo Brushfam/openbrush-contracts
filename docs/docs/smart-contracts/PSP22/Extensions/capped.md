@@ -3,7 +3,7 @@ sidebar_position: 6
 title: PSP22 Capped
 ---
 
-This example shows how you can reuse the implementation of [PSP22](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/token/psp22) token with the [PSP22Capped](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/token/psp22/extensions/capped.rs) extension.
+This example shows how you can reuse the implementation of [PSP22](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp22) token with the [PSP22Capped](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp22/extensions/capped.rs) extension.
 
 First, you should implement basic version of [PSP22](/smart-contracts/PSP22).
 
@@ -123,6 +123,6 @@ pub mod my_psp22_capped {
 }
 ```
 
-You can check an implementation example of [PSP22 Capped](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/psp22_extensions/capped).
+You can check an implementation example of [PSP22 Capped](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/psp22_extensions/capped).
 
 You can also check the documentation for the basic implementation of [PSP22](/smart-contracts/PSP22).

@@ -3,7 +3,7 @@ sidebar_position: 3
 title: Proxy
 ---
 
-This example shows how you can use the implementation of [proxy](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/upgradeability/proxy) to to implement proxy pattern for upgradeable contracts.
+This example shows how you can use the implementation of [proxy](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/upgradeability/proxy) to to implement proxy pattern for upgradeable contracts.
 
 ## Disclaimer
 
@@ -76,4 +76,4 @@ pub mod proxy {
 }
 ```
 
-You can check an example of the usage of [Proxy](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/proxy).
+You can check an example of the usage of [Proxy](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/proxy).

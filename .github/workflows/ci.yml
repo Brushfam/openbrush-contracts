@@ -136,6 +136,15 @@ jobs:
           key: cache-rust-artifacts-${{ hashFiles('Cargo.toml') }}-${{ github.ref }}
           restore-keys: |
             cache-rust-artifacts-${{ hashFiles('Cargo.toml') }}
+      
+      - name: Install stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.69
+          override: true
+          default: true
+          target: wasm32-unknown-unknown
+          components: rust-src
 
       - name: Find contract data for source branch
         id: find-data-source

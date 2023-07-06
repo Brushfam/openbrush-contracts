@@ -3,7 +3,7 @@ sidebar_position: 3
 title: Proxy
 ---
 
-This example shows how you can use the implementation of [proxy](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/upgradeability/proxy) to to implement proxy pattern for upgradeable contracts.
+This example shows how you can use the implementation of [proxy](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/upgradeability/proxy) to to implement proxy pattern for upgradeable contracts.
 
 ## Disclaimer
 
@@ -13,7 +13,7 @@ You can use this tutorial for general understanding of `Proxy` pattern.
 ## Step 1: Import default implementation
 
 With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
-you need to import the `proxy` and `ownable` modules, enable the corresponding features, and embed data structures
+you need to enable corresponding features, embed modules data structures and implement them via `#[openbrush::implementation]` macro
 as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
 
 The main traits are `Ownable` and `Proxy`.
@@ -45,10 +45,9 @@ Define the forward function to make delegate calls of upgradeable contract throu
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(Proxy, Ownable)]
 #[openbrush::contract]
 pub mod proxy {
-    use openbrush::contracts::ownable::*;
-    use openbrush::contracts::proxy::*;
     use openbrush::traits::Storage;
 
     #[ink(storage)]
@@ -64,23 +63,17 @@ pub mod proxy {
         #[ink(constructor)]
         pub fn new(forward_to: Hash) -> Self {
             let mut instance = Self::default();
-            
-            let caller = Self::env().caller();
-            instance._init_with_forward_to(forward_to);
-            instance._init_with_owner(caller);
-            
+            proxy::Internal::_init_with_forward_to(&mut instance, forward_to);
+            ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
+
             instance
         }
         #[ink(message, payable, selector = _)]
         pub fn forward(&self) {
-            self._fallback()
+            proxy::Internal::_fallback(self)
         }
     }
-
-    impl Ownable for Contract {}
-
-    impl Proxy for Contract {}
 }
 ```
 
-You can check an example of the usage of [Proxy](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/proxy).
+You can check an example of the usage of [Proxy](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/proxy).

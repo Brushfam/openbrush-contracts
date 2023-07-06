@@ -3,20 +3,18 @@ sidebar_position: 1
 title: PSP37 Metadata
 ---
 
-This example shows how you can reuse the implementation of [PSP37](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/token/psp37) token with [PSP37Metadata](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/token/psp37/extensions/metadata.rs) extension.
+This example shows how you can reuse the implementation of [PSP37](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/token/psp37) token with [PSP37Metadata](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/token/psp37/extensions/metadata.rs) extension.
 
 First, you should implement basic version of [PSP37](/smart-contracts/PSP37).
 
-## Step 1: Add imports and enable unstable feature
-
-Import **everything** from `openbrush::contracts::psp37::extensions::metadata`.
+## Step 1: Implement PSP37Metadata
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(..., PSP37, PSP37Metadata, ...)]
 #[openbrush::contract]
 pub mod my_psp37 {
-    use openbrush::contracts::psp37::extensions::metadata::*;
 ...
 ```
 
@@ -38,27 +36,15 @@ pub struct Contract {
 }
 ```
 
-## Step 3: Inherit logic
-
-Inherit implementation of the `PSP37Metadata` trait. You can customize (override) methods in this `impl` block.
-
-```rust
-impl PSP37Metadata for Contract {}
-```
-
-## Step 4: Define constructor
+## Step 3: Define constructor
 
 Define constructor. Your `PSP37Metadata` contract is ready!
 
 ```rust
 impl Contract {
     #[ink(constructor)]
-    pub fn new(id: Id, key: Vec<u8>, attribute: Vec<u8>) -> Self {
-        let mut instance = Self::default();
-
-        instance._set_attribute(&id, &key, &data);
-        
-        instance
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 ```
@@ -68,12 +54,12 @@ impl Contract {
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP37, PSP37Metadata)]
 #[openbrush::contract]
 pub mod my_psp37 {
-    use ink::prelude::vec::Vec;
-    use openbrush::{
-        contracts::psp37::extensions::metadata::*,
-        traits::Storage,
+    use openbrush::traits::{
+        Storage,
+        String,
     };
 
     #[derive(Default, Storage)]
@@ -85,10 +71,6 @@ pub mod my_psp37 {
         metadata: metadata::Data,
     }
 
-    impl PSP37 for Contract {}
-
-    impl PSP37Metadata for Contract {}
-
     impl Contract {
         /// contract constructor
         #[ink(constructor)]
@@ -97,13 +79,14 @@ pub mod my_psp37 {
         }
 
         #[ink(message)]
-        pub fn set_attribute(&mut self, id: Id, key: Vec<u8>, data: Vec<u8>) -> Result<(), PSP37Error> {
-            self._set_attribute(&id, &key, &data)
+        pub fn set_attribute(&mut self, id: Id, key: String, data: String) -> Result<(), PSP37Error> {
+            metadata::Internal::_set_attribute(self, &id, &key, &data)
         }
     }
 }
+
 ```
 
-You can check an example of the usage of [PSP37 Metadata](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/psp37_extensions/metadata).
+You can check an example of the usage of [PSP37 Metadata](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/psp37_extensions/metadata).
 
 You can also check the documentation for the basic implementation of [PSP37](/smart-contracts/PSP37).

@@ -4,12 +4,12 @@ title: Payment Splitter
 ---
 
 This example shows how you can reuse the implementation of
-[payment-splitter](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/finance/payment_splitter).
+[payment-splitter](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/finance/payment_splitter).
 
 ## Step 1: Import default implementation
 
 With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
-you need to import the `payment_splitter` module, enable the corresponding feature, and embed the module data structure
+you need to enable `payment_splitter` feature, embed modules data structures and implement them via `#[openbrush::implementation]` macro
 as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
 
 The main trait is `PaymentSplitter`.
@@ -20,18 +20,16 @@ Define constructor where you init payees and shares.
 
 ```rust
 impl Contract {
-   #[ink(constructor)]
-   pub fn new(payees_and_shares: Vec<(AccountId, Balance)>) -> Self {
-       
-      let mut instance = Self::default();
-      instance._init(payees_and_shares).expect("Should init");
-      
-      instance 
-   }
+    #[ink(constructor)]
+    pub fn new(payees_and_shares: Vec<(AccountId, Balance)>) -> Self {
+        let mut instance = Self::default();
+        payment_splitter::Internal::_init(&mut instance, payees_and_shares).expect("Should init");
+        instance
+    }
 }
 ```
 
-You can check an example of the usage of [PaymentSplitter](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/payment_splitter).
+You can check an example of the usage of [PaymentSplitter](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/payment_splitter).
 
 ## Step 3 (Optional): Customize your contract
 
@@ -44,10 +42,10 @@ function (i.e. `#[ink(message)]`) called `release_all` and have it call the inte
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PaymentSplitter)]
 #[openbrush::contract]
 pub mod my_payment_splitter {
     use ink::prelude::vec::Vec;
-    use openbrush::contracts::payment_splitter::*;
     use openbrush::traits::Storage;
 
     #[ink(storage)]
@@ -61,9 +59,7 @@ pub mod my_payment_splitter {
         #[ink(constructor)]
         pub fn new(payees_and_shares: Vec<(AccountId, Balance)>) -> Self {
             let mut instance = Self::default();
-            
-            instance._init(payees_and_shares).expect("Should init");
-            
+            payment_splitter::Internal::_init(&mut instance, payees_and_shares).expect("Should init");
             instance
         }
 
@@ -72,12 +68,11 @@ pub mod my_payment_splitter {
         #[ink(message)]
         pub fn release_all(&mut self) -> Result<(), PaymentSplitterError> {
             // `_release_all()` is an internal method defined by the `payment_splitter::Internal` trait
-            self._release_all()
+            payment_splitter::Internal::_release_all(self)
         }
     }
-
-    impl PaymentSplitter for Contract {}
 }
+
 ```
 The `_add_payee` function is also available in the `payment_splitter::Internal` trait and can be added to 
 your contract in the same way as `_release_all`.

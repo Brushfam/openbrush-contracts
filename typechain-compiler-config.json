@@ -1,5 +1,5 @@
 {
-  "projectFiles": ["example_project_structure/contracts/**", "examples/diamond/**", "examples/proxy/**", "examples/proxy/**/**", "examples/alternatives/diamond/**"],
+  "projectFiles": ["example_project_structure/contracts/**", "examples/upgradeable/**", "examples/diamond/**", "examples/proxy/**"],
   "artifactsPath": "./artifacts",
   "typechainGeneratedPath": "./typechain-generated"
 }

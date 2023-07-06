@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::implementation(Ownable, PSP37, PSP37Burnable, PSP37Mintable)]
 #[openbrush::contract]

@@ -13,7 +13,7 @@ use syn::{
 };
 
 pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
-    let trait_ident = attrs.clone();
+    let trait_ident = attrs;
 
     let struct_ident = s.ast().ident.clone();
 
@@ -78,7 +78,7 @@ fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct) -> Toke
         .clone()
         .fields
         .into_iter()
-        .map(|field| consume_attrs(&mut field.clone()));
+        .map(|mut field| consume_attrs(&mut field));
 
     match struct_item.fields {
         Fields::Unnamed(_) => {

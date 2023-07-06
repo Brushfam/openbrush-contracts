@@ -17,7 +17,7 @@ edition = "2018"
 
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/727-Ventures/openbrush-contracts"
+repository = "https://github.com/Brushfam/openbrush-contracts"
 documentation = "https://docs.openbrush.io"
 homepage = "https://727.ventures"
 description = "OpenBrush library for smart contract development on ink!."
@@ -41,6 +41,8 @@ crate-type = [
 ]
 
 [dev-dependencies]
+ink_env = "4.2.1"
+trybuild = "1.0.80"
 ink_e2e = "4.2.1"
 
 [features]
@@ -64,6 +66,7 @@ pausable = ["openbrush_contracts/pausable"]
 timelock_controller = ["openbrush_contracts/timelock_controller"]
 proxy = ["openbrush_contracts/proxy"]
 diamond = ["openbrush_contracts/diamond"]
+upgradeable = ["openbrush_contracts/upgradeable"]
 
 test-all = [
     "psp22",

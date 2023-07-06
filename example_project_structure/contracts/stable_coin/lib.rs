@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This is a simple `PSP22` which will be used as a stable coin and a collateral token in our lending contract
 #[openbrush::implementation(PSP22, PSP22Metadata, PSP22Mintable)]
@@ -29,9 +29,9 @@ pub mod token {
         pub fn new(name: Option<String>, symbol: Option<String>) -> Self {
             let mut instance = Self::default();
 
-            instance.metadata.name = name;
-            instance.metadata.symbol = symbol;
-            instance.metadata.decimals = 18;
+            instance.metadata.name.set(&name);
+            instance.metadata.symbol.set(&symbol);
+            instance.metadata.decimals.set(&18);
             let total_supply = 1_000_000 * 10_u128.pow(18);
             assert!(psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).is_ok());
 

@@ -35,27 +35,27 @@ pub use psp22::{
     PSP22Impl,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
-
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item]
 pub struct Data {
+    #[lazy]
     pub name: Option<String>,
+    #[lazy]
     pub symbol: Option<String>,
+    #[lazy]
     pub decimals: u8,
-    pub _reserved: Option<()>,
 }
 
 pub trait PSP22MetadataImpl: Storage<Data> {
     fn token_name(&self) -> Option<String> {
-        self.data().name.clone()
+        self.data().name.get_or_default()
     }
 
     fn token_symbol(&self) -> Option<String> {
-        self.data().symbol.clone()
+        self.data().symbol.get_or_default()
     }
 
     fn token_decimals(&self) -> u8 {
-        self.data().decimals.clone()
+        self.data().decimals.get_or_default()
     }
 }

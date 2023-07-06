@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This contract will be used to represent the shares of a user
 /// and other instance of this contract will be used to represent
@@ -47,9 +47,9 @@ pub mod shares {
         pub fn new(name: Option<String>, symbol: Option<String>) -> Self {
             let mut instance = Self::default();
             let caller = Self::env().caller();
-            instance.metadata.name = name;
-            instance.metadata.symbol = symbol;
-            instance.metadata.decimals = 18;
+            instance.metadata.name.set(&name);
+            instance.metadata.symbol.set(&symbol);
+            instance.metadata.decimals.set(&18);
             ownable::Internal::_init_with_owner(&mut instance, caller);
 
             instance

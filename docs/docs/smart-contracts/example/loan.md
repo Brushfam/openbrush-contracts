@@ -111,7 +111,7 @@ We want a basic [PSP34](/smart-contracts/PSP34) token with metadata and ownable 
 so we will add these to our contract. We will add a `openbrush::contract` macro to our contract and add some imports:
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This contract will represent the loan of a user
 #[openbrush::contract]

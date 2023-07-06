@@ -1,0 +1,27 @@
+error: expected identifier, found `{`
+ --> tests/ui/accessors/fail/fail-without-args.rs:6:1
+  |
+6 | #[openbrush::accessors]
+  | ^^^^^^^^^^^^^^^^^^^^^^^ expected identifier
+  |
+  = note: this error originates in the attribute macro `openbrush::accessors` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0412]: cannot find type `AccessData` in this scope
+ --> tests/ui/accessors/fail/fail-without-args.rs:8:12
+  |
+8 | pub struct AccessData {
+  |            ^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `AccessData` in this scope
+ --> tests/ui/accessors/fail/fail-without-args.rs:8:12
+  |
+8 | pub struct AccessData {
+  |            ^^^^^^^^^^ not found in this scope
+
+warning: unused import: `openbrush::traits::Storage`
+ --> tests/ui/accessors/fail/fail-without-args.rs:3:5
+  |
+3 | use openbrush::traits::Storage;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default

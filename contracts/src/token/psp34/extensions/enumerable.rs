@@ -19,6 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::psp34::ApprovalsKey;
 pub use crate::{
     psp34,
     psp34::extensions::enumerable,
@@ -29,6 +30,7 @@ pub use crate::{
 };
 use openbrush::{
     storage::{
+        Mapping,
         MultiMapping,
         TypeGuard,
     },
@@ -47,13 +49,12 @@ pub use psp34::{
     PSP34Impl,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
-
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item]
 pub struct Data {
-    pub enumerable: MultiMapping<Option<AccountId>, Id, EnumerableKey /* optimization */>,
-    pub _reserved: Option<()>,
+    pub token_owner: Mapping<Id, Owner>,
+    pub operator_approvals: Mapping<(Owner, Operator, Option<Id>), (), ApprovalsKey>,
+    pub balances: MultiMapping<Option<AccountId>, Id, EnumerableKey>,
 }
 
 pub struct EnumerableKey;
@@ -64,39 +65,63 @@ impl<'a> TypeGuard<'a> for EnumerableKey {
 
 pub trait BalancesManagerImpl: Storage<Data> {
     fn _balance_of(&self, owner: &Owner) -> u32 {
-        self.data().enumerable.count(&Some(owner)) as u32
+        self.data().balances.count(&Some(owner)) as u32
     }
 
     fn _increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool) {
-        self.data().enumerable.insert(&Some(owner), id);
+        self.data().balances.insert(&Some(owner), id);
         if increase_supply {
-            self.data().enumerable.insert(&None, id);
+            self.data().balances.insert(&None, id);
         }
     }
 
     fn _decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool) {
-        self.data().enumerable.remove_value(&Some(owner), id);
+        self.data().balances.remove_value(&Some(owner), id);
         if decrease_supply {
-            self.data().enumerable.remove_value(&None, id);
+            self.data().balances.remove_value(&None, id);
         }
     }
 
     fn _total_supply(&self) -> Balance {
-        self.data().enumerable.count(&None)
+        self.data().balances.count(&None)
+    }
+
+    fn _owner_of(&self, id: &Id) -> Option<AccountId> {
+        self.data().token_owner.get(id)
+    }
+
+    fn _operator_approvals(&self, owner: &Owner, operator: &Operator, id: &Option<&Id>) -> Option<()> {
+        self.data().operator_approvals.get(&(owner, operator, id))
+    }
+
+    fn _insert_operator_approvals(&mut self, owner: &Owner, operator: &Operator, id: &Option<&Id>) {
+        self.data().operator_approvals.insert(&(owner, operator, id), &());
+    }
+
+    fn _remove_operator_approvals(&mut self, owner: &Owner, operator: &Operator, id: &Option<&Id>) {
+        self.data().operator_approvals.remove(&(owner, operator, id));
+    }
+
+    fn _insert_token_owner(&mut self, id: &Id, to: &AccountId) {
+        self.data().token_owner.insert(id, to);
+    }
+
+    fn _remove_token_owner(&mut self, id: &Id) {
+        self.data().token_owner.remove(id);
     }
 }
 
 pub trait PSP34EnumerableImpl: Storage<Data> {
     fn owners_token_by_index(&self, owner: AccountId, index: u128) -> Result<Id, PSP34Error> {
         self.data()
-            .enumerable
+            .balances
             .get_value(&Some(&owner), &index)
             .ok_or(PSP34Error::TokenNotExists)
     }
 
     fn token_by_index(&self, index: u128) -> Result<Id, PSP34Error> {
         self.data()
-            .enumerable
+            .balances
             .get_value(&None, &index)
             .ok_or(PSP34Error::TokenNotExists)
     }

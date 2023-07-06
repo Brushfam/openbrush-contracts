@@ -44,7 +44,10 @@ pub use psp22_pallet::{
 pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
     fn token_name(&self) -> Option<String> {
         let self_ = self.data();
-        let name = self_.pallet_assets.metadata_name(self_.asset_id);
+        let name = self_
+            .pallet_assets
+            .get_or_default()
+            .metadata_name(self_.asset_id.get_or_default());
 
         if name.is_empty() {
             None
@@ -55,7 +58,10 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
 
     fn token_symbol(&self) -> Option<String> {
         let self_ = self.data();
-        let symbol = self_.pallet_assets.metadata_symbol(self_.asset_id);
+        let symbol = self_
+            .pallet_assets
+            .get_or_default()
+            .metadata_symbol(self_.asset_id.get_or_default());
 
         if symbol.is_empty() {
             None
@@ -66,6 +72,9 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
 
     fn token_decimals(&self) -> u8 {
         let self_ = self.data();
-        self_.pallet_assets.metadata_decimals(self_.asset_id)
+        self_
+            .pallet_assets
+            .get_or_default()
+            .metadata_decimals(self_.asset_id.get_or_default())
     }
 }

@@ -19,7 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 mod access;
 mod finance;
@@ -55,3 +55,5 @@ pub use token::psp37;
 pub use upgradeability::diamond;
 #[cfg(feature = "proxy")]
 pub use upgradeability::proxy;
+#[cfg(feature = "upgradeable")]
+pub use upgradeability::upgradeable;

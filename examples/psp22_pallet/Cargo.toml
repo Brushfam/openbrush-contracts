@@ -21,10 +21,7 @@ rand = "0.8.5"
 [lib]
 name = "my_psp22_pallet"
 path = "lib.rs"
-crate-type = [
-    # Used for normal contract Wasm blobs.
-    "cdylib",
-]
+
 
 [features]
 default = ["std"]

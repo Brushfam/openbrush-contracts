@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::implementation(PSP22Metadata)]
 #[openbrush::contract]
@@ -31,9 +31,9 @@ pub mod my_psp22_metadata_facet {
         #[ink(message)]
         #[modifiers(only_owner)]
         pub fn init_metadata(&mut self) -> Result<(), PSP22Error> {
-            self.metadata.name = Some(String::from("PSP22 Diamond"));
-            self.metadata.symbol = Some(String::from("PSP22D"));
-            self.metadata.decimals = 18;
+            self.metadata.name.set(&Some(String::from("PSP22 Diamond")));
+            self.metadata.symbol.set(&Some(String::from("PSP22D")));
+            self.metadata.decimals.set(&18);
             Ok(())
         }
     }

@@ -34,6 +34,7 @@ pub use access_control::{
 };
 use openbrush::{
     storage::{
+        Mapping,
         MultiMapping,
         ValueGuard,
     },
@@ -43,13 +44,11 @@ use openbrush::{
     },
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
-
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item]
 pub struct Data {
+    pub admin_roles: Mapping<RoleType, RoleType, ValueGuard<RoleType>>,
     pub role_members: MultiMapping<RoleType, Option<AccountId>, ValueGuard<RoleType>>,
-    pub _reserved: Option<()>,
 }
 
 pub trait MembersManagerImpl: Storage<Data> {
@@ -63,6 +62,14 @@ pub trait MembersManagerImpl: Storage<Data> {
 
     fn _remove(&mut self, role: RoleType, member: &Option<AccountId>) {
         self.data().role_members.remove_value(role, member);
+    }
+
+    fn _get_role_admin(&self, role: RoleType) -> Option<RoleType> {
+        self.data().admin_roles.get(role)
+    }
+
+    fn _set_role_admin(&mut self, role: RoleType, new_admin: RoleType) {
+        self.data().admin_roles.insert(role, &new_admin);
     }
 }
 

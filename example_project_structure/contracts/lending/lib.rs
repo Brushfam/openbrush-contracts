@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This will be a simple lending contract where users can:
 ///
@@ -181,8 +181,8 @@ pub mod my_lending {
         pub fn new(shares_hash: Hash, loan_hash: Hash) -> Self {
             let mut instance = Self::default();
             let caller = <Self as DefaultEnv>::env().caller();
-            access_control::Internal::_init_with_admin(&mut instance, caller);
-            AccessControl::grant_role(&mut instance, MANAGER, caller).expect("Can not set manager role");
+            access_control::Internal::_init_with_admin(&mut instance, Some(caller));
+            AccessControl::grant_role(&mut instance, MANAGER, Some(caller)).expect("Can not set manager role");
             instance.lending.shares_contract_code_hash = shares_hash;
             // instantiate NFT contract and store its account id
             let nft = LoanContractRef::new()

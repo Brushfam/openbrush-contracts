@@ -99,14 +99,14 @@ pub trait InternalImpl: Internal + Storage<Data> {
             .unwrap_or_else(|err| {
                 panic!(
                     "delegate call to {:?} failed due to {:?}",
-                    self.data().forward_to.clone(),
+                    self.data().forward_to.get_or_default().clone(),
                     err
                 )
             })
             .unwrap_or_else(|err| {
                 panic!(
                     "delegate call to {:?} failed due to {:?}",
-                    self.data().forward_to.clone(),
+                    self.data().forward_to.get_or_default().clone(),
                     err
                 )
             });

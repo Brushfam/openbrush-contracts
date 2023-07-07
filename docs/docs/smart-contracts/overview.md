@@ -50,14 +50,18 @@ The default features are implemented by a `#[openbrush::implentation]` macro, by
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(PSP22, PSP22Mintable, Ownable)] // This will add the default implementation of PSP22 and PSP22Mintable
-#[openbrush::contract] // This macro will collect the traits and override them. Make sure it comes after the implementation macro!
+// This will add the default implementation of PSP22 and PSP22Mintable
+#[openbrush::implementation(PSP22, PSP22Mintable, Ownable)] 
+// This macro will collect the traits and override them. Make sure it comes after the implementation macro!
+#[openbrush::contract] 
 pub mod psp22_example {
-  use openbrush::traits::Storage; // derive macro which implements traits needed for a proper Storage manipulation within OB standards
+  // derive macro which implements traits needed for a proper Storage manipulation within OB standards
+  use openbrush::traits::Storage; 
   use ink::storage::traits::ManualKey;
   use ink::storage::traits::Lazy;
   #[ink(storage)] // needed for the ink! contract storage struct
-  #[derive(Storage, Default)] // this will implement traits needed for OB standards to work with the contract storage struct
+  // this will implement traits needed for OB standards to work with the contract storage struct
+  #[derive(Storage, Default)] 
   pub struct PSP22Example {
     // we have to add the data structs needed to work with the implemented traits to the storage
     // the fields need to be marked with this attribute in order for the contract to implement neede traits
@@ -99,7 +103,8 @@ pub mod psp22_example {
 
       psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
       ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
-      self.banned_account.set([0u8; 32]); // private key of 0x0 is known, so we ban transfers from this account and users can safely use it as burn address!
+      // private key of 0x0 is known, so we ban transfers from this account and users can safely use it as burn address!
+      self.banned_account.set([0u8; 32]); 
 
       instance
     }
@@ -107,7 +112,17 @@ pub mod psp22_example {
 }
 ```
 
-> **_Note:_** ink! requires to put `#![cfg_attr(not(feature = "std"), no_std, no_main)]` at the top of root crate.
+:::note
+
+ink! requires to put `#![cfg_attr(not(feature = "std"), no_std, no_main)]` at the top of root crate.
+
+:::
+
+:::note
+
+The standards implemented in OpenBrush support events, but user has to specify this in their contract. ink! events have to be defined in the contract mod, meaning you have to emit them in the contract mod. You can do this by overriding the default _emit_xxx_event methods in different standards. There is currently a [PR in ink!](https://github.com/paritytech/ink/pull/1827) which will allow us to define events anywhere, and we will reflect this change in OB as well!
+
+:::
 
 #### Reuse implementation of traits from OpenBrush
 

@@ -168,6 +168,15 @@ jobs:
           npm i
           npm i ts-node
 
+      - name: Install nightly for destination branch
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2023-01-01
+          override: true
+          default: true
+          target: wasm32-unknown-unknown
+          components: rust-src
+
       - name: Cache rust artifacts for destination branch
         id: cache-rust-artifacts-destination
         uses: actions/cache@v3

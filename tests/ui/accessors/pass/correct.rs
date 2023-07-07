@@ -1,10 +1,8 @@
-#![feature(min_specialization)]
-
 use openbrush::traits::Storage;
 
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
 #[openbrush::accessors(AccessDataAccessors)]
 #[derive(Default, Debug)]
+#[openbrush::storage_item]
 pub struct AccessData {
     #[get]
     #[set]

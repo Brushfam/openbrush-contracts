@@ -1,11 +1,5 @@
 error: missing ink! storage struct
-  --> tests/ui/storage_derive/fail/without-ink-storage.rs:2:1
-   |
-2  | / mod base_psp22 {
-3  | |     use openbrush::traits::Storage;
-4  | |
-5  | |     #[derive(Storage)]
-...  |
-27 | |     }
-28 | | }
-   | |_^
+ --> tests/ui/storage_derive/fail/without-ink-storage.rs:2:1
+  |
+2 | mod base_psp22 {
+  | ^^^

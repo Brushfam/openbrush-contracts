@@ -1,8 +1,4 @@
-#![feature(min_specialization)]
-
-use openbrush::traits::Storage;
-
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item]
 #[openbrush::accessors]
 #[derive(Default, Debug)]
 pub struct AccessData {
@@ -14,7 +10,5 @@ pub struct AccessData {
     #[set]
     write_only: u32,
 }
-
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(AccessData);
 
 fn main() {}

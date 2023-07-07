@@ -25,7 +25,7 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 # OpenBrush dependency
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", version = "~3.1.1", default-features = false }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "feature/stable-rust", default-features = false }
 
 [features]
 default = ["std"]
@@ -45,7 +45,67 @@ contracts (you can implement them by yourself, and you can use them for cross-co
 
 OpenBrush also provides the default implementation of traits that can be enabled via crate features.
 A list of all available features you can find [here](https://github.com/Brushfam/openbrush-contracts/blob/main/Cargo.toml#L51).
-The default features are implemented by a `#[openbrush::implentation]` macro, and functions from the default implementation can be overriden using the `#[overrider]` attribute. Some default implementations come with several traits containing methods that can be overriden. We can override any function in any trait with the overrider attribute.
+The default features are implemented by a `#[openbrush::implentation]` macro, by providing the trait name you want to implement, and functions from the default implementation can be overriden using the `#[overrider]` attribute. If you want to use the default implementation of a function, while adding some modifier to the function, you can do so with the `#[default_impl]` attribute. Both of these attribute take the name of the trait we are overriding the method in as argument. Some default implementations come with several traits containing methods that can be overriden. We can override any function in any trait with these attributes. An example PSP22 with some overriden functions would look like this: 
+
+```rust
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
+
+#[openbrush::implementation(PSP22, PSP22Mintable, Ownable)] // This will add the default implementation of PSP22 and PSP22Mintable
+#[openbrush::contract] // This macro will collect the traits and override them. Make sure it comes after the implementation macro!
+pub mod psp22_example {
+  use openbrush::traits::Storage; // derive macro which implements traits needed for a proper Storage manipulation within OB standards
+  use ink::storage::traits::ManualKey;
+  use ink::storage::traits::Lazy;
+  #[ink(storage)] // needed for the ink! contract storage struct
+  #[derive(Storage, Default)] // this will implement traits needed for OB standards to work with the contract storage struct
+  pub struct PSP22Example {
+    // we have to add the data structs needed to work with the implemented traits to the storage
+    // the fields need to be marked with this attribute in order for the contract to implement neede traits
+    #[storage_field] 
+    psp22: psp22::Data,
+    #[storage_field]
+    ownable: ownable::Data,
+    // here we can add any other fields needed for our contract
+    // we will add logic which bans a user from transferring the token
+    // we will make it lazy and set it a manual storage key so we can upgrade this contract in future
+    banned_account: Lazy<AccountId, ManualKey<123>>
+  }
+
+  #[default_impl(PSP22Mintable)] // we will add some attributes to the mint function in PSP22Mintable
+  #[modifiers(ownable::only_owner)] // this will be moved to the PSP22Mintable::mint along with any other attributes
+  fn mint() { 
+    // the default_impl attribute only cares about the function name and the trait name
+    // in which we want to override the method, therefore we can omit all parameters and return types. 
+    // default_impl macro will use the original body of the function, so here we can keep it empty as well.
+  }
+
+  #[overrider(psp22::Internal)] // we want to override psp22::Internal::_before_token_transfer method
+  fn _before_token_transfer(
+    &mut self,
+    from: Option<&AccountId>,
+    _to: Option<&AccountId>,
+    _amount: &Balance,
+  ) -> Result<(), PSP22Error> {
+    if from == self.banned_account.get() {
+      return Err(PSP22Error::InsufficientAllowance)
+    }
+    Ok(())
+  }
+
+  impl Contract {
+    #[ink(constructor)]
+    pub fn new(total_supply: Balance) -> Self {
+      let mut instance = Self::default();
+
+      psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
+      ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
+      self.banned_account.set([0u8; 32]); // private key of 0x0 is known, so we ban transfers from this account and users can safely use it as burn address!
+
+      instance
+    }
+  }
+}
+```
 
 > **_Note:_** ink! requires to put `#![cfg_attr(not(feature = "std"), no_std, no_main)]` at the top of root crate.
 
@@ -69,19 +129,19 @@ The name of the feature is the same as the name of the module. For example:
 To enable `psp22`:
 
 ```toml
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", version = "~3.1.1", default-features = false, features = ["psp22"] }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "feature/stable-rust", default-features = false, features = ["psp22"] }
 ```
 
 To enable `ownable`:
 
 ```toml
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", version = "~3.1.1", default-features = false, features = ["ownable"] }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "feature/stable-rust", default-features = false, features = ["ownable"] }
 ```
 
 To enable both:
 
 ```toml
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", version = "~3.1.1", default-features = false, features = ["psp22, ownable"] }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "feature/stable-rust", default-features = false, features = ["psp22, ownable"] }
 ```
 
 After enabling the feature and importing the corresponding module, you need to embed the module

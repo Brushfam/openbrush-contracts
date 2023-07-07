@@ -57,7 +57,7 @@ proxy = [
 diamond = [
     "ownable",
 ]
-upgradeable = []
+upgradeable = ["ownable"]
 test-all = [
     "psp22",
     "psp34",

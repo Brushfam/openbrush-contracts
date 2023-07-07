@@ -3,10 +3,7 @@
 #[openbrush::implementation(PSP22, Upgradeable, Ownable)]
 #[openbrush::contract]
 pub mod contract_v1 {
-    use openbrush::{
-        modifiers,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Storage, Default)]
@@ -16,10 +13,6 @@ pub mod contract_v1 {
         #[storage_field]
         ownable: ownable::Data,
     }
-
-    #[default_impl(Upgradeable)]
-    #[modifiers(only_owner)]
-    fn set_code_hash() {}
 
     impl Contract {
         #[ink(constructor)]

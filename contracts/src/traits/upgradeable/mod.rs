@@ -26,8 +26,6 @@ use openbrush::traits::Hash;
 pub type UpgradeableRef = dyn Upgradeable;
 
 /// A common trait that exposes ink!'s `set_code_hash` function as a mean to upgrade the contract
-/// This trait should be used together with some access restrictions, assuring only owners can
-/// change the code
 #[openbrush::trait_definition]
 pub trait Upgradeable {
     #[ink(message)]

@@ -63,10 +63,6 @@ pub mod contract_v2 {
         Ok(())
     }
 
-    #[default_impl(Upgradeable)]
-    #[modifiers(only_owner)]
-    fn set_code_hash() {}
-
     impl Contract {
         #[ink(constructor)]
         pub fn new(total_supply: Balance) -> Self {

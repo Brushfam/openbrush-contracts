@@ -1,5 +1,3 @@
-use openbrush::traits::AccountId;
-
 #[openbrush::trait_definition]
 pub trait Trait1 {
     #[ink(message)]
@@ -12,8 +10,8 @@ type Trait1Ref = dyn Trait1;
 #[openbrush::trait_definition]
 pub trait Trait2 {
     #[ink(message)]
-    fn bar(&mut self, callee: openbrush::traits::AccountId) {
-        let foo_bool = Trait1Ref::foo(&callee);
+    fn bar(&mut self, callee: openbrush::traits::AccountId) -> bool{
+        Trait1Ref::foo(&callee)
     }
 }
 

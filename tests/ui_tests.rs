@@ -17,9 +17,8 @@ fn ui_tests() {
     t.pass("tests/ui/trait_definition/pass/*.rs");
     t.compile_fail("tests/ui/trait_definition/fail/*.rs");
 
-    t.pass("tests/ui/contract/upgradeable_storage/*.rs");
-    t.compile_fail("tests/ui/upgradeable_storage/fail/*.rs");
+    t.pass("tests/ui/storage_item/pass/*.rs");
 
-    t.pass("tests/ui/contract/wrapper/*.rs");
+    t.pass("tests/ui/wrapper/pass/*.rs");
     t.compile_fail("tests/ui/wrapper/fail/*.rs");
 }

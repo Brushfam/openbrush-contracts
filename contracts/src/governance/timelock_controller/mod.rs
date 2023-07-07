@@ -423,9 +423,6 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
     }
 
     fn _call(&mut self, id: OperationId, i: u8, transaction: Transaction) -> Result<(), TimelockControllerError> {
-        // Flush the state into storage before the cross call.
-        // Because during cross call we cann call this contract(for example for `update_delay` method).
-        self.flush();
         let result = if let Some(callee) = transaction.callee {
             build_call::<DefaultEnvironment>()
                 .call_type(
@@ -441,9 +438,6 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
         } else {
             Err(TimelockControllerError::CalleeZeroAddress)
         };
-
-        // Load the sate of the contract after the cross call.
-        self.load();
 
         result?.unwrap();
         Internal::_emit_call_executed_event(self, id, i, transaction);

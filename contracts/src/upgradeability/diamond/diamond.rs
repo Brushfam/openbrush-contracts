@@ -95,7 +95,6 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
         Internal::_emit_diamond_cut_event(self, &diamond_cut, &init);
 
         if let Some(init) = init {
-            self.flush();
             Internal::_init_call(self, init);
         }
 

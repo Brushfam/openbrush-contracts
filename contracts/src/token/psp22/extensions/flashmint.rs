@@ -107,7 +107,6 @@ pub trait InternalImpl: Storage<psp22::Data> + Internal {
         amount: Balance,
         data: Vec<u8>,
     ) -> Result<(), FlashLenderError> {
-        self.flush();
         let builder =
             FlashBorrowerRef::on_flashloan_builder(&receiver_account, Self::env().caller(), token, amount, fee, data)
                 .call_flags(CallFlags::default().set_allow_reentry(true));
@@ -126,7 +125,7 @@ pub trait InternalImpl: Storage<psp22::Data> + Internal {
                 )))
             }
         };
-        self.load();
+
         result
     }
 }

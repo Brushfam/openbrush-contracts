@@ -27,17 +27,15 @@ pub use crate::{
         *,
     },
 };
+use ink::env::CallFlags;
 pub use ink::prelude::vec::Vec;
-use ink::{
-    env::CallFlags,
-    prelude::boxed::Box,
-};
 use openbrush::{
     traits::{
         AccountId,
         Balance,
         DefaultEnv,
         StorageAccess,
+        String,
     },
     with_data,
 };
@@ -147,11 +145,11 @@ pub trait InternalImpl: StorageAccess<Data> + Internal + psp22::Internal + PSP22
 
     fn _init(&mut self, underlying: AccountId) {
         with_data!(self, data, {
-            data.underlying = underlying;
+            data.underlying = Some(underlying);
         });
     }
 
     fn _underlying(&mut self) -> Option<AccountId> {
-        self.data().underlying
+        self.get_or_default().underlying
     }
 }

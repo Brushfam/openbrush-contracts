@@ -94,13 +94,7 @@ where
     pub fn get_or_default(&self) -> V {
         match ink::env::get_contract_storage::<Key, V>(&KeyType::KEY) {
             Ok(Some(value)) => value,
-            _ => {
-                let mut instance = Default::default();
-
-                crate::traits::Initializable::initialize(&mut instance);
-
-                instance
-            }
+            _ => Default::default(),
         }
     }
 }

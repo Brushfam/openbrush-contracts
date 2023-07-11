@@ -5,7 +5,7 @@
 pub mod my_psp22 {
     use openbrush::{
         modifiers,
-        traits::Storage,
+        traits::String,
     };
 
     #[ink(storage)]
@@ -43,7 +43,11 @@ pub mod my_psp22 {
             self.metadata.name = name;
             self.metadata.symbol = symbol;
             self.metadata.decimals = decimal;
-            psp22::Internal::_mint_to(self, Ownable::owner(self), total_supply).expect("Should mint");
+
+            if let Some(owner) = Ownable::owner(self) {
+                psp22::Internal::_mint_to(self, owner, total_supply).expect("Should mint");
+            }
+
             Ok(())
         }
     }

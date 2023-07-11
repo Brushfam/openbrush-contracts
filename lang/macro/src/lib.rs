@@ -467,7 +467,7 @@ synstructure::decl_attribute!(
 synstructure::decl_attribute!(
     [storage] =>
     /// The macro implements `openbrush::traits::Storage` and `openbrush::traits::StorageAccess` traits
-    /// traits for each field marked by `#[storage_field]` or `#[upgradeable_storage_field]` attribute.
+    /// for each field marked by `#[storage_field]` or `#[upgradeable_storage_field]` attribute.
     ///
     /// Fields that are marked by `#[upgradeable_storage_field]` attribute will be wrapped in `openbrush::traits::Lazy`
     storage::storage

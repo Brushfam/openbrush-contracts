@@ -33,7 +33,6 @@ pub use crate::{
 use openbrush::{
     modifiers,
     traits::{
-        DefaultEnv,
         Hash,
         StorageAccess,
     },

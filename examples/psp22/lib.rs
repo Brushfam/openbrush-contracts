@@ -45,7 +45,7 @@ pub mod my_psp22 {
         to: Option<&AccountId>,
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
-        if to == Some(&StorageAccess::<HatedStorage>::get_or_default(self).hated_account) {
+        if to.cloned() == StorageAccess::<HatedStorage>::get_or_default(self).hated_account {
             return Err(PSP22Error::Custom(String::from("I hate this account!")))
         }
         Ok(())

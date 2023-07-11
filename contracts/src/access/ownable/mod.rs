@@ -29,7 +29,6 @@ use openbrush::{
     traits::{
         AccountId,
         DefaultEnv,
-        Storage,
         StorageAccess,
     },
     with_data,
@@ -61,7 +60,7 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<OwnableError>,
 {
-    if instance.data().owner != Some(T::env().caller()) {
+    if instance.get_or_default().owner != Some(T::env().caller()) {
         return Err(From::from(OwnableError::CallerIsNotOwner))
     }
     body(instance)
@@ -84,12 +83,9 @@ pub trait OwnableImpl: StorageAccess<Data> + Sized + Internal {
 
     #[modifiers(only_owner)]
     fn transfer_ownership(&mut self, new_owner: AccountId) -> Result<(), OwnableError> {
-        if new_owner.is_zero() {
-            return Err(OwnableError::NewOwnerIsZero)
-        }
         let old_owner = self.get_or_default().owner.clone();
         with_data!(self, data, {
-            data.owner = new_owner.clone();
+            data.owner = Some(new_owner);
         });
         self._emit_ownership_transferred_event(old_owner, Some(new_owner));
         Ok(())

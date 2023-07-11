@@ -40,7 +40,6 @@ use openbrush::{
         ValueGuard,
     },
     traits::{
-        DefaultEnv,
         Hash,
         StorageAccess,
     },
@@ -106,9 +105,7 @@ pub trait DiamondCutLoupeImpl: StorageAccess<Data> + Sized {
     }
 }
 
-pub trait DiamondLoupeImpl:
-    Storage<diamond::DataType> + StorageAccess<diamond::Data> + StorageAccess<Data> + Sized
-{
+pub trait DiamondLoupeImpl: StorageAccess<diamond::Data> + StorageAccess<Data> + Sized {
     fn facets(&self) -> Vec<FacetCut> {
         let mut out_vec = Vec::new();
         for i in 0..StorageAccess::<Data>::get_or_default(self).code_hashes {

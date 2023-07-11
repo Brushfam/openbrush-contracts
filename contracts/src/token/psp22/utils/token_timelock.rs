@@ -30,10 +30,7 @@ pub use crate::{
 };
 use ink::{
     env::CallFlags,
-    prelude::{
-        boxed::Box,
-        vec::Vec,
-    },
+    prelude::vec::Vec,
 };
 use openbrush::{
     traits::{

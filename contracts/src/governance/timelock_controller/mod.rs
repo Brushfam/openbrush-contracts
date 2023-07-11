@@ -135,7 +135,7 @@ pub trait TimelockControllerImpl:
     }
 
     fn get_min_delay(&self) -> Timestamp {
-        self.data::<Data>().min_delay.clone()
+        StorageAccess::<Data>::get_or_default(self).min_delay.clone()
     }
 
     fn hash_operation(&self, transaction: Transaction, predecessor: Option<OperationId>, salt: [u8; 32]) -> Hash {
@@ -190,7 +190,7 @@ pub trait TimelockControllerImpl:
         if !self.is_operation_pending(id) {
             return Err(TimelockControllerError::OperationCannonBeCanceled)
         }
-        self.data::<Data>().timestamps.remove(&id);
+        StorageAccess::<Data>::get_or_default(self).timestamps.remove(&id);
 
         self._emit_cancelled_event(id);
         Ok(())
@@ -235,11 +235,9 @@ pub trait TimelockControllerImpl:
         let old_delay = StorageAccess::<Data>::get_or_default(self).min_delay.clone();
         self._emit_min_delay_change_event(old_delay, new_delay);
 
-        self.data::<Data>().min_delay = new_delay;
-
-        let mut _data = StorageAccess::<Data>::get_or_default(self);
-        _data.min_delay = new_delay;
-        StorageAccess::<Data>::set(self, &_data);
+        let mut data = StorageAccess::<Data>::get_or_default(self);
+        data.min_delay = new_delay;
+        self.set(&data);
 
         Ok(())
     }

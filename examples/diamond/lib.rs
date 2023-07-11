@@ -3,10 +3,7 @@
 #[openbrush::implementation(Ownable, Diamond, DiamondLoupe)]
 #[openbrush::contract]
 pub mod diamond {
-    use openbrush::{
-        modifiers,
-        traits::Storage,
-    };
+    use openbrush::modifiers;
 
     #[ink(storage)]
     #[derive(Default)]

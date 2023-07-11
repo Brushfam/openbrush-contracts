@@ -69,7 +69,7 @@ where
     instance.get_or_default().status.set(&ENTERED);
 
     let result = body(instance);
-    // TODO: Check if it is correct
+
     instance.get_or_default().status.set(&NOT_ENTERED);
 
     return result

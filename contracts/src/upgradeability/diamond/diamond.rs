@@ -46,7 +46,6 @@ use openbrush::{
     modifiers,
     storage::Mapping,
     traits::{
-        DefaultEnv,
         Flush,
         Hash,
         StorageAccess,

@@ -30,7 +30,6 @@ use openbrush::{
         AccountId,
         Balance,
         DefaultEnv,
-        Storage,
         StorageAccess,
     },
     with_data,

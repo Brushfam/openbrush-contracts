@@ -4,10 +4,7 @@
 #[openbrush::contract]
 pub mod my_psp22_facet_v2 {
     use ink::codegen::Env;
-    use openbrush::{
-        contracts::ownable::*,
-        traits::Storage,
-    };
+    use openbrush::contracts::ownable::*;
 
     #[ink(storage)]
     #[derive(Default)]

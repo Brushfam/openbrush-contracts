@@ -3,7 +3,6 @@
 #[openbrush::implementation(PSP37, PSP37Batch)]
 #[openbrush::contract]
 pub mod my_psp37 {
-    use ink::prelude::vec::Vec;
 
     #[derive(Default)]
     #[ink(storage)]

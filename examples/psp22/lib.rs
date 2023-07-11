@@ -1,6 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-use openbrush::traits::ZERO_ADDRESS;
 pub use openbrush::traits::{
     AccountId,
     Storage,
@@ -12,19 +11,11 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
 // that is why we declare it here for this example
 #[openbrush::storage_item(STORAGE_KEY)]
 #[openbrush::accessors(HatedStorageAccessors)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct HatedStorage {
     #[get]
     #[set]
-    pub hated_account: AccountId,
-}
-
-impl Default for HatedStorage {
-    fn default() -> Self {
-        Self {
-            hated_account: ZERO_ADDRESS.into(),
-        }
-    }
+    pub hated_account: Option<AccountId>,
 }
 
 #[openbrush::implementation(PSP22)]

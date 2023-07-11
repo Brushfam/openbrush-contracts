@@ -23,23 +23,22 @@ pub use crate::{
     payment_splitter,
     traits::payment_splitter::*,
 };
-use openbrush::traits::DefaultEnv;
-pub use payment_splitter::Internal as _;
-
 use ink::prelude::vec::Vec;
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
 use openbrush::{
     storage::Mapping,
     traits::{
         AccountId,
         Balance,
+        DefaultEnv,
         Storage,
         StorageAccess,
-        ZERO_ADDRESS,
     },
     with_data,
 };
+pub use payment_splitter::Internal as _;
+
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 

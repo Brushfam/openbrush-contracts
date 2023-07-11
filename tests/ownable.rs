@@ -29,11 +29,7 @@ mod ownable {
     };
     use openbrush::{
         test_utils::change_caller,
-        traits::{
-            AccountIdExt,
-            Storage,
-            ZERO_ADDRESS,
-        },
+        traits::Storage,
     };
 
     #[ink(event)]

@@ -35,8 +35,6 @@ use ink::{
         vec::Vec,
     },
 };
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
 use openbrush::{
     traits::{
         AccountId,
@@ -44,7 +42,6 @@ use openbrush::{
         DefaultEnv,
         StorageAccess,
         Timestamp,
-        ZERO_ADDRESS,
     },
     with_data,
 };
@@ -58,6 +55,10 @@ pub use token_timelock::{
     InternalImpl as _,
     PSP22TokenTimelockImpl as _,
 };
+
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
+
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Debug, Default)]

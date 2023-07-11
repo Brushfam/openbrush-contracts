@@ -27,8 +27,6 @@ pub use ink::{
     env::DefaultEnvironment,
     prelude::vec::Vec,
 };
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
 use openbrush::traits::{
     AccountId,
     Balance,
@@ -45,6 +43,9 @@ pub use psp22_pallet::{
     InternalImpl as _,
     PSP22PalletImpl as _,
 };
+
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 

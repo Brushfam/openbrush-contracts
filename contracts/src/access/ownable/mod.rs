@@ -23,26 +23,25 @@ pub use crate::{
     ownable,
     traits::ownable::*,
 };
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
 use openbrush::{
     modifier_definition,
     modifiers,
     traits::{
         AccountId,
-        AccountIdExt,
         DefaultEnv,
         Storage,
         StorageAccess,
-        ZERO_ADDRESS,
     },
     with_data,
 };
 pub use ownable::Internal as _;
 
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
+
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 #[openbrush::storage_item(STORAGE_KEY)]
 pub struct Data {
     pub owner: Option<AccountId>,
@@ -53,15 +52,6 @@ pub struct Data {
 pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
-
-impl Default for Data {
-    fn default() -> Self {
-        Self {
-            owner: ZERO_ADDRESS.into(),
-            _reserved: Default::default(),
-        }
-    }
-}
 
 /// Throws if called by any account other than the owner.
 #[modifier_definition]
@@ -86,7 +76,7 @@ pub trait OwnableImpl: StorageAccess<Data> + Sized + Internal {
     fn renounce_ownership(&mut self) -> Result<(), OwnableError> {
         let old_owner = self.get_or_default().owner.clone();
         with_data!(self, data, {
-            data.owner = ZERO_ADDRESS.into();
+            data.owner = None;
         });
         self._emit_ownership_transferred_event(old_owner, None);
         Ok(())

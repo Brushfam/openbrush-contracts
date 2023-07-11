@@ -5,7 +5,6 @@ use openbrush::traits::{
     Balance,
     Storage,
     StorageAccess,
-    ZERO_ADDRESS,
 };
 pub use Internal as _;
 

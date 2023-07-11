@@ -27,8 +27,6 @@ pub use crate::{
         *,
     },
 };
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
 use openbrush::traits::{
     StorageAccess,
     String,
@@ -38,6 +36,9 @@ pub use psp22::{
     InternalImpl as _,
     PSP22Impl,
 };
+
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 

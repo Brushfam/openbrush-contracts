@@ -24,8 +24,6 @@ pub use crate::{
     traits::access_control::*,
 };
 pub use access_control::Internal as _;
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
 use openbrush::{
     modifier_definition,
     modifiers,
@@ -41,6 +39,10 @@ use openbrush::{
     },
     with_data,
 };
+
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
+
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[openbrush::storage_item(STORAGE_KEY)]

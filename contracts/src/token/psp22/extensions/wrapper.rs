@@ -32,15 +32,12 @@ use ink::{
     env::CallFlags,
     prelude::boxed::Box,
 };
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
 use openbrush::{
     traits::{
         AccountId,
         Balance,
         DefaultEnv,
         StorageAccess,
-        ZERO_ADDRESS,
     },
     with_data,
 };
@@ -50,6 +47,9 @@ pub use psp22::{
     PSP22Impl,
 };
 pub use wrapper::Internal as _;
+
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 

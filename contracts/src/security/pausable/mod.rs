@@ -23,8 +23,6 @@ pub use crate::{
     pausable,
     traits::pausable::*,
 };
-#[cfg(feature = "upgradeable")]
-use openbrush::traits::Lazy;
 use openbrush::{
     modifier_definition,
     modifiers,
@@ -40,6 +38,10 @@ pub use pausable::{
     InternalImpl as _,
     PausableImpl as _,
 };
+
+#[cfg(feature = "upgradeable")]
+use openbrush::traits::Lazy;
+
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]

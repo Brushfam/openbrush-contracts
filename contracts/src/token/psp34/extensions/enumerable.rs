@@ -28,10 +28,6 @@ pub use crate::{
     },
 };
 pub use ink::prelude::vec::Vec;
-
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
-
 use openbrush::{
     storage::{
         MultiMapping,
@@ -52,6 +48,9 @@ pub use psp34::{
     Owner,
     PSP34Impl,
 };
+
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 

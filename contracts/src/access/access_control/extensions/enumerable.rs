@@ -32,8 +32,6 @@ pub use access_control::{
     Internal as _,
     InternalImpl as _,
 };
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
 use openbrush::{
     storage::{
         MultiMapping,
@@ -45,6 +43,9 @@ use openbrush::{
     },
     with_data,
 };
+
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
 

@@ -31,9 +31,9 @@ mod ownable {
         test_utils::change_caller,
         traits::{
             AccountIdExt,
+            Storage,
             ZERO_ADDRESS,
         },
-        traits::Storage,
     };
 
     #[ink(event)]

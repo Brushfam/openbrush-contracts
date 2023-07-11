@@ -32,9 +32,9 @@ use openbrush::{
         AccountId,
         AccountIdExt,
         DefaultEnv,
+        Storage,
         StorageAccess,
         ZERO_ADDRESS,
-        Storage,
     },
     with_data,
 };
@@ -71,7 +71,6 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<OwnableError>,
 {
-
     if instance.data().owner != Some(T::env().caller()) {
         return Err(From::from(OwnableError::CallerIsNotOwner))
     }
@@ -79,7 +78,7 @@ where
 }
 
 pub trait OwnableImpl: StorageAccess<Data> + Sized + Internal {
-    fn owner(&self) -> Option<AccountId>{
+    fn owner(&self) -> Option<AccountId> {
         self.get_or_default().owner.clone()
     }
 

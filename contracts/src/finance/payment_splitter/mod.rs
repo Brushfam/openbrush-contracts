@@ -34,9 +34,9 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
+        Storage,
         StorageAccess,
         ZERO_ADDRESS,
-        Storage,
     },
     with_data,
 };
@@ -77,10 +77,7 @@ pub trait PaymentSplitterImpl: StorageAccess<Data> + Internal + Sized {
     }
 
     fn payee(&self, index: u32) -> Option<AccountId> {
-        self.get_or_default()
-            .payees
-            .get(index as usize)
-            .cloned()
+        self.get_or_default().payees.get(index as usize).cloned()
     }
 
     fn receive(&mut self) {

@@ -29,9 +29,7 @@ mod psp22_mintable {
     };
     use openbrush::{
         test_utils::*,
-        traits::{
-            String,
-        },
+        traits::String,
     };
 
     /// Event emitted when a token transfer occurs.

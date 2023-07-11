@@ -169,7 +169,6 @@ pub trait InternalImpl: StorageAccess<Data> + Internal + Sized {
         self.get_or_default().token
     }
 
-
     fn _beneficiary(&self) -> Option<AccountId> {
         self.get_or_default().beneficiary
     }

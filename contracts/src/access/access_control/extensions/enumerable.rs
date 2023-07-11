@@ -81,7 +81,10 @@ pub trait MembersManagerImpl: StorageAccess<Data> {
 
 pub trait AccessControlEnumerableImpl: StorageAccess<Data> {
     fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
-        self.get_or_default().role_members.get_value(role, &(index as u128)).unwrap_or(None)
+        self.get_or_default()
+            .role_members
+            .get_value(role, &(index as u128))
+            .unwrap_or(None)
     }
 
     fn get_role_member_count(&self, role: RoleType) -> u32 {

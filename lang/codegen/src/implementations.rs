@@ -36,6 +36,14 @@ impl<'a> ImplArgs<'a> {
     fn contract_name(&self) -> proc_macro2::Ident {
         format_ident!("{}", self.storage_struct_name)
     }
+
+    fn vec_import(&mut self) {
+        let vec_import = syn::parse2::<syn::ItemUse>(quote!(
+            use ink::prelude::vec::Vec;
+        ))
+        .expect("Should parse");
+        self.imports.insert("vec", vec_import);
+    }
 }
 
 pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
@@ -176,6 +184,7 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22", import);
+    impl_args.vec_import();
 
     override_functions("psp22::Internal", &mut internal, &impl_args.map);
     override_functions("PSP22", &mut psp22, &impl_args.map);
@@ -208,6 +217,7 @@ pub(crate) fn impl_psp22_mintable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Mintable", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Mintable", &mut mintable, &impl_args.map);
 
@@ -237,6 +247,7 @@ pub(crate) fn impl_psp22_burnable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Burnable", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Burnable", &mut burnable, &impl_args.map);
 
@@ -276,6 +287,7 @@ pub(crate) fn impl_psp22_metadata(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Metadata", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Metadata", &mut metadata, &impl_args.map);
 
@@ -327,6 +339,7 @@ pub(crate) fn impl_psp22_capped(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Capped", import);
+    impl_args.vec_import();
 
     override_functions("capped::Internal", &mut internal, &impl_args.map);
     override_functions("PSP22Capped", &mut capped, &impl_args.map);
@@ -366,7 +379,7 @@ pub(crate) fn impl_psp22_wrapper(impl_args: &mut ImplArgs) {
                 wrapper::InternalImpl::_init(self, underlying)
             }
 
-            fn _underlying(&mut self) -> ::ink::prelude::boxed::Box<PSP22Ref> {
+            fn _underlying(&mut self) -> Option<AccountId> {
                 wrapper::InternalImpl::_underlying(self)
             }
         }
@@ -398,6 +411,7 @@ pub(crate) fn impl_psp22_wrapper(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Wrapper", import);
+    impl_args.vec_import();
 
     override_functions("wrapper::Internal", &mut internal, &impl_args.map);
     override_functions("PSP22Wrapper", &mut wrapper, &impl_args.map);
@@ -471,6 +485,7 @@ pub(crate) fn impl_flashmint(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("Flashmint", import);
+    impl_args.vec_import();
 
     override_functions("flashmint::Internal", &mut internal, &impl_args.map);
     override_functions("FlashLender", &mut flashlender, &impl_args.map);
@@ -507,11 +522,11 @@ pub(crate) fn impl_token_timelock(impl_args: &mut ImplArgs) {
                 token_timelock::InternalImpl::_init(self, token, beneficiary, release_time)
             }
 
-            fn _token(&mut self) -> ink::prelude::boxed::Box<PSP22Ref> {
+            fn _token(&self) -> Option<AccountId> {
                 token_timelock::InternalImpl::_token(self)
             }
 
-            fn _beneficiary(&self) -> AccountId {
+            fn _beneficiary(&self) -> Option<AccountId> {
                 token_timelock::InternalImpl::_beneficiary(self)
             }
         }
@@ -526,12 +541,12 @@ pub(crate) fn impl_token_timelock(impl_args: &mut ImplArgs) {
     let mut timelock = syn::parse2::<syn::ItemImpl>(quote!(
         impl PSP22TokenTimelock for #storage_struct_name {
             #[ink(message)]
-            fn token(&self) -> AccountId {
+            fn token(&self) -> Option<AccountId> {
                 PSP22TokenTimelockImpl::token(self)
             }
 
             #[ink(message)]
-            fn beneficiary(&self) -> AccountId {
+            fn beneficiary(&self) -> Option<AccountId> {
                 PSP22TokenTimelockImpl::beneficiary(self)
             }
 
@@ -665,6 +680,7 @@ pub(crate) fn impl_psp22_pallet(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Pallet", import);
+    impl_args.vec_import();
 
     override_functions("psp22_pallet::Internal", &mut internal, &impl_args.map);
     override_functions("PSP22", &mut psp22, &impl_args.map);
@@ -697,6 +713,7 @@ pub(crate) fn impl_psp22_pallet_burnable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22PalletBurnable", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Burnable", &mut burnable, &impl_args.map);
 
@@ -736,6 +753,7 @@ pub(crate) fn impl_psp22_pallet_metadata(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22PalletMetadata", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Metadata", &mut burnable, &impl_args.map);
 
@@ -765,6 +783,7 @@ pub(crate) fn impl_psp22_pallet_mintable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22PalletMintable", import);
+    impl_args.vec_import();
 
     override_functions("PSP22Mintable", &mut mintable, &impl_args.map);
 
@@ -914,6 +933,7 @@ pub(crate) fn impl_psp34(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP34", import);
+    impl_args.vec_import();
 
     override_functions("psp34::BalancesManager", &mut psp34_balances, &impl_args.map);
     override_functions("psp34::Internal", &mut internal, &impl_args.map);
@@ -954,6 +974,7 @@ pub(crate) fn impl_psp34_burnable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP34Burnable", import);
+    impl_args.vec_import();
 
     override_functions("PSP34Burnable", &mut burnable, &impl_args.map);
 
@@ -983,6 +1004,7 @@ pub(crate) fn impl_psp34_mintable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP34Mintable", import);
+    impl_args.vec_import();
 
     override_functions("PSP34Mintable", &mut mintable, &impl_args.map);
 
@@ -1030,6 +1052,7 @@ pub(crate) fn impl_psp34_metadata(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP34Metadata", import);
+    impl_args.vec_import();
 
     override_functions("metadata::Internal", &mut internal, &impl_args.map);
     override_functions("PSP34Mintable", &mut metadata, &impl_args.map);
@@ -1094,6 +1117,7 @@ pub(crate) fn impl_psp34_enumerable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP34Enumerable", import);
+    impl_args.vec_import();
 
     override_functions("psp34::BalancesManager", &mut psp34_balances, &impl_args.map);
     override_functions("PSP34Enumerable", &mut psp34_enumerable, &impl_args.map);
@@ -1293,6 +1317,7 @@ pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37", import);
+    impl_args.vec_import();
 
     override_functions("psp37::BalancesManager", &mut psp37_balances, &impl_args.map);
     override_functions("psp37::Internal", &mut internal, &impl_args.map);
@@ -1369,6 +1394,7 @@ pub(crate) fn impl_psp37_batch(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37Batch", import);
+    impl_args.vec_import();
 
     override_functions("batch::Internal", &mut internal, &impl_args.map);
     override_functions("PSP37Batch", &mut batch, &impl_args.map);
@@ -1401,6 +1427,7 @@ pub(crate) fn impl_psp37_burnable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37Burnable", import);
+    impl_args.vec_import();
 
     override_functions("PSP37Burnable", &mut burnable, &impl_args.map);
 
@@ -1452,6 +1479,7 @@ pub(crate) fn impl_psp37_metadata(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37Metadata", import);
+    impl_args.vec_import();
 
     override_functions("metadata::Internal", &mut internal, &impl_args.map);
     override_functions("PSP37Metadata", &mut metadata, &impl_args.map);
@@ -1484,6 +1512,7 @@ pub(crate) fn impl_psp37_mintable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37Mintable", import);
+    impl_args.vec_import();
 
     override_functions("PSP37Mintable", &mut mintable, &impl_args.map);
 
@@ -1556,6 +1585,7 @@ pub(crate) fn impl_psp37_enumerable(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP37Enumerable", import);
+    impl_args.vec_import();
 
     override_functions("psp37::BalancesManager", &mut psp37_balances, &impl_args.map);
     override_functions("PSP37Enumerable", &mut psp37_enumerable, &impl_args.map);
@@ -1597,7 +1627,7 @@ pub(crate) fn impl_ownable(impl_args: &mut ImplArgs) {
     let mut ownable = syn::parse2::<syn::ItemImpl>(quote!(
         impl Ownable for #storage_struct_name {
             #[ink(message)]
-            fn owner(&self) -> AccountId {
+            fn owner(&self) -> Option<AccountId> {
                 OwnableImpl::owner(self)
             }
 
@@ -1697,7 +1727,7 @@ pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {
             }
 
             #[ink(message)]
-            fn payee(&self, index: u32) -> AccountId {
+            fn payee(&self, index: u32) -> Option<AccountId> {
                 PaymentSplitterImpl::payee(self, index)
             }
 
@@ -1742,11 +1772,11 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
                 access_control::InternalImpl::_emit_role_admin_changed(self, role, previous, new);
             }
 
-            fn _emit_role_granted(&mut self, role: RoleType, grantee: AccountId, grantor: Option<AccountId>) {
+            fn _emit_role_granted(&mut self, role: RoleType, grantee: Option<AccountId>, grantor: Option<AccountId>) {
                 access_control::InternalImpl::_emit_role_granted(self, role, grantee, grantor);
             }
 
-            fn _emit_role_revoked(&mut self, role: RoleType, account: AccountId, sender: AccountId) {
+            fn _emit_role_revoked(&mut self, role: RoleType, account: Option<AccountId>, sender: AccountId) {
                 access_control::InternalImpl::_emit_role_revoked(self, role, account, sender);
             }
 
@@ -1758,15 +1788,15 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
                 access_control::InternalImpl::_init_with_caller(self);
             }
 
-            fn _init_with_admin(&mut self, admin: AccountId) {
+            fn _init_with_admin(&mut self, admin: Option<AccountId>) {
                 access_control::InternalImpl::_init_with_admin(self, admin);
             }
 
-            fn _setup_role(&mut self, role: RoleType, member: AccountId) {
+            fn _setup_role(&mut self, role: RoleType, member: Option<AccountId>) {
                 access_control::InternalImpl::_setup_role(self, role, member);
             }
 
-            fn _do_revoke_role(&mut self, role: RoleType, account: AccountId) {
+            fn _do_revoke_role(&mut self, role: RoleType, account: Option<AccountId>) {
                 access_control::InternalImpl::_do_revoke_role(self, role, account);
             }
 
@@ -1774,7 +1804,7 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
                 access_control::InternalImpl::_set_role_admin(self, role, new_admin);
             }
 
-            fn _check_role(&self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            fn _check_role(&self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
                 access_control::InternalImpl::_check_role(self, role, account)
             }
 
@@ -1793,7 +1823,7 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
     let mut access_control = syn::parse2::<syn::ItemImpl>(quote!(
         impl AccessControl for #storage_struct_name {
             #[ink(message)]
-            fn has_role(&self, role: RoleType, address: AccountId) -> bool {
+            fn has_role(&self, role: RoleType, address: Option<AccountId>) -> bool {
                 AccessControlImpl::has_role(self, role, address)
             }
 
@@ -1803,17 +1833,17 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
             }
 
             #[ink(message)]
-            fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            fn grant_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
                 AccessControlImpl::grant_role(self, role, account)
             }
 
             #[ink(message)]
-            fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            fn revoke_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
                 AccessControlImpl::revoke_role(self, role, account)
             }
 
             #[ink(message)]
-            fn renounce_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            fn renounce_role(&mut self, role: RoleType, account: Option<AccountId>) -> Result<(), AccessControlError> {
                 AccessControlImpl::renounce_role(self, role, account)
             }
         }
@@ -1827,15 +1857,15 @@ pub(crate) fn impl_access_control(impl_args: &mut ImplArgs) {
 
     let mut members = syn::parse2::<syn::ItemImpl>(quote!(
         impl access_control::MembersManager for #storage_struct_name {
-            fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
+            fn _has_role(&self, role: RoleType, address: &Option<AccountId>) -> bool {
                 access_control::MembersManagerImpl::_has_role(self, role, address)
             }
 
-            fn _add(&mut self, role: RoleType, member: &AccountId) {
+            fn _add(&mut self, role: RoleType, member: &Option<AccountId>) {
                 access_control::MembersManagerImpl::_add(self, role, member)
             }
 
-            fn _remove(&mut self, role: RoleType, member: &AccountId) {
+            fn _remove(&mut self, role: RoleType, member: &Option<AccountId>) {
                 access_control::MembersManagerImpl::_remove(self, role, member)
             }
         }
@@ -1894,15 +1924,15 @@ pub(crate) fn impl_access_control_enumerable(impl_args: &mut ImplArgs) {
 
     let mut members = syn::parse2::<syn::ItemImpl>(quote!(
         impl access_control::MembersManager for #storage_struct_name {
-            fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
+            fn _has_role(&self, role: RoleType, address: &Option<AccountId>) -> bool {
                 enumerable::MembersManagerImpl::_has_role(self, role, address)
             }
 
-            fn _add(&mut self, role: RoleType, member: &AccountId) {
+            fn _add(&mut self, role: RoleType, member: &Option<AccountId>) {
                 enumerable::MembersManagerImpl::_add(self, role, member)
             }
 
-            fn _remove(&mut self, role: RoleType, member: &AccountId) {
+            fn _remove(&mut self, role: RoleType, member: &Option<AccountId>) {
                 enumerable::MembersManagerImpl::_remove(self, role, member)
             }
         }
@@ -2032,7 +2062,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
     
             fn _init_with_admin(
                 &mut self,
-                admin: AccountId,
+                admin: Option<AccountId>,
                 min_delay: Timestamp,
                 proposers: Vec<AccountId>,
                 executors: Vec<AccountId>,
@@ -2360,6 +2390,7 @@ pub(crate) fn impl_diamond(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("Diamond", import);
+    impl_args.vec_import();
 
     override_functions("DiamondCut", &mut cut, &impl_args.map);
     override_functions("diamond::Internal", &mut internal, &impl_args.map);
@@ -2432,6 +2463,7 @@ pub(crate) fn impl_diamond_loupe(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("DiamondLoupe", import);
+    impl_args.vec_import();
 
     override_functions("diamond::DiamondCut", &mut cut, &impl_args.map);
     override_functions("DiamondLoupe", &mut loupe, &impl_args.map);

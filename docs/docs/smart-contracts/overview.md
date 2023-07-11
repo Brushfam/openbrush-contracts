@@ -178,9 +178,9 @@ pub mod my_psp22 {
   }
 
   #[overrider(Ownable)]
-  fn owner(&self) -> AccountId {
+  fn owner(&self) -> Option<AccountId> {
     // For example you can return always zero owner
-    openbrush::traits::ZERO_ADDRESS.into()
+    None
   }
 
   #[overrider(psp22::Internal)]

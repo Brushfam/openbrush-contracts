@@ -31,7 +31,6 @@ mod psp22_mintable {
         test_utils::*,
         traits::{
             String,
-            ZERO_ADDRESS,
         },
     };
 
@@ -152,18 +151,6 @@ mod psp22_mintable {
                 n
             );
         }
-    }
-
-    // Testing mintable extension
-    #[ink::test]
-    fn should_not_mint_to_zero_address() {
-        let mut psp22 = PSP22Struct::new(100);
-        let amount_to_mint = 10;
-
-        assert_eq!(
-            PSP22Mintable::mint(&mut psp22, ZERO_ADDRESS.into(), amount_to_mint),
-            Err(PSP22Error::ZeroRecipientAddress)
-        );
     }
 
     #[ink::test]

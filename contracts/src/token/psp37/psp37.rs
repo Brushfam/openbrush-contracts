@@ -24,8 +24,10 @@ pub use crate::{
     traits::psp37::*,
 };
 use core::result::Result;
-use ink::prelude::vec;
-pub use ink::prelude::vec::Vec;
+use ink::prelude::{
+    vec,
+    vec::Vec,
+};
 use openbrush::{
     storage::{
         Mapping,
@@ -33,7 +35,6 @@ use openbrush::{
     },
     traits::{
         AccountId,
-        AccountIdExt,
         Balance,
         DefaultEnv,
         StorageAccess,
@@ -209,9 +210,6 @@ pub trait InternalImpl: Internal + StorageAccess<Data> + BalancesManager + Sized
     fn _emit_approval_event(&self, _owner: AccountId, _operator: AccountId, _id: Option<Id>, _value: Balance) {}
 
     fn _mint_to(&mut self, to: AccountId, mut ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
-        if to.is_zero() {
-            return Err(PSP37Error::TransferToZeroAddress)
-        }
         if ids_amounts.is_empty() {
             return Ok(())
         }
@@ -267,10 +265,6 @@ pub trait InternalImpl: Internal + StorageAccess<Data> + BalancesManager + Sized
     ) -> Result<(), PSP37Error> {
         let operator = Self::env().caller();
         let ids_amounts = vec![(id.clone(), value)];
-
-        if to.is_zero() {
-            return Err(PSP37Error::TransferToZeroAddress)
-        }
 
         if from != operator && Internal::_get_allowance(self, &from, &operator, &Some(&id)) < value {
             return Err(PSP37Error::NotAllowed)

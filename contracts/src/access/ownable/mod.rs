@@ -34,6 +34,7 @@ use openbrush::{
         DefaultEnv,
         StorageAccess,
         ZERO_ADDRESS,
+        Storage,
     },
     with_data,
 };
@@ -44,7 +45,7 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 #[derive(Debug)]
 #[openbrush::storage_item(STORAGE_KEY)]
 pub struct Data {
-    pub owner: AccountId,
+    pub owner: Option<AccountId>,
     pub _reserved: Option<()>,
 }
 
@@ -70,14 +71,15 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<OwnableError>,
 {
-    if instance.get_or_default().owner != T::env().caller() {
+
+    if instance.data().owner != Some(T::env().caller()) {
         return Err(From::from(OwnableError::CallerIsNotOwner))
     }
     body(instance)
 }
 
 pub trait OwnableImpl: StorageAccess<Data> + Sized + Internal {
-    fn owner(&self) -> AccountId {
+    fn owner(&self) -> Option<AccountId>{
         self.get_or_default().owner.clone()
     }
 
@@ -87,7 +89,7 @@ pub trait OwnableImpl: StorageAccess<Data> + Sized + Internal {
         with_data!(self, data, {
             data.owner = ZERO_ADDRESS.into();
         });
-        self._emit_ownership_transferred_event(Some(old_owner), None);
+        self._emit_ownership_transferred_event(old_owner, None);
         Ok(())
     }
 
@@ -100,7 +102,7 @@ pub trait OwnableImpl: StorageAccess<Data> + Sized + Internal {
         with_data!(self, data, {
             data.owner = new_owner.clone();
         });
-        self._emit_ownership_transferred_event(Some(old_owner), Some(new_owner));
+        self._emit_ownership_transferred_event(old_owner, Some(new_owner));
         Ok(())
     }
 }
@@ -117,7 +119,7 @@ pub trait InternalImpl: StorageAccess<Data> + Internal + Sized {
 
     fn _init_with_owner(&mut self, owner: AccountId) {
         with_data!(self, data, {
-            data.owner = owner.clone();
+            data.owner = Some(owner);
         });
         Internal::_emit_ownership_transferred_event(self, None, Some(owner));
     }

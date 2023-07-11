@@ -30,12 +30,10 @@ use openbrush::{
     modifiers,
     traits::{
         AccountId,
-        AccountIdExt,
         Balance,
         Storage,
         StorageAccess,
         Timestamp,
-        ZERO_ADDRESS,
     },
 };
 
@@ -46,31 +44,26 @@ pub trait LendingImpl:
 {
     fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
-        let mapped_asset = StorageAccess::<data::Data>::get_or_default(self)
-            .assets_lended
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into());
-        // return error if the asset is not supported
-        if mapped_asset.is_zero() {
-            return Err(LendingError::AssetNotSupported)
+        if let Some(mapped_asset) = StorageAccess::<data::Data>::get_or_default(self).assets_lended.get(&asset_address) {
+            let contract = Self::env().account_id();
+            let available = PSP22Ref::balance_of(&asset_address, contract);
+            let unavailable = PSP22Ref::balance_of(&mapped_asset, contract);
+            Ok(available + unavailable)
+        } else {
+            // return error if the asset is not supported
+            Err(LendingError::AssetNotSupported)
         }
-        let contract = Self::env().account_id();
-        let available = PSP22Ref::balance_of(&asset_address, contract);
-        let unavailable = PSP22Ref::balance_of(&mapped_asset, contract);
-        Ok(available + unavailable)
     }
 
     fn total_shares(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
-        let mapped_asset = StorageAccess::<data::Data>::get_or_default(self)
-            .asset_shares
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into());
-        // return error if the asset is not supported
-        if mapped_asset.is_zero() {
+
+        if let Some(mapped_asset) = StorageAccess::<data::Data>::get_or_default(self).asset_shares.get(&asset_address) {
+            Ok(PSP22Ref::total_supply(&mapped_asset))
+        } else {
+            // return error if the asset is not supported
             return Err(LendingError::AssetNotSupported)
         }
-        Ok(PSP22Ref::total_supply(&mapped_asset))
     }
 
     fn get_asset_shares(&self, asset_address: AccountId) -> Result<AccountId, LendingError> {
@@ -81,11 +74,7 @@ pub trait LendingImpl:
     }
 
     fn is_accepted_lending(&self, asset_address: AccountId) -> bool {
-        !StorageAccess::<data::Data>::get_or_default(self)
-            .asset_shares
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into())
-            .is_zero()
+StorageAccess::<data::Data>::get_or_default(self).asset_shares.get(&asset_address).is_some()
     }
 
     fn is_accepted_collateral(&self, asset_address: AccountId) -> bool {
@@ -195,7 +184,7 @@ pub trait LendingImpl:
         let loan_account = StorageAccess::<data::Data>::get_or_default(self).loan_account;
         let apy = 1000;
         // initiator must own the nft
-        if LoanRef::owner_of(&loan_account, loan_id.clone()).unwrap_or(ZERO_ADDRESS.into()) != initiator {
+        if LoanRef::owner_of(&loan_account, loan_id.clone()) != Some(initiator) {
             return Err(LendingError::NotTheOwner)
         }
         let loan_info = LoanRef::get_loan_info(&loan_account, loan_id.clone())?;

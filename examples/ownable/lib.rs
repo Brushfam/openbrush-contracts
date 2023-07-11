@@ -67,7 +67,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, address_of!(alice));
+            assert_eq!(owner, Some(address_of!(alice)));
 
             Ok(())
         }
@@ -87,7 +87,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, address_of!(alice));
+            assert_eq!(owner, Some(address_of!(alice)));
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
@@ -122,7 +122,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, address_of!(alice));
+            assert_eq!(owner, Some(address_of!(alice)));
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
@@ -160,7 +160,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, address_of!(bob));
+            assert_eq!(owner, Some(address_of!(bob)));
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
@@ -198,7 +198,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, address_of!(alice));
+            assert_eq!(owner, Some(address_of!(alice)));
 
             let renounce_ownership_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.renounce_ownership());
@@ -217,7 +217,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, AccountId::from([0xff; 32]));
+            assert_eq!(owner, None);
 
             Ok(())
         }
@@ -237,7 +237,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, address_of!(alice));
+            assert_eq!(owner, Some(address_of!(alice)));
 
             let renounce_ownership_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.renounce_ownership());
@@ -253,7 +253,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, address_of!(alice));
+            assert_eq!(owner, Some(address_of!(alice)));
 
             Ok(())
         }
@@ -273,7 +273,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, address_of!(alice));
+            assert_eq!(owner, Some(address_of!(alice)));
 
             let renounce_ownership_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.renounce_ownership());
@@ -289,7 +289,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, address_of!(alice));
+            assert_eq!(owner, Some(address_of!(alice)));
 
             Ok(())
         }

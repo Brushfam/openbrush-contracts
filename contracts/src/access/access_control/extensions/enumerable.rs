@@ -52,7 +52,7 @@ pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Members);
 #[openbrush::storage_item(STORAGE_KEY)]
 #[derive(Default, Debug)]
 pub struct Data {
-    pub role_members: MultiMapping<RoleType, AccountId, ValueGuard<RoleType>>,
+    pub role_members: MultiMapping<RoleType, Option<AccountId>, ValueGuard<RoleType>>,
     pub _reserved: Option<()>,
 }
 
@@ -81,7 +81,7 @@ pub trait MembersManagerImpl: StorageAccess<Data> {
 
 pub trait AccessControlEnumerableImpl: StorageAccess<Data> {
     fn get_role_member(&self, role: RoleType, index: u32) -> Option<AccountId> {
-        self.get_or_default().role_members.get_value(role, &(index as u128))
+        self.get_or_default().role_members.get_value(role, &(index as u128)).unwrap_or(None)
     }
 
     fn get_role_member_count(&self, role: RoleType) -> u32 {

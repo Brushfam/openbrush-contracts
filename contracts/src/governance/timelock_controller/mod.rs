@@ -62,7 +62,6 @@ use openbrush::{
         Hash,
         StorageAccess,
         Timestamp,
-        ZERO_ADDRESS,
     },
     with_data,
 };
@@ -94,8 +93,8 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<AccessControlError>,
 {
-    if !instance._has_role(role, &(ZERO_ADDRESS.into())) {
-        instance._check_role(role, T::env().caller())?;
+    if !instance._has_role(role, &None) {
+        instance._check_role(role, Some(T::env().caller()))?;
     }
     body(instance)
 }
@@ -266,7 +265,7 @@ pub trait Internal {
 
     fn _init_with_admin(
         &mut self,
-        admin: AccountId,
+        admin: Option<AccountId>,
         min_delay: Timestamp,
         proposers: Vec<AccountId>,
         executors: Vec<AccountId>,
@@ -335,13 +334,12 @@ pub trait InternalImpl: Internal + StorageAccess<Data> + Sized + access_control:
     fn _emit_call_executed_event(&self, _id: OperationId, _index: u8, _transaction: Transaction) {}
 
     fn _init_with_caller(&mut self, min_delay: Timestamp, proposers: Vec<AccountId>, executors: Vec<AccountId>) {
-        let caller = Self::env().caller();
-        Internal::_init_with_admin(self, caller, min_delay, proposers, executors);
+        Internal::_init_with_admin(self, Some(Self::env().caller()), min_delay, proposers, executors);
     }
 
     fn _init_with_admin(
         &mut self,
-        admin: AccountId,
+        admin: Option<AccountId>,
         min_delay: Timestamp,
         proposers: Vec<AccountId>,
         executors: Vec<AccountId>,
@@ -360,17 +358,20 @@ pub trait InternalImpl: Internal + StorageAccess<Data> + Sized + access_control:
         );
 
         // admin + self administration
-        self._setup_role(<Self as Internal>::_timelock_admin_role(), Self::env().account_id());
+        self._setup_role(
+            <Self as Internal>::_timelock_admin_role(),
+            Some(Self::env().account_id()),
+        );
         self._setup_role(<Self as Internal>::_timelock_admin_role(), admin);
 
         // register proposers
         proposers
             .into_iter()
-            .for_each(|proposer| self._setup_role(<Self as Internal>::_proposal_role(), proposer));
+            .for_each(|proposer| self._setup_role(<Self as Internal>::_proposal_role(), Some(proposer)));
         // register executors
         executors
             .into_iter()
-            .for_each(|executor| self._setup_role(<Self as Internal>::_executor_role(), executor));
+            .for_each(|executor| self._setup_role(<Self as Internal>::_executor_role(), Some(executor)));
 
         let old_delay = self.get_or_default().min_delay.clone();
         with_data!(self, data, {
@@ -451,17 +452,21 @@ pub trait InternalImpl: Internal + StorageAccess<Data> + Sized + access_control:
         // Flush the state into storage before the cross call.
         // Because during cross call we cann call this contract(for example for `update_delay` method).
         self.flush();
-        let result = build_call::<DefaultEnvironment>()
-            .call_type(
-                Call::new(transaction.callee)
-                    .gas_limit(transaction.gas_limit)
-                    .transferred_value(transaction.transferred_value),
-            )
-            .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(CallInput(&transaction.input)))
-            .returns::<()>()
-            .call_flags(CallFlags::default().set_allow_reentry(true))
-            .try_invoke()
-            .map_err(|_| TimelockControllerError::UnderlyingTransactionReverted);
+        let result = if let Some(callee) = transaction.callee {
+            build_call::<DefaultEnvironment>()
+                .call_type(
+                    Call::new(callee)
+                        .gas_limit(transaction.gas_limit)
+                        .transferred_value(transaction.transferred_value),
+                )
+                .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(CallInput(&transaction.input)))
+                .returns::<()>()
+                .call_flags(CallFlags::default().set_allow_reentry(true))
+                .try_invoke()
+                .map_err(|_| TimelockControllerError::UnderlyingTransactionReverted)
+        } else {
+            Err(TimelockControllerError::CalleeZeroAddress)
+        };
 
         // Load the sate of the contract after the cross call.
         self.load();

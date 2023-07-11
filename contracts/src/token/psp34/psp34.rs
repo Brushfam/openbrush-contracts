@@ -28,8 +28,6 @@ pub use crate::{
     traits::psp34::*,
 };
 pub use ink::prelude::vec::Vec;
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
 use openbrush::{
     storage::{
         Mapping,
@@ -49,6 +47,9 @@ pub use psp34::{
     InternalImpl as _,
     PSP34Impl as _,
 };
+
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 

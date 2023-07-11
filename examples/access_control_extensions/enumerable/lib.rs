@@ -26,9 +26,9 @@ pub mod my_access_control {
             let mut instance = Self::default();
 
             let caller = Self::env().caller();
-            access_control::Internal::_init_with_admin(&mut instance, caller);
+            access_control::Internal::_init_with_admin(&mut instance, Some(caller));
             // We grant minter role to caller in constructor, so he can mint/burn tokens
-            AccessControl::grant_role(&mut instance, MINTER, caller).expect("Should grant MINTER role");
+            AccessControl::grant_role(&mut instance, MINTER, Some(caller)).expect("Should grant MINTER role");
             assert_eq!(AccessControlEnumerable::get_role_member_count(&instance, MINTER), 1);
 
             instance

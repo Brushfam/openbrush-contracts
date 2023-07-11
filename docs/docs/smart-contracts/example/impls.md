@@ -359,7 +359,6 @@ use openbrush::{
         AccountId,
         Balance,
         Storage,
-        ZERO_ADDRESS,
     },
 };
 
@@ -448,14 +447,14 @@ fn accept_lending<T: Storage<data::Data>>(
 }
 
 fn disallow_lending<T: Storage<data::Data>>(instance: &mut T, asset_address: AccountId) {
-    let share_address = instance
+    if let Some(share_address) = instance
         .data()
         .asset_shares
-        .get(&asset_address)
-        .unwrap_or(ZERO_ADDRESS.into());
-    instance.data().asset_shares.remove(&asset_address);
-    instance.data().shares_asset.remove(&share_address);
-    instance.data().assets_lended.remove(&asset_address);
+        .get(&asset_address) {
+            instance.data().asset_shares.remove(&asset_address);
+            instance.data().shares_asset.remove(&share_address);
+            instance.data().assets_lended.remove(&asset_address);
+    }
 }
 
 /// this function will accept `asset_address` for using as collateral
@@ -507,11 +506,9 @@ use openbrush::{
     modifiers,
     traits::{
         AccountId,
-        AccountIdExt,
         Balance,
         Storage,
         Timestamp,
-        ZERO_ADDRESS,
     },
 };
 
@@ -520,33 +517,30 @@ pub const YEAR: Timestamp = 60 * 60 * 24 * 365;
 impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
     fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
-        let mapped_asset = self
+        if let Some(mapped_asset) = self
             .data::<data::Data>()
             .assets_lended
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into());
-        // return error if the asset is not supported
-        if mapped_asset.is_zero() {
-            return Err(LendingError::AssetNotSupported)
+            .get(&asset_address){
+                let contract = Self::env().account_id();
+                let available = PSP22Ref::balance_of(&asset_address, contract);
+                let unavailable = PSP22Ref::balance_of(&mapped_asset, contract);
+                Ok(available + unavailable)
+        }else {
+            // return error if the asset is not supported
+            Err(LendingError::AssetNotSupported)
         }
-        let contract = Self::env().account_id();
-        let available = PSP22Ref::balance_of(&asset_address, contract);
-        let unavailable = PSP22Ref::balance_of(&mapped_asset, contract);
-        Ok(available + unavailable)
     }
 
     fn total_shares(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
-        let mapped_asset = self
+        if let Some(mapped_asset) = self
             .data::<data::Data>()
             .asset_shares
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into());
-        // return error if the asset is not supported
-        if mapped_asset.is_zero() {
-            return Err(LendingError::AssetNotSupported)
+            .get(&asset_address) {
+            Ok(PSP22Ref::total_supply(&mapped_asset))
+        } else {
+            Err(LendingError::AssetNotSupported)
         }
-        Ok(PSP22Ref::total_supply(&mapped_asset))
     }
   
     fn get_asset_shares(&self, asset_address: AccountId) -> Result<AccountId, LendingError> {
@@ -558,12 +552,11 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
     }
   
     fn is_accepted_lending(&self, asset_address: AccountId) -> bool {
-        !self
+        self
             .data::<data::Data>()
             .asset_shares
             .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into())
-            .is_zero()
+            .is_some()
     }
 
     fn is_accepted_collateral(&self, asset_address: AccountId) -> bool {
@@ -678,7 +671,7 @@ impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
         let loan_account = self.data::<data::Data>().loan_account;
         let apy = 1000;
         // initiator must own the nft
-        if LoanRef::owner_of(&loan_account, loan_id.clone()).unwrap_or(ZERO_ADDRESS.into()) != initiator {
+        if LoanRef::owner_of(&loan_account, loan_id.clone()) != Some(initiator) {
             return Err(LendingError::NotTheOwner)
         }
         let loan_info = LoanRef::get_loan_info(&loan_account, loan_id.clone())?;

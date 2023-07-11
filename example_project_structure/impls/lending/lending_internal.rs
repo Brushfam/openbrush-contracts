@@ -28,14 +28,11 @@ pub trait Internal: StorageAccess<Data> + Sized {
     }
 
     fn _disallow_lending(&mut self, asset_address: AccountId) {
-        let share_address = self
-            .get_or_default()
-            .asset_shares
-            .get(&asset_address)
-            .unwrap_or(ZERO_ADDRESS.into());
-        self.get_or_default().asset_shares.remove(&asset_address);
+        if let Some(share_address) = self.data().asset_shares.get(&asset_address) {
+            self.get_or_default().asset_shares.remove(&asset_address);
         self.get_or_default().shares_asset.remove(&share_address);
         self.get_or_default().assets_lended.remove(&asset_address);
+        }
     }
 
     /// this function will accept `asset_address` for using as collateral

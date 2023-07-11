@@ -23,12 +23,9 @@
 #[openbrush::implementation(PSP37, PSP37Batch)]
 #[openbrush::contract]
 mod psp37_batch {
-    use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
-        prelude::vec::Vec,
+    use ink::codegen::{
+        EmitEvent,
+        Env,
     };
     use openbrush::test_utils::{
         accounts,

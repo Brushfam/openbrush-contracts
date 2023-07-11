@@ -5,6 +5,7 @@
 #[openbrush::contract]
 pub mod my_psp37 {
     use ink::prelude::vec::Vec;
+    use openbrush::traits::Storage;
 
     #[derive(Default)]
     #[ink(storage)]

@@ -24,14 +24,6 @@ pub use crate::{
     traits::psp22::*,
 };
 pub use ink::prelude::vec::Vec;
-#[cfg(feature = "upgradeable")]
-use ink::storage::traits::{
-    AutoKey,
-    ManualKey,
-    ResolverKey,
-};
-#[cfg(feature = "upgradeable")]
-use openbrush::storage::Lazy;
 use openbrush::{
     storage::{
         Mapping,
@@ -39,7 +31,6 @@ use openbrush::{
     },
     traits::{
         AccountId,
-        AccountIdExt,
         Balance,
         DefaultEnv,
         StorageAccess,
@@ -51,6 +42,15 @@ pub use psp22::{
     InternalImpl as _,
     PSP22Impl as _,
 };
+
+#[cfg(feature = "upgradeable")]
+use ink::storage::traits::{
+    AutoKey,
+    ManualKey,
+    ResolverKey,
+};
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
@@ -203,13 +203,6 @@ pub trait InternalImpl: StorageAccess<Data> + Internal {
         amount: Balance,
         _data: Vec<u8>,
     ) -> Result<(), PSP22Error> {
-        if from.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress)
-        }
-        if to.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         let from_balance = Internal::_balance_of(self, &from);
 
         if from_balance < amount {
@@ -231,13 +224,6 @@ pub trait InternalImpl: StorageAccess<Data> + Internal {
     }
 
     fn _approve_from_to(&mut self, owner: AccountId, spender: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        if owner.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress)
-        }
-        if spender.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         with_data!(self, data, {
             data.allowances.insert(&(&owner, &spender), &amount);
         });
@@ -247,10 +233,6 @@ pub trait InternalImpl: StorageAccess<Data> + Internal {
     }
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        if account.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         Internal::_before_token_transfer(self, None, Some(&account), &amount)?;
         let mut new_balance = Internal::_balance_of(self, &account);
         new_balance += amount;
@@ -267,10 +249,6 @@ pub trait InternalImpl: StorageAccess<Data> + Internal {
     }
 
     fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        if account.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
-        }
-
         let mut from_balance = Internal::_balance_of(self, &account);
 
         if from_balance < amount {

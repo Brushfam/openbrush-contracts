@@ -41,7 +41,6 @@ use openbrush::{
     },
     traits::{
         AccountId,
-        Storage,
         StorageAccess,
     },
     with_data,
@@ -62,17 +61,17 @@ pub type DataType = Lazy<Data>;
 pub type DataType = Data;
 
 pub trait MembersManagerImpl: StorageAccess<Data> {
-    fn _has_role(&self, role: RoleType, address: &AccountId) -> bool {
+    fn _has_role(&self, role: RoleType, address: &Option<AccountId>) -> bool {
         self.get_or_default().role_members.contains_value(role, address)
     }
 
-    fn _add(&mut self, role: RoleType, member: &AccountId) {
+    fn _add(&mut self, role: RoleType, member: &Option<AccountId>) {
         with_data!(self, data, {
             data.role_members.insert(role, member);
         });
     }
 
-    fn _remove(&mut self, role: RoleType, member: &AccountId) {
+    fn _remove(&mut self, role: RoleType, member: &Option<AccountId>) {
         with_data!(self, data, {
             data.role_members.remove_value(role, member);
         });

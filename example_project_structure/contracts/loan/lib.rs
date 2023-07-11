@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(default_alloc_error_handler)]
 
 /// This contract will represent the loan of a user
 #[openbrush::implementation(PSP34, Ownable, PSP34Metadata)]

@@ -40,7 +40,6 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        DefaultEnv,
         StorageAccess,
     },
     with_data,

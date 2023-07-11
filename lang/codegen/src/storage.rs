@@ -32,7 +32,6 @@ use quote::{
 use syn::{
     spanned::Spanned,
     Data,
-    DeriveInput,
     Field,
     Fields,
     Type,

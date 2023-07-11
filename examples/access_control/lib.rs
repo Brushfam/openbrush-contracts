@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(default_alloc_error_handler)]
 
 #[openbrush::implementation(PSP34, PSP34Burnable, PSP34Mintable, AccessControl)]
 #[openbrush::contract]

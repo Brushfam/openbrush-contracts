@@ -36,10 +36,7 @@ use openbrush::{
         Mapping,
         TypeGuard,
     },
-    traits::{
-        DefaultEnv,
-        StorageAccess,
-    },
+    traits::StorageAccess,
     with_data,
 };
 pub use psp34::{

@@ -7,7 +7,7 @@ This example shows how you can reuse the implementation of [PSP37](https://githu
 
 ## How to use this extension
 
-First, you should implement basic version of [PSP37](/smart-contracts/PSP37). 
+First, you should implement basic version of [PSP37](../psp37.md). 
 After you can just add implementation of PSP37Burnable via `#[openbrush::implementation(PSP37Burnable)]` attribute.
 
 ## Final code
@@ -28,7 +28,6 @@ pub mod my_psp37 {
     }
 
     impl Contract {
-        /// contract constructor
         #[ink(constructor)]
         pub fn new() -> Self {
             Self::default()
@@ -45,4 +44,3 @@ pub mod my_psp37 {
 
 And that's it! Your `PSP37` is now extended by the `PSP37Burnable` extension and ready to use its functions!
 You can check an example of the usage of [PSP37 Burnable](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/psp37_extensions/burnable).
- the documentation for the basic implementation of [PSP37](/smart-contracts/PSP37).

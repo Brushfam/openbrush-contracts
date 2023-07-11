@@ -8,7 +8,7 @@ This example shows how you can reuse the implementation of
 
 ## How to use this extension
 
-First, you should implement basic version of [PSP22 Pallet](/smart-contracts/PSP22-Pallet).
+First, you should implement basic version of [PSP22 Pallet](../psp22-pallet.md).
 
 After you can just add implementation of PSP22PalletMintable via `#[openbrush::implementation(PSP22PalletMintable)]` attribute.
 

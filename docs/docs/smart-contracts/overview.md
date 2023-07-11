@@ -17,6 +17,12 @@ It doesn't contain [versioning](https://github.com/supercolony-net/openbrush-con
 #### The default `toml` of your project with OpenBrush:
 
 ```toml
+[package]
+name = "name_of_contract"
+version = "1.0.0"
+authors = ["The best developer ever"]
+edition = "2023"
+
 [dependencies]
 # Import ink!
 ink = { version = "4.2.1", default-features = false}
@@ -26,6 +32,10 @@ scale-info = { version = "2.6", default-features = false, features = ["derive"],
 
 # OpenBrush dependency
 openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "feature/stable-rust", default-features = false }
+
+[lib]
+name = "name_of_contract"
+path = "lib.rs"
 
 [features]
 default = ["std"]
@@ -104,7 +114,7 @@ pub mod psp22_example {
       psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
       ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
       // private key of 0x0 is known, so we ban transfers from this account and users can safely use it as burn address!
-      self.banned_account.set([0u8; 32]); 
+      instance.banned_account.set([0u8; 32]); 
 
       instance
     }
@@ -212,16 +222,17 @@ for ownable and psp22 as they will be imported with the macro.
 #[openbrush::implementation(PSP22, Ownable)]
 #[openbrush::contract]
 pub mod my_psp22 {
-  use openbrush::traits::Storage;
+    use openbrush::traits::Storage;
 
-  #[ink(storage)]
-  #[derive(Storage)]
-  pub struct Contract {
-      #[storage_field]
-      foo: psp22::Data,
-      #[storage_field]
-      bar: ownable::Data,
-  }
+    #[ink(storage)]
+    #[derive(Storage)]
+    pub struct Contract {
+        #[storage_field]
+        foo: psp22::Data,
+        #[storage_field]
+        bar: ownable::Data,
+    }
+}
 ```
 
 Remember, only traits with `#[ink(message)]` methods can be public. `psp22::Internal`

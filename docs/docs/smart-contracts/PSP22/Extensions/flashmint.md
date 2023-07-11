@@ -7,7 +7,7 @@ This example shows how you can reuse the implementation of [PSP22](https://githu
 
 ## 1. Implement the FlashMint extension
 
-First, you should implement basic version of [PSP22](/smart-contracts/PSP22).
+First, you should implement basic version of [PSP22](../psp22.md).
 
 After you can just add implementation of PSP22Flashmint via `#[openbrush::implementation(PSP22Flashmint)]` attribute.
 

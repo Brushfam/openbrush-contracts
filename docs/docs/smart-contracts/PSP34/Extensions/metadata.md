@@ -5,7 +5,7 @@ title: PSP34 Metadata
 
 This example shows how you can reuse the implementation of [PSP34](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp34) token with [PSP34Metadata](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp34/extensions/metadata.rs) extension.
 
-First, you should implement basic version of [PSP34](/smart-contracts/PSP34).
+First, you should implement basic version of [PSP34](../psp34.md).
 
 ## Step 1: Implement features
 
@@ -95,4 +95,3 @@ pub mod my_psp34_metadata {
 
 You can check an example of the usage of [PSP34 Metadata](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/psp34_extensions/metadata).
 
-You can also check the documentation for the basic implementation of [PSP34](/smart-contracts/PSP34).

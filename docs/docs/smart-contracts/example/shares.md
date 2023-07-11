@@ -3,11 +3,11 @@ sidebar_position: 4
 title: Shares contract
 ---
 
-Similarly, we will implement another [PSP22](/smart-contracts/PSP22) token 
+Similarly, we will implement another [PSP22](../PSP22/psp22.md) token 
 which will represent the ownership of assets available by the smart contract 
-to be lent. In this token, we will need [PSP22Metadata](/smart-contracts/PSP22/extensions/metadata) 
+to be lent. In this token, we will need [PSP22Metadata](../PSP22/Extensions/metadata.md) 
 and we will also need to mint and burn this token. We only want our contract(lending contract) to 
-perform these actions, so we will also add the [Ownable](/smart-contracts/ownable) extension.
+perform these actions, so we will also add the [Ownable](../ownable.md) extension.
 
 ## Definition of the `Shares` trait
 
@@ -39,9 +39,9 @@ pub trait Shares: PSP22 + PSP22Mintable + PSP22Burnable + PSP22Metadata + Ownabl
 
 ## Add dependencies
 
-In addition to the dependencies imported in the [PSP22](/smart-contracts/PSP22)
+In addition to the dependencies imported in the [PSP22](../PSP22/psp22.md)
 documentation, we will also add the `ownable` dependency the same way as in the
-[ownable](/smart-contracts/ownable) documentation. We will be using `SharesContract`
+[ownable](../ownable.md) documentation. We will be using `SharesContract`
 as a dependency in our lending contract to instantiate it. So we need to also add
 the `"rlib"` crate type to have the ability to import the `SharesContract` as a dependency.
 

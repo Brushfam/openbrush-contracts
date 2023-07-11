@@ -7,7 +7,7 @@ This example shows how you can reuse the implementation of [Diamond Standard](ht
 
 ## How to use this extension
 
-First, you should implement basic version of [Diamond standard](/smart-contracts/diamond).
+First, you should implement basic version of [Diamond standard](../diamond.md).
 
 After you can just add implementation of DiamondLoupe via `#[openbrush::implementation(Diamond, DiamondLoupe)]` attribute.
 
@@ -18,7 +18,6 @@ After you can just add implementation of DiamondLoupe via `#[openbrush::implemen
 #[openbrush::contract]
 pub mod my_diamond_loupe {
     ...
-}
 ```
 
 ## Find result

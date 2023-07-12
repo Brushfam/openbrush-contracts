@@ -32,6 +32,7 @@ pub use crate::{
 };
 use openbrush::{
     modifiers,
+    storage::Lazy,
     traits::{
         Hash,
         StorageAccess,

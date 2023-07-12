@@ -54,6 +54,9 @@ use openbrush::{
 };
 pub use ownable::Internal as _;
 
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
+
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 // TODO: Add support of Erc165
@@ -66,7 +69,7 @@ pub struct Data {
 }
 
 #[cfg(feature = "upgradeable")]
-pub type DataType = Lazy<Data, ResolverKey<AutoKey>>;
+pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 

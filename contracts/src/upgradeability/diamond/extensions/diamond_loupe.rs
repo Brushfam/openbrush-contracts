@@ -51,6 +51,9 @@ pub use ownable::{
     OwnableImpl,
 };
 
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
+
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Default, Debug)]
@@ -66,7 +69,7 @@ pub struct Data {
 }
 
 #[cfg(feature = "upgradeable")]
-pub type DataType = Lazy<Data, ResolverKey<AutoKey>>;
+pub type DataType = Lazy<Data>;
 #[cfg(not(feature = "upgradeable"))]
 pub type DataType = Data;
 

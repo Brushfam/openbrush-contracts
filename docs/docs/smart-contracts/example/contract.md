@@ -21,7 +21,7 @@ authors = ["Brushfam <dominik.krizo@727.ventures>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.2.1", default-features = false}
+ink = { version = "4.2.1", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
@@ -29,7 +29,7 @@ scale-info = { version = "2.6", default-features = false, features = ["derive"],
 shares_contract = { path = "../shares", default-features = false, features = ["ink-as-dependency"]  }
 loan_contract = { path = "../loan", default-features = false, features = ["ink-as-dependency"]  }
 lending_project = { path = "../..", default-features = false }
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "feature/stable-rust", default-features = false }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "develop", default-features = false, features = ["pausable", "access_control"] }
 
 [lib]
 name = "lending_contract"

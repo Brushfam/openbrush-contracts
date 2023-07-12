@@ -40,7 +40,7 @@ pub use pausable::{
 };
 
 #[cfg(feature = "upgradeable")]
-use openbrush::traits::Lazy;
+use openbrush::storage::Lazy;
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 

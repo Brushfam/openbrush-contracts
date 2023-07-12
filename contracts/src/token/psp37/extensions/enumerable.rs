@@ -48,6 +48,9 @@ pub use psp37::{
     PSP37Impl,
 };
 
+#[cfg(feature = "upgradeable")]
+use openbrush::storage::Lazy;
+
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Balances);
 
 #[openbrush::storage_item(STORAGE_KEY)]

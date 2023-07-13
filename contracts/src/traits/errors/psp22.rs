@@ -19,12 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use super::{
-    AccessControlError,
-    OwnableError,
-    PausableError,
-    ReentrancyGuardError,
-};
+use super::{AccessControlError, OwnableError, PausableError, ReentrancyGuardError};
 use openbrush::traits::String;
 
 /// The PSP22 error type. Contract will throw one of this errors.
@@ -43,6 +38,10 @@ pub enum PSP22Error {
     ZeroSenderAddress,
     /// Returned if safe transfer check fails
     SafeTransferCheckFailed(String),
+    /// Returned if permit signature is invalid
+    PermitInvalidSignature,
+    /// Returned if permit deadline is expired
+    PermitExpired,
 }
 
 impl From<OwnableError> for PSP22Error {
@@ -113,16 +112,7 @@ pub enum PSP22TokenTimelockError {
 
 impl From<PSP22Error> for PSP22TokenTimelockError {
     fn from(error: PSP22Error) -> Self {
-        match error {
-            PSP22Error::Custom(message) => PSP22TokenTimelockError::PSP22Error(PSP22Error::Custom(message)),
-            PSP22Error::InsufficientBalance => PSP22TokenTimelockError::PSP22Error(PSP22Error::InsufficientBalance),
-            PSP22Error::InsufficientAllowance => PSP22TokenTimelockError::PSP22Error(PSP22Error::InsufficientAllowance),
-            PSP22Error::ZeroRecipientAddress => PSP22TokenTimelockError::PSP22Error(PSP22Error::ZeroRecipientAddress),
-            PSP22Error::ZeroSenderAddress => PSP22TokenTimelockError::PSP22Error(PSP22Error::ZeroSenderAddress),
-            PSP22Error::SafeTransferCheckFailed(message) => {
-                PSP22TokenTimelockError::PSP22Error(PSP22Error::SafeTransferCheckFailed(message))
-            }
-        }
+        PSP22TokenTimelockError::PSP22Error(error)
     }
 }
 

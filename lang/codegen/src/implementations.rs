@@ -266,20 +266,22 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
                 owner: AccountId,
                 spender: AccountId,
                 amount: Balance,
-                deadline: u32,
-                v: u8,
-                r: [u8; 32],
-                s: [u8; 32],
+                deadline: u64,
+                signature: [u8; 64],
             ) -> Result<(), PSP22Error> {
-                permit::InternalImpl::_permit(self, owner, spender, amount, deadline, v, r, s)
+                permit::InternalImpl::_permit(self, owner, spender, amount, deadline, signature)
             }
 
-            fn _nonces(&self, owner: AccountId) -> u32 {
+            fn _nonces(&self, owner: AccountId) -> u64 {
                 permit::InternalImpl::_nonces(self, owner)
             }
 
-            fn _domain_separator(&self) -> [u8; 32] {
+            fn _domain_separator(&mut self) -> [u8; 32] {
                 permit::InternalImpl::_domain_separator(self)
+            }
+
+            fn _use_nonce(&mut self, owner: AccountId) -> u64 {
+                permit::InternalImpl::_use_nonce(self, owner)
             }
         }
     ))
@@ -298,21 +300,19 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
                 owner: AccountId,
                 spender: AccountId,
                 value: Balance,
-                deadline: u32,
-                v: u8,
-                r: [u8; 32],
-                s: [u8; 32],
+                deadline: u64,
+                signature: [u8; 64],
             ) -> Result<(), PSP22Error> {
-                permit::PSP22PermitImpl::permit(self, owner, spender, value, deadline, v, r, s)
+                permit::PSP22PermitImpl::permit(self, owner, spender, value, deadline, signature)
             }
 
             #[ink(message)]
-            fn nonces(&self, owner: AccountId) -> u32 {
+            fn nonces(&self, owner: AccountId) -> u64 {
                 permit::PSP22PermitImpl::nonces(self, owner)
             }
 
             #[ink(message)]
-            fn domain_separator(&self) -> [u8; 32] {
+            fn domain_separator(&mut self) -> [u8; 32] {
                 permit::PSP22PermitImpl::domain_separator(self)
             }
         }

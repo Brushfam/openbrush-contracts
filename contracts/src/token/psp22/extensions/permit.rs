@@ -24,14 +24,25 @@ pub use crate::{
     psp22::extensions::permit,
     traits::psp22::{extensions::permit::*, *},
 };
+
+use blake2::digest::Update;
+use blake2::{Blake2s, Digest};
+use ink::blake2x256;
 use openbrush::storage::Mapping;
-use openbrush::traits::{AccountId, Balance};
+use openbrush::traits::AccountId;
+use openbrush::traits::{Balance, Storage};
 pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
+use sp_core::crypto::Pair;
+use sp_core::sr25519::{Public, Signature};
+pub const PERMIT_TYPE_HASH: [u8; 32] =
+    blake2x256!("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    pub nonces: Mapping<AccountId, u32>,
+    pub nonces: Mapping<AccountId, u64>,
+    #[lazy]
+    pub cached_domain_separator: [u8; 32],
 }
 
 pub trait PSP22PermitImpl: Internal {
@@ -40,19 +51,17 @@ pub trait PSP22PermitImpl: Internal {
         owner: AccountId,
         spender: AccountId,
         amount: Balance,
-        deadline: u32,
-        v: u8,
-        r: [u8; 32],
-        s: [u8; 32],
+        deadline: u64,
+        signature: [u8; 64],
     ) -> Result<(), PSP22Error> {
-        self._permit(owner, spender, amount, deadline, v, r, s)
+        self._permit(owner, spender, amount, deadline, signature)
     }
 
-    fn nonces(&self, owner: AccountId) -> u32 {
+    fn nonces(&self, owner: AccountId) -> u64 {
         self._nonces(owner)
     }
 
-    fn domain_separator(&self) -> [u8; 32] {
+    fn domain_separator(&mut self) -> [u8; 32] {
         self._domain_separator()
     }
 }
@@ -63,36 +72,84 @@ pub trait Internal {
         owner: AccountId,
         spender: AccountId,
         amount: Balance,
-        deadline: u32,
-        v: u8,
-        r: [u8; 32],
-        s: [u8; 32],
+        deadline: u64,
+        signature: [u8; 64],
     ) -> Result<(), PSP22Error>;
 
-    fn _nonces(&self, owner: AccountId) -> u32;
+    fn _nonces(&self, owner: AccountId) -> u64;
 
-    fn _domain_separator(&self) -> [u8; 32];
+    fn _domain_separator(&mut self) -> [u8; 32];
+
+    fn _use_nonce(&mut self, owner: AccountId) -> u64;
 }
 
-pub trait InternalImpl {
+pub trait InternalImpl: Storage<Data> + psp22::Internal {
     fn _permit(
         &mut self,
         owner: AccountId,
         spender: AccountId,
         amount: Balance,
-        deadline: u32,
-        v: u8,
-        r: [u8; 32],
-        s: [u8; 32],
+        deadline: u64,
+        signature: [u8; 64],
     ) -> Result<(), PSP22Error> {
-        Ok(())
+        let block_time = Self::env().block_timestamp();
+        if deadline < block_time {
+            return Err(PSP22Error::PermitExpired);
+        }
+
+        let nonce = self._use_nonce(owner);
+        let message_hash: [u8; 32] = Blake2s::new()
+            .chain(PERMIT_TYPE_HASH)
+            .chain(self._domain_separator())
+            .chain(owner)
+            .chain(spender)
+            .chain(amount.to_le_bytes())
+            .chain(nonce.to_le_bytes())
+            .chain(deadline.to_le_bytes())
+            .finalize()
+            .into();
+
+        let message = &message_hash[..];
+        let sig = Signature::from_raw(signature);
+
+        let owner_bytes: &[u8; 32] = owner.as_ref();
+        let pubkey = Public::from_raw(owner_bytes.clone());
+
+        if sp_core::sr25519::Pair::verify(&sig, message, &pubkey) {
+            self._approve_from_to(owner, spender, amount)?;
+            Ok(())
+        } else {
+            Err(PSP22Error::PermitInvalidSignature)
+        }
     }
 
-    fn _nonces(&self, owner: AccountId) -> u32 {
-        0
+    fn _nonces(&self, owner: AccountId) -> u64 {
+        self.data().nonces.get(&owner).unwrap_or_default()
     }
 
-    fn _domain_separator(&self) -> [u8; 32] {
-        [0; 32]
+    fn _set_nonce(&mut self, owner: AccountId, nonce: u64) {
+        self.data().nonces.insert(&owner, &nonce);
+    }
+
+    fn _domain_separator(&mut self) -> [u8; 32] {
+        let cached = self.data().cached_domain_separator.get_or_default();
+
+        if self.data().cached_domain_separator.get().is_none() {
+            let account_id = &Self::env().account_id();
+
+            let result: [u8; 32] = Blake2s::new().chain(account_id).finalize().into();
+
+            self.data().cached_domain_separator.set(&result.clone());
+
+            result
+        } else {
+            cached
+        }
+    }
+
+    fn _use_nonce(&mut self, owner: AccountId) -> u64 {
+        let nonce = self._nonces(owner);
+        self._set_nonce(owner, nonce.clone() + 1);
+        nonce
     }
 }

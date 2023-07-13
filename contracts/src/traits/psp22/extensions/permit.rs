@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2022 Supercolony
+// Copyright (c) 2012-2023 727-ventures
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the"Software"),
@@ -38,18 +38,16 @@ pub trait PSP22Permit {
         owner: AccountId,
         spender: AccountId,
         value: Balance,
-        deadline: u32,
-        v: u8,
-        r: [u8; 32],
-        s: [u8; 32],
+        deadline: u64,
+        signature: [u8; 64],
     ) -> Result<(), PSP22Error>;
 
     /// Returns the current permit nonce for `owner`. This value must be
     ///     
     /// This value must be included whenever a signature is generated for
     #[ink(message)]
-    fn nonces(&self, owner: AccountId) -> u32;
+    fn nonces(&self, owner: AccountId) -> u64;
 
     #[ink(message)]
-    fn domain_separator(&self) -> [u8; 32];
+    fn domain_separator(&mut self) -> [u8; 32];
 }

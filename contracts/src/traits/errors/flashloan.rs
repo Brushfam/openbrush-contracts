@@ -19,14 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use super::{
-    AccessControlError,
-    OwnableError,
-    PSP22Error,
-    PSP22ReceiverError,
-    PausableError,
-    ReentrancyGuardError,
-};
+use super::{AccessControlError, OwnableError, PSP22Error, PSP22ReceiverError, PausableError, ReentrancyGuardError};
 use openbrush::traits::String;
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
@@ -110,6 +103,10 @@ impl From<PSP22Error> for FlashLenderError {
             PSP22Error::ZeroRecipientAddress => FlashLenderError::Custom(String::from("PSP22: Zero Recipient Address")),
             PSP22Error::ZeroSenderAddress => FlashLenderError::Custom(String::from("PSP22: Zero Sender Address")),
             PSP22Error::SafeTransferCheckFailed(message) => FlashLenderError::Custom(message),
+            PSP22Error::PermitInvalidSignature => {
+                FlashLenderError::Custom(String::from("PSP22: Permit Invalid Signature"))
+            }
+            PSP22Error::PermitExpired => FlashLenderError::Custom(String::from("PSP22: Permit Expired")),
         }
     }
 }

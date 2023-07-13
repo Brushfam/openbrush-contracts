@@ -1,7 +1,4 @@
-use quote::{
-    format_ident,
-    quote,
-};
+use quote::{format_ident, quote};
 use std::collections::HashMap;
 use syn::Block;
 
@@ -253,6 +250,91 @@ pub(crate) fn impl_psp22_burnable(impl_args: &mut ImplArgs) {
 
     impl_args.items.push(syn::Item::Impl(burnable_impl));
     impl_args.items.push(syn::Item::Impl(burnable));
+}
+
+pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let permit_internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::InternalImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let permit_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::Internal for #storage_struct_name {
+            fn _permit(
+                &mut self,
+                owner: AccountId,
+                spender: AccountId,
+                amount: Balance,
+                deadline: u32,
+                v: u8,
+                r: [u8; 32],
+                s: [u8; 32],
+            ) -> Result<(), PSP22Error> {
+                permit::InternalImpl::_permit(self, owner, spender, amount, deadline, v, r, s)
+            }
+
+            fn _nonces(&self, owner: AccountId) -> u32 {
+                permit::InternalImpl::_nonces(self, owner)
+            }
+
+            fn _domain_separator(&self) -> [u8; 32] {
+                permit::InternalImpl::_domain_separator(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let permit_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::PSP22PermitImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let permit = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::PSP22Permit for #storage_struct_name {
+            #[ink(message)]
+            fn permit(
+                &mut self,
+                owner: AccountId,
+                spender: AccountId,
+                value: Balance,
+                deadline: u32,
+                v: u8,
+                r: [u8; 32],
+                s: [u8; 32],
+            ) -> Result<(), PSP22Error> {
+                permit::PSP22PermitImpl::permit(self, owner, spender, value, deadline, v, r, s)
+            }
+
+            #[ink(message)]
+            fn nonces(&self, owner: AccountId) -> u32 {
+                permit::PSP22PermitImpl::nonces(self, owner)
+            }
+
+            #[ink(message)]
+            fn domain_separator(&self) -> [u8; 32] {
+                permit::PSP22PermitImpl::domain_separator(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp22::extensions::permit::*;
+    ))
+    .expect("Should parse");
+
+    impl_args.imports.insert("PSP22Permit", import);
+    impl_args.vec_import();
+
+    // TODO
+    // override_functions("PSP22Permit", &mut burnable, impl_args.map);
+
+    impl_args.items.push(syn::Item::Impl(permit_internal_impl));
+    impl_args.items.push(syn::Item::Impl(permit_internal));
+
+    impl_args.items.push(syn::Item::Impl(permit_impl));
+    impl_args.items.push(syn::Item::Impl(permit));
 }
 
 pub(crate) fn impl_psp22_metadata(impl_args: &mut ImplArgs) {

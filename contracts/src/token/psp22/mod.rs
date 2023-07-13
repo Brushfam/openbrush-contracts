@@ -29,6 +29,7 @@ pub mod extensions {
     pub mod flashmint;
     pub mod metadata;
     pub mod mintable;
+    pub mod permit;
     pub mod wrapper;
 }
 

@@ -19,20 +19,37 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#[allow(clippy::module_inception)]
-mod psp22;
+/// Extension of [`PSP22`] that allows create `amount` tokens
+/// and assigns them to `account`, increasing the total supply
+pub use crate::traits::errors::PSP22Error;
+use openbrush::traits::{AccountId, Balance};
 
-pub use psp22::*;
+#[openbrush::wrapper]
+pub type PSP22PermitRef = dyn PSP22Permit;
 
-pub mod extensions {
-    pub mod burnable;
-    pub mod capped;
-    pub mod metadata;
-    pub mod mintable;
-    pub mod permit;
-    pub mod wrapper;
-}
+#[openbrush::trait_definition]
+pub trait PSP22Permit {
+    /// Permit allows `spender` to spend `value` tokens on behalf of `owner` with a signature
+    ///
+    /// See [`PSP22::_approve`].
+    #[ink(message)]
+    fn permit(
+        &mut self,
+        owner: AccountId,
+        spender: AccountId,
+        value: Balance,
+        deadline: u32,
+        v: u8,
+        r: [u8; 32],
+        s: [u8; 32],
+    ) -> Result<(), PSP22Error>;
 
-pub mod utils {
-    pub mod token_timelock;
+    /// Returns the current permit nonce for `owner`. This value must be
+    ///     
+    /// This value must be included whenever a signature is generated for
+    #[ink(message)]
+    fn nonces(&self, owner: AccountId) -> u32;
+
+    #[ink(message)]
+    fn domain_separator(&self) -> [u8; 32];
 }

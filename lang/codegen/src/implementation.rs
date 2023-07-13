@@ -157,7 +157,7 @@ fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
         "PSP37Burnable",
         "PSP37Metadata",
         "PSP37Mintable",
-        "PSP34Enumerable",
+        "PSP37Enumerable",
     ];
     check_and_remove_import("PSP37", psp37_impls, imports);
 

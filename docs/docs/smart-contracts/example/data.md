@@ -35,12 +35,6 @@ For example, if in your default implementation you need to have `psp22::extensio
 you can add bounds `T: Storage<metadata::Data> + Storage<psp22::Data>`.
 It allows you to work with two independent storage.
 
-`openbrush::traits::Storage` trait requires that the inner data implements the 
-`openbrush::traits::OccupyStorage` trait. 
-It is because each storage in the smart contract should occupy a unique storage key. 
-Overlapping of those keys can cause unexpected bugs. Derive macro provided by 
-OpenBrush to simplify the implementation of the `Storage` trait also checks that 
-the storage key from the `OccupyStorage ` trait is unique.
 
 ### Data of the trait
 
@@ -53,23 +47,7 @@ pub struct PointData {
 }
 ```
 
-If you want to use `openbrush::traits::Storage` then you also need to implement `openbrush::traits::OccupyStorage`
-with unique storage key.
-
-```rust
-pub struct PointData {
-    pub x: u32,
-    pub y: u32,
-}
-
-impl openbrush::traits::OccupyStorage for PointData {
-    // You can specify your unique key manually like `0x123` or you can use macro
-    const KEY: u32 = openbrush::storage_unique_key!(PointData);
-}
-```
-
-Also, you can use the `openbrush::upgradeable_storage` macro that implements that trait by default,
-and also prepare the storage to be upgradeable.
+You can use the `openbrush::storage_item` macro that implements that trait by default.
 
 ```rust
 #[openbrush::storage_item]

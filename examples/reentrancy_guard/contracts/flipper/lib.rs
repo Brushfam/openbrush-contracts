@@ -45,7 +45,6 @@ pub mod my_flipper_guard {
             // Callee contract during execution of `flip_on_me` will call `flip` of this contract.
             // `call_flip_on_me` and `flip` are marked with `non_reentrant` modifier. It means,
             // that call of `flip` after `call_flip_on_me` must fail.
-            //FlipOnMeRef::flip_on_me(&callee).call_flags(CallFlags::default().set_allow_reentry(true));
             FlipOnMeRef::flip_on_me_builder(&callee)
                 .call_flags(CallFlags::default().set_allow_reentry(true))
                 .invoke()

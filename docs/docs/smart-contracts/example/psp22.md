@@ -51,15 +51,12 @@ and add some imports:
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This is a simple `PSP22` which will be used as a stable coin and a collateral token in our lending contract
+#[openbrush::implementation(PSP22, PSP22Metadata, PSP22Mintable)]
 #[openbrush::contract]
 pub mod token {
     use openbrush::traits::String;
     use lending_project::traits::stable_coin::*;
-    use openbrush::{
-        contracts::psp22::extensions::metadata::*,
-        contracts::psp22::extensions::mintable::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 ```
 
 ## Define the storage
@@ -85,15 +82,19 @@ We will implement the `PSP22Metadata` trait and define the constructor where we
 will set the `name` and the `symbol` for our token. Also, we will mint the 
 initial supply of tokens to the caller of the constructor.
 
+`PSP22Metadata` and similar traits imported from OpenBrush should be implemented with `#[openbrush::implementation]` macro.
+
 ```rust
-/// Implement PSP22 Trait for our coin
-impl PSP22 for StableCoinContract {}
+#[openbrush::implementation(PSP22, PSP22Metadata, PSP22Mintable)]
+#[openbrush::contract]
+mod contract {
+    ...
+}
+```
 
-/// Implement PSP22Metadata Trait for our coin
-impl PSP22Metadata for StableCoinContract {}
+Below we are implementing `StableCoin` trait itself and defining the constructor.
 
-/// implement PSP22Mintable Trait for our coin
-impl PSP22Mintable for StableCoinContract {}
+```rust
 
 // It forces the compiler to check that you implemented all super traits
 impl StableCoin for StableCoinContract {}

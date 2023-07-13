@@ -335,9 +335,8 @@ impl lending::Internal for LendingContract {
 ```
 
 For that we defined the `Internal` trait in `lending` module with `_instantiate_shares_contract` method.
-
-The final generic implementation of the `LendingPermissioned` restricts the generic type `T`
-by `Storage<lending::Data>`, `Storage<access_control::Data>`, `Storage<pausable::Data>`, `lending::Internal` traits.
+Then, we define the default implementaion of `LendingPermissioned` trait which we call `LendingPermissionedImpl`
+and which restricts the type for which it is implemented by `Storage<lending::Data>`, `Storage<access_control::Data>`, `Storage<pausable::Data>`, `lending::Internal` traits.
 That allows us to use methods from these traits and define the implementation.
 
 ```rust
@@ -363,12 +362,8 @@ use openbrush::{
 
 pub const MANAGER: RoleType = ink::selector_id!("MANAGER");
 
-impl<T, M> LendingPermissioned for T
-where
-    T: Internal,
-    T: Storage<data::Data> + Storage<pausable::Data> + Storage<access_control::Data<M>>,
-    T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<M>>,
-    M: members::MembersManager,
+pub trait LendingPermissionedImpl:
+    access_control::Internal + Storage<access_control::Data> + lending_internal::Internal + Lending + Instantiator
 {
     #[modifiers(only_role(MANAGER))]
     fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
@@ -514,7 +509,7 @@ use openbrush::{
 
 pub const YEAR: Timestamp = 60 * 60 * 24 * 365;
 
-impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
+pub trait LendingImpl: Storage<data::Data> + lending_internal::Internal + Storage<pausable::Data> {
     fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
         if let Some(mapped_asset) = self

@@ -84,27 +84,42 @@ We need to "inherit" the implementation of `AccessControll`, `Pausable`, `Lendin
 `LendingPermissioned` and `lending::Internal`.
 
 ```rust
-impl AccessControl for LendingContract {}
+impl lending::Internal for LendingContract {}
 
-impl Pausable for LendingContract {}
+impl LendingImpl for LendingContract {}
 
-impl Lending for LendingContract {}
+impl Lending for LendingContract {
+    #[ink(message)]
+    fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
+        LendingImpl::total_asset(self, asset_address)
+    }
+    // other methods should be implemented here as the one above
+}
 
-impl LendingPermissioned for LendingContract {}
+impl LendingPermissionedImpl for LendingContract {}
 
-impl lending::Internal for LendingContract {
+impl LendingPermissioned for LendingContract {
+    #[ink(message)]
+    fn deposit(&mut self, asset_address: AccountId, amount: Balance) -> Result<(), LendingError> {
+        LendingPermissionedImpl::deposit(self, asset_address, amount)
+    }
+    // other methods should be implemented here as the one above
+}
+
+impl lending::Instantiator for LendingContract {
     fn _instantiate_shares_contract(&self, contract_name: &str, contract_symbol: &str) -> AccountId {
         let code_hash = self.lending.shares_contract_code_hash;
+
         let salt = (<Self as DefaultEnv>::env().block_timestamp(), contract_name).encode();
+
         let hash = xxh32(&salt, 0).to_le_bytes();
-        
+
         let contract =
             SharesContractRef::new(Some(String::from(contract_name)), Some(String::from(contract_symbol)))
                 .endowment(0)
                 .code_hash(code_hash)
                 .salt_bytes(&hash[..4])
-                .instantiate()
-                .unwrap();
+                .instantiate();
         contract.to_account_id()
     }
 }

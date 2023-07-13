@@ -114,20 +114,21 @@ so we will add these to our contract. We will add a `openbrush::contract` macro 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This contract will represent the loan of a user
+#[openbrush::implementation(Ownable, PSP34, PSP34Metadata)]
 #[openbrush::contract]
 pub mod loan {
     use openbrush::traits::String;
     use lending_project::traits::loan::*;
     use openbrush::{
-        contracts::{
-            ownable::*,
-            psp34::extensions::metadata::*,
-        },
         modifiers,
         storage::Mapping,
         traits::Storage,
     };
 ```
+
+> *Note*: If some default OpenBrush implementation is added to contract as a part of `#[openbrush::implementation]` macro, you 
+> don't have to add imports on your module. For example, if you add `PSP34` to your contract, you don't have to add
+> `use openbrush::traits::psp34::*;` to your module.
 
 ## Define the storage
 
@@ -157,17 +158,14 @@ pub struct LoanContract {
 
 ## Implement the extension traits
 
-We will be using these extensions in our NFT token, so we will implement them for our storage.
+We will be using these extensions in our NFT token, so we will implement them inside `#[openbrush::implementation]` macro.
 
 ```rust
-// Implement PSP34 Trait for our NFT
-impl PSP34 for LoanContract {}
-
-// Implement Ownable Trait for our NFT
-impl Ownable for LoanContract {}
-
-// Implement PSP34Metadata Trait for our NFT
-impl PSP34Metadata for LoanContract {}
+#[openbrush::implementation(Ownable, PSP34, PSP34Metadata)]
+#[openbrush::contract]
+mod contract {
+    ...
+}
 ```
 
 ## Implement the Loan trait

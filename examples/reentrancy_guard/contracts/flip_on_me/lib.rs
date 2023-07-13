@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+pub use openbrush::examples::contracts::reentrancy_guard::flip_on_me::*;
+
 #[openbrush::contract]
 pub mod flip_on_me {
     use flipper::traits::flipper::*;
@@ -19,12 +21,6 @@ pub mod flip_on_me {
     }
 
     impl FlipOnMe for FlipOnMeContract {
-        #[ink(message)]
-        fn flip_on_me(&mut self) -> Result<(), ReentrancyGuardError> {
-            let caller = Self::env().caller();
-            self.flip_on_target(caller)
-        }
-
         #[ink(message)]
         fn flip_on_target(&mut self, callee: AccountId) -> Result<(), ReentrancyGuardError> {
             // This method does a cross-contract call to caller contract and calls the `flip` method.

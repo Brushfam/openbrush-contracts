@@ -18,4 +18,4 @@ enabling users to import contracts implemented by another user without problems
 and reuse the code.
 There was a need to have a library that can provide base implementations of 
 PSPs and to import/reuse them by customizing their own logic. Also, OpenBrush provides other useful
-traits and macros to help you build ink! smart contracts in more easy way.
+traits and macros to help you build ink! smart contracts in easier way.

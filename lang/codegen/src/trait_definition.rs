@@ -20,32 +20,18 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    internal::{
-        extract_attr,
-        is_attr,
-        remove_attr,
-    },
-    metadata::{
-        LockedTrait,
-        TraitDefinition,
-    },
+    internal::{extract_attr, is_attr, remove_attr},
+    metadata::{LockedTrait, TraitDefinition},
 };
 use heck::CamelCase as _;
 use proc_macro2::TokenStream;
-use quote::{
-    format_ident,
-    quote,
-    ToTokens,
-};
+use quote::{format_ident, quote, ToTokens};
 use std::collections::HashMap;
-use syn::{
-    parse2,
-    ItemTrait,
-};
+use syn::{parse2, ItemTrait};
 
 pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
     if crate::internal::skip() {
-        return quote! {}
+        return quote! {};
     }
     let attrs: proc_macro2::TokenStream = _attrs;
     let mut trait_item: ItemTrait = parse2(_input).unwrap();
@@ -171,6 +157,8 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
     let trait_wrapper_ident = format_ident!("{}Wrapper", ink_trait.ident);
     let mut def_messages = vec![];
     let mut impl_messages = vec![];
+    let mut message_selectors = vec![];
+
     ink_trait
         .items
         .into_iter()
@@ -190,7 +178,7 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
             };
 
             let selector_string = format!("{}::{}", trait_ident, message_ident);
-            let selector_bytes = ::ink_ir::Selector::compute(&selector_string.into_bytes()).hex_lits();
+            let selector_bytes = ::ink_ir::Selector::compute(&selector_string.clone().into_bytes()).hex_lits();
             let input_bindings = method
                 .sig
                 .inputs
@@ -284,9 +272,16 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
                         .returns::<#output_ty>()
                 }
             });
+
+            message_selectors.push(selector_string);
         });
+
     let impl_messages = impl_messages.iter();
     let def_messages = def_messages.iter();
+
+    message_selectors.sort_unstable();
+
+    let trait_id = ::ink_ir::Selector::compute(&message_selectors.join("").into_bytes()).into_be_u32();
 
     quote! {
         pub trait #trait_wrapper_ident {
@@ -296,6 +291,8 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
         impl #trait_wrapper_ident for ::openbrush::traits::AccountId {
             #( #impl_messages )*
         }
+
+        pub const TRAIT_ID: u32 = #trait_id;
     }
 }
 

@@ -48,6 +48,7 @@ ownable = []
 payment_splitter = []
 reentrancy_guard = []
 pausable = []
+erc165 = []
 timelock_controller = [
     "access_control",
 ]

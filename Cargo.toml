@@ -7,6 +7,7 @@ members = [
 exclude = [
     "examples",
     "example_project_structure",
+    "wip"
 ]
 
 [package]
@@ -67,6 +68,7 @@ timelock_controller = ["openbrush_contracts/timelock_controller"]
 proxy = ["openbrush_contracts/proxy"]
 diamond = ["openbrush_contracts/diamond"]
 upgradeable = ["openbrush_contracts/upgradeable"]
+erc165 = ["openbrush_contracts/erc165"]
 
 test-all = [
     "psp22",

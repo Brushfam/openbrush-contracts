@@ -32,8 +32,6 @@ use openbrush::traits::{
 #[openbrush::wrapper]
 pub type FlashLenderRef = dyn FlashLender;
 
-// TODO: Remove eip link
-/// Flash Lender implementation as proposed in https://eips.ethereum.org/EIPS/eip-3156)
 #[openbrush::trait_definition]
 pub trait FlashLender {
     /// Call this function in `max_flashloan` function in `impl` block of FlashLender
@@ -69,8 +67,6 @@ pub trait FlashLender {
 #[openbrush::wrapper]
 pub type FlashBorrowerRef = dyn FlashBorrower;
 
-// TODO: Remove eip link
-/// Flash Borrower implementation as proposed in https://eips.ethereum.org/EIPS/eip-3156)
 #[openbrush::trait_definition]
 pub trait FlashBorrower {
     #[ink(message)]

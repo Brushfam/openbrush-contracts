@@ -28,11 +28,6 @@ pub use crate::{
     },
 };
 pub use flashmint::Internal as _;
-pub use psp22::{
-    Internal as _,
-    Transfer as _,
-};
-
 use ink::{
     env::CallFlags,
     prelude::vec::Vec,
@@ -43,9 +38,14 @@ use openbrush::traits::{
     Storage,
     String,
 };
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22Impl,
+};
 
-impl<T: Storage<psp22::Data>> FlashLender for T {
-    default fn max_flashloan(&mut self, token: AccountId) -> Balance {
+pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Internal {
+    fn max_flashloan(&mut self, token: AccountId) -> Balance {
         if token == Self::env().account_id() {
             Balance::MAX - self.total_supply()
         } else {
@@ -53,14 +53,14 @@ impl<T: Storage<psp22::Data>> FlashLender for T {
         }
     }
 
-    default fn flash_fee(&self, token: AccountId, amount: Balance) -> Result<Balance, FlashLenderError> {
+    fn flash_fee(&self, token: AccountId, amount: Balance) -> Result<Balance, FlashLenderError> {
         if token != Self::env().account_id() {
             return Err(FlashLenderError::WrongTokenAddress)
         }
         Ok(self._get_fee(amount))
     }
 
-    default fn flashloan(
+    fn flashloan(
         &mut self,
         receiver_account: AccountId,
         token: AccountId,
@@ -69,14 +69,14 @@ impl<T: Storage<psp22::Data>> FlashLender for T {
     ) -> Result<(), FlashLenderError> {
         let fee = self.flash_fee(token, amount)?;
         self._mint_to(receiver_account, amount)?;
-        self._on_flashloan(receiver_account, token, fee, amount, data)?;
+        Internal::_on_flashloan(self, receiver_account, token, fee, amount, data)?;
         let this = Self::env().account_id();
         let current_allowance = self.allowance(receiver_account, this);
         if current_allowance < amount + fee {
             return Err(FlashLenderError::AllowanceDoesNotAllowRefund)
         }
-        self._approve_from_to(receiver_account, this, current_allowance - amount - fee)?;
-        self._burn_from(receiver_account, amount + fee)?;
+        psp22::Internal::_approve_from_to(self, receiver_account, this, current_allowance - amount - fee)?;
+        psp22::Internal::_burn_from(self, receiver_account, amount + fee)?;
         Ok(())
     }
 }
@@ -94,12 +94,12 @@ pub trait Internal {
     ) -> Result<(), FlashLenderError>;
 }
 
-impl<T: Storage<psp22::Data>> Internal for T {
-    default fn _get_fee(&self, _amount: Balance) -> Balance {
+pub trait InternalImpl: Storage<psp22::Data> + Internal {
+    fn _get_fee(&self, _amount: Balance) -> Balance {
         0
     }
 
-    default fn _on_flashloan(
+    fn _on_flashloan(
         &mut self,
         receiver_account: AccountId,
         token: AccountId,
@@ -107,7 +107,6 @@ impl<T: Storage<psp22::Data>> Internal for T {
         amount: Balance,
         data: Vec<u8>,
     ) -> Result<(), FlashLenderError> {
-        self.flush();
         let builder =
             FlashBorrowerRef::on_flashloan_builder(&receiver_account, Self::env().caller(), token, amount, fee, data)
                 .call_flags(CallFlags::default().set_allow_reentry(true));
@@ -126,7 +125,7 @@ impl<T: Storage<psp22::Data>> Internal for T {
                 )))
             }
         };
-        self.load();
+
         result
     }
 }

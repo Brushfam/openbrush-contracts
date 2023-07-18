@@ -4,13 +4,13 @@ title: Timelock Controller
 ---
 
 This example shows how you can reuse the implementation of
-[timelock-controller](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/governance/timelock_controller).
+[timelock-controller](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/governance/timelock_controller).
 
 ## Step 1: Import default implementation
 
-With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
-you need to import the `timelock_controller` and `access_controll` modules, enable corresponding features, and embed modules data structures
-as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
+With [default `Cargo.toml`](overview.md/#the-default-toml-of-your-project-with-openbrush),
+you need to enable corresponding features, embed modules data structures and implement them via `#[openbrush::implementation]` macro
+as described in [that section](overview.md/#reuse-implementation-of-traits-from-openbrush).
 
 The main traits are `AccessControl` and `TimelockController`.
 
@@ -38,16 +38,13 @@ impl Contract {
 ## Final code
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(AccessControl, TimelockController)]
 #[openbrush::contract]
 pub mod my_timelock_controller {
     use ink::prelude::vec::Vec;
-    use openbrush::{
-        contracts::timelock_controller::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -61,22 +58,25 @@ pub mod my_timelock_controller {
     impl Contract {
         #[ink(constructor)]
         pub fn new(min_delay: Timestamp, proposers: Vec<AccountId>, executors: Vec<AccountId>) -> Self {
-           let mut instance = Self::default();
+            let mut instance = Self::default();
 
             let caller = Self::env().caller();
             // `TimelockController` and `AccessControl` have `_init_with_admin` methods.
             // You need to call it for each trait separately, to initialize everything for these traits.
-            access_control::Internal::_init_with_admin(instance, caller);
-            timelock_controller::Internal::_init_with_admin(instance, caller, min_delay, proposers, executors);
+            access_control::Internal::_init_with_admin(&mut instance, Some(caller));
+            timelock_controller::Internal::_init_with_admin(
+                &mut instance,
+                Some(caller),
+                min_delay,
+                proposers,
+                executors,
+            );
 
             instance
         }
     }
-
-    // `TimelockController` is an extension for `AccessControl`, so you have to inherit logic related to both modules.
-    impl AccessControl for Contract {}
-    impl TimelockController for Contract {}
 }
+
 ```
 
-You can check an example of the usage of [TimelockController](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/timelock_controller).
+You can check an example of the usage of [TimelockController](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/timelock_controller).

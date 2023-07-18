@@ -19,16 +19,13 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![feature(min_specialization)]
 #[cfg(feature = "psp34")]
+#[openbrush::implementation(PSP34, PSP34Metadata)]
 #[openbrush::contract]
 mod psp34_metadata {
-    use openbrush::{
-        contracts::psp34::extensions::metadata::*,
-        traits::{
-            Storage,
-            String,
-        },
+    use openbrush::traits::{
+        Storage,
+        String,
     };
 
     #[derive(Default, Storage)]
@@ -40,13 +37,11 @@ mod psp34_metadata {
         metadata: Data,
     }
 
-    impl PSP34Metadata for PSP34Struct {}
-
     impl PSP34Struct {
         #[ink(constructor)]
         pub fn new(id: Id, key: String, val: String) -> Self {
             let mut instance = Self::default();
-            instance._set_attribute(id, key, val);
+            metadata::Internal::_set_attribute(&mut instance, id, key, val);
             instance
         }
     }
@@ -57,7 +52,7 @@ mod psp34_metadata {
         let nft = PSP34Struct::new(id.clone(), String::from("KEY"), String::from("VAL"));
 
         assert_eq!(
-            nft.get_attribute(id.clone(), String::from("KEY")),
+            PSP34Metadata::get_attribute(&nft, id.clone(), String::from("KEY")),
             Some(String::from("VAL"))
         );
     }

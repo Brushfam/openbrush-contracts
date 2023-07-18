@@ -3,17 +3,13 @@ sidebar_position: 1
 title: Diamond Standard
 ---
 
-This example shows how you can use the implementation of [diamond standard](https://github.com/727-Ventures/openbrush-contracts/tree/main/contracts/src/upgradeability/diamond) to implement diamond standard pattern for upgradeable and unlimited contracts.
-
-## Disclaimer
-
-Delegate calls [were marked](https://github.com/paritytech/ink/pull/1331#discussion_r953736863) as a possible attack vector in ink! Therefore the `Diamond` pattern will not work within OpenBrush until this is reimplemented in ink! 4.
+This example shows how you can use the implementation of [diamond standard](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/upgradeability/diamond) to implement diamond standard pattern for upgradeable and unlimited contracts.
 
 ## Step 1: Import default implementation
 
-With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
-you need to import the `diamond` and `owner` modules, enable corresponding features, and embed modules data structures
-as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
+With [default `Cargo.toml`](../overview.md/#the-default-toml-of-your-project-with-openbrush),
+you need to enable `diamond` feature, embed modules data structures and implement them via `#[openbrush::implementation]` macro
+as described in [that section](../overview.md/#reuse-implementation-of-traits-from-openbrush).
 
 The main trait are `Ownable` and `Diamond`.
 
@@ -24,12 +20,10 @@ Define the constructor and initialize the owner with the contract initiator.
 ```rust
 impl Contract {
     #[ink(constructor)]
-    pub fn new(owner: AccountId, diamond_hash: Hash) -> Self {
+    pub fn new(owner: AccountId) -> Self {
         let mut instance = Self::default();
-        
-        instance._init_with_owner(owner);
-        instance.diamond.self_hash = diamond_hash;
-        
+        ownable::Internal::_init_with_owner(&mut instance, owner);
+
         instance
     }
 }
@@ -43,7 +37,7 @@ Define the forward function to make delegate calls of facet contracts through th
 impl Contract {
     #[ink(message, payable, selector = _)]
     pub fn forward(&self) {
-        self._fallback();
+        diamond::Internal::_fallback(self)
     }
 }
 ```
@@ -64,4 +58,4 @@ some of limitations are, that you can not add functions with the same selectors,
 when replacing functions, the new function needs to be from a different contract, 
 then currently in use, and when removing functions, the function needs to be registered in the diamond contract.
 
-You can check an example of the usage of [Diamond](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples/diamond).
+You can check an example of the usage of [Diamond](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/diamond).

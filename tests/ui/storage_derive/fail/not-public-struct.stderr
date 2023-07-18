@@ -1,0 +1,5 @@
+error: non `pub` ink! storage structs are not supported
+ --> tests/ui/storage_derive/fail/not-public-struct.rs:5:5
+  |
+5 |     #[ink(storage)]
+  |     ^

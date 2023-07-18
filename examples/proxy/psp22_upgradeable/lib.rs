@@ -1,15 +1,14 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(Ownable, PSP22)]
 #[openbrush::contract]
 pub mod my_psp22_upgradeable {
     use openbrush::{
-        contracts::{
-            ownable::*,
-            psp22::*,
-        },
         modifiers,
-        traits::Storage,
+        traits::{
+            Storage,
+            String,
+        },
     };
 
     #[ink(storage)]
@@ -21,16 +20,12 @@ pub mod my_psp22_upgradeable {
         psp22: psp22::Data,
     }
 
-    impl Ownable for MyPSP22 {}
-
-    impl PSP22 for MyPSP22 {}
-
     impl MyPSP22 {
         #[ink(constructor)]
         pub fn new(total_supply: Balance) -> Self {
             let mut instance = Self::default();
 
-            instance._init_with_owner(Self::env().caller());
+            ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
             instance.initialize(total_supply).ok().unwrap();
 
             instance
@@ -38,9 +33,12 @@ pub mod my_psp22_upgradeable {
 
         #[ink(message)]
         #[modifiers(only_owner)]
-        pub fn initialize(&mut self, total_supply: Balance) -> Result<(), OwnableError> {
-            self._mint_to(self.owner(), total_supply).expect("Should mint");
-            Ok(())
+        pub fn initialize(&mut self, total_supply: Balance) -> Result<(), PSP22Error> {
+            if let Some(owner) = Ownable::owner(self) {
+                psp22::Internal::_mint_to(self, owner, total_supply)
+            } else {
+                Err(PSP22Error::Custom(String::from("Owner not set!")))
+            }
         }
     }
 }

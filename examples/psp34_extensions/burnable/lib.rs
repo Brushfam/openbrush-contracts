@@ -1,12 +1,9 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP34, PSP34Burnable)]
 #[openbrush::contract]
 pub mod my_psp34_burnable {
-    use openbrush::{
-        contracts::psp34::extensions::burnable::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[derive(Default, Storage)]
     #[ink(storage)]
@@ -15,24 +12,17 @@ pub mod my_psp34_burnable {
         psp34: psp34::Data,
     }
 
-    impl PSP34 for Contract {}
-
-    impl PSP34Burnable for Contract {}
-
     impl Contract {
         /// The constructor
         #[ink(constructor)]
         pub fn new() -> Self {
             let mut instance = Self::default();
 
-            instance
-                ._mint_to(Self::env().caller(), Id::U8(0u8))
+            psp34::Internal::_mint_to(&mut instance, Self::env().caller(), Id::U8(0u8))
                 .expect("Should mint token with id 0");
-            instance
-                ._mint_to(Self::env().caller(), Id::U8(1u8))
+            psp34::Internal::_mint_to(&mut instance, Self::env().caller(), Id::U8(1u8))
                 .expect("Should mint token with id 1");
-            instance
-                ._mint_to(Self::env().caller(), Id::U8(2u8))
+            psp34::Internal::_mint_to(&mut instance, Self::env().caller(), Id::U8(2u8))
                 .expect("Should mint token with id 2");
 
             instance
@@ -54,7 +44,6 @@ pub mod my_psp34_burnable {
         use test_helpers::{
             address_of,
             balance_of,
-            owner_of,
         };
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;

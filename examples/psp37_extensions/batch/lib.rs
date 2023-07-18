@@ -1,13 +1,9 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP37, PSP37Batch)]
 #[openbrush::contract]
 pub mod my_psp37 {
-    use ink::prelude::vec::Vec;
-    use openbrush::{
-        contracts::psp37::extensions::batch::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[derive(Default, Storage)]
     #[ink(storage)]
@@ -15,10 +11,6 @@ pub mod my_psp37 {
         #[storage_field]
         psp37: psp37::Data,
     }
-
-    impl PSP37 for Contract {}
-
-    impl PSP37Batch for Contract {}
 
     impl Contract {
         #[ink(constructor)]
@@ -28,7 +20,7 @@ pub mod my_psp37 {
 
         #[ink(message)]
         pub fn mint(&mut self, to: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error> {
-            self._mint_to(to, ids_amounts)
+            psp37::Internal::_mint_to(self, to, ids_amounts)
         }
     }
 

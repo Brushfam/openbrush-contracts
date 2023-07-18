@@ -19,21 +19,21 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![feature(min_specialization)]
 #[cfg(feature = "pausable")]
+#[openbrush::implementation(Pausable)]
 #[openbrush::contract]
 mod pausable {
     use ::ink::env::DefaultEnvironment;
-    use ink::env::test::DefaultAccounts;
+    use ink::{
+        codegen::{
+            EmitEvent,
+            Env,
+        },
+        env::test::DefaultAccounts,
+    };
     use openbrush::{
-        contracts::pausable::*,
         test_utils::accounts,
         traits::Storage,
-    };
-
-    use ink::codegen::{
-        EmitEvent,
-        Env,
     };
 
     /// Emitted when the pause is triggered by `account`.
@@ -72,16 +72,14 @@ mod pausable {
         }
     }
 
-    impl Pausable for MyFlipper {}
+    #[overrider(pausable::Internal)]
+    fn _emit_paused_event(&self, account: AccountId) {
+        self.env().emit_event(Paused { account })
+    }
 
-    impl Internal for MyFlipper {
-        fn _emit_paused_event(&self, account: AccountId) {
-            self.env().emit_event(Paused { account })
-        }
-
-        fn _emit_unpaused_event(&self, account: AccountId) {
-            self.env().emit_event(Unpaused { account })
-        }
+    #[overrider(pausable::Internal)]
+    fn _emit_unpaused_event(&self, account: AccountId) {
+        self.env().emit_event(Unpaused { account })
     }
 
     type Event = <MyFlipper as ::ink::reflect::ContractEventBase>::Type;
@@ -120,8 +118,8 @@ mod pausable {
     fn pause_works() {
         let accounts = setup();
         let mut inst = MyFlipper::new();
-        assert!(inst._pause::<PausableError>().is_ok());
-        assert!(inst.pause.paused);
+        assert!(pausable::Internal::_pause(&mut inst).is_ok());
+        assert!(inst.pause.paused.get_or_default());
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_paused_event(&emitted_events[0], accounts.alice);
@@ -130,14 +128,14 @@ mod pausable {
     #[ink::test]
     fn double_pause_fails() {
         let mut inst = MyFlipper::new();
-        assert!(inst._pause::<PausableError>().is_ok());
-        assert_eq!(Err(PausableError::Paused), inst._pause());
+        assert!(pausable::Internal::_pause(&mut inst).is_ok());
+        assert_eq!(Err(PausableError::Paused), pausable::Internal::_pause(&mut inst));
     }
 
     #[ink::test]
     fn flip_works() {
         let mut inst = MyFlipper::new();
-        assert!(inst._pause::<PausableError>().is_ok());
+        assert!(pausable::Internal::_pause(&mut inst).is_ok());
 
         assert_eq!(Ok(false), inst.flip());
         assert_eq!(Ok(true), inst.flip());
@@ -155,7 +153,7 @@ mod pausable {
     fn unpause_fails() {
         let mut inst = MyFlipper::new();
 
-        assert_eq!(Err(PausableError::NotPaused), inst._unpause());
+        assert_eq!(Err(PausableError::NotPaused), pausable::Internal::_unpause(&mut inst));
     }
 
     #[ink::test]
@@ -163,9 +161,9 @@ mod pausable {
         let accounts = setup();
         let mut inst = MyFlipper::new();
 
-        assert!(inst._pause::<PausableError>().is_ok());
-        assert!(inst._unpause::<PausableError>().is_ok());
-        assert!(!inst.pause.paused);
+        assert!(pausable::Internal::_pause(&mut inst).is_ok());
+        assert!(pausable::Internal::_unpause(&mut inst).is_ok());
+        assert!(!inst.pause.paused.get_or_default());
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_unpaused_event(&emitted_events[0], accounts.alice);
@@ -176,9 +174,9 @@ mod pausable {
         let accounts = setup();
         let mut inst = MyFlipper::new();
 
-        assert!(inst._pause::<PausableError>().is_ok());
-        assert!(inst._switch_pause::<PausableError>().is_ok());
-        assert!(!inst.pause.paused);
+        assert!(pausable::Internal::_pause(&mut inst).is_ok());
+        assert!(pausable::Internal::_switch_pause(&mut inst).is_ok());
+        assert!(!inst.pause.paused.get_or_default());
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_unpaused_event(&emitted_events[0], accounts.alice);

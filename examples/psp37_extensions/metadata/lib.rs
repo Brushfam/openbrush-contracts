@@ -1,15 +1,11 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP37, PSP37Metadata)]
 #[openbrush::contract]
 pub mod my_psp37 {
-    use ink::prelude::vec::Vec;
-    use openbrush::{
-        contracts::psp37::extensions::metadata::*,
-        traits::{
-            Storage,
-            String,
-        },
+    use openbrush::traits::{
+        Storage,
+        String,
     };
 
     #[derive(Default, Storage)]
@@ -21,10 +17,6 @@ pub mod my_psp37 {
         metadata: metadata::Data,
     }
 
-    impl PSP37 for Contract {}
-
-    impl PSP37Metadata for Contract {}
-
     impl Contract {
         /// contract constructor
         #[ink(constructor)]
@@ -34,23 +26,18 @@ pub mod my_psp37 {
 
         #[ink(message)]
         pub fn set_attribute(&mut self, id: Id, key: String, data: String) -> Result<(), PSP37Error> {
-            self._set_attribute(&id, &key, &data)
+            metadata::Internal::_set_attribute(self, &id, &key, &data)
         }
     }
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::psp37::{
-            extensions::metadata::psp37metadata_external::PSP37Metadata,
-            psp37_external::PSP37,
-        };
+        use openbrush::contracts::psp37::extensions::metadata::psp37metadata_external::PSP37Metadata;
 
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
-        use test_helpers::address_of;
+        use ink_e2e::{build_message};
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

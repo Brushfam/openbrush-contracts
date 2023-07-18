@@ -1,15 +1,9 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP34, PSP34Metadata)]
 #[openbrush::contract]
 pub mod my_psp34_metadata {
-    use openbrush::{
-        contracts::psp34::extensions::metadata::*,
-        traits::{
-            Storage,
-            String,
-        },
-    };
+    use openbrush::traits::Storage;
 
     #[derive(Default, Storage)]
     #[ink(storage)]
@@ -20,10 +14,6 @@ pub mod my_psp34_metadata {
         metadata: metadata::Data,
     }
 
-    impl PSP34 for Contract {}
-
-    impl PSP34Metadata for Contract {}
-
     impl Contract {
         /// A constructor which mints the first token to the owner
         #[ink(constructor)]
@@ -32,8 +22,8 @@ pub mod my_psp34_metadata {
 
             let name_key = String::from("name");
             let symbol_key = String::from("symbol");
-            instance._set_attribute(id.clone(), name_key, name);
-            instance._set_attribute(id, symbol_key, symbol);
+            metadata::Internal::_set_attribute(&mut instance, id.clone(), name_key, name);
+            metadata::Internal::_set_attribute(&mut instance, id, symbol_key, symbol);
 
             instance
         }

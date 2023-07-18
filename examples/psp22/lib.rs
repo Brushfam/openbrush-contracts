@@ -1,17 +1,27 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-pub use my_psp22::*;
+// pub use my_psp22::*;
+pub use openbrush::traits::{
+    AccountId,
+    Storage,
+};
 
+// we need to expand this struct before the contract macro is expanded
+// that is why we declare it here for this example
+#[ink::storage_item]
+#[openbrush::accessors(HatedStorageAccessors)]
+#[derive(Debug)]
+pub struct HatedStorage {
+    #[get]
+    #[set]
+    pub hated_account: AccountId,
+}
+
+#[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 pub mod my_psp22 {
-    use openbrush::{
-        contracts::psp22::*,
-        traits::{
-            Storage,
-            String,
-        },
-    };
+    use crate::*;
+    use openbrush::traits::String;
 
     #[ink(storage)]
     #[derive(Storage)]
@@ -22,35 +32,20 @@ pub mod my_psp22 {
         hated_storage: HatedStorage,
     }
 
-    #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    #[openbrush::accessors(HatedStorageAccessors)]
-    #[derive(Debug)]
-    pub struct HatedStorage {
-        #[get]
-        #[set]
-        hated_account: AccountId,
+    #[overrider(psp22::Internal)]
+    fn _before_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        if to == Some(&self.hated_storage.hated_account) {
+            return Err(PSP22Error::Custom(String::from("I hate this account!")))
+        }
+        Ok(())
     }
-
-    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(HatedStorage);
 
     impl HatedStorageAccessors for Contract {}
-
-    impl Transfer for Contract {
-        // Let's override method to reject transactions to bad account
-        fn _before_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            to: Option<&AccountId>,
-            _amount: &Balance,
-        ) -> Result<(), PSP22Error> {
-            if to == Some(&self.hated_storage.hated_account) {
-                return Err(PSP22Error::Custom(String::from("I hate this account!")))
-            }
-            Ok(())
-        }
-    }
-
-    impl PSP22 for Contract {}
 
     impl Contract {
         #[ink(constructor)]
@@ -62,9 +57,7 @@ pub mod my_psp22 {
                 },
             };
 
-            instance
-                ._mint_to(Self::env().caller(), total_supply)
-                .expect("Should mint");
+            Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
 
             instance
         }
@@ -72,13 +65,13 @@ pub mod my_psp22 {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use crate::my_psp22::hatedstorageaccessors_external::HatedStorageAccessors;
-        use openbrush::contracts::psp22::psp22_external::PSP22;
-        #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
-
+        use crate::hatedstorageaccessors_external::HatedStorageAccessors;
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
+        use openbrush::contracts::psp22::psp22_external::PSP22;
         use test_helpers::{
             address_of,
             balance_of,

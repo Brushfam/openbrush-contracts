@@ -3,11 +3,11 @@ sidebar_position: 3
 title: Implement PSP22 contract
 ---
 
-First, we will cover the implementation of [PSP22](/smart-contracts/PSP22) 
+First, we will cover the implementation of [PSP22](../PSP22/psp22.md) 
 token used by our smart contract, which will represent the stable coin that we will be 
-lending and another [PSP22](/smart-contracts/PSP22) token which we will be 
+lending and another [PSP22](../PSP22/psp22.md) token which we will be 
 using as collateral. These are used just to test our example, you will not be creating 
-an actual [PSP22](/smart-contracts/PSP22) implementation of stable coin or collateral 
+an actual [PSP22](../PSP22/psp22.md) implementation of stable coin or collateral 
 token in your lending protocol, but this will also showcase how to implement 
 a basic implementation of a fungible token with OpenBrush.
 
@@ -35,32 +35,28 @@ pub trait StableCoin: PSP22 + PSP22Metadata + PSP22Mintable {}
 
 ## Add dependencies
 
-First we will add the dependencies used in our [PSP22](/smart-contracts/PSP22)
+First we will add the dependencies used in our [PSP22](../PSP22/psp22.md)
 contract to the `Cargo.toml` file. You will import the same dependencies as in 
-the [PSP22](/smart-contracts/PSP22) documentation, so we will not show 
+the [PSP22](../PSP22/psp22.md) documentation, so we will not show 
 it here to keep it simple.
 
 ## Implement the contract
 
-We want a basic [PSP22](/smart-contracts/PSP22) token with metadata, 
-so we will add the [PSP22 Metadata](/smart-contracts/PSP22/extensions/metadata) 
+We want a basic [PSP22](../PSP22/psp22.md) token with metadata, 
+so we will add the [PSP22 Metadata](../PSP22/Extensions/metadata.md) 
 extension to our contract. We will add a `openbrush::contract` macro to our contract 
 and add some imports:
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This is a simple `PSP22` which will be used as a stable coin and a collateral token in our lending contract
+#[openbrush::implementation(PSP22, PSP22Metadata, PSP22Mintable)]
 #[openbrush::contract]
 pub mod token {
     use openbrush::traits::String;
     use lending_project::traits::stable_coin::*;
-    use openbrush::{
-        contracts::psp22::extensions::metadata::*,
-        contracts::psp22::extensions::mintable::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 ```
 
 ## Define the storage
@@ -86,15 +82,19 @@ We will implement the `PSP22Metadata` trait and define the constructor where we
 will set the `name` and the `symbol` for our token. Also, we will mint the 
 initial supply of tokens to the caller of the constructor.
 
+`PSP22Metadata` and similar traits imported from OpenBrush should be implemented with `#[openbrush::implementation]` macro.
+
 ```rust
-/// Implement PSP22 Trait for our coin
-impl PSP22 for StableCoinContract {}
+#[openbrush::implementation(PSP22, PSP22Metadata, PSP22Mintable)]
+#[openbrush::contract]
+mod contract {
+    ...
+}
+```
 
-/// Implement PSP22Metadata Trait for our coin
-impl PSP22Metadata for StableCoinContract {}
+Below we are implementing `StableCoin` trait itself and defining the constructor.
 
-/// implement PSP22Mintable Trait for our coin
-impl PSP22Mintable for StableCoinContract {}
+```rust
 
 // It forces the compiler to check that you implemented all super traits
 impl StableCoin for StableCoinContract {}

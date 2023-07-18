@@ -1,34 +1,18 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP37, PSP37Batch, PSP37Burnable, PSP37Mintable, PSP37Enumerable)]
 #[openbrush::contract]
 pub mod my_psp37_enumerable {
-    use openbrush::{
-        contracts::psp37::extensions::{
-            batch::*,
-            burnable::*,
-            enumerable::*,
-            mintable::*,
-        },
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[derive(Default, Storage)]
     #[ink(storage)]
     pub struct Contract {
         #[storage_field]
-        psp37: psp37::Data<enumerable::Balances>,
+        psp37: psp37::Data,
+        #[storage_field]
+        enumerable: enumerable::Data,
     }
-
-    impl PSP37 for Contract {}
-
-    impl PSP37Mintable for Contract {}
-
-    impl PSP37Burnable for Contract {}
-
-    impl PSP37Enumerable for Contract {}
-
-    impl PSP37Batch for Contract {}
 
     impl Contract {
         #[ink(constructor)]

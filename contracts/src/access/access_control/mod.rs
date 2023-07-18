@@ -24,6 +24,5 @@ pub mod extensions {
 }
 
 pub mod access_control;
-pub mod members;
 
 pub use access_control::*;

@@ -1,21 +1,14 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This contract will be used to represent the shares of a user
 /// and other instance of this contract will be used to represent
 /// the amount of borrowed tokens
+#[openbrush::implementation(PSP22, PSP22Metadata, PSP22Mintable, PSP22Burnable, Ownable)]
 #[openbrush::contract]
 pub mod shares {
     use lending_project::traits::shares::*;
     use openbrush::{
-        contracts::{
-            ownable::*,
-            psp22::extensions::{
-                burnable::*,
-                metadata::*,
-                mintable::*,
-            },
-        },
+        contracts::ownable::*,
         modifiers,
         traits::{
             Storage,
@@ -35,34 +28,15 @@ pub mod shares {
         metadata: metadata::Data,
     }
 
-    // Implement PSP22 Trait for our share
-    impl PSP22 for SharesContract {}
+    /// override the `mint` function to add the `only_owner` modifier
+    #[default_impl(PSP22Mintable)]
+    #[modifiers(only_owner)]
+    fn mint() {}
 
-    // Implement Ownable Trait for our share
-    impl Ownable for SharesContract {}
-
-    // Implement Metadata Trait for our share
-    impl PSP22Metadata for SharesContract {}
-
-    // Implement Mintable Trait for our share
-    impl PSP22Mintable for SharesContract {
-        /// override the `mint` function to add the `only_owner` modifier
-        #[ink(message)]
-        #[modifiers(only_owner)]
-        fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-            self._mint_to(account, amount)
-        }
-    }
-
-    // Implement Burnable Trait for our share
-    impl PSP22Burnable for SharesContract {
-        /// override the `burn` function to add the `only_owner` modifier
-        #[ink(message)]
-        #[modifiers(only_owner)]
-        fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-            self._burn_from(account, amount)
-        }
-    }
+    /// override the `burn` function to add the `only_owner` modifier
+    #[default_impl(PSP22Burnable)]
+    #[modifiers(only_owner)]
+    fn burn() {}
 
     // It forces the compiler to check that you implemented all super traits
     impl Shares for SharesContract {}
@@ -73,10 +47,10 @@ pub mod shares {
         pub fn new(name: Option<String>, symbol: Option<String>) -> Self {
             let mut instance = Self::default();
             let caller = Self::env().caller();
-            instance.metadata.name = name;
-            instance.metadata.symbol = symbol;
-            instance.metadata.decimals = 18;
-            instance._init_with_owner(caller);
+            instance.metadata.name.set(&name);
+            instance.metadata.symbol.set(&symbol);
+            instance.metadata.decimals.set(&18);
+            ownable::Internal::_init_with_owner(&mut instance, caller);
 
             instance
         }

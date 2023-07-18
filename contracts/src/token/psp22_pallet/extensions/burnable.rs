@@ -26,17 +26,24 @@ pub use crate::{
         *,
     },
 };
-pub use pallet_assets_chain_extension::traits::Origin;
-pub use psp22_pallet::Internal as _;
-
+pub use ink::env::DefaultEnvironment;
 use openbrush::traits::{
     AccountId,
     Balance,
     Storage,
 };
+pub use pallet_assets_chain_extension::traits::{
+    Error,
+    Origin,
+};
+pub use psp22_pallet::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22PalletImpl,
+};
 
-impl<T: Storage<psp22_pallet::Data>> PSP22Burnable for T {
-    default fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+pub trait PSP22PalletBurnableImpl: Storage<psp22_pallet::Data> + psp22_pallet::Internal {
+    fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         self._burn_from(account, amount)
     }
 }

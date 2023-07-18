@@ -1,12 +1,9 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP34, PSP34Mintable)]
 #[openbrush::contract]
 pub mod my_psp34_mintable {
-    use openbrush::{
-        contracts::psp34::extensions::mintable::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[derive(Default, Storage)]
     #[ink(storage)]
@@ -14,10 +11,6 @@ pub mod my_psp34_mintable {
         #[storage_field]
         psp34: psp34::Data,
     }
-
-    impl PSP34 for Contract {}
-
-    impl PSP34Mintable for Contract {}
 
     impl Contract {
         /// The constructor

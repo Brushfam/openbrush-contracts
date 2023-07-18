@@ -1,0 +1,7 @@
+error: expected identifier, found `:`
+ --> tests/ui/accessors/fail/fail-without-args.rs:2:1
+  |
+2 | #[openbrush::accessors]
+  | ^^^^^^^^^^^^^^^^^^^^^^^ expected identifier
+  |
+  = note: this error originates in the attribute macro `openbrush::accessors` (in Nightly builds, run with -Z macro-backtrace for more info)

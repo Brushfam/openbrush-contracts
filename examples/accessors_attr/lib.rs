@@ -1,8 +1,26 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
+
+use openbrush::traits::Storage;
+
+// we declare the data struct outside of the contract
+// since we need to expand the macros on it before the openbrush::contract macro expansion
+
+#[openbrush::accessors(AccessDataAccessors)]
+#[derive(Default, Debug)]
+#[ink::storage_item]
+pub struct AccessData {
+    #[get]
+    #[set]
+    read_write: u32,
+    #[get]
+    read_only: u32,
+    #[set]
+    write_only: u32,
+}
 
 #[openbrush::contract]
 pub mod accessors_attr {
+    use crate::*;
     use openbrush::traits::Storage;
 
     #[ink(storage)]
@@ -12,21 +30,6 @@ pub mod accessors_attr {
         hated_logic: AccessData,
     }
 
-    #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    #[openbrush::accessors(AccessDataAccessors)]
-    #[derive(Default, Debug)]
-    pub struct AccessData {
-        #[get]
-        #[set]
-        read_write: u32,
-        #[get]
-        read_only: u32,
-        #[set]
-        write_only: u32,
-    }
-
-    pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(AccessData);
-
     impl AccessDataAccessors for Contract {}
 
     impl Contract {
@@ -34,10 +37,12 @@ pub mod accessors_attr {
         pub fn new() -> Self {
             Default::default()
         }
+
         #[ink(message)]
         pub fn set_read_only(&mut self, value: u32) {
             self.hated_logic.read_only = value
         }
+
         #[ink(message)]
         pub fn get_write_only(&self) -> u32 {
             self.hated_logic.write_only
@@ -46,11 +51,9 @@ pub mod accessors_attr {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use crate::accessors_attr::accessdataaccessors_external::AccessDataAccessors;
-        #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message};
+        use crate::accessdataaccessors_external::AccessDataAccessors;
+        use ink_e2e::build_message;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

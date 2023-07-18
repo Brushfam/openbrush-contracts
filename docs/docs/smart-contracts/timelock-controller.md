@@ -8,9 +8,9 @@ This example shows how you can reuse the implementation of
 
 ## Step 1: Import default implementation
 
-With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
+With [default `Cargo.toml`](overview.md/#the-default-toml-of-your-project-with-openbrush),
 you need to enable corresponding features, embed modules data structures and implement them via `#[openbrush::implementation]` macro
-as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
+as described in [that section](overview.md/#reuse-implementation-of-traits-from-openbrush).
 
 The main traits are `AccessControl` and `TimelockController`.
 

@@ -83,7 +83,11 @@ again and split logic into more units.
 Remember to use unique storage keys so the storage spaces don't overlap.
 
 OpenBrush provides [`openbrush::storage_item`](https://github.com/727-Ventures/openbrush-contracts/blob/main/lang/macro/src/lib.rs#L447)
-attribute macro that implements the required traits for a struct, as well as automatically generating unqiue storage keys for each of the struct's  fields which are either marked as `#[lazy]` or are of type `Mapping`/`MultiMapping`. You can access those storage keys as consts in the generated code. The format of the storage key is `STORAGE_KEY_{struct_name}_{field_name}`, where `struct_name` and `field_name` are uppercase.
+attribute macro that implements the required traits for a struct, as well as automatically generating unqiue storage keys for each of the struct's 
+fields which are either marked as `#[lazy]` or are of type `Mapping`/`MultiMapping`. You can access those storage keys as consts in the generated code.
+The format of the storage key is `STORAGE_KEY_{struct_name}_{field_name}`, where `struct_name` and `field_name` are uppercase.
+So, this way, `#[openbrush::storage_item]` macro will generate keys for all types, that are lazily loaded from storage, it is
+making this fields upgradeable, but to for struct to be upgradeable, every field should be lazily loaded.
 
 > **Note**: Each logic unit should have a unique storage key.
 The storage key should be used only once in the contract.
@@ -314,6 +318,7 @@ the contract. Only the owner is able to call the `change_delegate_call` method.
 #[derive(Debug)]
 #[openbrush::storage_item]
 pub struct Data {
+    #[lazy]
     pub forward_to: Hash,
 }
 ```

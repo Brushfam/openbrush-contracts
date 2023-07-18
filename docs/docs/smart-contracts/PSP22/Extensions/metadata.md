@@ -5,7 +5,7 @@ title: PSP22 Metadata
 
 This example shows how you can reuse the implementation of [PSP22](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp22) token with the [PSP22Metadata](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/src/token/psp22/extensions/metadata.rs) extension.
 
-First, you should implement basic version of [PSP22](/smart-contracts/PSP22).
+First, you should implement basic version of [PSP22](../psp22.md).
 
 ## Step 1: Add imports and enable unstable feature
 
@@ -18,7 +18,6 @@ Use `openbrush::contract` macro instead of `ink::contract`. Import **everything*
 #[openbrush::contract]
 pub mod my_psp22 {
     ...
-}
 ```
 
 ## Step 2: Define storage
@@ -99,5 +98,3 @@ pub mod my_psp22 {
 ```
 
 You can check an example of the usage of [PSP22 Metadata](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/psp22_extensions/metadata).
-
-You can also check the documentation for the basic implementation of [PSP22](/smart-contracts/PSP22).

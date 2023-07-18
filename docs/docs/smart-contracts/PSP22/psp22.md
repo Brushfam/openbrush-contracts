@@ -7,9 +7,9 @@ This example shows how you can reuse the implementation of [PSP22](https://githu
 
 ## Step 1: Import default implementation
 
-With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
+With [default `Cargo.toml`](../overview.md/#the-default-toml-of-your-project-with-openbrush),
 you need to enable `psp22` feature, embed modules data structures and implement them via `#[openbrush::implementation]` macro
-as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
+as described in [that section](../overview.md/#reuse-implementation-of-traits-from-openbrush).
 
 The main trait is `PSP22`.
 
@@ -114,16 +114,16 @@ You can check an example of the usage of [PSP22](https://github.com/Brushfam/ope
 
 Also you can use extensions for PSP22 token:
 
-[PSP22Metadata](/smart-contracts/psp22/extensions/metadata): metadata for PSP22.
+[PSP22Metadata](Extensions/metadata.md): metadata for PSP22.
 
-[PSP22Mintable](/smart-contracts/psp22/extensions/mintable): creation of new tokens.
+[PSP22Mintable](Extensions/mintable.md): creation of new tokens.
 
-[PSP22Burnable](/smart-contracts/psp22/extensions/burnable): destruction of own tokens.
+[PSP22Burnable](Extensions/burnable.md): destruction of own tokens.
 
-[PSP22Wrapper](/smart-contracts/psp22/extensions/wrapper): token wrapper for PSP22.
+[PSP22Wrapper](Extensions/wrapper.md): token wrapper for PSP22.
 
-[PSP22FlashMint](/smart-contracts/psp22/extensions/flashmint): extension which allows the user to perform flashloans on the token by minting and burning the token.
+[PSP22FlashMint](Extensions/flashmint.md): extension which allows the user to perform flashloans on the token by minting and burning the token.
 
 Check out the utilities for PSP22 token:
 
-[PSP22TokenTimelock](/smart-contracts/psp22/utils/token-timelock): utility for locking PSP22 tokens for a specified time.
+[PSP22TokenTimelock](Utils/token-timelock.md): utility for locking PSP22 tokens for a specified time.

@@ -206,8 +206,6 @@ use openbrush::{
 
 use openbrush::traits::Storage;
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
-
 #[derive(Default, Debug)]
 #[ink::storage_item]
 /// define the struct with the data that our smart contract will be using
@@ -317,29 +315,28 @@ To avoid that we will import `SharesContract` into `LendingContract` and in `Len
 
 ```rust    
 impl lending::Internal for LendingContract {
-    fn _instantiate_shares_contract(&self, contract_name: &str, contract_symbol: &str) -> AccountId {
-      let code_hash = self.lending.shares_contract_code_hash;
+  fn _instantiate_shares_contract(&self, contract_name: &str, contract_symbol: &str) -> AccountId {
+    let code_hash = self.lending.shares_contract_code_hash;
 
-      let salt = (<Self as DefaultEnv>::env().block_timestamp(), contract_name).encode();
+    let salt = (<Self as DefaultEnv>::env().block_timestamp(), contract_name).encode();
 
-      let hash = xxh32(&salt, 0).to_le_bytes();
+    let hash = xxh32(&salt, 0).to_le_bytes();
 
-      let contract =
-              SharesContractRef::new(Some(String::from(contract_name)), Some(String::from(contract_symbol)))
-                      .endowment(0)
-                      .code_hash(code_hash)
-                      .salt_bytes(&hash[..4])
-                      .instantiate()
-                      .unwrap();
-      contract.to_account_id()
-    }
+    let contract =
+            SharesContractRef::new(Some(String::from(contract_name)), Some(String::from(contract_symbol)))
+                    .endowment(0)
+                    .code_hash(code_hash)
+                    .salt_bytes(&hash[..4])
+                    .instantiate()
+                    .unwrap();
+    contract.to_account_id()
+  }
 }
 ```
 
 For that we defined the `Internal` trait in `lending` module with `_instantiate_shares_contract` method.
-
-The final generic implementation of the `LendingPermissioned` restricts the generic type `T`
-by `Storage<lending::Data>`, `Storage<access_control::Data>`, `Storage<pausable::Data>`, `lending::Internal` traits.
+Then, we define the default implementaion of `LendingPermissioned` trait which we call `LendingPermissionedImpl`
+and which restricts the type for which it is implemented by `Storage<lending::Data>`, `Storage<access_control::Data>`, `Storage<pausable::Data>`, `lending::Internal` traits.
 That allows us to use methods from these traits and define the implementation.
 
 ```rust
@@ -365,12 +362,8 @@ use openbrush::{
 
 pub const MANAGER: RoleType = ink::selector_id!("MANAGER");
 
-impl<T, M> LendingPermissioned for T
-where
-    T: Internal,
-    T: Storage<data::Data> + Storage<pausable::Data> + Storage<access_control::Data<M>>,
-    T: OccupiedStorage<{ access_control::STORAGE_KEY }, WithData = access_control::Data<M>>,
-    M: members::MembersManager,
+pub trait LendingPermissionedImpl:
+    access_control::Internal + Storage<access_control::Data> + lending_internal::Internal + Lending + Instantiator
 {
     #[modifiers(only_role(MANAGER))]
     fn allow_asset(&mut self, asset_address: AccountId) -> Result<(), LendingError> {
@@ -516,7 +509,7 @@ use openbrush::{
 
 pub const YEAR: Timestamp = 60 * 60 * 24 * 365;
 
-impl<T: Storage<data::Data> + Storage<pausable::Data>> Lending for T {
+pub trait LendingImpl: Storage<data::Data> + lending_internal::Internal + Storage<pausable::Data> {
     fn total_asset(&self, asset_address: AccountId) -> Result<Balance, LendingError> {
         // get asset from mapping
         if let Some(mapped_asset) = self

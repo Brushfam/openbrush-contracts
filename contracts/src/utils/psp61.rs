@@ -31,29 +31,29 @@ pub struct Data {
 }
 
 #[openbrush::trait_definition]
-pub trait ERC165 {
+pub trait PSP61 {
     #[ink(message)]
     fn supports_interface(&self, interface_id: u32) -> bool;
 }
 
-pub trait ERC165Internal {
+pub trait PSP61Internal {
     fn _interfaces(&self) -> Vec<u32> {
         vec![]
     }
 }
 
-pub trait ERC165InternalOB {
+pub trait PSP61InternalOB {
     fn _interfaces_ob(&self) -> Vec<u32> {
         vec![]
     }
 }
 
-pub trait ERC165Impl: ERC165Internal + ERC165InternalOB + Storage<Data> {
+pub trait PSP61Impl: PSP61Internal + PSP61InternalOB + Storage<Data> {
     fn init(&mut self) {
         let mut interfaces = self._interfaces();
 
         interfaces.extend(self._interfaces_ob());
-        interfaces.push(erc165_external::TRAIT_ID);
+        interfaces.push(psp61_external::TRAIT_ID);
 
         for interface_id in interfaces {
             self.data().is_supported.insert(&interface_id, &true);

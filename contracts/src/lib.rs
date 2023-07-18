@@ -58,5 +58,5 @@ pub use upgradeability::diamond;
 pub use upgradeability::proxy;
 #[cfg(feature = "upgradeable")]
 pub use upgradeability::upgradeable;
-#[cfg(feature = "erc165")]
-pub use utils::erc165;
+#[cfg(feature = "psp61")]
+pub use utils::psp61;

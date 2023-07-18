@@ -1,5 +1,5 @@
 [package]
-name = "my_erc165"
+name = "my_psp61"
 version = "3.1.1"
 authors = ["Brushfam <varex.silver@727.ventures>"]
 edition = "2021"
@@ -11,14 +11,14 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 # These dependencies
-openbrush = { path = "../..", default-features = false, features = ["erc165"] }
+openbrush = { path = "../..", default-features = false, features = ["psp61"] }
 
 [dev-dependencies]
 ink_e2e = "4.2.1"
 test_helpers = { path = "../test_helpers", default-features = false }
 
 [lib]
-name = "my_erc165"
+name = "my_psp61"
 path = "lib.rs"
 
 

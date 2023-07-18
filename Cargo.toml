@@ -68,7 +68,7 @@ timelock_controller = ["openbrush_contracts/timelock_controller"]
 proxy = ["openbrush_contracts/proxy"]
 diamond = ["openbrush_contracts/diamond"]
 upgradeable = ["openbrush_contracts/upgradeable"]
-erc165 = ["openbrush_contracts/erc165"]
+psp61 = ["openbrush_contracts/psp61"]
 
 test-all = [
     "psp22",

@@ -107,7 +107,7 @@ We don't want anybody to mint or burn the tokens, we only want the owner,
 in this case, our lending contract, to do it. So we will add the `PSP22Burnable` 
 and `PSP22Mintable` and mark the functions of these traits with the `only_owner` 
 restriction. Here we are using the `#[default_impl]` macro to mark, that we want to use default implementation of the trait's 
-method but to override the modifiers or other attributes of the method.
+method but to use some modifiers or add other attributes to the method.
 
 ```rust
 /// override the `mint` function to add the `only_owner` modifier

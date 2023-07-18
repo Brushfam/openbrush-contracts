@@ -5,14 +5,14 @@ title: PSP37 Metadata
 
 This example shows how you can reuse the implementation of [PSP37](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/token/psp37) token with [PSP37Metadata](https://github.com/Brushfam/openbrush-contracts/tree/main/contracts/token/psp37/extensions/metadata.rs) extension.
 
-First, you should implement basic version of [PSP37](/smart-contracts/PSP37).
+First, you should implement basic version of [PSP37](../psp37.md).
 
 ## Step 1: Implement PSP37Metadata
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(..., PSP37, PSP37Metadata, ...)]
+#[openbrush::implementation(PSP37, PSP37Metadata)]
 #[openbrush::contract]
 pub mod my_psp37 {
 ...
@@ -72,7 +72,6 @@ pub mod my_psp37 {
     }
 
     impl Contract {
-        /// contract constructor
         #[ink(constructor)]
         pub fn new() -> Self {
             Self::default()
@@ -88,5 +87,3 @@ pub mod my_psp37 {
 ```
 
 You can check an example of the usage of [PSP37 Metadata](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/psp37_extensions/metadata).
-
-You can also check the documentation for the basic implementation of [PSP37](/smart-contracts/PSP37).

@@ -7,7 +7,7 @@ This example shows how you can reuse the implementation of [PSP37](https://githu
 
 ## How to use this extension
 
-First, you should implement basic version of [PSP37](/smart-contracts/PSP37).
+First, you should implement basic version of [PSP37](../psp37.md).
 After you can just add implementation of PSP37Batch via `#[openbrush::implementation(PSP37Batch)]` attribute.
 
 ## Final code

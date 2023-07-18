@@ -7,7 +7,7 @@ This example shows how you can reuse the implementation of [PSP34](https://githu
 
 ## How to use this extension
 
-First, you should implement basic version of [PSP34](/smart-contracts/PSP34).
+First, you should implement basic version of [PSP34](../psp34.md).
 
 After you can just add implementation of PSP34Burnable via `#[openbrush::implementation(PSP34Burnable)]` attribute.
 

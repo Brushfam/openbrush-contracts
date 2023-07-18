@@ -7,9 +7,9 @@ This example shows how you can use the implementation of [diamond standard](http
 
 ## Step 1: Import default implementation
 
-With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
+With [default `Cargo.toml`](../overview.md/#the-default-toml-of-your-project-with-openbrush),
 you need to enable `diamond` feature, embed modules data structures and implement them via `#[openbrush::implementation]` macro
-as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
+as described in [that section](../overview.md/#reuse-implementation-of-traits-from-openbrush).
 
 The main trait are `Ownable` and `Diamond`.
 
@@ -18,10 +18,7 @@ The main trait are `Ownable` and `Diamond`.
 Define the constructor and initialize the owner with the contract initiator.
 
 ```rust
-impl Contract {## Disclaimer
-
-Delegate calls [were marked](https://github.com/paritytech/ink/pull/1331#discussion_r953736863) as a possible attack vector in ink! Therefore the `Diamond` pattern will not work within OpenBrush until this is reimplemented in ink! 4.
-
+impl Contract {
     #[ink(constructor)]
     pub fn new(owner: AccountId) -> Self {
         let mut instance = Self::default();

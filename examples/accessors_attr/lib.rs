@@ -3,7 +3,7 @@
 use openbrush::traits::Storage;
 
 // we declare the data struct outside of the contract
-// since we need to expand the macroes on it before the openbrush::contract macro expansion
+// since we need to expand the macros on it before the openbrush::contract macro expansion
 
 #[openbrush::accessors(AccessDataAccessors)]
 #[derive(Default, Debug)]

@@ -7,9 +7,9 @@ This example shows how you can reuse the implementation of [PSP34](https://githu
 
 ## Step 1: Import default implementation
 
-With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
+With [default `Cargo.toml`](../overview.md/#the-default-toml-of-your-project-with-openbrush),
 you need to enable `psp34` feature, embed modules data structures and implement them via `#[openbrush::implementation]` macro
-as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
+as described in [that section](../overview.md/#reuse-implementation-of-traits-from-openbrush).
 
 The main trait is `PSP34`.
 
@@ -75,10 +75,10 @@ pub mod my_psp34 {
 You can check an example of the usage of [PSP34](https://github.com/Brushfam/openbrush-contracts/tree/main/examples/psp34).
 Also you can use extensions for psp34 token:
 
-[PSP34Metadata](/smart-contracts/PSP34/extensions/metadata): metadata for PSP34.
+[PSP34Metadata](Extensions/metadata.md): metadata for PSP34.
 
-[PSP34Mintable](/smart-contracts/PSP34/extensions/mintable): creation of new tokens.
+[PSP34Mintable](Extensions/mintable.md): creation of new tokens.
 
-[PSP34Burnable](/smart-contracts/PSP34/extensions/burnable): destruction of contract's tokens.
+[PSP34Burnable](Extensions/burnable.md): destruction of contract's tokens.
 
-[PSP34Enumerable](/smart-contracts/PSP34/extensions/enumerable): iterating over contract's tokens.
+[PSP34Enumerable](Extensions/enumerable.md): iterating over contract's tokens.

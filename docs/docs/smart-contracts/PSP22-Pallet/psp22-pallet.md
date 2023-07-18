@@ -7,9 +7,9 @@ This example shows how you can reuse the implementation of [PSP22 Pallet](https:
 
 ## Step 1: Implement features
 
-With [default `Cargo.toml`](/smart-contracts/overview#the-default-toml-of-your-project-with-openbrush),
+With [default `Cargo.toml`](../overview.md/#the-default-toml-of-your-project-with-openbrush),
 you need to enable `psp22-pallet` feature, embed modules data structures and implement them via `#[openbrush::implementation]` macro
-as described in [that section](/smart-contracts/overview#reuse-implementation-of-traits-from-openbrush).
+as described in [that section](../overview.md/#reuse-implementation-of-traits-from-openbrush).
 
 Use `psp22_pallet` storage and implement `PSP22` for your contract.
 
@@ -79,8 +79,8 @@ You can check an example of the usage of [PSP22 Pallet](https://github.com/Brush
 
 Also you can use extensions for PSP22 token:
 
-[PSP22 Pallet Metadata](Extensions/metadata): metadata for PSP22 Pallet.
+[PSP22 Pallet Metadata](Extensions/metadata.md): metadata for PSP22 Pallet.
 
-[PSP22 Pallet Mintable](Extensions/mintable): creation of new tokens.
+[PSP22 Pallet Mintable](Extensions/mintable.md): creation of new tokens.
 
-[PSP22 Pallet Burnable](Extensions/burnable): destruction of own tokens.
+[PSP22 Pallet Burnable](Extensions/burnable.md): destruction of own tokens.

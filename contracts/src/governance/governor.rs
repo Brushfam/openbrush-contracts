@@ -494,21 +494,29 @@ pub trait InternalImpl: Storage<Data> + Internal {
         support: bool,
         reason: String,
         params: Vec<u8>
-    ) -> Result<u128, GovernorError>;
+    ) -> Result<u128, GovernorError> {
+        todo!("cast_vote")
+    }
 
     fn _is_valid_description_for_proposer(
         proposer: AccountId,
         description: String
-    ) -> bool;
+    ) -> bool {
+        todo!("is_valid_description_for_proposer")
+    }
 
     fn _encode_state_bitmap(
         &self,
         proposal_state: ProposalState,
-    ) -> Vec<u8>;
+    ) -> Vec<u8> {
+        todo!("encode_state_bitmap")
+    }
 
     fn _executor(&self) -> AccountId {
         self.env().caller()
     }
 
-    fn _try_hex_to_uint(char: char) -> (bool, u8);
+    fn _try_hex_to_uint(char: char) -> (bool, u8) {
+        todo!("try_hex_to_uint")
+    }
 }

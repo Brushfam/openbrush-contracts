@@ -1,14 +1,14 @@
 [package]
 name = "my_flipper_guard"
-version = "3.1.1"
+version= "4.0.0-beta"
 authors = ["Brushfam <green@727.ventures>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.1.0", default-features = false}
+ink = { version = "4.2.1", default-features = false}
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
-scale-info = { version = "2.3", default-features = false, features = ["derive"], optional = true }
+scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 # These dependencies
 flipper = { path = "../..", default-features = false }
@@ -18,9 +18,7 @@ openbrush = { path = "../../../..", default-features = false }
 name = "my_flipper_guard"
 path = "lib.rs"
 
-crate-type = [
-    "cdylib",
-]
+
 
 [features]
 default = ["std"]

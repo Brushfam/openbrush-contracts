@@ -1,12 +1,9 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP37, PSP37Mintable)]
 #[openbrush::contract]
 pub mod my_psp37 {
-    use openbrush::{
-        contracts::psp37::extensions::mintable::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[derive(Default, Storage)]
     #[ink(storage)]
@@ -14,10 +11,6 @@ pub mod my_psp37 {
         #[storage_field]
         psp37: psp37::Data,
     }
-
-    impl PSP37 for Contract {}
-
-    impl PSP37Mintable for Contract {}
 
     impl Contract {
         /// contract constructor
@@ -30,10 +23,7 @@ pub mod my_psp37 {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
         use openbrush::contracts::psp37::{
-            extensions::{
-                metadata::psp37metadata_external::PSP37Metadata,
-                mintable::psp37mintable_external::PSP37Mintable,
-            },
+            extensions::mintable::psp37mintable_external::PSP37Mintable,
             psp37_external::PSP37,
         };
 

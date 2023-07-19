@@ -60,7 +60,7 @@ Based on the rules above the structure will look like the following:
 ├── Cargo.toml
 ```
 
-`traits` directory contains 4 traits with logic from the [overview](/smart-contracts/example/overview).
+`traits` directory contains 4 traits with logic from the [overview](overview.md).
 In the example:
 - `LendingContract` is a big contract and we moved the main logic into `impls/lending` folder. That logic is split into two traits(`Lending` and `LendingPermissione`) to show how it can be done.
 - `LoanContract` contains few methods, so the implementation is defined directly in the body of the contract.

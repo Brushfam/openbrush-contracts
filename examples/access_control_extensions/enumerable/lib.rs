@@ -1,18 +1,15 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(AccessControl, AccessControlEnumerable)]
 #[openbrush::contract]
 pub mod my_access_control {
-    use openbrush::{
-        contracts::access_control::extensions::enumerable::*,
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
     pub struct Contract {
         #[storage_field]
-        access: access_control::Data<enumerable::Members>,
+        enumerable: enumerable::Data,
     }
 
     // You can manually set the number for the role.
@@ -21,20 +18,16 @@ pub mod my_access_control {
     // And will reduce the chance to have overlapping roles.
     const MINTER: RoleType = ink::selector_id!("MINTER");
 
-    impl AccessControl for Contract {}
-
-    impl AccessControlEnumerable for Contract {}
-
     impl Contract {
         #[ink(constructor)]
         pub fn new() -> Self {
             let mut instance = Self::default();
 
             let caller = Self::env().caller();
-            instance._init_with_admin(caller);
+            access_control::Internal::_init_with_admin(&mut instance, Some(caller));
             // We grant minter role to caller in constructor, so he can mint/burn tokens
-            instance.grant_role(MINTER, caller).expect("Should grant MINTER role");
-            assert_eq!(instance.get_role_member_count(MINTER), 1);
+            AccessControl::grant_role(&mut instance, MINTER, Some(caller)).expect("Should grant MINTER role");
+            assert_eq!(AccessControlEnumerable::get_role_member_count(&instance, MINTER), 1);
 
             instance
         }

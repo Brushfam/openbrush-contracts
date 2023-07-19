@@ -1,17 +1,11 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP22, PSP22Capped, PSP22Mintable)]
 #[openbrush::contract]
 pub mod my_psp22_capped {
-    use openbrush::{
-        contracts::psp22::extensions::{
-            capped::*,
-            mintable::*,
-        },
-        traits::{
-            Storage,
-            String,
-        },
+    use openbrush::traits::{
+        Storage,
+        String,
     };
 
     #[ink(storage)]
@@ -23,25 +17,18 @@ pub mod my_psp22_capped {
         cap: capped::Data,
     }
 
-    impl PSP22 for Contract {}
-
-    impl PSP22Capped for Contract {}
-
-    impl PSP22Mintable for Contract {}
-
-    impl psp22::Transfer for Contract {
-        fn _before_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            _to: Option<&AccountId>,
-            _amount: &Balance,
-        ) -> Result<(), PSP22Error> {
-            // `is_none` means that it is minting
-            if _from.is_none() && self._is_cap_exceeded(_amount) {
-                return Err(PSP22Error::Custom(String::from("Cap exceeded")))
-            }
-            Ok(())
+    #[overrider(psp22::Internal)]
+    fn _before_token_transfer(
+        &mut self,
+        from: Option<&AccountId>,
+        _: Option<&AccountId>,
+        amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        // `is_none` means that it is minting
+        if from.is_none() && capped::Internal::_is_cap_exceeded(self, amount) {
+            return Err(PSP22Error::Custom(String::from("Cap exceeded")))
         }
+        Ok(())
     }
 
     impl Contract {
@@ -51,8 +38,8 @@ pub mod my_psp22_capped {
         pub fn new(inital_supply: Balance, cap: Balance) -> Self {
             let mut instance = Self::default();
 
-            assert!(instance._init_cap(cap).is_ok());
-            assert!(instance.mint(Self::env().caller(), inital_supply).is_ok());
+            assert!(capped::Internal::_init_cap(&mut instance, cap).is_ok());
+            assert!(PSP22Mintable::mint(&mut instance, Self::env().caller(), inital_supply).is_ok());
 
             instance
         }

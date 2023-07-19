@@ -32,7 +32,7 @@ pub type OwnableRef = dyn Ownable;
 pub trait Ownable {
     /// Returns the address of the current owner.
     #[ink(message)]
-    fn owner(&self) -> AccountId;
+    fn owner(&self) -> Option<AccountId>;
 
     /// Leaves the contract without owner. It will not be possible to call
     /// owner's functions anymore. Can only be called by the current owner.

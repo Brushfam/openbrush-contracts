@@ -1,14 +1,14 @@
 [package]
 name = "flip_on_me"
-version = "3.1.1"
+version= "4.0.0-beta"
 authors = ["Brushfam <green@727.ventures>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.1.0", default-features = false}
+ink = { version = "4.2.1", default-features = false}
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
-scale-info = { version = "2.3", default-features = false, features = ["derive"], optional = true }
+scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 flipper = { path = "../..", default-features = false }
 openbrush = { path = "../../../..", default-features = false }
@@ -16,10 +16,7 @@ openbrush = { path = "../../../..", default-features = false }
 [lib]
 name = "flip_on_me"
 path = "lib.rs"
-crate-type = [
-    # Used for normal contract Wasm blobs.
-    "cdylib",
-]
+
 
 [features]
 default = ["std"]

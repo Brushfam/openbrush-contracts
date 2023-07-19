@@ -19,15 +19,11 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![feature(min_specialization)]
 #[cfg(feature = "psp22")]
+#[openbrush::implementation(PSP22, PSP22Capped, PSP22Mintable)]
 #[openbrush::contract]
 mod psp22_capped {
     use openbrush::{
-        contracts::psp22::extensions::{
-            capped::*,
-            mintable::*,
-        },
         test_utils::accounts,
         traits::{
             Storage,
@@ -41,28 +37,21 @@ mod psp22_capped {
         #[storage_field]
         psp22: psp22::Data,
         #[storage_field]
-        cap: Data,
+        cap: capped::Data,
     }
 
-    impl PSP22 for PSP22Struct {}
-
-    impl PSP22Capped for PSP22Struct {}
-
-    impl PSP22Mintable for PSP22Struct {}
-
-    impl psp22::Transfer for PSP22Struct {
-        fn _before_token_transfer(
-            &mut self,
-            _from: Option<&AccountId>,
-            _to: Option<&AccountId>,
-            _amount: &Balance,
-        ) -> Result<(), PSP22Error> {
-            // `is_none` means that it is minting
-            if _from.is_none() && self._is_cap_exceeded(_amount) {
-                return Err(PSP22Error::Custom(String::from("Cap exceeded")))
-            }
-            Ok(())
+    #[overrider(psp22::Internal)]
+    fn _before_token_transfer(
+        &mut self,
+        from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        // `is_none` means that it is minting
+        if from.is_none() && capped::Internal::_is_cap_exceeded(self, amount) {
+            return Err(PSP22Error::Custom(String::from("Cap exceeded")))
         }
+        Ok(())
     }
 
     impl PSP22Struct {
@@ -72,8 +61,8 @@ mod psp22_capped {
         pub fn new() -> Self {
             let mut instance = Self::default();
 
-            assert!(instance._init_cap(CAP).is_ok());
-            assert!(instance.mint(Self::env().caller(), 1).is_ok());
+            assert!(capped::Internal::_init_cap(&mut instance, CAP).is_ok());
+            assert!(PSP22Mintable::mint(&mut instance, Self::env().caller(), 1).is_ok());
 
             instance
         }
@@ -84,7 +73,7 @@ mod psp22_capped {
     #[ink::test]
     fn initializing_works() {
         let token = PSP22Struct::new();
-        assert_eq!(token.cap(), CAP);
+        assert_eq!(PSP22Capped::cap(&token), CAP);
     }
 
     #[ink::test]
@@ -92,9 +81,9 @@ mod psp22_capped {
         let mut token = PSP22Struct::new();
 
         let accounts = accounts();
-        let alice_balance = token.balance_of(accounts.alice);
-        assert!(token.mint(accounts.alice, 1).is_ok());
-        assert_eq!(token.balance_of(accounts.alice), alice_balance + 1);
+        let alice_balance = PSP22::balance_of(&mut token, accounts.alice);
+        assert!(PSP22Mintable::mint(&mut token, accounts.alice, 1).is_ok());
+        assert_eq!(PSP22::balance_of(&mut token, accounts.alice), alice_balance + 1);
     }
 
     #[ink::test]
@@ -102,11 +91,11 @@ mod psp22_capped {
         let mut token = PSP22Struct::new();
 
         let accounts = accounts();
-        let alice_balance = token.balance_of(accounts.alice);
+        let alice_balance = PSP22::balance_of(&mut token, accounts.alice);
         assert_eq!(
-            token.mint(accounts.alice, CAP),
+            PSP22Mintable::mint(&mut token, accounts.alice, CAP),
             Err(PSP22Error::Custom(String::from("Cap exceeded")))
         );
-        assert_eq!(token.balance_of(accounts.alice), alice_balance);
+        assert_eq!(PSP22::balance_of(&mut token, accounts.alice), alice_balance);
     }
 }

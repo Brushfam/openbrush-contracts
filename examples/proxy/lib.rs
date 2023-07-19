@@ -1,15 +1,9 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(Proxy, Ownable)]
 #[openbrush::contract]
 pub mod proxy {
-    use openbrush::{
-        contracts::{
-            ownable::*,
-            proxy::*,
-        },
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -24,18 +18,14 @@ pub mod proxy {
         #[ink(constructor)]
         pub fn new(forward_to: Hash) -> Self {
             let mut instance = Self::default();
-            instance._init_with_forward_to(forward_to);
-            instance._init_with_owner(Self::env().caller());
+            proxy::Internal::_init_with_forward_to(&mut instance, forward_to);
+            ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
 
             instance
         }
         #[ink(message, payable, selector = _)]
         pub fn forward(&self) {
-            self._fallback()
+            proxy::Internal::_fallback(self)
         }
     }
-
-    impl Ownable for Contract {}
-
-    impl Proxy for Contract {}
 }

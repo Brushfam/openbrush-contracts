@@ -8,33 +8,33 @@ project to ease the development process. We will also pay attention to the proje
 structure to keep the maintenance and future development of the project simple.
 
 We will be implementing a simple lending protocol, in which users can lend 
-[PSP22](/smart-contracts/PSP22) tokens, borrow them against a collateral token, 
+[PSP22](../PSP22/psp22.md) tokens, borrow them against a collateral token, 
 repay their loans with interest, and of course withdraw the deposited assets. 
-We will create a [PSP22](/smart-contracts/PSP22) implementation which will be used 
-for a stable coin and a collateral token, another [PSP22](/smart-contracts/PSP22) 
+We will create a [PSP22](../PSP22/psp22.md) implementation which will be used 
+for a stable coin and a collateral token, another [PSP22](../PSP22/psp22.md) 
 token which will represent the shares of assets in the contract, 
-[PSP34](/smart-contracts/PSP34) token which will represent the loans and the 
-lending contract itself. The simple [PSP22](/smart-contracts/PSP22) token 
+[PSP34](../PSP34/psp34.md) token which will represent the loans and the 
+lending contract itself. The simple [PSP22](../PSP22/psp22.md) token 
 implementation will be created just for this example and to test the contract's functions. 
 The contract will have the following features:
 
 ## Lending of assets accepted by the smart contract
 
-Users can lend [PSP22](/smart-contracts/PSP22) tokens, which are accepted by the 
+Users can lend [PSP22](../PSP22/psp22.md) tokens, which are accepted by the 
 contract. The allowance of lending specific tokens is decided in the smart contract 
 by the accounts which have the Manager role. Upon lending the user gets a 
-[PSP22](/smart-contracts/PSP22) token representing their share of the asset pool.
+[PSP22](../PSP22/psp22.md) token representing their share of the asset pool.
 
 ## Borrowing of assets by depositing accepted assets as collateral
 
-Users can borrow [PSP22](/smart-contracts/PSP22) tokens, which are available in 
+Users can borrow [PSP22](../PSP22/psp22.md) tokens, which are available in 
 the contract. To borrow an asset, the user has to deposit an accepted 
-[PSP22](/smart-contracts/PSP22) token as collateral. The allowance of specific 
+[PSP22](../PSP22/psp22.md) token as collateral. The allowance of specific 
 tokens being used as collateral is decided in the smart contract by the accounts 
 which have the Manager role. The value of the borrowed assets can be equal at most 
 to 70% of the value of the deposited collateral. If the value of the deposited 
 collateral drops to or below 75% of the original value, the loan can be liquidated. 
-Upon borrowing the assets user gets a [PSP34](/smart-contracts/PSP34) token 
+Upon borrowing the assets user gets a [PSP34](../PSP34/psp34.md) token 
 representing info about their loan (how much assets were borrowed, when did they 
 borrow, what asset was borrowed, what asset was used as collateral, amount of 
 collateral asset deposited, the liquidation price of the loan and if it was liquidated 

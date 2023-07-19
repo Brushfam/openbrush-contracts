@@ -1,6 +1,8 @@
 use openbrush::contracts::traits::psp22::{
-    extensions::metadata::*,
-    extensions::mintable::*,
+    extensions::{
+        metadata::*,
+        mintable::*,
+    },
     *,
 };
 

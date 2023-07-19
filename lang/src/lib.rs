@@ -19,7 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 mod macros;
 pub mod storage;
@@ -30,9 +30,10 @@ pub mod utils;
 pub use openbrush_lang_macro::{
     accessors,
     contract,
+    implementation,
     modifier_definition,
     modifiers,
+    storage_item,
     trait_definition,
-    upgradeable_storage,
     wrapper,
 };

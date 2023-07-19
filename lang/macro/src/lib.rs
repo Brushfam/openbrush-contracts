@@ -19,26 +19,27 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 use proc_macro::TokenStream;
 
 use openbrush_lang_codegen::{
     accessors,
     contract,
+    implementation,
     modifier_definition,
     modifiers,
-    storage,
     storage_derive,
+    storage_item,
     trait_definition,
     wrapper,
 };
 
-/// Entry point for use openbrush's macros in ink! smart contracts.
+/// Entry point for use OpenBrush's macros in ink! smart contracts.
 ///
 /// # Description
 ///
-/// The macro consumes openbrush's macros to simplify the usage of the library.
+/// The macro consumes OpenBrush's macros to simplify the usage of the library.
 /// After consumption, it pastes ink! code and then ink!'s macros will be processed.
 ///
 /// This macro consumes impl section for traits defined with [`#[openbrush::trait_definition]`](`macro@crate::trait_definition`).
@@ -47,7 +48,7 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     contract::generate(_attrs.into(), ink_module.into()).into()
 }
 
-/// Defines extensible trait in the scope of openbrush::contract.
+/// Defines extensible trait in the scope of `openbrush::contract`.
 /// It is a common rust trait, so you can use any features of rust inside of this trait.
 /// If this trait contains some methods marked with `#[ink(message)]` or `#[ink(constructor)]` attributes,
 /// this macro will extract these attributes and will put them into a separate trait
@@ -64,16 +65,13 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///
 /// ```
 /// mod doc {
-/// use ink::prelude::collections::BTreeMap;
-/// use openbrush::traits::{ AccountId, Balance, Storage, OccupyStorage };
+/// use ink::storage::Mapping;
+/// use openbrush::traits::{ AccountId, Balance, Storage };
 ///
 /// #[derive(Debug)]
+/// #[ink::storage_item]
 /// pub struct Data {
-///     pub balances: BTreeMap<AccountId, Balance>,
-/// }
-///
-/// impl OccupyStorage for Data {
-///     const KEY: u32 = 0x123;
+///     pub balances: Mapping<AccountId, Balance>,
 /// }
 ///
 /// #[openbrush::trait_definition]
@@ -81,7 +79,7 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///     /// Returns the account Balance for the specified `owner`.
 ///     #[ink(message)]
 ///     fn balance_of(&self, owner: AccountId) -> Balance {
-///         self.data().balances.get(&owner).copied().unwrap_or(0)
+///         self.data().balances.get(&owner).unwrap_or(0)
 ///     }
 ///
 ///     /// Transfers `value` amount of tokens from the caller's account to account `to`.
@@ -93,9 +91,9 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///     fn _transfer_from_to(&mut self, from: AccountId, to: AccountId, amount: Balance) {
 ///         let from_balance = self.balance_of(from);
 ///         assert!(from_balance >= amount, "InsufficientBalance");
-///         self.data().balances.insert(from, from_balance - amount);
+///         self.data().balances.insert(from, &(from_balance - amount));
 ///         let to_balance = self.balance_of(to);
-///         self.data().balances.insert(to, to_balance + amount);
+///         self.data().balances.insert(to, &(to_balance + amount));
 ///     }
 /// }
 /// }
@@ -106,17 +104,21 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 /// ```
 /// #[openbrush::contract]
 /// mod base_psp22 {
-///     use ink::prelude::collections::BTreeMap;
+///     use ink::storage::traits::ManualKey;
+///     use ink::storage::Mapping;
+///     use ink::storage::Lazy;
 ///     use openbrush::traits::Storage;
 ///
-///     const STORAGE_KEY: u32 = 123;
+///     const STORAGE_KEY_1: u32 = 101;
+///     const STORAGE_KEY_2: u32 = 102;
+///     const STORAGE_KEY_3: u32 = 103;
 ///
 ///     #[derive(Default, Debug)]
-///     #[openbrush::upgradeable_storage(STORAGE_KEY)]
+///     #[ink::storage_item]
 ///     pub struct Data {
-///         pub supply: Balance,
-///         pub balances: BTreeMap<AccountId, Balance>,
-///         pub allowances: BTreeMap<(AccountId, AccountId), Balance>,
+///         pub supply: Lazy<Balance, ManualKey<STORAGE_KEY_1>>,
+///         pub balances: Mapping<AccountId, Balance, ManualKey<STORAGE_KEY_2>>,
+///         pub allowances: Mapping<(AccountId, AccountId), Balance, ManualKey<STORAGE_KEY_3>>,
 ///     }
 ///
 ///     #[openbrush::trait_definition]
@@ -124,7 +126,7 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///         /// Returns the account Balance for the specified `owner`.
 ///         #[ink(message)]
 ///         fn balance_of(&self, owner: AccountId) -> Balance {
-///             self.data().balances.get(&owner).copied().unwrap_or(0)
+///             self.data().balances.get(&owner).unwrap_or(0)
 ///         }
 ///
 ///         /// Transfers `value` amount of tokens from the caller's account to account `to`.
@@ -137,47 +139,27 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 ///         fn _transfer_from_to(&mut self, from: AccountId, to: AccountId, amount: Balance) {
 ///             let from_balance = self.balance_of(from);
 ///             assert!(from_balance >= amount, "InsufficientBalance");
-///             self.data().balances.insert(from, from_balance - amount);
+///             self.data().balances.insert(from, &(from_balance - amount));
 ///             let to_balance = self.balance_of(to);
-///             self.data().balances.insert(to, to_balance + amount);
+///             self.data().balances.insert(to, &(to_balance + amount));
 ///         }
 ///     }
 ///
 ///     #[ink(storage)]
-///     #[derive(Storage)]
+///     #[derive(Storage, Default)]
 ///     pub struct PSP22Struct {
 ///         #[storage_field]
 ///         example: Data,
-///         hated_account: AccountId,
+///         hated_account: Option<AccountId>,
 ///     }
 ///
-///     impl Default for PSP22Struct {
-///         fn default() -> Self {
-///             Self {
-///                 example: Data::default(),
-///                 hated_account: AccountId::from([0x0; 32]),
-///             }
-///         }
-///     }
-///
-///     impl PSP22Example for PSP22Struct {
-///         // Let's override method to reject transactions to bad account
-///         fn _transfer_from_to(&mut self, from: AccountId, to: AccountId, amount: Balance) {
-///             assert!(to != self.hated_account, "I hate this account!");
-///
-///             let from_balance = self.balance_of(from);
-///             assert!(from_balance >= amount, "InsufficientBalance");
-///             self.get_mut().balances.insert(from, from_balance - amount);
-///             let to_balance = self.balance_of(to);
-///             self.get_mut().balances.insert(to, to_balance + amount);
-///         }
-///     }
+///     impl PSP22Example for PSP22Struct {}
 ///
 ///     impl PSP22Struct {
 ///         #[ink(constructor)]
 ///         pub fn new(hated_account: AccountId) -> Self {
 ///             let mut instance = Self::default();
-///             instance.hated_account = hated_account;
+///             instance.hated_account = Some(hated_account);
 ///             instance
 ///         }
 ///     }
@@ -424,54 +406,20 @@ pub fn wrapper(attrs: TokenStream, input: TokenStream) -> TokenStream {
     wrapper::generate(attrs.into(), input.into()).into()
 }
 
-synstructure::decl_attribute!(
-    [upgradeable_storage] =>
-    /// That macro implemented `OccupyStorage`
-    ///
-    /// Also, that macro adds the code to initialize the structure if it wasn't initialized.
-    /// That macro requires one input argument - the storage key. It can be any Rust code that returns
-    /// `u32`.
-    ///
-    /// # Example:
-    /// ```
-    /// {
-    /// use openbrush::traits::AccountId;
-    /// pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(OwnableData);
-    ///
-    /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    /// pub struct OwnableData {
-    ///    pub owner: AccountId,
-    ///    pub _reserved: Option<()>,
-    /// }
-    ///
-    /// const PROXY_KEY : u32 = openbrush::storage_unique_key!(ProxyData);
-    ///
-    /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(PROXY_KEY)]
-    /// pub struct ProxyData {
-    ///    pub forward: AccountId,
-    ///    pub _reserved: Option<()>,
-    /// }
-    ///
-    /// #[derive(Debug)]
-    /// #[openbrush::upgradeable_storage(123)]
-    /// pub struct SomeData {
-    ///    pub _reserved: Option<()>,
-    /// }
-    ///
-    /// }
-    /// ```
-    storage::upgradeable_storage
-);
-
-/// The macro implements `openbrush::traits::Storage` and `openbrush::traits::OccupiedStorage`
-/// traits for each field marked by `#[storage_field]` attribute. Each field's type should implement
-/// the `openbrush::traits::OccupyStorage` trait with a unique storage key. Each occupied storage
-/// key should be unique for each type otherwise compilation will fail.
+/// The macro implements `openbrush::traits::Storage`
+/// trait for each field marked by `#[storage_field]` attribute,
+/// so it will be possible to access them via `self.data::<Type>()` method. It is mostly used for OpenBrush
+/// to understand which fields should be accessed by traits.
 ///
-/// `OccupyStorage` can be implemented for the type manually or automatically via
-/// [`#[openbrush::upgradeable_storage]`](`macro@crate::upgradeable_storage`) macro.
+/// # Example
+/// ```skip
+///     #[ink(storage)]
+///     #[derive(Storage)]
+///     pub struct Contract {
+///         #[storage_field]
+///         field: u32,
+///     }
+/// ```
 #[proc_macro_derive(Storage, attributes(storage_field))]
 pub fn storage_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     storage_derive::storage_derive(item.into()).into()
@@ -479,15 +427,31 @@ pub fn storage_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
 synstructure::decl_attribute!(
     [accessors] =>
-    /// Macro that automatically implements accessors like get/set for struct fields, that implements scale::Encode
-    /// and scale::Decode traits. You should specify the getters trait naming in the macro's attribute.
+    /// Macro that automatically implements accessors like get/set for struct fields, that implements `scale::Encode`
+    /// and `scale::Decode` traits. You should specify the getters trait naming in the macro's attribute.
     /// Also, fields that you want getters to be generated, should be marked by `#[get]` attribute.
     /// Fields, that you want setters to be generated, should be marked by `#[set]` attribute.
     /// The name of the accessor message will be concatenation of `get/set` + `_` + field's name.
     ///
     /// # Example:
     /// ```skip
-    /// {
+    ///
+    /// use openbrush::traits::Storage;
+    ///
+    /// #[openbrush::accessors(SomeStructGetters)]
+    /// #[derive(Default)]
+    /// #[ink::storage_item]
+    /// pub struct SomeStruct {
+    ///     #[get]
+    ///     a: u32,
+    ///     b: u32,
+    ///     #[set]
+    ///     c: u32,
+    /// }
+    ///
+    /// #[openbrush::contract]
+    /// pub mod contract {
+    ///     use crate::*;
     ///     use openbrush::traits::Storage;
     ///
     ///     #[ink(storage)]
@@ -497,21 +461,102 @@ synstructure::decl_attribute!(
     ///         some_struct: SomeStruct,
     ///     }
     ///
-    ///     pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(SomeStruct);
-    ///
-    ///     #[openbrush::upgradeable_storage(STORAGE_KEY)]
-    ///     #[openbrush::accessors(SomeStructGetters)]
-    ///     #[derive(Default)]
-    ///     pub struct SomeStruct {
-    ///         #[get]
-    ///         a: u32,
-    ///         b: u32,
-    ///         #[set]
-    ///         c: u32,
-    ///     }
-    ///
     ///     impl SomeStructGetters for Contract {}
+    ///
+    ///     impl Contract {
+    ///         #[ink(constructor)]
+    ///         pub fn new() -> Self {
+    ///             Self::default()
+    ///         }
+    ///     }
     /// }
     /// ```
     accessors::accessors
+);
+
+/// This macro implements the default traits defined in OpenBrush, while also allowing users
+/// to override them with `#[overrider]` or `#[default_impl]` attributes. `#[overrider]` is used when
+/// you want to change the behavior of the method by your implementation. `#[default_impl]` is used when
+/// you want to keep the default implementation from OpenBrush, but you want to attach some modifiers to
+/// that function.
+///
+/// # Example
+///
+/// ```skip
+/// #[openbrush::implementation(PSP22)]
+/// #[openbrush::contract]
+/// pub mod MyInkToken {
+///     use openbrush::traits::Storage;
+///     
+///     #[ink(storage)]
+///     #[derive(Storage)]
+///     pub struct MyInkToken {
+///         #[storage_field]
+///         psp22: psp22::Data
+///     }
+///
+///     // this will override a function from psp22::Internal
+///     #[overrider(psp22::Internal)]
+///     fn _before_token_transfer(
+///         &mut self,
+///         from: Option<&AccountId>,
+///         to: Option<&AccountId>,
+///         amount: &Balance,
+///     ) -> Result<(), PSP22Error> {
+///         // here we can change the behavior before token transfer
+///     }
+///
+///     // this will override a function from PSP22
+///     #[overrider(PSP22)]
+///     fn balance_of(&self, owner: AccountId) -> Balance {
+///          // here we can change the behavior of balance_of
+///     }
+///
+///     // this will keep the default implementation of this method,
+///     // however, it will add the modifier (and possibly other attributes defined by user)
+///     // to the function. In this case, we don't even have to worry about the attributes and
+///     // return type of the function
+///     #[default_impl(PSP22)]
+///     #[modifiers(...)]
+///     fn transfer_from() {}
+///
+///     impl Contract {
+///         // we can add constructor and other messages
+///     }
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn implementation(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
+    implementation::generate(attrs.into(), ink_module.into()).into()
+}
+
+synstructure::decl_attribute!(
+    [storage_item] =>
+    /// The macro implements `ink::storage_item` macro for the struct, which means that it prepares your struct
+    /// to be a part of contract's storage. Also, inside of struct marked by this macro you can use
+    /// `#[lazy]` attribute to mark fields, that should be lazily loaded and wrapped in `::ink::storage::Lazy`.
+    /// The macro also generates constant storage keys for every mapping or lazy field and inserts them into
+    /// type definition.
+    ///
+    /// # Example
+    /// ```skip
+    /// #[openbrush::storage_item]
+    /// pub struct MyStruct {
+    ///    a: u32,
+    ///    b: u32,
+    /// }
+    /// ```
+    ///
+    /// # Example
+    ///
+    /// ```skip
+    /// #[openbrush::storage_item]
+    /// pub struct MyStruct {
+    ///     #[lazy]
+    ///     a: u32,
+    ///     #[lazy]
+    ///     b: u32,
+    /// }
+    ///
+    storage_item::storage_item
 );

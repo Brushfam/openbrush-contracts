@@ -31,7 +31,7 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 # OpenBrush dependency
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "feature/stable-rust", default-features = false }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "develop", default-features = false }
 
 [lib]
 name = "name_of_contract"
@@ -154,19 +154,19 @@ The name of the feature is the same as the name of the module. For example:
 To enable `psp22`:
 
 ```toml
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "feature/stable-rust", default-features = false, features = ["psp22"] }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "develop", default-features = false, features = ["psp22"] }
 ```
 
 To enable `ownable`:
 
 ```toml
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "feature/stable-rust", default-features = false, features = ["ownable"] }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "develop", default-features = false, features = ["ownable"] }
 ```
 
 To enable both:
 
 ```toml
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "feature/stable-rust", default-features = false, features = ["psp22, ownable"] }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "develop", default-features = false, features = ["psp22, ownable"] }
 ```
 
 After enabling the feature and importing the corresponding module, you need to embed the module

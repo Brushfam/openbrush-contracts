@@ -11,7 +11,16 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 # These dependencies
-openbrush = { path = "../..", default-features = false, features = ["psp61", "psp22"] }
+openbrush = { path = "../..", default-features = false, features = [
+    "psp61",
+    "ownable",
+    "access_control",
+    "pausable",
+    "reentrancy_guard",
+    "timelock_controller",
+    "upgradeable",
+    "payment_splitter"
+] }
 
 [dev-dependencies]
 ink_e2e = "4.2.1"

@@ -19,19 +19,12 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![feature(min_specialization)]
 #[cfg(feature = "psp34")]
+#[openbrush::implementation(PSP34, PSP34Mintable, PSP34Burnable, PSP34Enumerable)]
 #[openbrush::contract]
 mod psp34_enumerable {
     use openbrush::{
-        contracts::psp34::{
-            extensions::{
-                burnable::*,
-                enumerable::*,
-                mintable::*,
-            },
-            Id,
-        },
+        contracts::psp34::Id,
         test_utils::{
             accounts,
             change_caller,
@@ -43,16 +36,10 @@ mod psp34_enumerable {
     #[ink(storage)]
     pub struct PSP34Struct {
         #[storage_field]
-        psp34: psp34::Data<enumerable::Balances>,
+        psp34: psp34::Data,
+        #[storage_field]
+        enumerable: enumerable::Data,
     }
-
-    impl PSP34 for PSP34Struct {}
-
-    impl PSP34Mintable for PSP34Struct {}
-
-    impl PSP34Burnable for PSP34Struct {}
-
-    impl PSP34Enumerable for PSP34Struct {}
 
     impl PSP34Struct {
         #[ink(constructor)]
@@ -68,11 +55,14 @@ mod psp34_enumerable {
         let nft = PSP34Struct::new();
         // check that alice does not have token by index
         assert_eq!(
-            nft.owners_token_by_index(accounts.alice, 0u128),
+            PSP34Enumerable::owners_token_by_index(&nft, accounts.alice, 0u128),
             Err(PSP34Error::TokenNotExists)
         );
         // token by index 1 does not exists
-        assert_eq!(nft.token_by_index(0u128), Err(PSP34Error::TokenNotExists));
+        assert_eq!(
+            PSP34Enumerable::token_by_index(&nft, 0u128),
+            Err(PSP34Error::TokenNotExists)
+        );
     }
 
     #[ink::test]
@@ -81,11 +71,14 @@ mod psp34_enumerable {
         // Create a new contract instance.
         let mut nft = PSP34Struct::new();
         // Create token Id 1 for Alice
-        assert!(nft._mint_to(accounts.alice, Id::U8(1u8)).is_ok());
+        assert!(psp34::Internal::_mint_to(&mut nft, accounts.alice, Id::U8(1u8)).is_ok());
         // check Alice token by index
-        assert_eq!(nft.owners_token_by_index(accounts.alice, 0u128), Ok(Id::U8(1u8)));
+        assert_eq!(
+            PSP34Enumerable::owners_token_by_index(&mut nft, accounts.alice, 0u128),
+            Ok(Id::U8(1u8))
+        );
         // check token by index
-        assert_eq!(nft.token_by_index(0u128), Ok(Id::U8(1u8)));
+        assert_eq!(PSP34Enumerable::token_by_index(&mut nft, 0u128), Ok(Id::U8(1u8)));
     }
 
     #[ink::test]
@@ -94,25 +87,40 @@ mod psp34_enumerable {
         // Create a new contract instance.
         let mut nft = PSP34Struct::new();
         // Create token Id 1 and Id 2 for Alice
-        assert!(nft._mint_to(accounts.alice, Id::U8(1u8)).is_ok());
-        assert!(nft._mint_to(accounts.alice, Id::U8(2u8)).is_ok());
+        assert!(psp34::Internal::_mint_to(&mut nft, accounts.alice, Id::U8(1u8)).is_ok());
+        assert!(psp34::Internal::_mint_to(&mut nft, accounts.alice, Id::U8(2u8)).is_ok());
         // check Alice token by index
-        assert_eq!(nft.owners_token_by_index(accounts.alice, 0u128), Ok(Id::U8(1u8)));
-        assert_eq!(nft.owners_token_by_index(accounts.alice, 1u128), Ok(Id::U8(2u8)));
-        // act. transfer token from alice to bob
-        assert!(nft.transfer(accounts.bob, Id::U8(1u8), vec![]).is_ok());
-        // bob owns token
-        assert_eq!(nft.owners_token_by_index(accounts.bob, 0u128), Ok(Id::U8(1u8)));
-        // alice does not own token Id 1
-        assert_eq!(nft.owners_token_by_index(accounts.alice, 0u128), Ok(Id::U8(2u8)));
         assert_eq!(
-            nft.owners_token_by_index(accounts.alice, 1u128),
+            PSP34Enumerable::owners_token_by_index(&mut nft, accounts.alice, 0u128),
+            Ok(Id::U8(1u8))
+        );
+        assert_eq!(
+            PSP34Enumerable::owners_token_by_index(&mut nft, accounts.alice, 1u128),
+            Ok(Id::U8(2u8))
+        );
+        // act. transfer token from alice to bob
+        assert!(PSP34::transfer(&mut nft, accounts.bob, Id::U8(1u8), vec![]).is_ok());
+        // bob owns token
+        assert_eq!(
+            PSP34Enumerable::owners_token_by_index(&mut nft, accounts.bob, 0u128),
+            Ok(Id::U8(1u8))
+        );
+        // alice does not own token Id 1
+        assert_eq!(
+            PSP34Enumerable::owners_token_by_index(&mut nft, accounts.alice, 0u128),
+            Ok(Id::U8(2u8))
+        );
+        assert_eq!(
+            PSP34Enumerable::owners_token_by_index(&mut nft, accounts.alice, 1u128),
             Err(PSP34Error::TokenNotExists)
         );
         // act. transfer token from alice to alice
-        assert!(nft.transfer(accounts.alice, Id::U8(2u8), vec![]).is_ok());
+        assert!(PSP34::transfer(&mut nft, accounts.alice, Id::U8(2u8), vec![]).is_ok());
         // check Alice token by index
-        assert_eq!(nft.owners_token_by_index(accounts.alice, 0u128), Ok(Id::U8(2u8)));
+        assert_eq!(
+            PSP34Enumerable::owners_token_by_index(&mut nft, accounts.alice, 0u128),
+            Ok(Id::U8(2u8))
+        );
     }
 
     #[ink::test]
@@ -121,22 +129,25 @@ mod psp34_enumerable {
         // Create a new contract instance.
         let mut nft = PSP34Struct::new();
         // Create token Id 1 for Alice
-        assert!(nft._mint_to(accounts.alice, Id::U8(1u8)).is_ok());
-        assert!(nft._mint_to(accounts.alice, Id::U8(2u8)).is_ok());
-        assert!(nft._mint_to(accounts.alice, Id::U8(3u8)).is_ok());
+        assert!(psp34::Internal::_mint_to(&mut nft, accounts.alice, Id::U8(1u8)).is_ok());
+        assert!(psp34::Internal::_mint_to(&mut nft, accounts.alice, Id::U8(2u8)).is_ok());
+        assert!(psp34::Internal::_mint_to(&mut nft, accounts.alice, Id::U8(3u8)).is_ok());
         // act. transfer token from alice to bob
-        assert!(nft.transfer(accounts.bob, Id::U8(1u8), vec![]).is_ok());
-        assert!(nft.transfer(accounts.bob, Id::U8(3u8), vec![]).is_ok());
+        assert!(PSP34::transfer(&mut nft, accounts.bob, Id::U8(1u8), vec![]).is_ok());
+        assert!(PSP34::transfer(&mut nft, accounts.bob, Id::U8(3u8), vec![]).is_ok());
         change_caller(accounts.bob);
-        assert!(nft.transfer(accounts.alice, Id::U8(1u8), vec![]).is_ok());
-        assert!(nft.burn(accounts.alice, Id::U8(2u8)).is_ok());
-        assert!(nft.transfer(accounts.alice, Id::U8(3u8), vec![]).is_ok());
+        assert!(PSP34::transfer(&mut nft, accounts.alice, Id::U8(1u8), vec![]).is_ok());
+        assert!(PSP34Burnable::burn(&mut nft, accounts.alice, Id::U8(2u8)).is_ok());
+        assert!(PSP34::transfer(&mut nft, accounts.alice, Id::U8(3u8), vec![]).is_ok());
         change_caller(accounts.alice);
-        assert!(nft.transfer(accounts.bob, Id::U8(3u8), vec![]).is_ok());
+        assert!(PSP34::transfer(&mut nft, accounts.bob, Id::U8(3u8), vec![]).is_ok());
         // alice does not own token
-        assert_eq!(nft.token_by_index(0u128), Ok(Id::U8(1u8)));
-        assert_eq!(nft.token_by_index(1u128), Ok(Id::U8(3u8)));
-        assert_eq!(nft.token_by_index(2u128), Err(PSP34Error::TokenNotExists));
+        assert_eq!(PSP34Enumerable::token_by_index(&mut nft, 0u128), Ok(Id::U8(1u8)));
+        assert_eq!(PSP34Enumerable::token_by_index(&mut nft, 1u128), Ok(Id::U8(3u8)));
+        assert_eq!(
+            PSP34Enumerable::token_by_index(&mut nft, 2u128),
+            Err(PSP34Error::TokenNotExists)
+        );
     }
 
     #[ink::test]
@@ -144,19 +155,25 @@ mod psp34_enumerable {
         let accounts = accounts();
         // Create a new contract instance.
         let mut nft = PSP34Struct::new();
-        assert!(nft._mint_to(accounts.alice, Id::U8(1u8)).is_ok());
+        assert!(psp34::Internal::_mint_to(&mut nft, accounts.alice, Id::U8(1u8)).is_ok());
         // alice still owns token id 1
-        assert_eq!(nft.owners_token_by_index(accounts.alice, 0u128), Ok(Id::U8(1u8)));
+        assert_eq!(
+            PSP34Enumerable::owners_token_by_index(&mut nft, accounts.alice, 0u128),
+            Ok(Id::U8(1u8))
+        );
         // index 0 points to token with id 1
-        assert_eq!(nft.token_by_index(0u128), Ok(Id::U8(1u8)));
+        assert_eq!(PSP34Enumerable::token_by_index(&mut nft, 0u128), Ok(Id::U8(1u8)));
         // Destroy token Id 1.
-        assert!(nft.burn(accounts.alice, Id::U8(1u8)).is_ok());
+        assert!(PSP34Burnable::burn(&mut nft, accounts.alice, Id::U8(1u8)).is_ok());
         // alice does not owns any tokens
         assert_eq!(
-            nft.owners_token_by_index(accounts.alice, 0u128),
+            PSP34Enumerable::owners_token_by_index(&mut nft, accounts.alice, 0u128),
             Err(PSP34Error::TokenNotExists)
         );
         // token by index 1 does not exists
-        assert_eq!(nft.token_by_index(0u128), Err(PSP34Error::TokenNotExists));
+        assert_eq!(
+            PSP34Enumerable::token_by_index(&mut nft, 0u128),
+            Err(PSP34Error::TokenNotExists)
+        );
     }
 }

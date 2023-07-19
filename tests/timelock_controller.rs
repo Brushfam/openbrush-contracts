@@ -19,28 +19,26 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![feature(min_specialization)]
 #[cfg(feature = "timelock_controller")]
+#[openbrush::implementation(TimelockController, AccessControl, AccessControlEnumerable)]
 #[openbrush::contract]
 mod timelock_controller {
     use ::ink::env::DefaultEnvironment;
-    use ink::env::test::DefaultAccounts;
-    use openbrush::{
-        contracts::{
-            access_control::extensions::enumerable::*,
-            timelock_controller::*,
+    use ink::{
+        codegen::{
+            EmitEvent,
+            Env,
         },
+        env::test::DefaultAccounts,
+    };
+    use openbrush::{
         test_utils::{
             accounts,
             change_caller,
         },
         traits::Storage,
     };
-
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
+    use openbrush_contracts::traits::timelock_controller::AccessControlError;
 
     /// Emitted when a call is scheduled as part of operation `id`.
     #[ink(event)]
@@ -82,53 +80,54 @@ mod timelock_controller {
     #[derive(Default, Storage)]
     pub struct TimelockControllerStruct {
         #[storage_field]
-        access_control: access_control::Data<enumerable::Members>,
+        access_control: access_control::Data,
+        #[storage_field]
+        enumerable: enumerable::Data,
         #[storage_field]
         timelock: timelock_controller::Data,
     }
 
     type Event = <TimelockControllerStruct as ::ink::reflect::ContractEventBase>::Type;
 
-    impl AccessControl for TimelockControllerStruct {}
-    impl TimelockController for TimelockControllerStruct {}
+    #[overrider(timelock_controller::Internal)]
+    fn _emit_min_delay_change_event(&self, old_delay: Timestamp, new_delay: Timestamp) {
+        self.env().emit_event(MinDelayChange { old_delay, new_delay })
+    }
 
-    impl timelock_controller::Internal for TimelockControllerStruct {
-        fn _emit_min_delay_change_event(&self, old_delay: Timestamp, new_delay: Timestamp) {
-            self.env().emit_event(MinDelayChange { old_delay, new_delay })
-        }
+    #[overrider(timelock_controller::Internal)]
+    fn _emit_call_scheduled_event(
+        &self,
+        id: OperationId,
+        index: u8,
+        transaction: Transaction,
+        predecessor: Option<OperationId>,
+        delay: Timestamp,
+    ) {
+        self.env().emit_event(CallScheduled {
+            id,
+            index,
+            transaction,
+            predecessor,
+            delay,
+        })
+    }
 
-        fn _emit_call_scheduled_event(
-            &self,
-            id: OperationId,
-            index: u8,
-            transaction: Transaction,
-            predecessor: Option<OperationId>,
-            delay: Timestamp,
-        ) {
-            self.env().emit_event(CallScheduled {
-                id,
-                index,
-                transaction,
-                predecessor,
-                delay,
-            })
-        }
+    #[overrider(timelock_controller::Internal)]
+    fn _emit_cancelled_event(&self, id: OperationId) {
+        self.env().emit_event(Cancelled { id })
+    }
 
-        fn _emit_cancelled_event(&self, id: OperationId) {
-            self.env().emit_event(Cancelled { id })
-        }
-
-        fn _emit_call_executed_event(&self, id: OperationId, index: u8, transaction: Transaction) {
-            self.env().emit_event(CallExecuted { id, index, transaction })
-        }
+    #[overrider(timelock_controller::Internal)]
+    fn _emit_call_executed_event(&self, id: OperationId, index: u8, transaction: Transaction) {
+        self.env().emit_event(CallExecuted { id, index, transaction })
     }
 
     impl TimelockControllerStruct {
         #[ink(constructor)]
         pub fn new(admin: AccountId, delay: Timestamp, proposers: Vec<AccountId>, executors: Vec<AccountId>) -> Self {
             let mut instance = Self::default();
-            access_control::Internal::_init_with_admin(&mut instance, admin);
-            timelock_controller::Internal::_init_with_admin(&mut instance, admin, delay, proposers, executors);
+            access_control::Internal::_init_with_admin(&mut instance, Some(admin));
+            timelock_controller::Internal::_init_with_admin(&mut instance, Some(admin), delay, proposers, executors);
             instance
         }
     }
@@ -227,20 +226,35 @@ mod timelock_controller {
             vec![accounts.bob, accounts.charlie],
             vec![accounts.eve, accounts.charlie],
         );
-        assert!(timelock.has_role(TIMELOCK_ADMIN_ROLE, accounts.alice));
-        assert!(!timelock.has_role(PROPOSER_ROLE, accounts.alice));
-        assert!(!timelock.has_role(EXECUTOR_ROLE, accounts.alice));
-        assert_eq!(timelock.get_role_admin(TIMELOCK_ADMIN_ROLE), TIMELOCK_ADMIN_ROLE);
-        assert_eq!(timelock.get_role_admin(PROPOSER_ROLE), PROPOSER_ROLE);
-        assert_eq!(timelock.get_role_admin(EXECUTOR_ROLE), EXECUTOR_ROLE);
-        assert_eq!(timelock.get_min_delay(), 10);
+        assert!(AccessControl::has_role(
+            &timelock,
+            TIMELOCK_ADMIN_ROLE,
+            Some(accounts.alice)
+        ));
+        assert!(!AccessControl::has_role(&timelock, PROPOSER_ROLE, Some(accounts.alice)));
+        assert!(!AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.alice)));
+        assert_eq!(
+            AccessControl::get_role_admin(&timelock, TIMELOCK_ADMIN_ROLE),
+            TIMELOCK_ADMIN_ROLE
+        );
+        assert_eq!(AccessControl::get_role_admin(&timelock, PROPOSER_ROLE), PROPOSER_ROLE);
+        assert_eq!(AccessControl::get_role_admin(&timelock, EXECUTOR_ROLE), EXECUTOR_ROLE);
+        assert_eq!(TimelockController::get_min_delay(&timelock,), 10);
 
-        assert!(timelock.has_role(PROPOSER_ROLE, accounts.bob));
-        assert!(timelock.has_role(PROPOSER_ROLE, accounts.charlie));
-        assert!(!timelock.has_role(PROPOSER_ROLE, accounts.eve));
-        assert!(timelock.has_role(EXECUTOR_ROLE, accounts.eve));
-        assert!(timelock.has_role(EXECUTOR_ROLE, accounts.charlie));
-        assert!(!timelock.has_role(EXECUTOR_ROLE, accounts.bob));
+        assert!(AccessControl::has_role(&timelock, PROPOSER_ROLE, Some(accounts.bob)));
+        assert!(AccessControl::has_role(
+            &timelock,
+            PROPOSER_ROLE,
+            Some(accounts.charlie)
+        ));
+        assert!(!AccessControl::has_role(&timelock, PROPOSER_ROLE, Some(accounts.eve)));
+        assert!(AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.eve)));
+        assert!(AccessControl::has_role(
+            &timelock,
+            EXECUTOR_ROLE,
+            Some(accounts.charlie)
+        ));
+        assert!(!AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.bob)));
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_min_delay_change_event(&emitted_events[0], 0, 10);
@@ -252,15 +266,15 @@ mod timelock_controller {
         let min_delay = 10;
         let mut timelock = TimelockControllerStruct::new(accounts.alice, min_delay, vec![accounts.alice], vec![]);
 
-        let id = timelock.hash_operation(Transaction::default(), None, [0; 32]);
+        let id = TimelockController::hash_operation(&mut timelock, Transaction::default(), None, [0; 32]);
 
-        assert!(!timelock.is_operation(id));
-        assert!(timelock
-            .schedule(Transaction::default(), None, [0; 32], min_delay + 1)
-            .is_ok());
-        assert!(timelock.is_operation(id));
-        assert!(timelock.is_operation_pending(id));
-        assert_eq!(timelock.get_timestamp(id), min_delay + 1);
+        assert!(!TimelockController::is_operation(&mut timelock, id));
+        assert!(
+            TimelockController::schedule(&mut timelock, Transaction::default(), None, [0; 32], min_delay + 1).is_ok()
+        );
+        assert!(TimelockController::is_operation(&mut timelock, id));
+        assert!(TimelockController::is_operation_pending(&mut timelock, id));
+        assert_eq!(TimelockController::get_timestamp(&mut timelock, id), min_delay + 1);
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_call_scheduled_event(&emitted_events[1], id, 0, Transaction::default(), None, min_delay + 1);
@@ -276,7 +290,7 @@ mod timelock_controller {
             Err(TimelockControllerError::AccessControlError(
                 AccessControlError::MissingRole
             )),
-            timelock.schedule(Transaction::default(), None, [0; 32], min_delay + 1)
+            TimelockController::schedule(&mut timelock, Transaction::default(), None, [0; 32], min_delay + 1)
         );
     }
 
@@ -286,12 +300,12 @@ mod timelock_controller {
         let min_delay = 10;
         let mut timelock = TimelockControllerStruct::new(accounts.alice, min_delay, vec![accounts.alice], vec![]);
 
-        assert!(timelock
-            .schedule(Transaction::default(), None, [0; 32], min_delay + 1)
-            .is_ok());
+        assert!(
+            TimelockController::schedule(&mut timelock, Transaction::default(), None, [0; 32], min_delay + 1).is_ok()
+        );
         assert_eq!(
             Err(TimelockControllerError::OperationAlreadyScheduled),
-            timelock.schedule(Transaction::default(), None, [0; 32], min_delay + 1)
+            TimelockController::schedule(&mut timelock, Transaction::default(), None, [0; 32], min_delay + 1)
         );
     }
 
@@ -303,7 +317,7 @@ mod timelock_controller {
 
         assert_eq!(
             Err(TimelockControllerError::InsufficientDelay),
-            timelock.schedule(Transaction::default(), None, [0; 32], min_delay - 1)
+            TimelockController::schedule(&mut timelock, Transaction::default(), None, [0; 32], min_delay - 1)
         );
     }
 
@@ -314,15 +328,16 @@ mod timelock_controller {
         let mut timelock = TimelockControllerStruct::new(accounts.alice, min_delay, vec![accounts.alice], vec![]);
         let transactions = vec![Transaction::default(), Transaction::default()];
 
-        let id = timelock.hash_operation_batch(transactions.clone(), None, [0; 32]);
+        let id = TimelockController::hash_operation_batch(&mut timelock, transactions.clone(), None, [0; 32]);
 
-        assert!(!timelock.is_operation(id));
-        assert!(timelock
-            .schedule_batch(transactions.clone(), None, [0; 32], min_delay + 1)
-            .is_ok());
-        assert!(timelock.is_operation(id));
-        assert!(timelock.is_operation_pending(id));
-        assert_eq!(timelock.get_timestamp(id), min_delay + 1);
+        assert!(!TimelockController::is_operation(&mut timelock, id));
+        assert!(
+            TimelockController::schedule_batch(&mut timelock, transactions.clone(), None, [0; 32], min_delay + 1)
+                .is_ok()
+        );
+        assert!(TimelockController::is_operation(&mut timelock, id));
+        assert!(TimelockController::is_operation_pending(&mut timelock, id));
+        assert_eq!(TimelockController::get_timestamp(&mut timelock, id), min_delay + 1);
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
 
@@ -343,7 +358,7 @@ mod timelock_controller {
             Err(TimelockControllerError::AccessControlError(
                 AccessControlError::MissingRole
             )),
-            timelock.schedule_batch(transactions.clone(), None, [0; 32], min_delay + 1)
+            TimelockController::schedule_batch(&mut timelock, transactions.clone(), None, [0; 32], min_delay + 1)
         );
     }
 
@@ -353,11 +368,11 @@ mod timelock_controller {
         let min_delay = 10;
         let mut timelock = TimelockControllerStruct::new(accounts.alice, min_delay, vec![accounts.alice], vec![]);
 
-        let id = timelock.hash_operation(Transaction::default(), None, [0; 32]);
-        assert!(timelock
-            .schedule(Transaction::default(), None, [0; 32], min_delay + 1)
-            .is_ok());
-        assert!(timelock.cancel(id).is_ok());
+        let id = TimelockController::hash_operation(&mut timelock, Transaction::default(), None, [0; 32]);
+        assert!(
+            TimelockController::schedule(&mut timelock, Transaction::default(), None, [0; 32], min_delay + 1).is_ok()
+        );
+        assert!(TimelockController::cancel(&mut timelock, id).is_ok());
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_call_scheduled_event(&emitted_events[1], id, 0, Transaction::default(), None, min_delay + 1);
@@ -370,20 +385,20 @@ mod timelock_controller {
         let min_delay = 10;
         let mut timelock = TimelockControllerStruct::new(accounts.alice, min_delay, vec![accounts.alice], vec![]);
 
-        let id = timelock.hash_operation(Transaction::default(), None, [0; 32]);
-        assert!(timelock
-            .schedule(Transaction::default(), None, [0; 32], min_delay + 1)
-            .is_ok());
+        let id = TimelockController::hash_operation(&mut timelock, Transaction::default(), None, [0; 32]);
+        assert!(
+            TimelockController::schedule(&mut timelock, Transaction::default(), None, [0; 32], min_delay + 1).is_ok()
+        );
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_call_scheduled_event(&emitted_events[1], id, 0, Transaction::default(), None, min_delay + 1);
 
-        assert!(timelock.revoke_role(PROPOSER_ROLE, accounts.alice).is_ok());
+        assert!(AccessControl::revoke_role(&mut timelock, PROPOSER_ROLE, Some(accounts.alice)).is_ok());
         assert_eq!(
             Err(TimelockControllerError::AccessControlError(
                 AccessControlError::MissingRole
             )),
-            timelock.cancel(id)
+            TimelockController::cancel(&mut timelock, id)
         );
     }
 
@@ -393,10 +408,10 @@ mod timelock_controller {
         let min_delay = 10;
         let mut timelock = TimelockControllerStruct::new(accounts.alice, min_delay, vec![accounts.alice], vec![]);
 
-        let id = timelock.hash_operation(Transaction::default(), None, [0; 32]);
+        let id = TimelockController::hash_operation(&mut timelock, Transaction::default(), None, [0; 32]);
         assert_eq!(
             Err(TimelockControllerError::OperationCannonBeCanceled),
-            timelock.cancel(id)
+            TimelockController::cancel(&mut timelock, id)
         );
     }
 
@@ -408,7 +423,7 @@ mod timelock_controller {
 
         // Caller of the method is contract itself
         change_caller(timelock.env().account_id());
-        assert!(timelock.update_delay(min_delay + 2).is_ok());
+        assert!(TimelockController::update_delay(&mut timelock, min_delay + 2).is_ok());
     }
 
     #[ink::test]
@@ -420,7 +435,7 @@ mod timelock_controller {
 
         assert_eq!(
             Err(TimelockControllerError::CallerMustBeTimeLock),
-            timelock.update_delay(min_delay + 2)
+            TimelockController::update_delay(&mut timelock, min_delay + 2)
         );
     }
 }

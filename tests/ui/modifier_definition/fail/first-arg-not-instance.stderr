@@ -1,0 +1,5 @@
+error: Modifier must take at least two arguments, where first is a reference to instance `instance: & Trait/Struct` and second is Fn, FnMut or FnOnce
+  --> tests/ui/modifier_definition/fail/first-arg-not-instance.rs:15:48
+   |
+15 |         fn once<BodyFn: FnOnce(&mut Contract)>(body: BodyFn) {
+   |                                                ^^^^

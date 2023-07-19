@@ -19,8 +19,8 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#![feature(min_specialization)]
 #[cfg(feature = "psp37")]
+#[openbrush::implementation(PSP37, PSP37Metadata)]
 #[openbrush::contract]
 mod psp37_metadata {
     use ink::codegen::{
@@ -31,7 +31,6 @@ mod psp37_metadata {
         Storage,
         String,
     };
-    use openbrush_contracts::psp37::extensions::metadata::*;
 
     #[ink(event)]
     pub struct AttributeSet {
@@ -49,18 +48,13 @@ mod psp37_metadata {
         metadata: metadata::Data,
     }
 
-    impl PSP37 for PSP37Struct {}
-
-    impl PSP37Metadata for PSP37Struct {}
-
-    impl metadata::Internal for PSP37Struct {
-        fn _emit_attribute_set_event(&self, _id: &Id, _key: &String, _data: &String) {
-            self.env().emit_event(AttributeSet {
-                id: _id.clone(),
-                key: _key.to_string(),
-                data: _data.to_string(),
-            });
-        }
+    #[overrider(metadata::Internal)]
+    fn _emit_attribute_set_event(&self, id: &Id, key: &String, data: &String) {
+        self.env().emit_event(AttributeSet {
+            id: id.clone(),
+            key: key.to_string(),
+            data: data.to_string(),
+        });
     }
 
     impl PSP37Struct {
@@ -71,7 +65,7 @@ mod psp37_metadata {
 
         #[ink(message)]
         pub fn set_attribute(&mut self, id: Id, key: String, data: String) -> Result<(), PSP37Error> {
-            self._set_attribute(&id, &key, &data)
+            metadata::Internal::_set_attribute(self, &id, &key, &data)
         }
     }
 
@@ -84,7 +78,7 @@ mod psp37_metadata {
             .is_ok());
 
         assert_eq!(
-            nft.get_attribute(Id::U128(1), String::from("name")),
+            PSP37Metadata::get_attribute(&nft, Id::U128(1), String::from("name")),
             Some(String::from("TKN"))
         );
     }

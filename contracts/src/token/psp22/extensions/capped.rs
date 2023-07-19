@@ -28,7 +28,6 @@ pub use crate::{
     },
 };
 pub use capped::Internal as _;
-
 use openbrush::traits::{
     Balance,
     Storage,
@@ -36,21 +35,20 @@ use openbrush::traits::{
 };
 pub use psp22::{
     Internal as _,
-    Transfer as _,
+    InternalImpl as _,
+    PSP22Impl,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
-
 #[derive(Default, Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item]
 pub struct Data {
+    #[lazy]
     pub cap: Balance,
-    pub _reserved: Option<()>,
 }
 
-impl<T: Storage<Data>> PSP22Capped for T {
-    default fn cap(&self) -> Balance {
-        self.data().cap.clone()
+pub trait PSP22CappedImpl: Internal {
+    fn cap(&self) -> Balance {
+        self._cap()
     }
 }
 
@@ -59,21 +57,27 @@ pub trait Internal {
     fn _init_cap(&mut self, cap: Balance) -> Result<(), PSP22Error>;
 
     fn _is_cap_exceeded(&self, amount: &Balance) -> bool;
+
+    fn _cap(&self) -> Balance;
 }
 
-impl<T: Storage<Data> + Storage<psp22::Data>> Internal for T {
+pub trait InternalImpl: Storage<Data> + Internal + PSP22 {
     fn _init_cap(&mut self, cap: Balance) -> Result<(), PSP22Error> {
         if cap == 0 {
             return Err(PSP22Error::Custom(String::from("Cap must be above 0")))
         }
-        self.data::<Data>().cap = cap;
+        self.data().cap.set(&cap);
         Ok(())
     }
 
     fn _is_cap_exceeded(&self, amount: &Balance) -> bool {
-        if self.total_supply() + amount > self.cap() {
+        if self.total_supply() + amount > Internal::_cap(self) {
             return true
         }
         false
+    }
+
+    fn _cap(&self) -> Balance {
+        self.data().cap.get_or_default()
     }
 }

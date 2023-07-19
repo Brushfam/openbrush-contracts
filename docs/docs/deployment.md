@@ -19,7 +19,7 @@ The list of standalone blockchain/parachains that support ink! smart contracts:
 
 ### Overview
 
-- To deploy contract you should build your own contract or get some example from [Openbrush](https://github.com/727-Ventures/openbrush-contracts/tree/main/examples). You can find instruction how to build ink! smart contract in [docs](https://ink.substrate.io/getting-started/building-your-contract)
+- To deploy contract you should build your own contract or get some example from [Openbrush](https://github.com/Brushfam/openbrush-contracts/tree/main/examples). You can find instruction how to build ink! smart contract in [docs](https://ink.substrate.io/getting-started/building-your-contract)
 - You have to choose substrate network to deploy your contract.
   There are several option you have:
 
@@ -43,7 +43,7 @@ The list of standalone blockchain/parachains that support ink! smart contracts:
 - build ink! contract using:
 
 ```
-cargo +nightly contract build
+cargo contract build
 ```
 
 Once the compilation is completed, a target folder is created. In this folder, under the ink subdirectory, you will be able to see a `my_psp22.wasm` file and a `metadata.json` file. `my_psp22.wasm` is your contract that has been compiled to web assembly and the `metadata.json` is a JSON abstraction of your contract.
@@ -57,7 +57,7 @@ You will find 3 files in folder `./openbrush/examples/psp22/target/ink`
 ### Install polkadot extention for your browser and create account
 
 - Navigate to [Polkadot.js.org](https://polkadot.js.org/extension/) extention tab and install to your browser. You need wallet extention to sign and submit transaction for deployment contract and manual testing via UI
-- Create or import polkadot account. You need account and some tokens on that account to deploy and test contracts on test network like `Canvas`, `Shibuya` or main network like `Shiden` and `Astar` in near futures. How to get free tokens for test net you will find [there](#rococo-Faucet)
+- Create or import polkadot account. You need account and some tokens on that account to deploy and test contracts on test network like `Canvas`, `Shibuya` or main network like `Shiden` and `Astar` in near futures. How to get free tokens for test net you will find [there](https://paritytech.github.io/polkadot-testnet-faucet/)
 - Please write down your wallet's mnemonic seed and keep it in a safe place. The mnemonic can be used to restore your wallet. Keep it carefully to not lose your assets.
 
 ![](assets/20220605_155001_create-wallet.gif)

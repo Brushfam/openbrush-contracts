@@ -1,13 +1,10 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 pub mod my_psp22_facet_v1 {
     use openbrush::{
-        contracts::{
-            ownable::*,
-            psp22::*,
-        },
+        contracts::ownable::*,
         modifiers,
         traits::Storage,
     };
@@ -22,8 +19,6 @@ pub mod my_psp22_facet_v1 {
         ownable: ownable::Data,
     }
 
-    impl PSP22 for PSP22FacetV1 {}
-
     impl PSP22FacetV1 {
         #[ink(constructor)]
         pub fn new() -> Self {
@@ -33,7 +28,7 @@ pub mod my_psp22_facet_v1 {
         #[ink(message)]
         #[modifiers(only_owner)]
         pub fn init_psp22(&mut self) -> Result<(), PSP22Error> {
-            self._mint_to(Self::env().caller(), 1000)
+            psp22::Internal::_mint_to(self, Self::env().caller(), 1000)
         }
     }
 }

@@ -3,11 +3,11 @@ sidebar_position: 4
 title: Shares contract
 ---
 
-Similarly, we will implement another [PSP22](/smart-contracts/PSP22) token 
+Similarly, we will implement another [PSP22](../PSP22/psp22.md) token 
 which will represent the ownership of assets available by the smart contract 
-to be lent. In this token, we will need [PSP22Metadata](/smart-contracts/PSP22/extensions/metadata) 
+to be lent. In this token, we will need [PSP22Metadata](../PSP22/Extensions/metadata.md) 
 and we will also need to mint and burn this token. We only want our contract(lending contract) to 
-perform these actions, so we will also add the [Ownable](/smart-contracts/ownable) extension.
+perform these actions, so we will also add the [Ownable](../ownable.md) extension.
 
 ## Definition of the `Shares` trait
 
@@ -39,9 +39,9 @@ pub trait Shares: PSP22 + PSP22Mintable + PSP22Burnable + PSP22Metadata + Ownabl
 
 ## Add dependencies
 
-In addition to the dependencies imported in the [PSP22](/smart-contracts/PSP22)
+In addition to the dependencies imported in the [PSP22](../PSP22/psp22.md)
 documentation, we will also add the `ownable` dependency the same way as in the
-[ownable](/smart-contracts/ownable) documentation. We will be using `SharesContract`
+[ownable](../ownable.md) documentation. We will be using `SharesContract`
 as a dependency in our lending contract to instantiate it. So we need to also add
 the `"rlib"` crate type to have the ability to import the `SharesContract` as a dependency.
 
@@ -54,25 +54,17 @@ be restricted. Therefore, on top of the imports in the previous contract,
 we also need these imports:
 
 ```rust
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(min_specialization)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 /// This contract will be used to represent the shares of a user
 /// and other instance of this contract will be used to represent
 /// the amount of borrowed tokens
+#[openbrush::implementation(PSP22, PSP22Mintable, PSP22Burnable, PSP22Metadata, Ownable)]
 #[openbrush::contract]
 pub mod shares {
     use openbrush::traits::String;
     use lending_project::traits::shares::*;
     use openbrush::{
-        contracts::{
-            ownable::*,
-            psp22::extensions::{
-                burnable::*,
-                metadata::*,
-                mintable::*,
-            },
-        },
         modifiers,
         traits::Storage,
     };
@@ -103,15 +95,6 @@ We will be using these extensions in our token, so we will implement them for
 our storage.
 
 ```rust
-// Implement PSP22 Trait for our share
-impl PSP22 for SharesContract {}
-
-// Implement Ownable Trait for our share
-impl Ownable for SharesContract {}
-
-// Implement Metadata Trait for our share
-impl PSP22Metadata for SharesContract {}
-
 // It forces the compiler to check that you implemented all super traits
 impl Shares for SharesContract {}
 ```
@@ -123,28 +106,19 @@ These are a little different so we are doing it in a separate section.
 We don't want anybody to mint or burn the tokens, we only want the owner, 
 in this case, our lending contract, to do it. So we will add the `PSP22Burnable` 
 and `PSP22Mintable` and mark the functions of these traits with the `only_owner` 
-restriction.
+restriction. Here we are using the `#[default_impl]` macro to mark, that we want to use default implementation of the trait's 
+method but to use some modifiers or add other attributes to the method.
 
 ```rust
-// Implement Mintable Trait for our share
-impl PSP22Mintable for SharesContract {
-    /// override the `mint` function to add the `only_owner` modifier
-    #[ink(message)]
-    #[modifiers(only_owner)]
-    fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        self._mint_to(account, amount)
-    }
-}
+/// override the `mint` function to add the `only_owner` modifier
+#[default_impl(PSP22Mintable)]
+#[modifiers(only_owner)]
+fn mint() {}
 
-// Implement Burnable Trait for our share
-impl PSP22Burnable for SharesContract {
-    /// override the `burn` function to add the `only_owner` modifier
-    #[ink(message)]
-    #[modifiers(only_owner)]
-    fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        self._burn_from(account, amount)
-    }
-}
+/// override the `burn` function to add the `only_owner` modifier
+#[default_impl(PSP22Burnable)]
+#[modifiers(only_owner)]
+fn burn() {}
 ```
 
 This will restrict accounts other than the owner of the token (which will be the lending contract) 

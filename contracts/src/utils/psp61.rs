@@ -19,22 +19,9 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+pub use crate::{psp61, traits::psp61::*};
 use ink::prelude::vec;
 use ink::prelude::vec::Vec;
-use openbrush::storage::Mapping;
-use openbrush::traits::{Storage, StorageAsRef};
-
-#[derive(Default, Debug)]
-#[openbrush::storage_item]
-pub struct Data {
-    pub is_supported: Mapping<u32, bool>,
-}
-
-#[openbrush::trait_definition]
-pub trait PSP61 {
-    #[ink(message)]
-    fn supports_interface(&self, interface_id: u32) -> bool;
-}
 
 pub trait PSP61Internal {
     fn _interfaces(&self) -> Vec<u32> {
@@ -48,19 +35,19 @@ pub trait PSP61InternalOB {
     }
 }
 
-pub trait PSP61Impl: PSP61Internal + PSP61InternalOB + Storage<Data> {
-    fn init(&mut self) {
-        let mut interfaces = self._interfaces();
-
-        interfaces.extend(self._interfaces_ob());
-        interfaces.push(psp61_external::TRAIT_ID);
-
-        for interface_id in interfaces {
-            self.data().is_supported.insert(&interface_id, &true);
-        }
-    }
-
+pub trait PSP61Impl: PSP61Internal + PSP61InternalOB {
     fn supports_interface(&self, interface_id: u32) -> bool {
-        self.data().is_supported.get(&interface_id).unwrap_or(false)
+        self._interfaces().contains(&interface_id) || self._interfaces_ob().contains(&interface_id)
     }
+}
+
+#[macro_export]
+macro_rules! supported_interfaces {
+    ($contract:ident => $($interface_id:expr),*) => {
+        impl ::openbrush::contracts::psp61::PSP61Internal for $contract {
+            fn _interfaces(&self) -> ::ink::prelude::vec::Vec<u32> {
+                ::ink::prelude::vec![$($interface_id),*]
+            }
+        }
+    };
 }

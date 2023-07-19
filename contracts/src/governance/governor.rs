@@ -36,9 +36,12 @@ use openbrush::{
         AccountId,
         Balance,
         Storage,
-        Selector
     },
 };
+use openbrush::traits::{StorageAsRef, Timestamp};
+use blake2::Blake2s;
+
+pub type Selector = Vec<u8>;
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -49,8 +52,7 @@ pub struct Data {
     pub governance_call: Vec<Selector>,
 }
 
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
-#[derive(PartialEq, Eq, scale::Encode, scale::Decode)]
+#[openbrush::storage_item]
 pub struct ProposalCore {
     proposer: AccountId,
     vote_start: Timestamp,
@@ -59,67 +61,199 @@ pub struct ProposalCore {
     canceled: bool,
 }
 
-pub trait GovernanceImpl: Storage<Data> + Internal {
+pub trait GovernorImpl: Storage<Data> + Internal + Gobernor{
     fn name(&self) -> String {
-        self._name()
+        self.data().name.clone()
     }
 
-    fn state(&self, id: Id) -> ProposalState {
-        self._state(id)
+    fn state(&self, proposal_id: Id) -> Result<ProposalState, GovernorError> {
+        let proposal = self.data().proposals.get(&proposal_id).ok_or(GovernorError::NonexistentProposal(proposal_id.clone()))?;
+
+        if proposal.executed {
+            return Ok(ProposalState::Executed);
+        }
+
+        if proposal.canceled {
+            return Ok(ProposalState::Canceled);
+        }
+
+        let snapshot = self.proposal_snapshot(&proposal_id);
+
+        if snapshot == 0 {
+            return Err(GovernorError::NonexistentProposal(proposal_id.clone()));
+        }
+
+        let current_timestamp = self.env().block_timestamp();
+
+        if current_timestamp <= snapshot {
+            return Ok(ProposalState::Pending);
+        }
+
+        let deadline = self.proposal_deadline(proposal_id);
+
+        if current_timestamp <= deadline {
+            return Ok(ProposalState::Active);
+        }
+
+        if _quorum_reached(&proposal_id) && _vote_succeeded(&proposal_id) {
+            return Ok(ProposalState::Succeeded);
+        } else {
+            return Ok(ProposalState::Defeated);
+        }
     }
 
-    fn proposal_threshold(&self, id: Id) -> Balance {
-        self._proposal_threshold(id)
+    fn proposal_threshold(&self) -> u128 {
+        0
     }
 
-    fn proposal_snapshot(&self, id: Id) -> Id {
-        self._proposal_snapshot(id)
+    fn proposal_snapshot(&self, proposal_id: &Id) -> Timestamp {
+        self.data().proposals.get(proposal_id).map(|proposal| proposal.vote_start).unwrap_or(0)
     }
 
-    fn proposal_deadline(&self, id: Id) -> Timestamp {
-        self._proposal_deadline(id)
+    fn proposal_deadline(&self, proposal_id: Id) -> Timestamp {
+        self.data().proposals.get(&proposal_id).map(|proposal| proposal.vote_start + proposal.vote_duration).unwrap_or(0)
     }
 
-    fn proposal_proposer(&self, id: Id) -> AccountId {
-        self._proposal_proposer(id)
+    fn proposal_proposer(&self, proposal_id: Id) -> AccountId {
+        self.data().proposals.get(&proposal_id).map(|proposal| proposal.proposer).unwrap_or(AccountId::default())
     }
 
-    fn propose(
-        &mut self,
-        targets: Vec<AccountId>, 
-        values: Vec<Balance>,  
-        calldatas: Vec<Vec<u8>>, 
-        description: String) -> Id {
-        self._propose(targets, values, calldatas, description)
+    fn propose(&mut self,
+               targets: Vec<AccountId>,
+               values: Vec<Balance>,
+               calldatas: Vec<Vec<u8>>,
+               description: String
+    ) -> Result<Id, GovernorError> {
+        let proposer = self.env().caller();
+
+        if _is_valid_description_for_proposer(&description, &proposer) {
+            return Err(GovernorError::InvalidDescription);
+        }
+
+        let current_timestamp = self.env().block_timestamp();
+
+        {
+            let proposer_votes = self.get_votes(proposer, current_timestamp - 1);
+
+            let votes_threshold = self.proposal_threshold();
+
+            if proposer_votes < votes_threshold {
+                return Err(GovernorError::InsufficientProposerVotes(proposer.clone(), proposer_votes, votes_threshold));
+            }
+        }
+
+        let description_hash = Blake2s::new()
+            .chain(description.as_bytes())
+            .finalize()
+            .into();
+
+        let proposal_id = self.hash_proposal(targets.clone(), values.clone(), calldatas.clone(), description_hash.clone());
+
+        if targets.len() != values.len() || targets.len() != calldatas.len() || targets.len() == 0 {
+            return Err(GovernorError::InvalidProposalLength(targets.len(), values.len(), calldatas.len()));
+        }
+        if self.data().proposals.contains_key(&proposal_id) {
+            return Err(GovernorError::UnexpectedProposalState(proposal_id.clone(), self.state(proposal_id.clone()).unwrap(), Vec::new()));
+        }
+
+        let snapshot = current_timestamp + self.voting_delay();
+        let duration = self.voting_period();
+
+        self.data().proposals.insert(&proposal_id, &ProposalCore {
+            proposer: proposer.clone(),
+            vote_start: snapshot,
+            vote_duration: duration,
+            executed: false,
+            canceled: false,
+        });
+
+        self._emit_proposal_created_event(&proposal_id, &proposer, &targets, &values, &calldatas, &description_hash);
+
+        Ok(proposal_id)
     }
 
-    fn execute(&mut self, id: Id) -> Result<(), GovernanceError> {
-        self._execute(id)
+    fn execute(&mut self,
+               targets: Vec<AccountId>,
+               values: Vec<Balance>,
+               calldatas: Vec<Vec<u8>>,
+               description_hash: Vec<u8>
+    ) -> Result<Id, GovernorError> {
+        let description_hash = Blake2s::new()
+            .chain(description.as_bytes())
+            .finalize()
+            .into();
+        let proposal_id = self.hash_proposal(targets.clone(), values.clone(), calldatas.clone(), description_hash.clone());
+
+        let current_state = self.state(proposal_id.clone()).unwrap();
+
+        if current_state != ProposalState::Succeeded && current_state != ProposalState::Queued {
+            return Err(GovernorError::UnexpectedProposalState(proposal_id.clone(), current_state.clone(), Vec::new()));
+        }
+
+        let mut proposal = self.data().proposals.get(&proposal_id).unwrap();
+
+        proposal.executed = true;
+
+        self.data().proposals.insert(&proposal_id, &proposal);
+
+        self._emit_proposal_executed_event(&proposal_id);
+
+        self._before_execute(proposal_id.clone(), targets.clone(), values.clone(), calldatas.clone(), description_hash.clone());
+        self._execute(proposal_id.clone(), targets.clone(), values.clone(), calldatas.clone(), description_hash.clone());
+        self._after_execute(proposal_id.clone(), targets.clone(), values.clone(), calldatas.clone(), description_hash.clone());
+
+        Ok(proposal_id)
     }
 
-    fn cancel(&mut self, id: Id) -> Result<(), GovernanceError> {
-        self._cancel(id)
+    fn cancel(&mut self,
+              targets: Vec<AccountId>,
+              values: Vec<Balance>,
+              calldatas: Vec<Vec<u8>>,
+              description_hash: Vec<u8>
+    ) -> Result<Id, GovernorError> {
+        let description_hash = Blake2s::new()
+            .chain(description.as_bytes())
+            .finalize()
+            .into();
+        let proposal_id = self.hash_proposal(targets.clone(), values.clone(), calldatas.clone(), description_hash.clone());
+
+        let current_state = self.state(proposal_id.clone()).unwrap();
+
+        if current_state != ProposalState::Pending {
+            return Err(GovernorError::UnexpectedProposalState(
+                proposal_id.clone(),
+                current_state.clone(),
+                _encode_state_bitmap(ProposalState::Pending)
+            ));
+        }
+
+        if self.env().caller() != self.proposal_proposer(proposal_id.clone()) {
+            return Err(GovernorError::OnlyProposer(self.env().caller()));
+        }
+
+        return self._cancel(targets.clone(), values.clone(), calldatas.clone(), description_hash.clone());
     }
 
-    fn get_votes(&mut self, account: AccountId, timepoint: Timestamp) -> u128 {
-        self._get_votes(id)
+    fn get_votes(&self, account: AccountId, timestamp: Timestamp) -> u128 {
+        self._get_votes(account, timestamp, default_params())
     }
 
     fn get_votes_with_params(
-        &mut self,
+        &self,
         account: AccountId,
-        timepoint: Timestamp,
+        timestamp: Timestamp,
         params: Vec<u8>
     ) -> u128 {
-        self._get_votes_with_params(id, account)
+        self._get_votes(account, timestamp, params)
     }
 
     fn cast_vote(
         &mut self,
         proposal_id: Id,
         support: bool
-    ) -> Balance {
-        self._cast_vote(id, support)
+    ) -> Result<u128, GovernorError> {
+        let voter = self.env().caller();
+        self._cast_vote(proposal_id, voter, support, "".to_string(), self.default_params())
     }
 
     fn cast_vote_with_reason(
@@ -127,211 +261,254 @@ pub trait GovernanceImpl: Storage<Data> + Internal {
         proposal_id: Id,
         support: bool,
         reason: String
-    ) -> Balance {
-        self._cast_vote_with_reason(id, support, reason)
+    ) -> Result<Balance, GovernorError> {
+        let voter = self.env().caller();
+        self._cast_vote(proposal_id, voter, support, reason, self.default_params())
     }
 
     fn cast_vote_with_reason_and_params(
         &mut self,
         proposal_id: Id,
-        support: bool, 
+        support: bool,
         reason: String,
         params: Vec<u8>
-    ) -> Balance {
-        self._cast_vote_with_reason_and_params(id, support, reason, account)
+    ) -> Result<Balance, GovernorError> {
+        let voter = self.env().caller();
+        self._cast_vote(proposal_id, voter, support, reason, params)
     }
 
     fn cast_vote_by_sig(
-        &mut self,
+        &self,
         proposal_id: Id,
         support: bool,
         voter: AccountId,
         signature: Vec<u8>
-    ) -> Balance {
-        self._cast_vote_by_sig(id, support, v, r, s)
+    ) -> Result<Balance, GovernorError> {
+        todo!("cast_vote_by_sig")
     }
 
     fn cast_vote_with_reason_and_params_by_sig(
-        &mut self,
+        &self,
         proposal_id: Id,
         support: bool,
         voter: AccountId,
         reason: String,
         params: Vec<u8>,
         signature: Vec<u8>
-    ) -> Balance {
-        self._cast_vote_with_reason_and_params_by_sig(id, support, voter, reason, params, signature)
+    ) -> Result<Balance, GovernorError> {
+        todo!("cast_vote_with_reason_and_params_by_sig")
     }
 
+    //#[openbrush::modifier(only_governance)]
     fn relay(
         &mut self,
         target: AccountId,
         value: Balance,
         data: Vec<u8>
-    ) -> Balance {
-        self._relay(target, value, data)
+    ) -> Result<(), GovernorError> {
+        todo!("relay")
     }
 
     fn hash_proposal(
-        &mut self,
+        &self,
         targets: Vec<AccountId>,
         values: Vec<Balance>,
         calldatas: Vec<Vec<u8>>,
         description_hash: Vec<u8>
-    ) -> Vec<u8> {
-        self._hash_proposal(targets, values, calldatas, description_hash)
+    ) -> Id {
+        return Blake2s::new()
+            .chain(targets)
+            .chain(values)
+            .chain(calldatas)
+            .chain(description_hash)
+            .finalize()
+            .into();
     }
 }
 
 pub trait Internal {
-    fn _name(&self) -> String;
+    fn default_params(&self) -> Vec<u8>;
 
-    fn _state(&self, id: Id) -> ProposalState;
+    fn _execute(&mut self,
+                proposal_id: Id,
+                targets: Vec<AccountId>,
+                values: Vec<Balance>,
+                calldatas: Vec<Vec<u8>>,
+                description_hash: Vec<u8>
+    ) -> Result<Id, GovernorError>;
 
-    fn _proposal_threshold(&self, id: Id) -> Balance;
-
-    fn _proposal_snapshot(&self, id: Id) -> Id;
-
-    fn _proposal_deadline(&self, id: Id) -> Timestamp;
-
-    fn _proposal_proposer(&self, id: Id) -> AccountId;
-
-    fn _propose(
+    fn _before_execute(
         &mut self,
-        targets: Vec<AccountId>, 
-        values: Vec<Balance>,  
-        calldatas: Vec<Vec<u8>>, 
-        description: String) -> Id;
+        proposal_id: Id,
+        targets: Vec<AccountId>,
+        values: Vec<Balance>,
+        calldatas: Vec<Vec<u8>>,
+        description_hash: Vec<u8>
+    ) -> Result<(), GovernorError>;
 
-    fn _execute(&mut self, id: Id) -> Result<(), GovernanceError>;
-
-    fn _cancel(&mut self, id: Id) -> Result<(), GovernanceError>;
-
-    fn _get_votes(&mut self, account: AccountId, timepoint: Timestamp) -> u128;
-
-    fn _get_votes_with_params(
+    fn _after_execute(
         &mut self,
-        account: AccountId,
-        timepoint: Timestamp,
-        params: Vec<u8>
-    ) -> u128;
+        proposal_id: Id,
+        targets: Vec<AccountId>,
+        values: Vec<Balance>,
+        calldatas: Vec<Vec<u8>>,
+        description_hash: Vec<u8>
+    ) -> Result<(), GovernorError>;
+
+    fn _cancel(
+        targets: Vec<AccountId>,
+        values: Vec<Balance>,
+        calldatas: Vec<Vec<u8>>,
+        description_hash: Vec<u8>
+    ) -> Result<Id, GovernorError>;
 
     fn _cast_vote(
         &mut self,
         proposal_id: Id,
-        support: bool
-    ) -> Balance;
-
-    fn _cast_vote_with_reason(
-        &mut self,
-        proposal_id: Id,
+        voter: AccountId,
         support: bool,
-        reason: String
-    ) -> Balance;
-
-    fn _cast_vote_with_reason_and_params(
-        &mut self,
-        proposal_id: Id,
-        support: bool, 
         reason: String,
         params: Vec<u8>
-    ) -> Balance;
+    ) -> Result<u128, GovernorError>;
 
-    fn _cast_vote_by_sig(
+    fn _is_valid_description_for_proposer(
+        proposer: AccountId,
+        description: String
+    ) -> bool;
+
+    fn _encode_state_bitmap(
+        &self,
+        proposal_state: ProposalState,
+    ) -> Vec<u8>;
+
+    fn _executor(&self) -> AccountId;
+
+    fn _try_hex_to_uint(char: char) -> (bool, u8);
+}
+
+pub trait InternalImpl: Storage<Data> + Internal {
+    fn default_params(&self) -> Vec<u8> {
+        Vec::new()
+    }
+
+    fn _execute(&mut self,
+                proposal_id: Id,
+                targets: Vec<AccountId>,
+                values: Vec<Balance>,
+                calldatas: Vec<Vec<u8>>,
+                description_hash: Vec<u8>
+    ) -> Result<(), GovernorError> {
+        for i in 0..targets.len() {
+            let target = targets[i];
+            let value = values[i];
+            let calldata = calldatas[i].clone();
+            let success = metod_call_dry_run!(target, , calldata);
+        }
+        Ok(())
+    }
+
+    fn _before_execute(
         &mut self,
         proposal_id: Id,
-        support: bool,
-        voter: AccountId,
-        signature: Vec<u8>
-    ) -> Balance;
+        targets: Vec<AccountId>,
+        values: Vec<Balance>,
+        calldatas: Vec<Vec<u8>>,
+        description_hash: Vec<u8>
+    ) -> Result<(), GovernorError> {
+        if self._executor() != self.env().account_id() {
+            for i in 0..targets.len() {
+                if targets[i] == self.env().account_id() {
+                    self.data().governance_call.push(
+                        Blake2s::new()
+                            .chain(calldatas[i].as_bytes())
+                            .finalize()
+                            .into()
+                    );
+                }
+            }
+        }
+        Ok(())
+    }
 
-    fn _cast_vote_with_reason_and_params_by_sig(
+
+    fn _after_execute(
         &mut self,
         proposal_id: Id,
-        support: bool,
-        voter: AccountId,
-        reason: String,
-        params: Vec<u8>,
-        signature: Vec<u8>
-    ) -> Balance;
+        targets: Vec<AccountId>,
+        values: Vec<Balance>,
+        calldatas: Vec<Vec<u8>>,
+        description_hash: Vec<u8>
+    ) -> Result<(), GovernorError> {
+        if self._executor() != self.env().account_id() {
+            if !governance_call.is_empty() {
+                self.data().governance_call.clear();
+            }
+        }
+        Ok(())
+    }
 
-    fn _relay(
-        &mut self,
-        target: AccountId,
-        value: Balance,
-        data: Vec<u8>
-    ) -> Balance;
-
-    fn _hash_proposal(
+    fn _cancel(
         &mut self,
         targets: Vec<AccountId>,
         values: Vec<Balance>,
         calldatas: Vec<Vec<u8>>,
         description_hash: Vec<u8>
-    ) -> Vec<u8>;
-}
+    ) -> Result<Id, GovernorError> {
+        let proposal_id = self.hash_proposal(targets, values, calldatas, description_hash);
 
-pub trait InternalImpl: Storage<Data> + Internal {
-    fn _name(&self) -> String {
-        self.data().name.clone()
+        let current_state = self.state(&proposal_id);
+
+        let forbiden_states = self._encode_state_bitmap(ProposalState::Canceled)
+            | self._encode_state_bitmap(ProposalState::Expired)
+            | self._encode_state_bitmap(ProposalState::Executed);
+
+        let _all_proposal_states_bitmap = self._encode_state_bitmap(ProposalState::Pending)
+            | self._encode_state_bitmap(ProposalState::Active)
+            | self._encode_state_bitmap(ProposalState::Canceled)
+            | self._encode_state_bitmap(ProposalState::Defeated)
+            | self._encode_state_bitmap(ProposalState::Succeeded)
+            | self._encode_state_bitmap(ProposalState::Queued)
+            | self._encode_state_bitmap(ProposalState::Expired)
+            | self._encode_state_bitmap(ProposalState::Executed);
+
+        if self._encode_state_bitmap(current_state) & forbiden_states != 0 {
+            return Err(GovernorError::UnexpectedProposalState(
+                proposal_id,
+                current_state,
+                _all_proposal_states_bitmap ^ forbiden_states
+            ));
+        }
+
+        let mut proposal = self.data().proposals.get(&proposal_id).unwrap();
+        proposal.canceled = true;
+
+        self._emit_proposal_canceled_event(proposal_id);
+
+        proposal_id
     }
 
-    fn _state(&self, id: Id) -> ProposalState {
-        let proposal = self.data().proposals.get(&id).unwrap();
-        if proposal.canceled {
-            return ProposalState::Canceled;
-        }
-        if proposal.executed {
-            return ProposalState::Executed;
-        }
-        if self.env().block_timestamp() < proposal.vote_start {
-            return ProposalState::Pending;
-        }
-        if self.env().block_timestamp() < proposal.vote_start + proposal.vote_duration {
-            return ProposalState::Active;
-        }
-        if self.env().block_timestamp() < proposal.vote_start + proposal.vote_duration + self.env().voting_delay() {
-            return ProposalState::Succeeded;
-        }
-        if self.env().block_timestamp() < proposal.vote_start + proposal.vote_duration + self.env().voting_delay() + self.env().voting_period() {
-            return ProposalState::Queued;
-        }
-        if self.env().block_timestamp() < proposal.vote_start + proposal.vote_duration + self.env().voting_delay() + self.env().voting_period() + self.env().execution_delay() {
-            return ProposalState::Expired;
-        }
-        ProposalState::Executed
-    }
-
-    fn _proposal_threshold(&self, id: Id) -> Balance {
-        let proposal = self.data().proposals.get(&id).unwrap();
-        let total_supply = self.total_supply();
-        let threshold = total_supply * self.env().quorum_vote_threshold() / 100;
-        threshold
-    }
-
-    fn _proposal_snapshot(&self, id: Id) -> Id {
-        let proposal = self.data().proposals.get(&id).unwrap();
-        proposal.vote_start
-    }
-
-    fn _proposal_deadline(&self, id: Id) -> Timestamp {
-        let proposal = self.data().proposals.get(&id).unwrap();
-        proposal.vote_start + proposal.vote_duration
-    }
-
-    fn _proposal_proposer(&self, id: Id) -> AccountId {
-        let proposal = self.data().proposals.get(&id).unwrap();
-        proposal.proposer
-    }
-
-    fn _propose(
+    fn _cast_vote(
         &mut self,
-        targets: Vec<AccountId>, 
-        values: Vec<Balance>,  
-        calldatas: Vec<Vec<u8>>, 
-        description: String) -> Id {
+        proposal_id: Id,
+        voter: AccountId,
+        support: bool,
+        reason: String,
+        params: Vec<u8>
+    ) -> Result<u128, GovernorError>;
 
+    fn _is_valid_description_for_proposer(
+        proposer: AccountId,
+        description: String
+    ) -> bool;
 
+    fn _encode_state_bitmap(
+        &self,
+        proposal_state: ProposalState,
+    ) -> Vec<u8>;
+
+    fn _executor(&self) -> AccountId {
+        self.env().caller()
     }
 
+    fn _try_hex_to_uint(char: char) -> (bool, u8);
 }

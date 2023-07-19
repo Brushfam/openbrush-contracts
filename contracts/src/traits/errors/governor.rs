@@ -19,12 +19,21 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
+use openbrush::traits::{
+    AccountId,
+    Timestamp,
+};
+use crate::traits::governance::ProposalState;
+use crate::traits::types::Id;
+
+
 /// The Governor error type. Contract will throw one of this errors.
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum GovernorError {
     ///
-    InvalidProposalLength(u128, u128, u128),
+    InvalidProposalLength(usize, usize, usize),
     AlreadyCastVote(AccountId),
     DisabledDeposit,
     OnlyProposer(AccountId),
@@ -35,4 +44,5 @@ pub enum GovernorError {
     InsufficientProposerVotes(AccountId, u128, u128),
     InvalidVoteType,
     InvalidSignature(AccountId),
+    InvalidDestination,
 }

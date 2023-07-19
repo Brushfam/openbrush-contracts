@@ -31,6 +31,7 @@ mod psp37;
 mod reentrancy_guard;
 mod timelock_controller;
 mod upgradeable;
+mod governor;
 
 pub use access_control::AccessControlError;
 pub use diamond::DiamondError;
@@ -38,6 +39,7 @@ pub use flashloan::{
     FlashBorrowerError,
     FlashLenderError,
 };
+pub use governor::GovernorError;
 pub use ownable::OwnableError;
 pub use pausable::PausableError;
 pub use payment_splitter::PaymentSplitterError;

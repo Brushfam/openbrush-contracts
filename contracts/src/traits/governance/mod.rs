@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2022 Supercolony
+// Copyright (c) 2012-2023 Brushfam
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the"Software"),
@@ -21,8 +21,7 @@
 
 pub use crate::traits::{
     errors::{
-        PSP22Error,
-        PSP22ReceiverError,
+        GovernorError,
     },
     types::{
         Id,
@@ -56,28 +55,28 @@ pub enum ProposalState {
 #[openbrush::trait_definition]
 pub trait Governor {
     /// Returns the name.
-    #[ink(message, view)]
+    #[ink(message)]
     fn name(&self) -> String;
 
     /// Returns the current state of proposal with `proposal_id` id.
-    #[ink(message, view)]
-    fn state(&self, proposal_id: Id) -> ProposalState;
+    #[ink(message)]
+    fn state(&self, proposal_id: Id) -> Result<ProposalState, GovernorError>;
 
     /// Returns the number of votes required in order for a voter to become a proposer.
-    #[ink(message, view)]
+    #[ink(message)]
     fn proposal_threshold(&self) -> u128;
 
     /// Returns the time when the proposal with `proposal_id` id will start to receive votes. 
-    #[ink(message, view)]
-    fn proposal_snapshot(&mut self, proposal_id: Id) -> Timestamp;
+    #[ink(message)]
+    fn proposal_snapshot(&self, proposal_id: Id) -> Timestamp;
 
     /// Returns the time when the proposal with `proposal_id` id will end to receive votes.
-    #[ink(message, view)]
-    fn proposal_deadline(&mut self, proposal_id: Id) -> Timestamp;
+    #[ink(message)]
+    fn proposal_deadline(&self, proposal_id: Id) -> Timestamp;
 
     /// Returns the AccountId of the proposer of the proposal with `proposal_id` id.
-    #[ink(message, view)]
-    fn proposal_proposer(&mut self, proposal_id: Id) -> AccountId;
+    #[ink(message)]
+    fn proposal_proposer(&self, proposal_id: Id) -> AccountId;
 
     /// Create a new proposal. Vote start after a delay specified by voting_delay() and lasts for a
     /// duration specified by voting_period().
@@ -87,7 +86,7 @@ pub trait Governor {
         values: Vec<Balance>,
         calldatas: Vec<Vec<u8>>,
         description: String
-        ) -> Id;
+        ) -> Result<Id, GovernorError>;
 
     /// Execute a successful proposal. This requires the quorum to be reached, the vote to be successful, and the
     /// deadline to be reached.
@@ -97,7 +96,7 @@ pub trait Governor {
         values: Vec<Balance>,
         calldatas: Vec<Vec<u8>>,
         description_hash: Vec<u8>
-        ) -> Id;
+        ) -> Result<Id, GovernorError>;
 
     /// Cancel a proposal. A proposal is cancellable by the proposer, but only while it is Pending state, i.e.
     /// before the vote starts.
@@ -107,70 +106,70 @@ pub trait Governor {
         values: Vec<Balance>,
         calldatas: Vec<Vec<u8>>,
         description_hash: Vec<u8>
-        ) -> Id;
+        ) -> Result<Id, GovernorError>;
 
     /// Returns the voting power of an `account` at a specific `timepoint`.
-    #[ink(message, view)]
-    fn get_votes(&mut self, account: AccountId, timepoint: Timestamp) -> u128;
+    #[ink(message)]
+    fn get_votes(&self, account: AccountId, timepoint: Timestamp) -> u128;
 
     /// Returns the voting power of an `account` at a specific `timepoint` given additional encoded parameters.
-    #[ink(message, view)]
+    #[ink(message)]
     fn get_votes_with_params(
-        &mut self,
+        &self,
         account: AccountId,
         timepoint: Timestamp,
         params: Vec<u8>
     ) -> u128;
     
     /// Cast a vote for a proposal.
-    #[ink(message, view)]
+    #[ink(message)]
     fn cast_vote(
-        &mut self,
+        &self,
         proposal_id: Id,
         support: bool
-    ) -> Balance;
+    ) -> Result<Balance, GovernorError>;
 
     /// Cast a vote with a reason.
-    #[ink(message, view)]
+    #[ink(message)]
     fn cast_vote_with_reason(
-        &mut self,
+        &self,
         proposal_id: Id,
         support: bool,
         reason: String
-    ) -> Balance;
+    ) -> Result<Balance, GovernorError>;
     
     /// Cast a vote with a reason and additional encoded parameters.
-    #[ink(message, view)]
+    #[ink(message)]
     fn cast_vote_with_reason_and_params(
-        &mut self,
+        &self,
         proposal_id: Id,
         support: bool, 
         reason: String,
         params: Vec<u8>
-    ) -> Balance;
+    ) -> Result<Balance, GovernorError>;
 
     /// Cast a vote using the voter's signature, including ecdsa signature support.
-    #[ink(message, view)]
+    #[ink(message)]
     fn cast_vote_by_sig(
-        &mut self,
+        &self,
         proposal_id: Id,
         support: bool,
         voter: AccountId,
         signature: Vec<u8>
-    ) -> Balance;
+    ) -> Result<Balance, GovernorError>;
 
     /// Cast a vote with a reason and additional encoded parameters using the voter's signature,
     /// including acdsa signature support.
-    #[ink(message, view)]
+    #[ink(message)]
     fn cast_vote_with_reason_and_params_by_sig(
-        &mut self,
+        &self,
         proposal_id: Id,
         support: bool,
         voter: AccountId,
         reason: String,
         params: Vec<u8>,
         signature: Vec<u8>
-    ) -> Balance;
+    ) -> Result<Balance, GovernorError>;
 
 
     /// Relays a transaction or function call to an arbitrary target. In cases where the governance executor
@@ -178,18 +177,17 @@ pub trait Governor {
     /// in a governance proposal to recover tokens or Ether that was sent to the governor contract by mistake.
     /// Note that if the executor is simply the governor itself, use of `relay` is redundant.
     #[ink(message)]
-    //#[openbrush::modifier(only_governance)]
     fn relay(
         &mut self,
         target: AccountId,
         value: Balance,
         data: Vec<u8>
-    ) -> Balance;
+    ) -> Result<(), GovernorError>;
 
     /// Hash a proposal's elements (targets, values, signatures, calldatas, and description) into a single proposal hash.
-    #[ink(message, view)]
+    #[ink(message)]
     fn hash_proposal(
-        &mut self,
+        &self,
         targets: Vec<AccountId>,
         values: Vec<Balance>,
         calldatas: Vec<Vec<u8>>,

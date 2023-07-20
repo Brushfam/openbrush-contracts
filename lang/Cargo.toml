@@ -6,8 +6,8 @@ edition = "2021"
 
 license = "MIT"
 repository = "https://github.com/Brushfam/openbrush-contracts"
-documentation = "https://docs.openbrush.io"
-homepage = "https://727.ventures"
+documentation = "https://learn.brushfam.io/docs/openbrush"
+homepage = "https://brushfam.io/"
 description = "Aggregator of all openbrush functionality and utils."
 keywords = ["wasm", "brushfam", "smart-contracts", "blockchain", "ink"]
 categories = ["no-std", "embedded"]

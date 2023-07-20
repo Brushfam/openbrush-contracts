@@ -3,7 +3,6 @@
 #[openbrush::implementation(AccessControl, TimelockController)]
 #[openbrush::contract]
 pub mod my_timelock_controller {
-    use ink::prelude::vec::Vec;
     use openbrush::traits::Storage;
 
     #[ink(storage)]

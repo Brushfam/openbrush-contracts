@@ -19,9 +19,4 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#[cfg(feature = "timelock_controller")]
-pub mod timelock_controller;
-
-#[cfg(feature = "governor")]
-pub mod governor;
-
+pub mod nonces;

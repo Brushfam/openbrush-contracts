@@ -19,9 +19,14 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#[cfg(feature = "timelock_controller")]
-pub mod timelock_controller;
 
-#[cfg(feature = "governor")]
-pub mod governor;
+use openbrush::traits::{
+    AccountId,
+};
 
+#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+pub enum NoncesError {
+    ///
+    InvalidAccountNonce(AccountId, u128),
+}

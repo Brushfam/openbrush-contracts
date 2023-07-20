@@ -32,6 +32,7 @@ mod reentrancy_guard;
 mod timelock_controller;
 mod upgradeable;
 mod governor;
+mod nonces;
 
 pub use access_control::AccessControlError;
 pub use diamond::DiamondError;
@@ -59,3 +60,4 @@ pub use psp37::{
 pub use reentrancy_guard::ReentrancyGuardError;
 pub use timelock_controller::TimelockControllerError;
 pub use upgradeable::UpgradeableError;
+pub use nonces::NoncesError;

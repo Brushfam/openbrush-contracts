@@ -27,6 +27,7 @@ mod governance;
 mod security;
 mod token;
 mod upgradeability;
+mod utils;
 
 pub mod traits;
 

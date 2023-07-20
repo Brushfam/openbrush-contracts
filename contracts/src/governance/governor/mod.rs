@@ -21,7 +21,10 @@
 
 pub use crate::{
     governance,
-    traits::governance::*,
+    traits:: {
+        governance::*,
+        utils::nonce::Nonce,
+    },
 };
 use ink::prelude::{
     vec::Vec,
@@ -61,7 +64,7 @@ pub struct ProposalCore {
     canceled: bool,
 }
 
-pub trait GovernorImpl: Storage<Data> + Internal + Gobernor{
+pub trait GovernorImpl: Storage<Data> + Internal + Gobernor + Nonce{
     fn name(&self) -> String {
         self.data().name.clone()
     }
@@ -284,7 +287,12 @@ pub trait GovernorImpl: Storage<Data> + Internal + Gobernor{
         voter: AccountId,
         signature: Vec<u8>
     ) -> Result<Balance, GovernorError> {
-        todo!("cast_vote_by_sig")
+        let message_hash = Blake2s::new()
+            .chain(proposal_id.as_bytes())
+            .chain(support.to_le_bytes())
+            .chain(voter.as_bytes())
+            .finalize()
+            .into();
     }
 
     fn cast_vote_with_reason_and_params_by_sig(

@@ -1,0 +1,73 @@
+// Copyright (c) 2012-2022 Supercolony
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the"Software"),
+// to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+use ink::prelude::{
+    vec::Vec,
+    string::String,
+};
+use openbrush::{
+    storage::{
+        Mapping,
+        TypeGuard,
+    },
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
+};
+pub use crate::traits::errors::NoncesError;
+
+#[derive(Default, Debug)]
+#[openbrush::storage_item]
+pub struct Data {
+    #[lazy]
+    pub nonces: Mapping<AccountId, u128>,
+}
+
+pub trait Nonces {
+    fn nonces(&self, account: &AccountId) -> u128;
+
+    fn _use_nonce(&mut self, account: &AccountId) -> u128;
+
+    fn _use_checked_nonce(&mut self, account: &AccountId, nonce: u128) -> u128;
+}
+
+pub trait NoncesImpl: Storage<Data> + Nonces {
+    fn nonces(&self, account: &AccountId) -> u128 {
+        self.data().nonces.get(account).unwrap_or_default()
+    }
+
+    fn _use_nonce(&mut self, account: &AccountId) -> u128 {
+        let nonce = self.nonces(account);
+        self.data().nonces.insert(account, &(nonce + 1));
+        nonce
+    }
+
+    fn _use_checked_nonce(&mut self, account: &AccountId, nonce: u128) -> Result<u128, NoncesError> {
+        let current_nonce = self.nonces(&account);
+        if nonce != current_nonce {
+            return Err(NoncesError::InvalidAccountNonce(account.clone(), current_nonce));
+        }
+        self.data().nonces.insert(account, &(nonce + 1));
+        Ok(nonce)
+    }
+}

@@ -1381,7 +1381,7 @@ pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
             }
         }
     ))
-    .expect("Should parse");
+        .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::psp37::*;
@@ -1671,7 +1671,7 @@ pub(crate) fn impl_psp37_enumerable(impl_args: &mut ImplArgs) {
             }
         }
     ))
-    .expect("Should parse");
+        .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::psp37::extensions::enumerable::*;
@@ -1844,6 +1844,7 @@ pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
     impl_args.imports.insert("PaymentSplitter", import);
+    impl_args.vec_import();
 
     override_functions("payment_splitter::Internal", &mut internal, impl_args.map);
     override_functions("PaymentSplitter", &mut payment_splitter, impl_args.map);
@@ -2148,10 +2149,10 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
     .expect("Should parse");
 
     #[rustfmt::skip]
-    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl timelock_controller::Internal for #storage_struct_name {
             fn _emit_min_delay_change_event(&self, old_delay: Timestamp, new_delay: Timestamp) {
-                InternalImpl::_emit_min_delay_change_event(self, old_delay, new_delay)
+                timelock_controller::InternalImpl::_emit_min_delay_change_event(self, old_delay, new_delay)
             }
     
             fn _emit_call_scheduled_event(
@@ -2162,19 +2163,19 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
                 predecessor: Option<OperationId>,
                 delay: Timestamp,
             ) {
-                InternalImpl::_emit_call_scheduled_event(self, id, index, transaction, predecessor, delay)
+                timelock_controller::InternalImpl::_emit_call_scheduled_event(self, id, index, transaction, predecessor, delay)
             }
     
             fn _emit_cancelled_event(&self, id: OperationId) {
-                InternalImpl::_emit_cancelled_event(self, id)
+                timelock_controller::InternalImpl::_emit_cancelled_event(self, id)
             }
     
             fn _emit_call_executed_event(&self, id: OperationId, index: u8, transaction: Transaction) {
-                InternalImpl::_emit_call_executed_event(self, id, index, transaction)
+                timelock_controller::InternalImpl::_emit_call_executed_event(self, id, index, transaction)
             }
     
             fn _init_with_caller(&mut self, min_delay: Timestamp, proposers: Vec<AccountId>, executors: Vec<AccountId>) {
-                InternalImpl::_init_with_caller(self, min_delay, proposers, executors)
+                timelock_controller::InternalImpl::_init_with_caller(self, min_delay, proposers, executors)
             }
     
             fn _init_with_admin(
@@ -2184,7 +2185,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
                 proposers: Vec<AccountId>,
                 executors: Vec<AccountId>,
             ) {
-                InternalImpl::_init_with_admin(self, admin, min_delay, proposers, executors)
+                timelock_controller::InternalImpl::_init_with_admin(self, admin, min_delay, proposers, executors)
             }
     
             fn _hash_operation(
@@ -2193,7 +2194,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
                 predecessor: &Option<OperationId>,
                 salt: &[u8; 32],
             ) -> OperationId {
-                InternalImpl::_hash_operation(self, transaction, predecessor, salt)
+                timelock_controller::InternalImpl::_hash_operation(self, transaction, predecessor, salt)
             }
     
             fn _hash_operation_batch(
@@ -2202,59 +2203,59 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
                 predecessor: &Option<OperationId>,
                 salt: &[u8; 32],
             ) -> OperationId {
-                InternalImpl::_hash_operation_batch(self, transactions, predecessor, salt)
+                timelock_controller::InternalImpl::_hash_operation_batch(self, transactions, predecessor, salt)
             }
     
             fn _schedule(&mut self, id: OperationId, delay: &Timestamp) -> Result<(), TimelockControllerError> {
-                InternalImpl::_schedule(self, id, delay)
+                timelock_controller::InternalImpl::_schedule(self, id, delay)
             }
     
             fn _before_call(&self, predecessor: Option<OperationId>) -> Result<(), TimelockControllerError> {
-                InternalImpl::_before_call(self, predecessor)
+                timelock_controller::InternalImpl::_before_call(self, predecessor)
             }
     
             fn _after_call(&mut self, id: OperationId) -> Result<(), TimelockControllerError> {
-                InternalImpl::_after_call(self, id)
+                timelock_controller::InternalImpl::_after_call(self, id)
             }
     
             fn _call(&mut self, id: OperationId, i: u8, transaction: Transaction) -> Result<(), TimelockControllerError> {
-                InternalImpl::_call(self, id, i, transaction)
+                timelock_controller::InternalImpl::_call(self, id, i, transaction)
             }
     
             fn _timelock_admin_role() -> RoleType {
-                <Self as InternalImpl>::_timelock_admin_role()
+                <Self as timelock_controller::InternalImpl>::_timelock_admin_role()
             }
     
             fn _proposal_role() -> RoleType {
-                <Self as InternalImpl>::_proposal_role()
+                <Self as timelock_controller::InternalImpl>::_proposal_role()
             }
     
             fn _executor_role() -> RoleType {
-                <Self as InternalImpl>::_executor_role()
+                <Self as timelock_controller::InternalImpl>::_executor_role()
             }
     
             fn _done_timestamp() -> Timestamp {
-                <Self as InternalImpl>::_done_timestamp()
+                <Self as timelock_controller::InternalImpl>::_done_timestamp()
             }
     
             fn _is_operation(&self, id: OperationId) -> bool {
-                InternalImpl::_is_operation(self, id)
+                timelock_controller::InternalImpl::_is_operation(self, id)
             }
     
             fn _is_operation_ready(&self, id: OperationId) -> bool {
-                InternalImpl::_is_operation_ready(self, id)
+                timelock_controller::InternalImpl::_is_operation_ready(self, id)
             }
     
             fn _is_operation_done(&self, id: OperationId) -> bool {
-                InternalImpl::_is_operation_done(self, id)
+                timelock_controller::InternalImpl::_is_operation_done(self, id)
             }
     
             fn _get_timestamp(&self, id: OperationId) -> Timestamp {
-                InternalImpl::_get_timestamp(self, id)
+                timelock_controller::InternalImpl::_get_timestamp(self, id)
             }
         }
     ))
-    .expect("Should parse");
+        .expect("Should parse");
 
     let timelock_controller_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl TimelockControllerImpl for #storage_struct_name {}
@@ -2262,7 +2263,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
     .expect("Should parse");
 
     #[rustfmt::skip]
-    let mut timelock_controller = syn::parse2::<syn::ItemImpl>(quote!(
+        let mut timelock_controller = syn::parse2::<syn::ItemImpl>(quote!(
         impl TimelockController for #storage_struct_name {
             #[ink(message)]
             fn is_operation(&self, id: OperationId) -> bool {
@@ -2362,13 +2363,14 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
             }
         }
     ))
-    .expect("Should parse");
+        .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::timelock_controller::*;
     ))
     .expect("Should parse");
     impl_args.imports.insert("TimelockController", import);
+    impl_args.vec_import();
 
     override_functions("timelock_controller::Internal", &mut internal, impl_args.map);
     override_functions("TimelockController", &mut timelock_controller, impl_args.map);

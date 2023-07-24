@@ -120,7 +120,7 @@ to simplify unit testing of you code.
 functionality for your code.
 - Read our **documentation** in [doc](https://learn.brushfam.io/docs/openbrush).
 - Go through our **examples** in [examples](examples) to check hot to use the library and ink!.
-- Check the [**example of project struct**](https://github.com/Brushfam/openbrush-contracts/tree/main/example_project_structure) and [according documentation](https://docs.openbrush.io/smart-contracts/example/overview).
+- Check the [**example of project struct**](https://github.com/Brushfam/openbrush-contracts/tree/main/example_project_structure) and [according documentation](https://learn.brushfam.io/docs/OpenBrush/smart-contracts/example/overview).
 
 Not sure where to start? Use [the interactive generator](https://openbrush.io) to bootstrap your contract and learn about the components offered in OpenBrush.
 

@@ -186,7 +186,7 @@ jobs:
           restore-keys: |
             cache-rust-artifacts-pr-${{ hashFiles('Cargo.toml') }}
 
-      - name: Typechain Сompile examples for destination branch
+      - name: Typechain Compile examples for destination branch
         run: |
           chown -R root .
           chmod -R a+rwx .

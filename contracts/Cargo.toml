@@ -25,6 +25,8 @@ pallet-assets-chain-extension = { git = "https://github.com/Brushfam/pallet-asse
 
 blake2 = "0.10.6"
 
+secp256k1 = "0.27.0"
+
 [lib]
 name = "openbrush_contracts"
 path = "src/lib.rs"

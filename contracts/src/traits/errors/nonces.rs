@@ -29,4 +29,5 @@ use openbrush::traits::{
 pub enum NoncesError {
     ///
     InvalidAccountNonce(AccountId, u128),
+    NonceOverflow,
 }

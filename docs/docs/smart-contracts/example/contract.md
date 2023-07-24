@@ -16,7 +16,7 @@ implementation of `Lending` and `LendingPermissioned` traits defined in the `len
 ```toml
 [package]
 name = "lending_contract"
-version = "3.1.1"
+version= "4.0.0-beta"
 authors = ["Brushfam <dominik.krizo@727.ventures>"]
 edition = "2021"
 

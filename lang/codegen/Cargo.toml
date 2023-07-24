@@ -6,8 +6,8 @@ edition = "2021"
 
 license = "MIT"
 repository = "https://github.com/Brushfam/openbrush-contracts"
-documentation = "https://docs.openbrush.io"
-homepage = "https://727.ventures"
+documentation = "https://learn.brushfam.io/docs/openbrush"
+homepage = "https://brushfam.io/"
 description = "OpenBrush codegeneration for macros in `openbrush_lang_macro`."
 keywords = ["wasm", "brushfam", "smart-contracts", "blockchain", "ink"]
 categories = ["no-std", "embedded"]

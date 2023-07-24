@@ -20,5 +20,10 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#[cfg(feature = "governance")]
-pub mod governance;
+pub mod governor;
+
+pub use governor::*;
+
+pub mod extensions {
+    pub mod timelock_controller;
+}

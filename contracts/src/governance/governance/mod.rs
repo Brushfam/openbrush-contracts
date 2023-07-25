@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2023 727.ventures
+// Copyright (c) 2023 Brushfam
+// Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the"Software"),
@@ -19,32 +20,12 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+pub mod governor;
 
-use openbrush::traits::{
-    AccountId,
-    Timestamp,
-};
-use crate::traits::governance::ProposalState;
-use crate::traits::types::Id;
+pub use governor::*;
 
-
-/// The Governor error type. Contract will throw one of this errors.
-#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-pub enum GovernorError {
-    ///
-    InvalidProposalLength(usize, usize, usize),
-    AlreadyCastVote(AccountId),
-    DisabledDeposit,
-    OnlyProposer(AccountId),
-    OnlyExecutor(AccountId),
-    NonexistentProposal(Id),
-    UnexpectedProposalState(Id, ProposalState, Vec<u8>),
-    InvalidVotingPeriod(Timestamp),
-    InsufficientProposerVotes(AccountId, u128, u128),
-    InvalidVoteType,
-    InvalidSignature(AccountId),
-    InvalidDestination,
-    ZeroSnapshot,
-    DeadlineOverflow,
+pub mod extensions {
+    pub mod timelock_controller;
+    // pub mod votes;
+    pub mod counting;
 }

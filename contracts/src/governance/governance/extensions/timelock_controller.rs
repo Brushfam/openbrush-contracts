@@ -76,10 +76,10 @@ pub struct Data {
 /// this role for everyone.
 #[modifier_definition]
 pub fn only_role_or_open_role<T, F, R, E>(instance: &mut T, body: F, role: RoleType) -> Result<R, E>
-where
-    T: access_control::Internal + access_control::MembersManager + Storage<access_control::Data>,
-    F: FnOnce(&mut T) -> Result<R, E>,
-    E: From<AccessControlError>,
+    where
+        T: access_control::Internal + access_control::MembersManager + Storage<access_control::Data>,
+        F: FnOnce(&mut T) -> Result<R, E>,
+        E: From<AccessControlError>,
 {
     if !instance._has_role(role, &None) {
         instance._check_role(role, Some(T::env().caller()))?;
@@ -94,7 +94,7 @@ pub const EXECUTOR_ROLE: RoleType = ink::selector_id!("EXECUTOR_ROLE");
 pub const DONE_TIMESTAMP: Timestamp = 1;
 
 pub trait TimelockControllerImpl:
-    Internal + Storage<Data> + access_control::MembersManager + access_control::Internal + Storage<access_control::Data>
+Internal + Storage<Data> + access_control::MembersManager + access_control::Internal + Storage<access_control::Data>
 {
     fn is_operation(&self, id: OperationId) -> bool {
         self._is_operation(id)

@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2023 727.ventures
+// Copyright (c) 2023 727.ventures
+// Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the"Software"),
@@ -20,31 +21,29 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+pub use crate::traits::errors::GovernorError;
 use openbrush::traits::{
     AccountId,
-    Timestamp,
+    Balance,
 };
-use crate::traits::governance::ProposalState;
-use crate::traits::types::Id;
 
+#[openbrush::wrapper]
+pub type GovernorCountingRef = dyn GovernorCounting;
 
-/// The Governor error type. Contract will throw one of this errors.
-#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-pub enum GovernorError {
-    ///
-    InvalidProposalLength(usize, usize, usize),
-    AlreadyCastVote(AccountId),
-    DisabledDeposit,
-    OnlyProposer(AccountId),
-    OnlyExecutor(AccountId),
-    NonexistentProposal(Id),
-    UnexpectedProposalState(Id, ProposalState, Vec<u8>),
-    InvalidVotingPeriod(Timestamp),
-    InsufficientProposerVotes(AccountId, u128, u128),
-    InvalidVoteType,
-    InvalidSignature(AccountId),
-    InvalidDestination,
-    ZeroSnapshot,
-    DeadlineOverflow,
+pub enum VoteType {
+    Against,
+    For,
+    Abstain,
+}
+
+#[openbrush::trait_definition]
+pub trait GovernorCounting {
+    #[ink(message)]
+    fn counting_mode(&self) -> String;
+
+    #[ink(message)]
+    fn has_voted(&self, proposal_id: u128,voter: AccountId) -> bool;
+
+    #[ink(message)]
+    fn proposal_votes(&self, proposal_id: u128) -> (u128, u128, u128);
 }

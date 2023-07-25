@@ -1,3 +1,4 @@
+// Copyright (c) 2023 Brushfam
 // Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -19,9 +20,5 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#[cfg(feature = "timelock_controller")]
-pub mod timelock_controller;
-
-#[cfg(feature = "governor")]
-pub mod governor;
-
+#[cfg(feature = "governance")]
+pub mod governance;

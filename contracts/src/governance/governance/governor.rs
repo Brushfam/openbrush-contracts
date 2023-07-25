@@ -272,31 +272,28 @@ pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
             values.clone(),
             calldatas.clone(),
             description_hash.clone(),
-        );
+        )?;
         self._execute(
             proposal_id.clone(),
             targets.clone(),
             values.clone(),
             calldatas.clone(),
             description_hash.clone(),
-        );
+        )?;
         self._after_execute(
             proposal_id.clone(),
             targets.clone(),
             values.clone(),
             calldatas.clone(),
             description_hash.clone(),
-        );
+        )?;
 
         Ok(proposal_id)
     }
 
     fn cancel(
         &mut self,
-        targets: Vec<AccountId>,
-        values: Vec<Balance>,
-        calldatas: Vec<Vec<u8>>,
-        description_hash: Vec<u8>,
+        transactions: Vec<Transaction>,
     ) -> Result<Id, GovernorError> {
         let description_hash = Blake2s::new().chain(description.as_bytes()).finalize().into();
         let proposal_id = self.hash_proposal(&targets, &values, &calldatas, &description_hash);

@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2023 727.ventures
+// Copyright (c) 2023 Brushfam
+// Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the"Software"),
@@ -19,47 +20,15 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-mod access_control;
-mod diamond;
-mod flashloan;
-mod ownable;
-mod pausable;
-mod payment_splitter;
-mod psp22;
-mod psp34;
-mod psp37;
-mod reentrancy_guard;
-mod timelock_controller;
-mod upgradeable;
-mod governor;
-mod nonces;
-mod votes;
 
-pub use access_control::AccessControlError;
-pub use diamond::DiamondError;
-pub use flashloan::{
-    FlashBorrowerError,
-    FlashLenderError,
+
+use openbrush::traits::{
+    AccountId,
 };
-pub use governor::GovernorError;
-pub use ownable::OwnableError;
-pub use pausable::PausableError;
-pub use payment_splitter::PaymentSplitterError;
-pub use psp22::{
-    PSP22Error,
-    PSP22ReceiverError,
-    PSP22TokenTimelockError,
-};
-pub use psp34::{
-    PSP34Error,
-    PSP34ReceiverError,
-};
-pub use psp37::{
-    PSP37Error,
-    PSP37ReceiverError,
-};
-pub use reentrancy_guard::ReentrancyGuardError;
-pub use timelock_controller::TimelockControllerError;
-pub use upgradeable::UpgradeableError;
-pub use nonces::NoncesError;
-pub use votes::VotesError;
+
+#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+pub enum VotesError {
+    ///
+    ExpiredSignature(u128),
+}

@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2023 727.ventures
+// Copyright (c) 2023 Brushfam
+// Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the"Software"),
@@ -19,47 +20,39 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-mod access_control;
-mod diamond;
-mod flashloan;
-mod ownable;
-mod pausable;
-mod payment_splitter;
-mod psp22;
-mod psp34;
-mod psp37;
-mod reentrancy_guard;
-mod timelock_controller;
-mod upgradeable;
-mod governor;
-mod nonces;
-mod votes;
 
-pub use access_control::AccessControlError;
-pub use diamond::DiamondError;
-pub use flashloan::{
-    FlashBorrowerError,
-    FlashLenderError,
-};
-pub use governor::GovernorError;
-pub use ownable::OwnableError;
-pub use pausable::PausableError;
-pub use payment_splitter::PaymentSplitterError;
-pub use psp22::{
-    PSP22Error,
-    PSP22ReceiverError,
-    PSP22TokenTimelockError,
-};
-pub use psp34::{
-    PSP34Error,
-    PSP34ReceiverError,
-};
-pub use psp37::{
-    PSP37Error,
-    PSP37ReceiverError,
-};
-pub use reentrancy_guard::ReentrancyGuardError;
-pub use timelock_controller::TimelockControllerError;
-pub use upgradeable::UpgradeableError;
-pub use nonces::NoncesError;
-pub use votes::VotesError;
+pub use crate::traits::errors::GovernorError;
+use openbrush::traits::{AccountId, Balance, Timestamp};
+
+#[openbrush::wrapper]
+pub type VotesRef = dyn Votes;
+
+#[openbrush::trait_definition]
+pub trait Votes {
+    #[ink(message)]
+    fn get_votes(&self, account: AccountId) -> u128;
+
+    #[ink(message)]
+    fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> u128;
+
+    #[ink(message)]
+    fn get_past_total_supply(&self, timestamp: Timestamp) -> u128;
+
+    #[ink(message)]
+    fn delegate(&mut self, delegatee: AccountId);
+
+    #[ink(message)]
+    fn delegate_by_sig(
+        &mut self,
+        delegatee: AccountId,
+        nonce: u128,
+        expiry: u128,
+        signature: Vec<u8>
+    );
+
+    #[ink(message)]
+    fn clock(&self) -> u64;
+
+    #[ink(message)]
+    fn clock_mode(&self) -> String;
+}

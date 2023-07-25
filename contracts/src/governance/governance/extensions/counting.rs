@@ -27,14 +27,13 @@ pub use crate::{
     },
 };
 use openbrush::traits::{AccountId, Balance, StorageAsRef};
-pub use governance::{
+pub use governance::governance::{
     Internal as _,
     InternalImpl as _,
     GovernorImpl,
 };
 use openbrush::storage::Mapping;
 use openbrush::traits::Storage;
-use crate::governance::GovernorImpl;
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -50,7 +49,7 @@ pub struct ProposalVote {
     has_voted: Mapping<AccountId, bool>,
 }
 
-pub trait GovernorCountingImpl: governor::Internal + GovernorCounting + Internal + Storage<Data> {
+pub trait GovernorCountingImpl: governor::Internal + Internal + Storage<Data> + GovernorImpl{
     fn counting_mode(&self) -> String {
         "support=bravo&quorum=for,abstain".to_string()
     }

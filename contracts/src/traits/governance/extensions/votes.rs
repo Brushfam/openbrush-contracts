@@ -21,7 +21,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-pub use crate::traits::errors::GovernorError;
+pub use crate::traits::errors::{GovernorError, VotesError};
 use openbrush::traits::{
     AccountId,
     Balance,
@@ -29,12 +29,6 @@ use openbrush::traits::{
 
 #[openbrush::wrapper]
 pub type GovernorVotesRef = dyn GovernorVotes;
-
-pub enum VoteType {
-    Against,
-    For,
-    Abstain,
-}
 
 #[openbrush::trait_definition]
 pub trait GovernorVotes {

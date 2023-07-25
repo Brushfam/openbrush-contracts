@@ -1,4 +1,5 @@
-// Copyright (c) 2023 727.ventures
+// Copyright (c) 2023 Brushfam
+// Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the"Software"),
@@ -19,18 +20,17 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::traits::types::Transaction;
 pub use crate::traits::{
-    errors::{
-        GovernorError,
-    },
+    errors::GovernorError,
     types::{
         Id,
         Timestamp,
-    }
+    },
 };
 use ink::prelude::{
-    vec::Vec,
     string::String,
+    vec::Vec,
 };
 use openbrush::traits::{
     AccountId,
@@ -40,6 +40,8 @@ use openbrush::traits::{
 #[openbrush::wrapper]
 pub type GovernorRef = dyn Governor;
 
+
+#[openbrush::storage_item]
 pub enum ProposalState {
     Pending,
     Active,
@@ -80,32 +82,17 @@ pub trait Governor {
     /// Create a new proposal. Vote start after a delay specified by voting_delay() and lasts for a
     /// duration specified by voting_period().
     #[ink(message)]
-    fn propose(&mut self,
-               targets: Vec<AccountId>,
-               values: Vec<Balance>,
-               calldatas: Vec<Vec<u8>>,
-               description: String
-    ) -> Result<Id, GovernorError>;
+    fn propose(&mut self, transactions: Vec<Transaction>) -> Result<Id, GovernorError>;
 
     /// Execute a successful proposal. This requires the quorum to be reached, the vote to be successful, and the
     /// deadline to be reached.
     #[ink(message)]
-    fn execute(&mut self,
-               targets: Vec<AccountId>,
-               values: Vec<Balance>,
-               calldatas: Vec<Vec<u8>>,
-               description_hash: Vec<u8>
-    ) -> Result<Id, GovernorError>;
+    fn execute(&mut self, transactions: Vec<Transaction>) -> Result<Id, GovernorError>;
 
     /// Cancel a proposal. A proposal is cancellable by the proposer, but only while it is Pending state, i.e.
     /// before the vote starts.
     #[ink(message)]
-    fn cancel(&mut self,
-              targets: Vec<AccountId>,
-              values: Vec<Balance>,
-              calldatas: Vec<Vec<u8>>,
-              description_hash: Vec<u8>
-    ) -> Result<Id, GovernorError>;
+    fn cancel(&mut self, transactions: Vec<Transaction>) -> Result<Id, GovernorError>;
 
     /// Returns the voting power of an `account` at a specific `timepoint`.
     #[ink(message)]
@@ -113,29 +100,15 @@ pub trait Governor {
 
     /// Returns the voting power of an `account` at a specific `timepoint` given additional encoded parameters.
     #[ink(message)]
-    fn get_votes_with_params(
-        &self,
-        account: AccountId,
-        timepoint: Timestamp,
-        params: Vec<u8>
-    ) -> u128;
+    fn get_votes_with_params(&self, account: AccountId, timepoint: Timestamp, params: Vec<u8>) -> u128;
 
     /// Cast a vote for a proposal.
     #[ink(message)]
-    fn cast_vote(
-        &self,
-        proposal_id: Id,
-        support: bool
-    ) -> Result<Balance, GovernorError>;
+    fn cast_vote(&self, proposal_id: Id, support: bool) -> Result<Balance, GovernorError>;
 
     /// Cast a vote with a reason.
     #[ink(message)]
-    fn cast_vote_with_reason(
-        &self,
-        proposal_id: Id,
-        support: bool,
-        reason: String
-    ) -> Result<Balance, GovernorError>;
+    fn cast_vote_with_reason(&self, proposal_id: Id, support: bool, reason: String) -> Result<Balance, GovernorError>;
 
     /// Cast a vote with a reason and additional encoded parameters.
     #[ink(message)]
@@ -144,7 +117,7 @@ pub trait Governor {
         proposal_id: Id,
         support: bool,
         reason: String,
-        params: Vec<u8>
+        params: Vec<u8>,
     ) -> Result<Balance, GovernorError>;
 
     /// Cast a vote using the voter's signature, including ecdsa signature support.
@@ -154,7 +127,7 @@ pub trait Governor {
         proposal_id: Id,
         support: bool,
         voter: AccountId,
-        signature: Vec<u8>
+        signature: Vec<u8>,
     ) -> Result<Balance, GovernorError>;
 
     /// Cast a vote with a reason and additional encoded parameters using the voter's signature,
@@ -167,29 +140,17 @@ pub trait Governor {
         voter: AccountId,
         reason: String,
         params: Vec<u8>,
-        signature: Vec<u8>
+        signature: Vec<u8>,
     ) -> Result<Balance, GovernorError>;
-
 
     /// Relays a transaction or function call to an arbitrary target. In cases where the governance executor
     /// is some contract other than the governor itself, like when using a timelock, this function can be invoked
     /// in a governance proposal to recover tokens or Ether that was sent to the governor contract by mistake.
     /// Note that if the executor is simply the governor itself, use of `relay` is redundant.
     #[ink(message)]
-    fn relay(
-        &mut self,
-        target: AccountId,
-        value: Balance,
-        data: Vec<u8>
-    ) -> Result<(), GovernorError>;
+    fn relay(&mut self, target: AccountId, value: Balance, data: Vec<u8>) -> Result<(), GovernorError>;
 
-    /// Hash a proposal's elements (targets, values, signatures, calldatas, and description) into a single proposal hash.
+    /// Hash a proposal's elements (transactions) into a single proposal hash.
     #[ink(message)]
-    fn hash_proposal(
-        &self,
-        targets: Vec<AccountId>,
-        values: Vec<Balance>,
-        calldatas: Vec<Vec<u8>>,
-        description_hash: Vec<u8>
-    ) -> Vec<u8>;
+    fn hash_proposal(&self, transactions: Vec<Transaction>) -> Vec<u8>;
 }

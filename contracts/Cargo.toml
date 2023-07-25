@@ -19,7 +19,7 @@ ink = { version = "4.2.1", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
-openbrush = { version = "~4.0.0-beta", package = "openbrush_lang", path = "../lang", default-features = false }
+openbrush = { version = "4.0.0-beta", package = "openbrush_lang", path = "../lang", default-features = false }
 
 pallet-assets-chain-extension = { git = "https://github.com/Brushfam/pallet-assets-chain-extension", branch = "polkadot-v0.9.37", default-features = false, features = ["ink-lang"]  }
 
@@ -52,9 +52,7 @@ ownable = []
 payment_splitter = []
 reentrancy_guard = []
 pausable = []
-timelock_controller = [
-    "access_control",
-]
+governance = ["access_control"]
 proxy = [
     "ownable",
 ]
@@ -71,7 +69,7 @@ test-all = [
     "payment_splitter",
     "reentrancy_guard",
     "pausable",
-    "timelock_controller",
+    "governance",
     "proxy",
     "diamond",
 ]

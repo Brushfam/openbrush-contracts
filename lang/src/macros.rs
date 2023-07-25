@@ -20,6 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /// Return the hash of the format!("{}::{}", ::core::module_path!(), struct_name).
+/// Also, if field naming is provided, it will return the hash of the format!("{}::{}::{}", ::core::module_path!(), struct_name, field_name).
 /// It cam be used to generate unique storage key of the struct.
 #[macro_export]
 macro_rules! storage_unique_key {

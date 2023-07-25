@@ -1381,7 +1381,7 @@ pub(crate) fn impl_psp37(impl_args: &mut ImplArgs) {
             }
         }
     ))
-    .expect("Should parse");
+        .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::psp37::*;
@@ -1671,7 +1671,7 @@ pub(crate) fn impl_psp37_enumerable(impl_args: &mut ImplArgs) {
             }
         }
     ))
-    .expect("Should parse");
+        .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::psp37::extensions::enumerable::*;
@@ -2149,7 +2149,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
     .expect("Should parse");
 
     #[rustfmt::skip]
-    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl timelock_controller::Internal for #storage_struct_name {
             fn _emit_min_delay_change_event(&self, old_delay: Timestamp, new_delay: Timestamp) {
                 timelock_controller::InternalImpl::_emit_min_delay_change_event(self, old_delay, new_delay)
@@ -2255,7 +2255,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
             }
         }
     ))
-    .expect("Should parse");
+        .expect("Should parse");
 
     let timelock_controller_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl TimelockControllerImpl for #storage_struct_name {}
@@ -2263,7 +2263,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
     .expect("Should parse");
 
     #[rustfmt::skip]
-    let mut timelock_controller = syn::parse2::<syn::ItemImpl>(quote!(
+        let mut timelock_controller = syn::parse2::<syn::ItemImpl>(quote!(
         impl TimelockController for #storage_struct_name {
             #[ink(message)]
             fn is_operation(&self, id: OperationId) -> bool {
@@ -2363,7 +2363,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
             }
         }
     ))
-    .expect("Should parse");
+        .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::timelock_controller::*;

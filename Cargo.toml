@@ -12,15 +12,15 @@ exclude = [
 
 [package]
 name = "openbrush"
-version = "3.1.1"
+version= "4.0.0-beta"
 authors = ["Brushfam <green@727.ventures>"]
 edition = "2018"
 
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/Brushfam/openbrush-contracts"
-documentation = "https://docs.openbrush.io"
-homepage = "https://727.ventures"
+documentation = "https://learn.brushfam.io/docs/openbrush"
+homepage = "https://brushfam.io/"
 description = "OpenBrush library for smart contract development on ink!."
 keywords = ["wasm", "brushfam", "smart-contracts", "blockchain", "ink"]
 categories = ["no-std", "embedded"]
@@ -31,8 +31,8 @@ ink = { version = "4.2.1", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"] }
 
-openbrush_contracts = { version = "~3.1.1", path = "contracts", default-features = false }
-openbrush_lang = { version = "~3.1.1", path = "lang", default-features = false }
+openbrush_contracts = { version = "~4.0.0-beta", path = "contracts", default-features = false }
+openbrush_lang = { version = "~4.0.0-beta", path = "lang", default-features = false }
 
 [lib]
 name = "openbrush"

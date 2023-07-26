@@ -32,14 +32,14 @@ pub type GovernorRef = dyn Governor;
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub enum ProposalState {
     #[default]
-    Pending = (1 << 0),
-    Active = (1 << 1),
-    Canceled = (1 << 2),
-    Defeated = (1 << 3),
-    Succeeded = (1 << 4),
-    Queued = (1 << 5),
-    Expired = (1 << 6),
-    Executed = (1 << 7),
+    Pending = 1 << 0,
+    Active = 1 << 1,
+    Canceled = 1 << 2,
+    Defeated = 1 << 3,
+    Succeeded = 1 << 4,
+    Queued = 1 << 5,
+    Expired = 1 << 6,
+    Executed = 1 << 7,
 }
 
 pub const ALL_PROPOSAL_STATES: u128 = 0b11111111;

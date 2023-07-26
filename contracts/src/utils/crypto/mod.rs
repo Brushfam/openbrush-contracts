@@ -1,4 +1,4 @@
-use crate::utils::crypto::CryptoError::EcdsaToEthAddressFailed;
+
 use ink::primitives::AccountId;
 use openbrush::traits::String;
 

@@ -19,14 +19,11 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+pub use crate::traits::errors::NoncesError;
 use openbrush::{
     storage::Mapping,
-    traits::{
-        AccountId,
-        Storage,
-    },
+    traits::{AccountId, Storage},
 };
-pub use crate::traits::errors::NoncesError;
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -42,15 +39,17 @@ pub trait Nonces {
     fn _use_checked_nonce(&mut self, account: &AccountId, nonce: u128) -> u128;
 }
 
-pub trait NoncesImpl: Storage<Data> + Nonces {
+pub trait NoncesImpl: Storage<Data> {
     fn nonces(&self, account: &AccountId) -> u128 {
         self.data().nonces.get(account).unwrap_or_default()
     }
 
-    fn _use_nonce(&mut self, account: &AccountId) -> u128 {
+    fn _use_nonce(&mut self, account: &AccountId) -> Result<u128, NoncesError> {
         let nonce = self.nonces(account);
-        self.data().nonces.insert(account, &(nonce.checked_add(1).ok_or(Err(NoncesError::NonceOverflow))));
-        nonce
+        self.data()
+            .nonces
+            .insert(account, &(nonce.checked_add(1).ok_or(NoncesError::NonceOverflow)?));
+        Ok(nonce)
     }
 
     fn _use_checked_nonce(&mut self, account: &AccountId, nonce: u128) -> Result<u128, NoncesError> {
@@ -58,7 +57,9 @@ pub trait NoncesImpl: Storage<Data> + Nonces {
         if nonce != current_nonce {
             return Err(NoncesError::InvalidAccountNonce(account.clone(), current_nonce));
         }
-        self.data().nonces.insert(account, &(nonce.checked_add(1).ok_or(Err(NoncesError::NonceOverflow))));
+        self.data()
+            .nonces
+            .insert(account, &(nonce.checked_add(1).ok_or(NoncesError::NonceOverflow)?));
         Ok(nonce)
     }
 }

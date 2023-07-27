@@ -31,35 +31,45 @@ pub struct Checkpoints {
     pub checkpoints: Vec<Checkpoint>,
 }
 
+#[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct Checkpoint {
     pub key: u32,
     pub value: u128,
 }
 
 impl Checkpoints {
-    pub fn push(&mut self, key: u32, value: u128) {
-        self._insert(key, value);
+
+    ///Pushes a (`key`, `value`) pair into a Trace224 so that it is stored as the checkpoint.
+    /// Returns previous value and new value.
+    pub fn push(&mut self, key: u32, value: u128) -> Result<(u128, u128), CheckpointsError>{
+        self._insert(key, value)
     }
 
-    pub fn lower_lookup(&self, key: u32) -> u128 {
+    ///Returns the value in the first (oldest) checkpoint with key greater or equal than the search key, or zero if there is none.
+    pub fn lower_lookup(&self, key: u32) -> Option<u128> {
         let len = self.checkpoints.len();
         let pos = self._lower_binary_lookup(key, 0, len);
         match pos == len {
-            true => 0,
-            false => self.checkpoints[pos].value,
+            true => None,
+            false => Some(self.checkpoints[pos].value),
         }
     }
 
-    pub fn upper_lookup(&self, key: u32) -> u128 {
+    ///Returns the value in the last (most recent) checkpoint with key lower or equal than the search key, or zero if there is none.
+    pub fn upper_lookup(&self, key: u32) -> Option<u128> {
         let len = self.checkpoints.len();
         let pos = self._upper_binary_lookup(key, 0, len);
         match pos == 0 {
-            true => 0,
-            false => self.checkpoints[pos-1].value,
+            true => None,
+            false => Some(self.checkpoints[pos-1].value),
         }
     }
 
-    pub fn upper_lookup_recent(&self, key: u32) -> u128 {
+    /// Returns the value in the last (most recent) checkpoint with key lower or equal than the search key, or zero if there is none.
+    ///
+    /// NOTE: This is a variant of {upperLookup} that is optimised to find "recent" checkpoint (checkpoints with high keys).
+    pub fn upper_lookup_recent(&self, key: u32) -> Option<u128> {
         let len = self.checkpoints.len();
 
         let mut low = 0;
@@ -77,19 +87,22 @@ impl Checkpoints {
         let pos = self._upper_binary_lookup(key, low, high);
 
         match pos == 0 {
-            true => 0,
-            false => self.checkpoints[pos-1].value,
+            true => None,
+            false => Some(self.checkpoints[pos-1].value),
         }
     }
 
-    pub fn latest(&self) -> u128 {
+    ///Returns the value in the most recent checkpoint, or None if there are no checkpoints.
+    pub fn latest(&self) -> Option<u128> {
         let len = self.checkpoints.len();
         match len == 0 {
-            true => 0,
-            false => self.checkpoints[len-1].value,
+            true => None,
+            false => Some(self.checkpoints[len-1].value),
         }
     }
 
+    ///Returns whether there is a checkpoint in the structure (i.e. it is not empty), and if so the key and value
+    ///in the most recent checkpoint.
     pub fn latest_checkpoint(&self) -> (bool, u32, u128) {
         let pos = self.checkpoints.len();
 
@@ -102,11 +115,16 @@ impl Checkpoints {
         }
     }
 
+    ///Returns the number of checkpoint.
+    pub fn len(&self) -> usize {
+        self.checkpoints.len()
+    }
+
     fn _insert(&mut self, key: u32, value: u128) -> Result<(u128, u128), CheckpointsError> {
         let pos = self.checkpoints.len();
 
         if pos > 0 {
-            let last = &self.checkpoints[pos-1];
+            let last = self.checkpoints[pos-1].clone();
 
             if last.key > key {
                 return Err(CheckpointsError::UnorderedInsertion);
@@ -164,6 +182,86 @@ mod tests {
     use super::*;
     #[ink::test]
     fn push_works() {
+        let mut checkpoints = Checkpoints::default();
 
+        let (last, value) = checkpoints.push(1, 1).unwrap();
+        assert_eq!(last, 0);
+        assert_eq!(value, 1);
+        assert_eq!(checkpoints.len(), 1);
+    }
+
+    #[ink::test]
+    fn lower_lookup_works() {
+        let mut checkpoints = Checkpoints::default();
+
+        checkpoints.push(1, 1).unwrap();
+        checkpoints.push(2, 2).unwrap();
+        checkpoints.push(5, 5).unwrap();
+        assert_eq!(checkpoints.lower_lookup(0), Some(1));
+        assert_eq!(checkpoints.lower_lookup(1), Some(1));
+        assert_eq!(checkpoints.lower_lookup(2), Some(2));
+        assert_eq!(checkpoints.lower_lookup(3), Some(5));
+        assert_eq!(checkpoints.lower_lookup(5), Some(5));
+        assert_eq!(checkpoints.lower_lookup(6), None);
+    }
+
+    #[ink::test]
+    fn upper_lookup_works() {
+        let mut checkpoints = Checkpoints::default();
+
+        checkpoints.push(1, 1).unwrap();
+        checkpoints.push(2, 2).unwrap();
+        checkpoints.push(5, 5).unwrap();
+        assert_eq!(checkpoints.upper_lookup(0), None);
+        assert_eq!(checkpoints.upper_lookup(1), Some(1));
+        assert_eq!(checkpoints.upper_lookup(2), Some(2));
+        assert_eq!(checkpoints.upper_lookup(3), Some(2));
+        assert_eq!(checkpoints.upper_lookup(5), Some(5));
+        assert_eq!(checkpoints.upper_lookup(6), Some(5));
+    }
+
+    #[ink::test]
+    fn upper_lookup_recent_works() {
+        let mut checkpoints = Checkpoints::default();
+
+        checkpoints.push(1, 1).unwrap();
+        checkpoints.push(2, 2).unwrap();
+        checkpoints.push(5, 5).unwrap();
+        assert_eq!(checkpoints.upper_lookup_recent(0), None);
+        assert_eq!(checkpoints.upper_lookup_recent(1), Some(1));
+        assert_eq!(checkpoints.upper_lookup_recent(2), Some(2));
+        assert_eq!(checkpoints.upper_lookup_recent(3), Some(2));
+        assert_eq!(checkpoints.upper_lookup_recent(5), Some(5));
+        assert_eq!(checkpoints.upper_lookup_recent(6), Some(5));
+    }
+
+    #[ink::test]
+    fn latest_works() {
+        let mut checkpoints = Checkpoints::default();
+        assert_eq!(checkpoints.latest(), None);
+        checkpoints.push(1, 1).unwrap();
+        checkpoints.push(2, 2).unwrap();
+        checkpoints.push(5, 5).unwrap();
+        assert_eq!(checkpoints.latest(), Some(5));
+    }
+
+    #[ink::test]
+    fn latest_checkpoint_works() {
+        let mut checkpoints = Checkpoints::default();
+        assert_eq!(checkpoints.latest_checkpoint(), (false, 0, 0));
+        checkpoints.push(1, 1).unwrap();
+        checkpoints.push(2, 2).unwrap();
+        checkpoints.push(5, 5).unwrap();
+        assert_eq!(checkpoints.latest_checkpoint(), (true, 5, 5));
+    }
+
+    #[ink::test]
+    fn len_works() {
+        let mut checkpoints = Checkpoints::default();
+        assert_eq!(checkpoints.len(), 0);
+        checkpoints.push(1, 1).unwrap();
+        checkpoints.push(2, 2).unwrap();
+        checkpoints.push(5, 5).unwrap();
+        assert_eq!(checkpoints.len(), 3);
     }
 }

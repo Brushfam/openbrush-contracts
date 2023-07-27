@@ -27,8 +27,6 @@ pub use crate::traits::{
 };
 use ink::prelude::vec::Vec;
 use openbrush::traits::{
-    AccountId,
-    Balance,
     Hash,
     Timestamp,
 };

@@ -23,10 +23,6 @@ openbrush = { version = "4.0.0-beta", package = "openbrush_lang", path = "../lan
 
 pallet-assets-chain-extension = { git = "https://github.com/Brushfam/pallet-assets-chain-extension", branch = "polkadot-v0.9.37", default-features = false, features = ["ink-lang"]  }
 
-blake2 = "0.10.6"
-
-secp256k1 = "0.27.0"
-
 [lib]
 name = "openbrush_contracts"
 path = "src/lib.rs"

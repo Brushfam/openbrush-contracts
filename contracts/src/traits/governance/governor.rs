@@ -20,79 +20,75 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+pub use crate::traits::errors::GovernorError;
 use crate::traits::types::Transaction;
-pub use crate::traits::{
-    errors::GovernorError,
-    types::{
-        Id,
-        Timestamp,
-    },
-};
-use ink::prelude::{
-    string::String,
-    vec::Vec,
-};
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use ink::prelude::{string::String, vec::Vec};
+use openbrush::traits::{AccountId, Balance, Timestamp};
 
 #[openbrush::wrapper]
 pub type GovernorRef = dyn Governor;
 
-
-#[openbrush::storage_item]
+#[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub enum ProposalState {
-    Pending,
-    Active,
-    Canceled,
-    Defeated,
-    Succeeded,
-    Queued,
-    Expired,
-    Executed
+    #[default]
+    Pending = 1 << 0,
+    Active = 1 << 1,
+    Canceled = 1 << 2,
+    Defeated = 1 << 3,
+    Succeeded = 1 << 4,
+    Queued = 1 << 5,
+    Expired = 1 << 6,
+    Executed = 1 << 7,
 }
 
+pub const ALL_PROPOSAL_STATES: u128 = 0b11111111;
+
+/// Trait implemented by all PSP-22 respecting smart traits.
 #[openbrush::trait_definition]
 pub trait Governor {
     /// Returns the name.
     #[ink(message)]
     fn name(&self) -> String;
 
+    /// Hash a proposal's elements (transactions) into a single proposal hash.
+    #[ink(message)]
+    fn hash_proposal(&self, transactions: Vec<Transaction>) -> Vec<u8>;
+
     /// Returns the current state of proposal with `proposal_id` id.
     #[ink(message)]
-    fn state(&self, proposal_id: Id) -> Result<ProposalState, GovernorError>;
+    fn state(&self, proposal_id: u128) -> Result<ProposalState, GovernorError>;
+
+    /// Returns the time when the proposal with `proposal_id` id will start to receive votes.
+    #[ink(message)]
+    fn proposal_snapshot(&self, proposal_id: u128) -> Timestamp;
+
+    /// Returns the time when the proposal with `proposal_id` id will end to receive votes.
+    #[ink(message)]
+    fn proposal_deadline(&self, proposal_id: u128) -> Timestamp;
+
+    /// Returns the AccountId of the proposer of the proposal with `proposal_id` id.
+    #[ink(message)]
+    fn proposal_proposer(&self, proposal_id: u128) -> AccountId;
 
     /// Returns the number of votes required in order for a voter to become a proposer.
     #[ink(message)]
     fn proposal_threshold(&self) -> u128;
 
-    /// Returns the time when the proposal with `proposal_id` id will start to receive votes.
-    #[ink(message)]
-    fn proposal_snapshot(&self, proposal_id: Id) -> Timestamp;
-
-    /// Returns the time when the proposal with `proposal_id` id will end to receive votes.
-    #[ink(message)]
-    fn proposal_deadline(&self, proposal_id: Id) -> Timestamp;
-
-    /// Returns the AccountId of the proposer of the proposal with `proposal_id` id.
-    #[ink(message)]
-    fn proposal_proposer(&self, proposal_id: Id) -> AccountId;
-
     /// Create a new proposal. Vote start after a delay specified by voting_delay() and lasts for a
     /// duration specified by voting_period().
     #[ink(message)]
-    fn propose(&mut self, transactions: Vec<Transaction>) -> Result<Id, GovernorError>;
+    fn propose(&mut self, transactions: Vec<Transaction>) -> Result<u128, GovernorError>;
 
     /// Execute a successful proposal. This requires the quorum to be reached, the vote to be successful, and the
     /// deadline to be reached.
     #[ink(message)]
-    fn execute(&mut self, transactions: Vec<Transaction>) -> Result<Id, GovernorError>;
+    fn execute(&mut self, transactions: Vec<Transaction>) -> Result<u128, GovernorError>;
 
     /// Cancel a proposal. A proposal is cancellable by the proposer, but only while it is Pending state, i.e.
     /// before the vote starts.
     #[ink(message)]
-    fn cancel(&mut self, transactions: Vec<Transaction>) -> Result<Id, GovernorError>;
+    fn cancel(&mut self, transactions: Vec<Transaction>) -> Result<u128, GovernorError>;
 
     /// Returns the voting power of an `account` at a specific `timepoint`.
     #[ink(message)]
@@ -104,17 +100,18 @@ pub trait Governor {
 
     /// Cast a vote for a proposal.
     #[ink(message)]
-    fn cast_vote(&self, proposal_id: Id, support: bool) -> Result<Balance, GovernorError>;
+    fn cast_vote(&self, proposal_id: u128, support: bool) -> Result<Balance, GovernorError>;
 
     /// Cast a vote with a reason.
     #[ink(message)]
-    fn cast_vote_with_reason(&self, proposal_id: Id, support: bool, reason: String) -> Result<Balance, GovernorError>;
+    fn cast_vote_with_reason(&self, proposal_id: u128, support: bool, reason: String)
+        -> Result<Balance, GovernorError>;
 
     /// Cast a vote with a reason and additional encoded parameters.
     #[ink(message)]
     fn cast_vote_with_reason_and_params(
         &self,
-        proposal_id: Id,
+        proposal_id: u128,
         support: bool,
         reason: String,
         params: Vec<u8>,
@@ -124,7 +121,7 @@ pub trait Governor {
     #[ink(message)]
     fn cast_vote_by_sig(
         &self,
-        proposal_id: Id,
+        proposal_id: u128,
         support: bool,
         voter: AccountId,
         signature: Vec<u8>,
@@ -135,7 +132,7 @@ pub trait Governor {
     #[ink(message)]
     fn cast_vote_with_reason_and_params_by_sig(
         &self,
-        proposal_id: Id,
+        proposal_id: u128,
         support: bool,
         voter: AccountId,
         reason: String,
@@ -149,8 +146,4 @@ pub trait Governor {
     /// Note that if the executor is simply the governor itself, use of `relay` is redundant.
     #[ink(message)]
     fn relay(&mut self, target: AccountId, value: Balance, data: Vec<u8>) -> Result<(), GovernorError>;
-
-    /// Hash a proposal's elements (transactions) into a single proposal hash.
-    #[ink(message)]
-    fn hash_proposal(&self, transactions: Vec<Transaction>) -> Vec<u8>;
 }

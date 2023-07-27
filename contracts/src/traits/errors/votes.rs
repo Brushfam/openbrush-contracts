@@ -20,11 +20,13 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use openbrush::traits::BlockNumber;
+
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum VotesError {
     ///
     ExpiredSignature(u128),
     InconsistentClock,
-    FutureLookup(u128, u64),
+    FutureLookup(BlockNumber, BlockNumber),
 }

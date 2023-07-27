@@ -92,12 +92,12 @@ impl Checkpoints {
         }
     }
 
-    ///Returns the value in the most recent checkpoint, or None if there are no checkpoints.
-    pub fn latest(&self) -> Option<u128> {
+    ///Returns the value in the most recent checkpoint, or 0 if there are no checkpoints.
+    pub fn latest(&self) -> u128 {
         let len = self.checkpoints.len();
         match len == 0 {
-            true => None,
-            false => Some(self.checkpoints[len-1].value),
+            true => 0,
+            false => self.checkpoints[len-1].value,
         }
     }
 
@@ -118,6 +118,16 @@ impl Checkpoints {
     ///Returns the number of checkpoint.
     pub fn len(&self) -> usize {
         self.checkpoints.len()
+    }
+
+    pub fn at(&self, index: usize) -> Option<&Checkpoint> {
+        let len = self.checkpoints.len();
+        match index < len {
+            true => {
+                Some(&self.checkpoints[index])
+            },
+            false => None,
+        }
     }
 
     fn _insert(&mut self, key: u32, value: u128) -> Result<(u128, u128), CheckpointsError> {
@@ -193,7 +203,7 @@ mod tests {
     #[ink::test]
     fn lower_lookup_works() {
         let mut checkpoints = Checkpoints::default();
-
+implementations
         checkpoints.push(1, 1).unwrap();
         checkpoints.push(2, 2).unwrap();
         checkpoints.push(5, 5).unwrap();
@@ -238,11 +248,11 @@ mod tests {
     #[ink::test]
     fn latest_works() {
         let mut checkpoints = Checkpoints::default();
-        assert_eq!(checkpoints.latest(), None);
+        assert_eq!(checkpoints.latest(), 0);
         checkpoints.push(1, 1).unwrap();
         checkpoints.push(2, 2).unwrap();
         checkpoints.push(5, 5).unwrap();
-        assert_eq!(checkpoints.latest(), Some(5));
+        assert_eq!(checkpoints.latest(), 5);
     }
 
     #[ink::test]

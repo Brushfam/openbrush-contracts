@@ -369,9 +369,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
             Encode::encode(&(&proposal_id, &support, voter.clone(), self._use_nonce(&voter))).as_slice(),
         )?;
 
-        crypto::verify_signature(&message_hash, &voter, &signature)?;
-
-        if !verify.is_ok() {
+        if crypto::verify_signature(&message_hash, &voter, &signature)? {
             Err(GovernorError::InvalidSignature(voter))
         } else {
             self._cast_vote(proposal_id, voter, support, "".to_string(), self.default_params())

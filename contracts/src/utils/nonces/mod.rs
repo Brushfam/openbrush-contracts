@@ -36,7 +36,7 @@ pub trait Nonces {
 
     fn _use_nonce(&mut self, account: &AccountId) -> u128;
 
-    fn _use_checked_nonce(&mut self, account: &AccountId, nonce: u128) -> u128;
+    fn _use_checked_nonce(&mut self, account: &AccountId, nonce: u128) -> Result<u128, NoncesError>;
 }
 
 pub trait NoncesImpl: Storage<Data> {

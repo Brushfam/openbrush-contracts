@@ -31,4 +31,6 @@ use openbrush::traits::{
 pub enum VotesError {
     ///
     ExpiredSignature(u128),
+    InconsistentClock,
+    FutureLookup(u128, u64),
 }

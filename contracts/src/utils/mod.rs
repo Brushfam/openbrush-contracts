@@ -21,3 +21,4 @@
 
 pub mod crypto;
 pub mod nonces;
+pub mod structs;

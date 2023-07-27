@@ -33,11 +33,32 @@ pub type GovernorVotesRef = dyn GovernorVotes;
 #[openbrush::trait_definition]
 pub trait GovernorVotes {
     #[ink(message)]
+    fn get_votes(&self, account: AccountId) -> u128;
+
+    #[ink(message)]
+    fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> u128;
+
+    #[ink(message)]
+    fn get_past_total_supply(&self, timestamp: Timestamp) -> u128;
+
+    #[ink(message)]
+    fn delegates(&self, account: AccountId) -> AccountId;
+
+    #[ink(message)]
+    fn delegate(&mut self, delegatee: AccountId);
+
+    #[ink(message)]
+    fn delegate_by_sig(
+        &mut self,
+        delegatee: AccountId,
+        nonce: u128,
+        expiry: u128,
+        signature: Vec<u8>
+    );
+
+    #[ink(message)]
     fn clock(&self) -> u64;
 
     #[ink(message)]
     fn clock_mode(&self) -> String;
-
-    #[ink(message)]
-    fn proposal_votes(&self, proposal_id: u128) -> (u128, u128, u128);
 }

@@ -1,4 +1,3 @@
-// Copyright (c) 2023 Brushfam
 // Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -21,38 +20,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-pub use crate::traits::errors::GovernorError;
-use openbrush::traits::{AccountId, Balance, Timestamp};
+use openbrush::traits::{
+    AccountId,
+};
 
-#[openbrush::wrapper]
-pub type VotesRef = dyn Votes;
-
-#[openbrush::trait_definition]
-pub trait Votes {
-    #[ink(message)]
-    fn get_votes(&self, account: AccountId) -> u128;
-
-    #[ink(message)]
-    fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> u128;
-
-    #[ink(message)]
-    fn get_past_total_supply(&self, timestamp: Timestamp) -> u128;
-
-    #[ink(message)]
-    fn delegate(&mut self, delegatee: AccountId);
-
-    #[ink(message)]
-    fn delegate_by_sig(
-        &mut self,
-        delegatee: AccountId,
-        nonce: u128,
-        expiry: u128,
-        signature: Vec<u8>
-    );
-
-    #[ink(message)]
-    fn clock(&self) -> u64;
-
-    #[ink(message)]
-    fn clock_mode(&self) -> String;
+#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+pub enum CheckpointsError {
+    UnorderedInsertion
 }

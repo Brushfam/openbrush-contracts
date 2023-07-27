@@ -40,35 +40,114 @@ pub use governance::governance::{
 };
 use openbrush::storage::Mapping;
 use openbrush::traits::Storage;
+use crate::utils::structs::checkpoints::Checkpoints;
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy]
-    token: AccountId,
+    delegation: Mapping<AccountId, AccountId>,
+    delegate_checkpoints: Mapping<AccountId, Checkpoints>,
+    total_checkpoints: Checkpoints,
 }
 
-pub trait GovernorCountingImpl: governor::Internal + Internal + Storage<Data> + GovernorImpl{
-    fn clock(&self) -> u64 {
-        //todo
-        //VotesRef::clock_builder(&token).invoke()
-        Self::env().block_number() as u64
-    }
+pub trait GovernorVotesImpl: governor::Internal + Internal + Storage<Data> + GovernorImpl{
+    fn get_votes(&self, account: AccountId) -> u128;
 
-    fn clock_mode(&self) -> String {
-        //todo
-        //VotesRef::clock_mode_builder()
-        "mode=blocknumber&from=default".to_string()
-    }
+    fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<u128, VotesError>;
+
+    fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<u128, VotesError>;
+
+    fn delegates(&self, account: AccountId) -> AccountId;
+
+    fn delegate(&mut self, delegatee: AccountId);
+
+    fn delegate_by_sig(
+        &mut self,
+        delegatee: AccountId,
+        nonce: u128,
+        expiry: u128,
+        signature: Vec<u8>
+    );
+
+    fn clock(&self) -> u64;
+
+    fn clock_mode(&self) -> Result<String, VotesError>;
 }
 
 pub trait Internal {
-    fn _get_votes(&self, account: AccountId, timestamp: Timestamp) -> u128;
+    fn _get_total_supply(&self) -> u128;
+
+    fn _delegate(&mut self, delegator: AccountId, delegatee: AccountId);
+
+    fn _trasfer_voting_units(
+        &mut self,
+        from: AccountId,
+        to: AccountId,
+        amount: Balance,
+    );
+
+    fn _move_delegate_votes(
+        &mut self,
+        from: AccountId,
+        to: AccountId,
+        amount: Balance,
+    );
+
+    fn _num_checkpoints(&self, account: AccountId) -> u128;
+
+    fn _checkpoints(&self, account: AccountId, index: u128) -> Checkpoints;
+
+    fn _push_checkpoints(
+        &mut self,
+        store: Checkpoints,
+        op: fn(u128, u128) -> u128,
+        delta: u128,
+    ) -> (u128, u128);
+
+    fn _add(a: u128, b: u128) -> u128;
+
+    fn _sub(a: u128, b: u128) -> u128;
+
+    fn _get_voting_units(&self, account: AccountId) -> u128;
 }
 
-pub trait InternalImpl: Internal + Storage<Data> + GovernorCountingImpl + GovernorImpl {
-    fn _get_votes(&self, account: AccountId, timestamp: Timestamp) -> u128 {
-        //todo
-        VotesRef::get_past_votes_builder(&token, &account, &timestamp).invoke()
+pub trait InternalImpl: Internal + Storage<Data> + GovernorVotesImpl + GovernorImpl {
+    fn _get_total_supply(&self) -> u128;
+
+    fn _delegate(&mut self, delegator: AccountId, delegatee: AccountId);
+
+    fn _trasfer_voting_units(
+        &mut self,
+        from: AccountId,
+        to: AccountId,
+        amount: Balance,
+    );
+
+    fn _move_delegate_votes(
+        &mut self,
+        from: AccountId,
+        to: AccountId,
+        amount: Balance,
+    );
+
+    fn _num_checkpoints(&self, account: AccountId) -> u128;
+
+    fn _checkpoints(&self, account: AccountId, index: u128) -> Checkpoints;
+
+    fn _push_checkpoints(
+        &mut self,
+        store: Checkpoints,
+        op: fn(u128, u128) -> u128,
+        delta: u128,
+    ) -> (u128, u128);
+
+    fn _add(a: u128, b: u128) -> u128 {
+        a + b
     }
+
+    fn _sub(a: u128, b: u128) -> u128 {
+        a - b
+    }
+
+    fn _get_voting_units(&self, account: AccountId) -> u128;
 }

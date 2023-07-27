@@ -20,27 +20,19 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
+use crate::utils::structs::checkpoints::Checkpoints;
 pub use crate::{
     governance::governance::*,
     traits::governance::{
-        extensions::{
-            counting::*,
-            votes::*,
-        },
+        extensions::{counting::*, votes::*},
         utils::votes::*,
         *,
     },
 };
-use openbrush::traits::{AccountId, Balance, StorageAsRef, Timestamp};
-pub use governance::governance::{
-    Internal as _,
-    InternalImpl as _,
-    GovernorImpl,
-};
+pub use governance::governance::{GovernorImpl, Internal as _, InternalImpl as _};
 use openbrush::storage::Mapping;
 use openbrush::traits::Storage;
-use crate::utils::structs::checkpoints::Checkpoints;
+use openbrush::traits::{AccountId, Balance, StorageAsRef, Timestamp};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -50,8 +42,10 @@ pub struct Data {
     total_checkpoints: Checkpoints,
 }
 
-pub trait GovernorVotesImpl: governor::Internal + Internal + Storage<Data> + GovernorImpl{
-    fn get_votes(&self, account: AccountId) -> u128;
+pub trait GovernorVotesImpl: governor::Internal + Internal + Storage<Data> + GovernorImpl {
+    fn get_votes(&self, account: AccountId) -> u128{
+
+    }
 
     fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<u128, VotesError>;
 
@@ -61,15 +55,11 @@ pub trait GovernorVotesImpl: governor::Internal + Internal + Storage<Data> + Gov
 
     fn delegate(&mut self, delegatee: AccountId);
 
-    fn delegate_by_sig(
-        &mut self,
-        delegatee: AccountId,
-        nonce: u128,
-        expiry: u128,
-        signature: Vec<u8>
-    );
+    fn delegate_by_sig(&mut self, delegatee: AccountId, nonce: u128, expiry: u128, signature: Vec<u8>);
 
-    fn clock(&self) -> u64;
+    fn clock(&self) -> u64 {
+        Self::env().block_number() as u64
+    }
 
     fn clock_mode(&self) -> Result<String, VotesError>;
 }
@@ -79,30 +69,15 @@ pub trait Internal {
 
     fn _delegate(&mut self, delegator: AccountId, delegatee: AccountId);
 
-    fn _trasfer_voting_units(
-        &mut self,
-        from: AccountId,
-        to: AccountId,
-        amount: Balance,
-    );
+    fn _trasfer_voting_units(&mut self, from: AccountId, to: AccountId, amount: Balance);
 
-    fn _move_delegate_votes(
-        &mut self,
-        from: AccountId,
-        to: AccountId,
-        amount: Balance,
-    );
+    fn _move_delegate_votes(&mut self, from: AccountId, to: AccountId, amount: Balance);
 
     fn _num_checkpoints(&self, account: AccountId) -> u128;
 
     fn _checkpoints(&self, account: AccountId, index: u128) -> Checkpoints;
 
-    fn _push_checkpoints(
-        &mut self,
-        store: Checkpoints,
-        op: fn(u128, u128) -> u128,
-        delta: u128,
-    ) -> (u128, u128);
+    fn _push_checkpoints(&mut self, store: Checkpoints, op: fn(u128, u128) -> u128, delta: u128) -> (u128, u128);
 
     fn _add(a: u128, b: u128) -> u128;
 
@@ -116,30 +91,15 @@ pub trait InternalImpl: Internal + Storage<Data> + GovernorVotesImpl + GovernorI
 
     fn _delegate(&mut self, delegator: AccountId, delegatee: AccountId);
 
-    fn _trasfer_voting_units(
-        &mut self,
-        from: AccountId,
-        to: AccountId,
-        amount: Balance,
-    );
+    fn _trasfer_voting_units(&mut self, from: AccountId, to: AccountId, amount: Balance);
 
-    fn _move_delegate_votes(
-        &mut self,
-        from: AccountId,
-        to: AccountId,
-        amount: Balance,
-    );
+    fn _move_delegate_votes(&mut self, from: AccountId, to: AccountId, amount: Balance);
 
     fn _num_checkpoints(&self, account: AccountId) -> u128;
 
     fn _checkpoints(&self, account: AccountId, index: u128) -> Checkpoints;
 
-    fn _push_checkpoints(
-        &mut self,
-        store: Checkpoints,
-        op: fn(u128, u128) -> u128,
-        delta: u128,
-    ) -> (u128, u128);
+    fn _push_checkpoints(&mut self, store: Checkpoints, op: fn(u128, u128) -> u128, delta: u128) -> (u128, u128);
 
     fn _add(a: u128, b: u128) -> u128 {
         a + b

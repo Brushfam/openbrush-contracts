@@ -20,12 +20,8 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
 pub use crate::traits::errors::GovernorError;
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use openbrush::traits::AccountId;
 
 #[openbrush::wrapper]
 pub type GovernorCountingRef = dyn GovernorCounting;
@@ -42,7 +38,7 @@ pub trait GovernorCounting {
     fn counting_mode(&self) -> String;
 
     #[ink(message)]
-    fn has_voted(&self, proposal_id: u128,voter: AccountId) -> bool;
+    fn has_voted(&self, proposal_id: u128, voter: AccountId) -> bool;
 
     #[ink(message)]
     fn proposal_votes(&self, proposal_id: u128) -> (u128, u128, u128);

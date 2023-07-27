@@ -20,12 +20,8 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
 pub use crate::traits::errors::{GovernorError, VotesError};
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use openbrush::traits::{AccountId, Timestamp};
 
 #[openbrush::wrapper]
 pub type GovernorVotesRef = dyn GovernorVotes;
@@ -48,13 +44,7 @@ pub trait GovernorVotes {
     fn delegate(&mut self, delegatee: AccountId);
 
     #[ink(message)]
-    fn delegate_by_sig(
-        &mut self,
-        delegatee: AccountId,
-        nonce: u128,
-        expiry: u128,
-        signature: Vec<u8>
-    );
+    fn delegate_by_sig(&mut self, delegatee: AccountId, nonce: u128, expiry: u128, signature: Vec<u8>);
 
     #[ink(message)]
     fn clock(&self) -> u64;

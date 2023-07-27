@@ -20,8 +20,11 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 mod access_control;
+mod checkpoints;
 mod diamond;
 mod flashloan;
+mod governor;
+mod nonces;
 mod ownable;
 mod pausable;
 mod payment_splitter;
@@ -31,37 +34,21 @@ mod psp37;
 mod reentrancy_guard;
 mod timelock_controller;
 mod upgradeable;
-mod governor;
-mod nonces;
 mod votes;
-mod checkpoints;
 
 pub use access_control::AccessControlError;
+pub use checkpoints::CheckpointsError;
 pub use diamond::DiamondError;
-pub use flashloan::{
-    FlashBorrowerError,
-    FlashLenderError,
-};
+pub use flashloan::{FlashBorrowerError, FlashLenderError};
 pub use governor::GovernorError;
+pub use nonces::NoncesError;
 pub use ownable::OwnableError;
 pub use pausable::PausableError;
 pub use payment_splitter::PaymentSplitterError;
-pub use psp22::{
-    PSP22Error,
-    PSP22ReceiverError,
-    PSP22TokenTimelockError,
-};
-pub use psp34::{
-    PSP34Error,
-    PSP34ReceiverError,
-};
-pub use psp37::{
-    PSP37Error,
-    PSP37ReceiverError,
-};
+pub use psp22::{PSP22Error, PSP22ReceiverError, PSP22TokenTimelockError};
+pub use psp34::{PSP34Error, PSP34ReceiverError};
+pub use psp37::{PSP37Error, PSP37ReceiverError};
 pub use reentrancy_guard::ReentrancyGuardError;
 pub use timelock_controller::TimelockControllerError;
 pub use upgradeable::UpgradeableError;
-pub use nonces::NoncesError;
 pub use votes::VotesError;
-pub use checkpoints::CheckpointsError;

@@ -98,6 +98,13 @@ impl<T: Storage<Data>> Internal for T {
                     self.data().forward_to.clone(),
                     err
                 )
+            })
+            .unwrap_or_else(|err| {
+                panic!(
+                    "delegate call to {:?} failed due to {:?}",
+                    self.data().forward_to.clone(),
+                    err
+                )
             });
         unreachable!("the _fallback call will never return since `tail_call` was set");
     }

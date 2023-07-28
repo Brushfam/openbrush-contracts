@@ -1,11 +1,11 @@
 [package]
 name = "my_psp22_pallet_mintable"
-version = "3.1.1"
+version = "3.2.0"
 authors = ["Brushfam <nameless.endless@727.ventures>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.1.0", default-features = false}
+ink = { version = "4.2.1", default-features = false}
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.3", default-features = false, features = ["derive"], optional = true }
@@ -16,13 +16,9 @@ openbrush = { path = "../../..", default-features = false, features = ["psp22_pa
 [lib]
 name = "my_psp22_pallet_mintable"
 path = "lib.rs"
-crate-type = [
-    # Used for normal contract Wasm blobs.
-    "cdylib",
-]
 
 [dev-dependencies]
-ink_e2e = "4.1.0"
+ink_e2e = "4.2.1"
 test_helpers = { path = "../../test_helpers", default-features = false }
 rand = "0.8.5"
 

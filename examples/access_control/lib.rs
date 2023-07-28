@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
@@ -66,10 +66,16 @@ pub mod my_access_control {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
-        use openbrush::contracts::access_control::accesscontrol_external::AccessControl;
-        use openbrush::contracts::psp34::extensions::mintable::psp34mintable_external::PSP34Mintable;
-        use openbrush::contracts::psp34::psp34_external::PSP34;
-        use openbrush::contracts::psp34::extensions::burnable::psp34burnable_external::PSP34Burnable;
+        use openbrush::contracts::{
+            access_control::accesscontrol_external::AccessControl,
+            psp34::{
+                extensions::{
+                    burnable::psp34burnable_external::PSP34Burnable,
+                    mintable::psp34mintable_external::PSP34Mintable,
+                },
+                psp34_external::PSP34,
+            },
+        };
 
         #[rustfmt::skip]
         use super::*;
@@ -80,10 +86,10 @@ pub mod my_access_control {
 
         use test_helpers::{
             address_of,
-            has_role,
             grant_role,
-            mint_dry_run,
+            has_role,
             mint,
+            mint_dry_run,
             revoke_role,
         };
 
@@ -92,11 +98,11 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn only_minter_role_is_allowed_to_mint(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
-
 
             assert_eq!(has_role!(client, address, MINTER, bob), false);
 
@@ -109,11 +115,10 @@ pub mod my_access_control {
             assert_eq!(mint!(client, address, bob, bob, Id::U8(0)), Ok(()));
 
             let owner_of = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owner_of(Id::U8(0)));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.owner_of(Id::U8(0)));
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert_eq!(owner_of, Some(address_of!(bob)));
 
@@ -123,7 +128,8 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_grant_initial_roles_to_default_signer(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -137,7 +143,8 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_not_grant_initial_roles_for_random_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -151,7 +158,8 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_grant_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -168,7 +176,8 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_not_change_old_roles_after_grant_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -191,7 +200,8 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_revoke_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -205,10 +215,12 @@ pub mod my_access_control {
             let revoke_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.revoke_role(MINTER, address_of!(bob)));
-                client.call(&ink_e2e::alice(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
                     .expect("call failed")
-            }.return_value();
+            }
+            .return_value();
 
             assert_eq!(revoke_role, Ok(()));
 
@@ -220,7 +232,8 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_renounce_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -230,10 +243,12 @@ pub mod my_access_control {
             let renounce_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.renounce_role(MINTER, address_of!(alice)));
-                client.call(&ink_e2e::alice(), _msg, 0, None)
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
                     .expect("call failed")
-            }.return_value();
+            }
+            .return_value();
 
             assert_eq!(renounce_role, Ok(()));
 
@@ -243,9 +258,12 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_reject_when_grant_or_revoke_not_by_admin_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_reject_when_grant_or_revoke_not_by_admin_role(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -255,18 +273,18 @@ pub mod my_access_control {
             let grant_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.grant_role(MINTER, address_of!(charlie)));
-                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert!(matches!(grant_role, Err(_)));
 
             let revoke_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.revoke_role(MINTER, address_of!(charlie)));
-                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert!(matches!(revoke_role, Err(_)));
 
@@ -276,7 +294,8 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_reject_when_renounce_not_self_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -287,9 +306,9 @@ pub mod my_access_control {
             let renounce_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.renounce_role(MINTER, address_of!(bob)));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert!(matches!(renounce_role, Err(_)));
 
@@ -299,7 +318,8 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_reject_burn_if_no_minter_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client.instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+            let address = client
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
@@ -310,11 +330,10 @@ pub mod my_access_control {
             assert_eq!(mint!(client, address, bob, bob, Id::U8(0)), Ok(()));
 
             let owner_of = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owner_of(Id::U8(0)));
-                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.owner_of(Id::U8(0)));
+                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert_eq!(owner_of, Some(address_of!(bob)));
 
@@ -324,9 +343,9 @@ pub mod my_access_control {
             let burn = {
                 let _msg = build_message::<ContractRef>(address.clone())
                     .call(|contract| contract.burn(address_of!(bob), Id::U8(0)));
-                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None)
-                    .await
-            }.return_value();
+                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
+            }
+            .return_value();
 
             assert!(matches!(burn, Err(_)));
 

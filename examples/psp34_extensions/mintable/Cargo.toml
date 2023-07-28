@@ -1,11 +1,11 @@
 [package]
 name = "my_psp34_mintable"
-version = "3.1.1"
+version = "3.2.0"
 authors = ["Brushfam <dominik.krizo@727.ventures>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.1.0", default-features = false}
+ink = { version = "4.2.1", default-features = false}
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.3", default-features = false, features = ["derive"], optional = true }
@@ -14,16 +14,12 @@ scale-info = { version = "2.3", default-features = false, features = ["derive"],
 openbrush = { path = "../../..", default-features = false, features = ["psp34"] }
 
 [dev-dependencies]
-ink_e2e = "4.1.0"
+ink_e2e = "4.2.1"
 test_helpers = { path = "../../test_helpers", default-features = false }
 
 [lib]
 name = "my_psp34_mintable"
 path = "lib.rs"
-crate-type = [
-    # Used for normal contract Wasm blobs.
-    "cdylib",
-]
 
 [features]
 default = ["std"]

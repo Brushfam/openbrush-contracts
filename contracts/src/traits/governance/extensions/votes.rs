@@ -21,8 +21,9 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::traits::errors::{GovernorError, VotesError};
-use openbrush::traits::{AccountId, Timestamp};
-
+use openbrush::traits::{AccountId, BlockNumber, Timestamp};
+use openbrush::traits::String;
+use crate::utils::crypto;
 #[openbrush::wrapper]
 pub type GovernorVotesRef = dyn GovernorVotes;
 
@@ -32,11 +33,9 @@ pub trait GovernorVotes {
     fn get_votes(&self, account: AccountId) -> u128;
 
     #[ink(message)]
-    fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> u128;
-
+    fn get_past_votes(&self, account: AccountId, timepoint: BlockNumber) -> Result<Option<u128>, VotesError>;
     #[ink(message)]
-    fn get_past_total_supply(&self, timestamp: Timestamp) -> u128;
-
+    fn get_past_total_supply(&self, timestamp: BlockNumber) -> Result<u128, VotesError>;
     #[ink(message)]
     fn delegates(&self, account: AccountId) -> AccountId;
 
@@ -44,11 +43,19 @@ pub trait GovernorVotes {
     fn delegate(&mut self, delegatee: AccountId);
 
     #[ink(message)]
-    fn delegate_by_sig(&mut self, delegatee: AccountId, nonce: u128, expiry: u128, signature: Vec<u8>);
+    fn delegate_by_sig(
+        &mut self,
+        signer: AccountId,
+        delegatee: AccountId,
+        nonce: u128,
+        expiry: u128,
+        signature: &[u8; 65]
+    ) -> Result<(), VotesError>;
 
     #[ink(message)]
-    fn clock(&self) -> u64;
+    fn clock(&self) -> BlockNumber;
 
     #[ink(message)]
-    fn clock_mode(&self) -> String;
+    fn clock_mode(&self) -> Result<String, VotesError>;
 }
+

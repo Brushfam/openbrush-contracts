@@ -99,7 +99,14 @@ pub trait GovernorVotesImpl: governor::Internal + Internal + Storage<Data> + Gov
     }
 
     ///Delegates votes from signer to `delegatee`.
-    fn delegate_by_sig(&mut self, signer: AccountId, delegatee: AccountId, nonce: u128, expiry: u128, signature: &[u8; 65]) -> Result<(), VotesError>{
+    fn delegate_by_sig(
+        &mut self,
+        signer: AccountId,
+        delegatee: AccountId,
+        nonce: u128,
+        expiry: u128,
+        signature: &[u8; 65]
+    ) -> Result<(), VotesError>{
         let message_hash = crypto::hash_message(
             Encode::encode(&(&delegatee, &nonce, &expiry)).as_slice(),
         )?;

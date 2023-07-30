@@ -27,7 +27,7 @@ pub use governance::governance::{GovernorImpl, Internal as _, InternalImpl as _}
 use openbrush::storage::Mapping;
 use openbrush::traits::Storage;
 use openbrush::traits::{AccountId, Balance, StorageAsRef};
-
+use openbrush::traits::String;
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {

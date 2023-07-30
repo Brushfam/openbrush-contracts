@@ -38,6 +38,8 @@ pub use access::access_control;
 pub use access::ownable;
 #[cfg(feature = "payment_splitter")]
 pub use finance::payment_splitter;
+#[cfg(feature = "governor")]
+pub use governance::governor;
 #[cfg(feature = "timelock_controller")]
 pub use governance::timelock_controller;
 #[cfg(feature = "pausable")]

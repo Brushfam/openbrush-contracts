@@ -24,6 +24,9 @@ use openbrush::{
     storage::Mapping,
     traits::{AccountId, Storage},
 };
+use ink::prelude::vec::Vec;
+use openbrush::traits::String;
+
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -203,7 +206,6 @@ mod tests {
     #[ink::test]
     fn lower_lookup_works() {
         let mut checkpoints = Checkpoints::default();
-implementations
         checkpoints.push(1, 1).unwrap();
         checkpoints.push(2, 2).unwrap();
         checkpoints.push(5, 5).unwrap();

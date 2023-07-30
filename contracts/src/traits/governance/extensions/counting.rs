@@ -22,7 +22,7 @@
 
 pub use crate::traits::errors::GovernorError;
 use openbrush::traits::AccountId;
-
+use openbrush::traits::String;
 #[openbrush::wrapper]
 pub type GovernorCountingRef = dyn GovernorCounting;
 

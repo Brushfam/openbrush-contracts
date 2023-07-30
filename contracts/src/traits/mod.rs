@@ -31,5 +31,5 @@ pub mod proxy;
 pub mod psp22;
 pub mod psp34;
 pub mod psp37;
-mod types;
+pub mod types;
 pub mod upgradeable;

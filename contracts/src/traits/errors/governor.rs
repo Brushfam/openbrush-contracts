@@ -42,4 +42,7 @@ pub enum GovernorError {
     ZeroSnapshot,
     DeadlineOverflow,
     ZeroProposalLength,
+    ProposalNotFound,
+    InvalidInput,
+    UnderlyingTransactionReverted,
 }

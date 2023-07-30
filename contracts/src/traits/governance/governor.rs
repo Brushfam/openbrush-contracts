@@ -22,6 +22,8 @@
 
 pub use crate::traits::errors::GovernorError;
 use crate::traits::types::Transaction;
+use core::ops::BitAnd;
+use core::ops::BitOr;
 use ink::prelude::{string::String, vec::Vec};
 use openbrush::traits::{AccountId, Balance, Timestamp};
 
@@ -40,6 +42,12 @@ pub enum ProposalState {
     Queued = 1 << 5,
     Expired = 1 << 6,
     Executed = 1 << 7,
+}
+
+impl ProposalState {
+    pub fn u128(self) -> u128 {
+        self as u128
+    }
 }
 
 pub const ALL_PROPOSAL_STATES: u128 = 0b11111111;

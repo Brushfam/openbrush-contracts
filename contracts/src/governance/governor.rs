@@ -20,22 +20,22 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::timelock_controller::Transaction;
+use crate::governance::extensions::timelock_controller::CallInput;
 use crate::traits::errors::GovernorError::DeadlineOverflow;
+use crate::traits::types::Transaction;
 use crate::utils::crypto;
 use crate::utils::crypto::hash_message;
-pub use crate::{governance, traits::governance::*, utils::nonces::*};
-use blake2::Blake2s;
+pub use crate::{traits::governance::*, utils::nonces::*};
 use ink::env::call::ExecutionInput;
+use ink::env::{CallFlags, DefaultEnvironment};
+use ink::prelude::vec;
 use ink::{
-    blake2x256,
     env::call::{build_call, Selector},
     prelude::{string::String, vec::Vec},
-    storage::traits::Storable,
 };
 use openbrush::{
-    storage::{Mapping, TypeGuard},
-    traits::{AccountId, Balance, Storage, StorageAsMut, StorageAsRef, Timestamp},
+    storage::Mapping,
+    traits::{AccountId, Balance, Storage, Timestamp},
 };
 use scale::Encode;
 
@@ -71,14 +71,6 @@ pub struct ProposalCore {
     vote_duration: Timestamp,
     executed: ExecutionStatus,
     canceled: CancellationStatus,
-}
-
-#[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
-pub struct Transaction {
-    target: AccountId,
-    value: Balance,
-    call_data: Vec<u8>,
 }
 
 impl ProposalCore {
@@ -119,7 +111,7 @@ impl ProposalCore {
     }
 }
 
-pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
+pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
     /// [OK]
     fn state(&self, proposal_id: &u128) -> Result<ProposalState, GovernorError> {
         let proposal = self
@@ -232,14 +224,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
             },
         );
 
-        self._emit_proposal_created_event(
-            &proposal_id,
-            &proposer,
-            &targets,
-            &values,
-            &calldatas,
-            &description_hash,
-        );
+        self._emit_proposal_created_event(&proposal_id, &proposer, &description);
 
         Ok(proposal_id)
     }
@@ -254,7 +239,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
             return Err(GovernorError::UnexpectedProposalState(
                 proposal_id.clone(),
                 current_state.clone(),
-                ProposalState::Succeeded | ProposalState::Queued,
+                ProposalState::Succeeded.u128() | ProposalState::Queued.u128(),
             ));
         }
 
@@ -270,27 +255,9 @@ pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
 
         self._emit_proposal_executed_event(&proposal_id);
 
-        self._before_execute(
-            proposal_id.clone(),
-            targets.clone(),
-            values.clone(),
-            calldatas.clone(),
-            description_hash.clone(),
-        )?;
-        self._execute(
-            proposal_id.clone(),
-            targets.clone(),
-            values.clone(),
-            calldatas.clone(),
-            description_hash.clone(),
-        )?;
-        self._after_execute(
-            proposal_id.clone(),
-            targets.clone(),
-            values.clone(),
-            calldatas.clone(),
-            description_hash.clone(),
-        )?;
+        self._before_execute(proposal_id.clone(), transactions.clone())?;
+        self._execute(proposal_id.clone(), transactions.clone())?;
+        self._after_execute(proposal_id.clone(), transactions.clone())?;
 
         Ok(proposal_id)
     }
@@ -305,7 +272,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
             return Err(GovernorError::UnexpectedProposalState(
                 proposal_id.clone(),
                 current_state.clone(),
-                _encode_state_bitmap(ProposalState::Pending),
+                ProposalState::Pending.into(),
             ));
         }
 
@@ -315,12 +282,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
             return Err(GovernorError::OnlyProposer(Self::env().caller()));
         }
 
-        self._cancel(
-            targets.clone(),
-            values.clone(),
-            calldatas.clone(),
-            description_hash.clone(),
-        )
+        self._cancel(transactions.clone())
     }
 
     fn get_votes(&self, account: AccountId, timestamp: Timestamp) -> u128 {
@@ -333,7 +295,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
 
     fn cast_vote(&mut self, proposal_id: u128, support: bool) -> Result<u128, GovernorError> {
         let voter = Self::env().caller();
-        self._cast_vote(proposal_id, voter, support, "".to_string(), vec![])
+        self._cast_vote(proposal_id, voter, support, String::new(), vec![])
     }
 
     fn cast_vote_with_reason(
@@ -364,17 +326,15 @@ pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
         voter: AccountId,
         signature: &[u8; 65],
     ) -> Result<Balance, GovernorError> {
-        // todo: BALLOT_TYPEHASH
-        let message_hash = crypto::hash_message(
-            Encode::encode(&(&proposal_id, &support, voter.clone(), self._use_nonce(&voter))).as_slice(),
-        )?;
+        let message_hash =
+            hash_message(Encode::encode(&(&proposal_id, &support, voter.clone(), self._use_nonce(&voter))).as_slice())?;
 
-        crypto::verify_signature(&message_hash, &voter, &signature)?;
+        let verify = crypto::verify_signature(&message_hash, &voter, &signature)?;
 
-        if !verify.is_ok() {
+        if !verify {
             Err(GovernorError::InvalidSignature(voter))
         } else {
-            self._cast_vote(proposal_id, voter, support, "".to_string(), self.default_params())
+            self._cast_vote(proposal_id, voter, support, String::new(), self.default_params())
         }
     }
 
@@ -416,12 +376,12 @@ pub trait GovernorImpl: Storage<Data> + Internal + Governor + Nonces {
     fn hash_proposal(
         &self,
         transactions: Vec<Transaction>,
-        description_hash: &[u8; 32],
-    ) -> Result<u128, GovernorError> {
+        description_hash: &[u128; 32],
+    ) -> Result<[u8; 32], GovernorError> {
         let encoded_msg = Encode::encode(&(transactions, description_hash));
 
-        let mut proposal_id: u128 = 0;
-        ink::env::hash_bytes(&encoded_msg, &mut proposal_id);
+        let mut proposal_id: [u8; 32] = [0; 32];
+        ink::env::hash_bytes::<ink::env::hash::Blake2x256>(&encoded_msg, &mut proposal_id);
 
         Ok(proposal_id)
     }
@@ -449,9 +409,30 @@ pub trait Internal {
 
     fn _encode_state_bitmap(&self, proposal_state: ProposalState) -> Vec<u8>;
 
-    fn _executor(&self) -> AccountId;
-
     fn _try_hex_to_uint(&self, char: char) -> (bool, u8);
+
+    fn _emit_vote_cast_with_params_event(
+        &self,
+        voter: &AccountId,
+        proposal_id: &u128,
+        support: &bool,
+        votes: &u128,
+        reason: &String,
+        params: &Vec<u8>,
+    );
+
+    fn _emit_vote_cast_event(
+        &self,
+        voter: &AccountId,
+        proposal_id: &u128,
+        support: &bool,
+        votes: &u128,
+        reason: &String,
+    );
+
+    fn _emit_proposal_created_event(&self, proposal_id: &u128, proposer: &AccountId, description: &String);
+
+    fn _emit_proposal_canceled_event(&self, proposal_id: &u128);
 }
 
 pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
@@ -463,14 +444,21 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
         _description_hash: &[u8; 32],
     ) -> Result<(), GovernorError> {
         for tx in transactions {
-            let msg = hash_message(tx.call_data.encode().as_slice())?;
-            let selector_bytes = msg[0..4].clone();
-            let selector = Selector::from(selector_bytes as [u8; 4]);
-
-            build_call::<ink::env::DefaultEnvironment>()
-                .call(tx.target)
-                .exec_input(ExecutionInput::new(selector).push_arg(&tx.call_data))
-                .invoke();
+            build_call::<DefaultEnvironment>()
+                .call_type(
+                    ink::env::call::Call::new(tx.callee)
+                        .gas_limit(tx.gas_limit)
+                        .transferred_value(tx.transferred_value),
+                )
+                .exec_input(
+                    ExecutionInput::new(tx.selector.into())
+                        .push_arg(CallInput::try_from(&tx.input).map_err(|_| GovernorError::InvalidInput)?),
+                )
+                .returns::<()>()
+                .call_flags(CallFlags::default().set_allow_reentry(true))
+                .try_invoke()
+                .map_err(|_| GovernorError::UnderlyingTransactionReverted)?
+                .map_err(|_| GovernorError::UnderlyingTransactionReverted)?;
         }
 
         Ok(())
@@ -485,13 +473,8 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
         let account_id = Self::env().account_id();
         if self._executor() != account_id {
             for tx in transactions {
-                if tx.target == account_id {
-                    // TODO : it's very bad approach
-                    let msg = hash_message(tx.call_data.encode().as_slice())?;
-                    let selector_bytes = msg[0..4].clone();
-                    let selector = Selector::from(selector_bytes as [u8; 4]);
-
-                    self.data().governance_call.push(selector);
+                if tx.callee == Option::from(account_id) {
+                    self.data().governance_call.push(Selector::new(tx.selector));
                 }
             }
         }
@@ -505,8 +488,8 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
         _description_hash: &[u8; 32],
     ) -> Result<(), GovernorError> {
         if self._executor() != Self::env().account_id() {
-            if !governance_call.is_empty() {
-                self.data().governance_call.clear();
+            if !self.data().governance_call.get().unwrap_or_default().is_empty() {
+                self.data().governance_call.set(&Vec::new());
             }
         }
         Ok(())
@@ -517,21 +500,26 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
 
         let current_state = self.state(&proposal_id)?;
 
-        let forbidden_states = ProposalState::Canceled | ProposalState::Expired | ProposalState::Executed;
+        let forbidden_states =
+            ProposalState::Canceled.u128() | ProposalState::Expired.u128() | ProposalState::Executed.u128();
 
-        if current_state.clone() & forbiden_states != 0 {
+        if current_state.clone().u128() & forbidden_states.clone() != 0 {
             return Err(GovernorError::UnexpectedProposalState(
                 proposal_id.clone(),
                 current_state,
-                ALL_PROPOSAL_STATES ^ forbidden_states,
+                ALL_PROPOSAL_STATES ^ forbidden_states.clone(),
             ));
         }
 
-        let mut proposal = self.data().proposals.get(&proposal_id)?;
+        let mut proposal = self
+            .data()
+            .proposals
+            .get(&proposal_id)
+            .ok_or(GovernorError::ProposalNotFound)?;
         proposal.canceled = CancellationStatus::Canceled;
         self.data().proposals.insert(&proposal_id, &proposal);
 
-        self._emit_proposal_canceled_event(proposal_id.clone());
+        self._emit_proposal_canceled_event(&proposal_id);
 
         Ok(proposal_id)
     }
@@ -549,12 +537,12 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
         if current_state != ProposalState::Active {
             return Err(GovernorError::UnexpectedProposalState(
                 proposal_id.clone(),
-                current_state.unwrap().clone(),
+                current_state.clone(),
                 ProposalState::Active as u128,
             ));
         }
 
-        let weight = self._get_votes(&voter, self.proposal_snapshot(&proposal_id), params.clone());
+        let weight = self._get_votes(voter.clone(), self.proposal_snapshot(&proposal_id), params.clone());
         self._count_vote(&proposal_id, &voter, &support, &weight, reason.clone(), params.clone());
 
         if params.len() == 0 {
@@ -563,7 +551,7 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
             self._emit_vote_cast_with_params_event(&voter, &proposal_id, &support, &weight, &reason, &params);
         }
 
-        return weight;
+        Ok(weight)
     }
 
     /// TODO : recheck this method
@@ -574,10 +562,4 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
     fn _executor(&self) -> AccountId {
         Self::env().caller()
     }
-}
-
-pub trait Events {
-    fn _emit_proposal_created_event(&self, proposal_id: u128, proposer: AccountId, description: String);
-
-    fn _emit_proposal_canceled_event(&self, proposal_id: u128);
 }

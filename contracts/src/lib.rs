@@ -41,7 +41,7 @@ pub use finance::payment_splitter;
 #[cfg(feature = "governor")]
 pub use governance::governor;
 #[cfg(feature = "timelock_controller")]
-pub use governance::timelock_controller;
+pub use governance::extensions::timelock_controller;
 #[cfg(feature = "pausable")]
 pub use security::pausable;
 #[cfg(feature = "reentrancy_guard")]

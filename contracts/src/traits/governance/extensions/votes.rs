@@ -49,7 +49,7 @@ pub trait GovernorVotes {
         delegatee: AccountId,
         nonce: u128,
         expiry: u128,
-        signature: &[u8; 65]
+        signature: [u8; 65]
     ) -> Result<(), VotesError>;
 
     #[ink(message)]

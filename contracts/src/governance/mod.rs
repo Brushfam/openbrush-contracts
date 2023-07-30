@@ -47,4 +47,6 @@ pub use governor::*;
 
 pub mod extensions {
     pub mod timelock_controller;
+    pub mod votes;
+    pub mod counting;
 }

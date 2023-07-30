@@ -20,10 +20,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::{
-    governance::governance::*,
+    governance::*,
     traits::governance::{extensions::counting::*, *},
 };
-pub use governance::governance::{GovernorImpl, Internal as _, InternalImpl as _};
+pub use crate::governance::{GovernorImpl, Internal as _, InternalImpl as _};
 use openbrush::storage::Mapping;
 use openbrush::traits::Storage;
 use openbrush::traits::{AccountId, Balance, StorageAsRef};

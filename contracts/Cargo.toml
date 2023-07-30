@@ -49,6 +49,7 @@ payment_splitter = []
 reentrancy_guard = []
 pausable = []
 governance = ["access_control"]
+timelock_controller = ["access_control"]
 proxy = [
     "ownable",
 ]

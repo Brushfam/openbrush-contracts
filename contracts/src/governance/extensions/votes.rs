@@ -23,19 +23,19 @@
 use scale::Encode;
 use crate::utils::structs::checkpoints::{Checkpoint, Checkpoints};
 pub use crate::{
-    governance::governance::*,
+    governance::*,
     traits::governance::{
         extensions::{counting::*, votes::*},
-        utils::votes::*,
         *,
     },
 };
-pub use governance::governance::{GovernorImpl, Internal as _, InternalImpl as _};
+pub use crate::governance::{GovernorImpl, Internal as _, InternalImpl as _};
 use openbrush::storage::Mapping;
 use openbrush::traits::{BlockNumber, Storage};
 use openbrush::traits::{AccountId, Balance, StorageAsRef, Timestamp};
 use crate::traits::errors::CheckpointsError;
 use crate::utils::crypto;
+use openbrush::traits::String;
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -88,7 +88,7 @@ pub trait GovernorVotesImpl: governor::Internal + Internal + Storage<Data> + Gov
     }
 
     ///Returns the delegate that `account` has chosen.
-    fn delegates(&self, account: AccountId) -> AccountId {
+    fn delegates(&self, account: &AccountId) -> AccountId {
         self.data().delegation.get(&account).unwrap_or_default()
     }
 
@@ -126,7 +126,7 @@ pub trait GovernorVotesImpl: governor::Internal + Internal + Storage<Data> + Gov
     }
 
     fn clock_mode(&self) -> Result<String, VotesError> {
-        if clock() != Self::env().block_number() as u64 {
+        if self.clock() != Self::env().block_number() as u64 {
             return Err(VotesError::InconsistentClock);
         }
         Ok("mode=blocknumber&from=default".to_string())
@@ -161,7 +161,7 @@ pub trait InternalImpl: Internal + Storage<Data> + GovernorVotesImpl + GovernorI
     }
 
     fn _delegate(&mut self, account: AccountId, delegatee: AccountId) {
-        let mut old_delegatee = self.delegates(delegator);
+        let mut old_delegatee = self.delegates(&account);
         self.data().delegation.insert(&account, &delegatee);
 
         self._emit_delegate_changed_event(account, old_delegatee, delegatee);
@@ -184,7 +184,7 @@ pub trait InternalImpl: Internal + Storage<Data> + GovernorVotesImpl + GovernorI
                 amount,
             );
         }
-        self._move_delegate_votes(self.delegates(from), self.delegates(to), amount);
+        self._move_delegate_votes(self.delegates(&from), self.delegates(& to), amount);
     }
 
     fn _move_delegate_votes(&mut self, from: AccountId, to: AccountId, amount: Balance) {

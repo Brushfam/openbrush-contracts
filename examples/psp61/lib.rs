@@ -4,9 +4,13 @@
 #[openbrush::contract]
 pub mod my_psp61 {
     use ink::prelude::vec;
-    use openbrush::contracts::supported_interfaces;
-    use openbrush::traits::Storage;
-    use openbrush::traits::String;
+    use openbrush::{
+        contracts::supported_interfaces,
+        traits::{
+            Storage,
+            String,
+        },
+    };
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -81,10 +85,15 @@ pub mod my_psp61 {
     #[cfg(test)]
     mod tests {
         use super::Contract;
-        use openbrush::contracts::psp61::PSP61;
-        use openbrush::contracts::timelock_controller;
-        use openbrush::contracts::upgradeable;
-        use openbrush::contracts::{access_control, ownable, pausable, psp61};
+        use openbrush::contracts::{
+            access_control,
+            ownable,
+            pausable,
+            psp61,
+            psp61::PSP61,
+            timelock_controller,
+            upgradeable,
+        };
 
         #[ink::test]
         fn assure_ids_are_proper() {
@@ -144,6 +153,19 @@ pub mod my_psp61 {
             interfaces.sort_unstable();
 
             assert_eq!(ids, interfaces);
+        }
+
+        #[ink::test]
+        fn check_for_non_existing_interface() {
+            let contract = Contract::new();
+
+            assert_eq!(contract.supports_interface(0), false);
+
+            let interfaces = contract.supported_interfaces();
+
+            interfaces.into_iter().for_each(|id| {
+                assert_eq!(contract.supports_interface(id + 1), false);
+            });
         }
     }
 }

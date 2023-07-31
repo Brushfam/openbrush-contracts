@@ -1,6 +1,8 @@
 use crate::utils::checkpoint::Checkpoints;
-use openbrush::storage::Mapping;
-use openbrush::traits::AccountId;
+use openbrush::{
+    storage::Mapping,
+    traits::AccountId,
+};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]

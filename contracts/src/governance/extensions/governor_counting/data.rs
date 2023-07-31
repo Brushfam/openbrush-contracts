@@ -1,10 +1,12 @@
+use crate::traits::governance::{ProposalId, ProposalVote};
 use ink::storage::traits::StorageLayout;
 use openbrush::storage::Mapping;
 use openbrush::traits::AccountId;
-use crate::traits::governance::{ProposalId, ProposalVote};
 
+#[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
     proposal_votes: Mapping<ProposalId, ProposalVote>,
-}
 
+    has_votes: Mapping<(ProposalId, AccountId), bool>,
+}

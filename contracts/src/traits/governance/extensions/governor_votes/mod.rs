@@ -1,9 +1,7 @@
-use openbrush::traits::{String, Timestamp};
 use crate::traits::governance::ProposalId;
-use openbrush::traits::{AccountId, Balance};
 use crate::utils::crypto::SignatureType;
-
-
+use openbrush::traits::Timestamp;
+use openbrush::traits::{AccountId, Balance};
 
 #[openbrush::trait_definition]
 pub trait GovernorVotes {
@@ -26,11 +24,5 @@ pub trait GovernorVotes {
     fn delegate(&mut self, delegatee: AccountId);
 
     #[ink(message)]
-    fn delegate_by_signature(
-        &mut self,
-        delegatee: AccountId,
-        nonce: u128,
-        expiry: u128,
-        signature: SignatureType,
-    );
+    fn delegate_by_signature(&mut self, delegatee: AccountId, nonce: u128, expiry: u128, signature: SignatureType);
 }

@@ -1,6 +1,7 @@
 use crate::governance::governor::{Data, GovernorEvents};
 use crate::traits::governance::{HashType, ProposalId, Transaction};
 use ink::prelude::vec::Vec;
+use openbrush::traits::String;
 use openbrush::traits::{AccountId, Balance, Storage, Timestamp};
 
 pub trait GovernorInternal: Storage<Data> + GovernorEvents {

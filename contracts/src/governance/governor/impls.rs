@@ -1,7 +1,8 @@
 use crate::governance::governor::{Data, GovernorEvents};
-use crate::traits::errors::GovernanceError;
+use crate::traits::errors::governance::GovernanceError;
 use crate::traits::governance::{HashType, ProposalId, ProposalState, Transaction};
 use crate::utils::crypto::SignatureType;
+use openbrush::traits::String;
 use openbrush::traits::{AccountId, Balance, Storage, Timestamp};
 
 pub trait GovernorImpl: Storage<Data> + GovernorEvents {

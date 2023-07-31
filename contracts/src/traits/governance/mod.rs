@@ -1,6 +1,8 @@
+use crate::traits::errors::governance::GovernorError::DeadlineOverflow;
+use crate::traits::errors::GovernanceError;
+use ink::prelude::vec::Vec;
 use ink::storage::traits::StorageLayout;
 use openbrush::storage::Mapping;
-use crate::traits::errors::GovernanceError;
 use openbrush::traits::{AccountId, Balance, Timestamp};
 
 pub mod extensions;
@@ -111,7 +113,6 @@ pub struct ProposalVote {
     against_votes: u128,
     for_votes: u128,
     abstain_votes: u128,
-    has_votes: Mapping<AccountId, bool>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]

@@ -1,6 +1,7 @@
 use crate::traits::errors::GovernanceError;
 use crate::traits::governance::{HashType, ProposalId, ProposalState, Transaction};
 use crate::utils::crypto::SignatureType;
+use openbrush::traits::String;
 use openbrush::traits::{AccountId, Balance, Timestamp};
 
 #[openbrush::trait_definition]

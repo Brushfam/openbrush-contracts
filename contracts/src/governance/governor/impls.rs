@@ -1,9 +1,10 @@
+use crate::governance::governor::{Data, GovernorEvents};
 use crate::traits::errors::GovernanceError;
 use crate::traits::governance::{HashType, ProposalId, ProposalState, Transaction};
 use crate::utils::crypto::SignatureType;
-use openbrush::traits::{AccountId, Balance, Timestamp};
+use openbrush::traits::{AccountId, Balance, Storage, Timestamp};
 
-pub trait GovernorImpl {
+pub trait GovernorImpl: Storage<Data> + GovernorEvents {
     fn hash_proposal(&self, transactions: Vec<Transaction>, description_hash: HashType) -> HashType;
 
     fn state(&self, proposal_id: ProposalId) -> ProposalState;

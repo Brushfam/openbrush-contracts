@@ -1,10 +1,14 @@
-use crate::utils::checkpoint::Checkpoints;
+use crate::{
+    governance::extensions::governor_votes::Data,
+    utils::checkpoint::Checkpoints,
+};
 use openbrush::traits::{
     AccountId,
     Balance,
+    Storage,
 };
 
-pub trait VotesInternal {
+pub trait VotesInternal: Storage<Data> {
     fn _get_total_supply(&self) -> Balance;
 
     fn _delegate(&mut self, delegator: &AccountId, delegatee: &AccountId);

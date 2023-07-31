@@ -23,6 +23,7 @@ pub mod access_control;
 pub mod diamond;
 pub mod errors;
 pub mod flashloan;
+pub mod governance;
 pub mod ownable;
 pub mod pausable;
 pub mod payment_splitter;

@@ -21,3 +21,6 @@
 
 #[cfg(feature = "timelock_controller")]
 pub mod timelock_controller;
+
+pub mod extensions;
+pub mod governor;

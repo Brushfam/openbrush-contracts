@@ -39,6 +39,8 @@ pub use access::ownable;
 pub use finance::payment_splitter;
 #[cfg(feature = "timelock_controller")]
 pub use governance::timelock_controller;
+#[cfg(feature = "governannce")]
+pub use governance::{governor, utils};
 #[cfg(feature = "pausable")]
 pub use security::pausable;
 #[cfg(feature = "reentrancy_guard")]

@@ -1,17 +1,40 @@
-use crate::governance::governor::{Data, GovernorEvents, GovernorInternal};
-use crate::traits::errors::governance::GovernanceError;
-use crate::traits::governance::{HashType, ProposalId, ProposalState, Transaction};
-use crate::utils::crypto::SignatureType;
-use openbrush::traits::String;
-use openbrush::traits::{AccountId, Balance, Storage, Timestamp};
+use crate::{
+    governance::governor::{
+        Data,
+        GovernorEvents,
+        GovernorInternal,
+    },
+    traits::{
+        errors::governance::GovernanceError,
+        governance::{
+            HashType,
+            ProposalId,
+            ProposalState,
+            Transaction,
+        },
+    },
+    utils::{
+        crypto::SignatureType,
+        nonces::Nonces,
+    },
+};
 use ink::prelude::vec::Vec;
-use crate::utils::nonces::Nonces;
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Storage,
+    String,
+    Timestamp,
+};
 
+pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonces {
+    fn hash_proposal(&self, transactions: Vec<Transaction>, description_hash: HashType) -> HashType {
+        self._hash_proposal(transactions, description_hash)
+    }
 
-pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonces{
-    fn hash_proposal(&self, transactions: Vec<Transaction>, description_hash: HashType) -> HashType;
-
-    fn state(&self, proposal_id: ProposalId) -> ProposalState;
+    fn state(&self, proposal_id: ProposalId) -> ProposalState {
+        self._state(proposal_id)
+    }
 
     fn proposal_snapshot(&self, proposal_id: ProposalId) -> u128;
 

@@ -1,11 +1,35 @@
-use crate::governance::governor::{Data, GovernorEvents, GovernorImpl};
-use crate::traits::governance::{HashType, ProposalId, Transaction};
+use crate::{
+    governance::governor::{
+        Data,
+        GovernorEvents,
+        GovernorImpl,
+    },
+    traits::{
+        errors::governance::GovernanceError,
+        governance::{
+            HashType,
+            ProposalId,
+            ProposalState,
+            Transaction,
+        },
+    },
+};
 use ink::prelude::vec::Vec;
-use openbrush::traits::String;
-use openbrush::traits::{AccountId, Balance, Storage, Timestamp};
-use crate::traits::errors::governance::GovernanceError;
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Storage,
+    String,
+    Timestamp,
+};
 
 pub trait GovernorInternal: Storage<Data> {
+    fn _hash_proposal(&self, transactions: Vec<Transaction>, description_hash: HashType) -> HashType;
+
+    fn _state(&self, proposal_id: ProposalId) -> ProposalState {
+        todo!()
+    }
+
     fn _quorum_reached(&self, proposal_id: ProposalId) -> bool;
 
     fn _vote_succeeded(&self, proposal_id: ProposalId) -> bool;

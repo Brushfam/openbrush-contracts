@@ -1,10 +1,18 @@
-use openbrush::traits::{Storage, String};
-use crate::traits::governance::ProposalId;
-use openbrush::traits::{AccountId, Balance};
-use crate::governance::extensions::governor_counting::Data;
-use crate::governance::governor::GovernorImpl;
+use crate::{
+    governance::{
+        extensions::governor_counting::Data,
+        governor::GovernorImpl,
+    },
+    traits::governance::ProposalId,
+};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Storage,
+    String,
+};
 
-pub trait GovernorCountingImpl: Storage<Data> + GovernorImpl{
+pub trait GovernorCountingImpl: Storage<Data> + GovernorImpl {
     fn counting_mode(&self) -> String;
 
     fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool;

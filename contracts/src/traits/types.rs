@@ -23,6 +23,7 @@ use ink::prelude::vec::Vec;
 
 #[cfg(feature = "std")]
 use ink::storage::traits::StorageLayout;
+use openbrush::traits::{AccountId, Balance};
 
 /// `Id` represents the identifier of the NFT. `Id::U8(1)` and `Id::U16(1)` are two different identifiers.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]

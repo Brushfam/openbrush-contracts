@@ -34,4 +34,4 @@ pub mod psp37;
 pub mod timelock_controller;
 pub mod upgradeable;
 
-mod types;
+pub mod types;

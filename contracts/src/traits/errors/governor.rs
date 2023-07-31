@@ -19,7 +19,9 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::governance::ProposalId;
 use crate::traits::governance::ProposalState;
+use crate::utils::crypto::CryptoError;
 use openbrush::traits::{AccountId, Timestamp};
 
 /// The Governor error type. Contract will throw one of this errors.
@@ -31,8 +33,8 @@ pub enum GovernorError {
     DisabledDeposit,
     OnlyProposer(AccountId),
     OnlyExecutor(AccountId),
-    NonexistentProposal(u128),
-    UnexpectedProposalState(u128, ProposalState, u128),
+    NonexistentProposal(ProposalId),
+    UnexpectedProposalState(ProposalId, ProposalState, u128),
     InvalidVotingPeriod(Timestamp),
     InsufficientProposerVotes(AccountId, u128, u128),
     InvalidVoteType,
@@ -45,4 +47,11 @@ pub enum GovernorError {
     ProposalNotFound,
     InvalidInput,
     UnderlyingTransactionReverted,
+    CryptoError(CryptoError),
+}
+
+impl From<CryptoError> for GovernorError {
+    fn from(err: CryptoError) -> Self {
+        GovernorError::CryptoError(err)
+    }
 }

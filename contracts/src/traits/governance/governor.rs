@@ -50,6 +50,8 @@ impl ProposalState {
     }
 }
 
+pub type ProposalId = [u8; 32];
+
 pub const ALL_PROPOSAL_STATES: u128 = 0b11111111;
 
 /// Trait implemented by all PSP-22 respecting smart traits.

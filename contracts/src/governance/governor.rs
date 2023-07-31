@@ -29,20 +29,21 @@ pub use crate::{traits::governance::*, utils::nonces::*};
 use ink::env::call::ExecutionInput;
 use ink::env::{CallFlags, DefaultEnvironment};
 use ink::prelude::vec;
+use ink::primitives::AccountId;
 use ink::{
     env::call::{build_call, Selector},
     prelude::{string::String, vec::Vec},
 };
 use openbrush::{
     storage::Mapping,
-    traits::{AccountId, Balance, Storage, Timestamp},
+    traits::{Balance, Storage, Timestamp},
 };
 use scale::Encode;
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    pub proposals: Mapping<u128, ProposalCore>,
+    pub proposals: Mapping<ProposalId, ProposalCore>,
     #[lazy]
     governance_call: Vec<Selector>,
 }
@@ -63,7 +64,7 @@ enum CancellationStatus {
     Canceled,
 }
 
-#[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
+#[derive(scale::Decode, scale::Encode, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct ProposalCore {
     proposer: AccountId,
@@ -71,6 +72,18 @@ pub struct ProposalCore {
     vote_duration: Timestamp,
     executed: ExecutionStatus,
     canceled: CancellationStatus,
+}
+
+impl Default for ProposalCore {
+    fn default() -> Self {
+        Self {
+            proposer: AccountId::from([0x00; 32]),
+            vote_start: Default::default(),
+            vote_duration: Default::default(),
+            executed: Default::default(),
+            canceled: Default::default(),
+        }
+    }
 }
 
 impl ProposalCore {
@@ -113,7 +126,7 @@ impl ProposalCore {
 
 pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
     /// [OK]
-    fn state(&self, proposal_id: &u128) -> Result<ProposalState, GovernorError> {
+    fn state(&self, proposal_id: &ProposalId) -> Result<ProposalState, GovernorError> {
         let proposal = self
             .data()
             .proposals
@@ -138,7 +151,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
             return Ok(ProposalState::Pending);
         }
 
-        let deadline = self.proposal_deadline(proposal_id.clone()).ok()?;
+        let deadline = self.proposal_deadline(proposal_id.clone())?;
         if current_timestamp <= deadline {
             return Ok(ProposalState::Active);
         }
@@ -156,23 +169,23 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
     }
 
     /// [OK]
-    fn proposal_snapshot(&self, proposal_id: &u128) -> Timestamp {
+    fn proposal_snapshot(&self, proposal_id: &ProposalId) -> Timestamp {
         self.data().proposals.get(proposal_id).unwrap_or_default().vote_start
     }
 
     /// [OK]
-    fn proposal_deadline(&self, proposal_id: u128) -> Result<Timestamp, GovernorError> {
+    fn proposal_deadline(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernorError> {
         let proposal = self.data().proposals.get(&proposal_id).unwrap_or_default();
         proposal.deadline()
     }
 
     /// [OK]
-    fn proposal_proposer(&self, proposal_id: u128) -> AccountId {
+    fn proposal_proposer(&self, proposal_id: ProposalId) -> AccountId {
         self.data().proposals.get(&proposal_id).unwrap_or_default().proposer
     }
 
     /// [NOT OK]
-    fn propose(&mut self, transactions: Vec<Transaction>, description: String) -> Result<u128, GovernorError> {
+    fn propose(&mut self, transactions: Vec<Transaction>, description: String) -> Result<ProposalId, GovernorError> {
         let proposer = Self::env().caller();
 
         if !self._is_valid_description_for_proposer(proposer.clone(), description.clone()) {
@@ -230,7 +243,11 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
     }
 
     /// [NOT OK]
-    fn execute(&mut self, transactions: Vec<Transaction>, description_hash: [u8; 32]) -> Result<u128, GovernorError> {
+    fn execute(
+        &mut self,
+        transactions: Vec<Transaction>,
+        description_hash: [u8; 32],
+    ) -> Result<ProposalId, GovernorError> {
         let proposal_id = self.hash_proposal(transactions, &description_hash)?;
 
         let current_state = self.state(&proposal_id)?;
@@ -282,7 +299,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
             return Err(GovernorError::OnlyProposer(Self::env().caller()));
         }
 
-        self._cancel(transactions.clone())
+        self._cancel(transactions.clone(), description_hash.clone())
     }
 
     fn get_votes(&self, account: AccountId, timestamp: Timestamp) -> u128 {
@@ -293,14 +310,14 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
         self._get_votes(account, timestamp, params)
     }
 
-    fn cast_vote(&mut self, proposal_id: u128, support: bool) -> Result<u128, GovernorError> {
+    fn cast_vote(&mut self, proposal_id: ProposalId, support: bool) -> Result<u128, GovernorError> {
         let voter = Self::env().caller();
         self._cast_vote(proposal_id, voter, support, String::new(), vec![])
     }
 
     fn cast_vote_with_reason(
         &mut self,
-        proposal_id: u128,
+        proposal_id: ProposalId,
         support: bool,
         reason: String,
     ) -> Result<Balance, GovernorError> {
@@ -310,7 +327,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
 
     fn cast_vote_with_reason_and_params(
         &mut self,
-        proposal_id: u128,
+        proposal_id: ProposalId,
         support: bool,
         reason: String,
         params: Vec<u8>,
@@ -321,7 +338,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
 
     fn cast_vote_by_sig(
         &mut self,
-        proposal_id: u128,
+        proposal_id: ProposalId,
         support: bool,
         voter: AccountId,
         signature: &[u8; 65],
@@ -329,7 +346,8 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
         let message_hash =
             hash_message(Encode::encode(&(&proposal_id, &support, voter.clone(), self._use_nonce(&voter))).as_slice())?;
 
-        let verify = crypto::verify_signature(&message_hash, &voter, &signature)?;
+        let verify = crypto::verify_signature(&message_hash, &voter, &signature)
+            .map_err(|_| GovernorError::InvalidSignature(voter))?;
 
         if !verify {
             Err(GovernorError::InvalidSignature(voter))
@@ -340,7 +358,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
 
     fn cast_vote_with_reason_and_params_by_sig(
         &mut self,
-        proposal_id: u128,
+        proposal_id: ProposalId,
         support: bool,
         voter: AccountId,
         reason: String,
@@ -359,9 +377,10 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
             .as_slice(),
         )?;
 
-        let verify = crypto::verify_signature(&message_hash, &voter, &signature)?;
+        let verify = crypto::verify_signature(&message_hash, &voter, &signature)
+            .map_err(GovernorError::InvalidSignature(voter))?;
 
-        if !verify.is_ok() {
+        if !verify {
             Err(GovernorError::InvalidSignature(voter))
         } else {
             self._cast_vote(proposal_id, voter, support, reason, params)
@@ -376,7 +395,7 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
     fn hash_proposal(
         &self,
         transactions: Vec<Transaction>,
-        description_hash: &[u128; 32],
+        description_hash: &[u8; 32],
     ) -> Result<[u8; 32], GovernorError> {
         let encoded_msg = Encode::encode(&(transactions, description_hash));
 
@@ -388,17 +407,18 @@ pub trait GovernorImpl: Storage<Data> + Internal + Nonces {
 }
 
 pub trait Internal {
-    fn _execute(&mut self, proposal_id: u128, transactions: Vec<Transaction>) -> Result<u128, GovernorError>;
+    fn _execute(&mut self, proposal_id: ProposalId, transactions: Vec<Transaction>) -> Result<u128, GovernorError>;
 
-    fn _before_execute(&mut self, proposal_id: u128, transactions: Vec<Transaction>) -> Result<(), GovernorError>;
+    fn _before_execute(&mut self, proposal_id: ProposalId, transactions: Vec<Transaction>)
+        -> Result<(), GovernorError>;
 
-    fn _after_execute(&mut self, proposal_id: u128, transactions: Vec<Transaction>) -> Result<(), GovernorError>;
+    fn _after_execute(&mut self, proposal_id: ProposalId, transactions: Vec<Transaction>) -> Result<(), GovernorError>;
 
-    fn _cancel(&mut self, transactions: Vec<Transaction>) -> Result<u128, GovernorError>;
+    fn _cancel(&mut self, transactions: Vec<Transaction>, description_hash: &[u8; 32]) -> Result<u128, GovernorError>;
 
     fn _cast_vote(
         &mut self,
-        proposal_id: u128,
+        proposal_id: ProposalId,
         voter: AccountId,
         support: bool,
         reason: String,
@@ -411,10 +431,38 @@ pub trait Internal {
 
     fn _try_hex_to_uint(&self, char: char) -> (bool, u8);
 
+    /// TODO
+    fn _get_votes(&self, account: AccountId, timestamp: Timestamp, params: Vec<u8>) -> u128;
+
+    /// TODO
+    fn _count_vote(
+        &self,
+        proposal_id: &ProposalId,
+        voter: &AccountId,
+        support: &bool,
+        weight: &u128,
+        reason: String,
+        params: Vec<u8>,
+    ) -> Result<u128, GovernorError>;
+
+    /// TODO
+    fn _quorum_reached(&self, proposal_id: &ProposalId) -> bool;
+
+    /// TODO
+    fn _vote_reached(&self, proposal_id: &ProposalId) -> bool;
+
+    /// TODO
+    fn voting_delay(&self) -> u64;
+
+    /// TODO
+    fn voting_period(&self) -> u64;
+
+    fn _emit_proposal_executed_event(&self, proposal_id: &ProposalId, initiator: &AccountId);
+
     fn _emit_vote_cast_with_params_event(
         &self,
         voter: &AccountId,
-        proposal_id: &u128,
+        proposal_id: &ProposalId,
         support: &bool,
         votes: &u128,
         reason: &String,
@@ -424,29 +472,29 @@ pub trait Internal {
     fn _emit_vote_cast_event(
         &self,
         voter: &AccountId,
-        proposal_id: &u128,
+        proposal_id: &ProposalId,
         support: &bool,
         votes: &u128,
         reason: &String,
     );
 
-    fn _emit_proposal_created_event(&self, proposal_id: &u128, proposer: &AccountId, description: &String);
+    fn _emit_proposal_created_event(&self, proposal_id: &ProposalId, proposer: &AccountId, description: &String);
 
-    fn _emit_proposal_canceled_event(&self, proposal_id: &u128);
+    fn _emit_proposal_canceled_event(&self, proposal_id: &ProposalId);
 }
 
 pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
     /// TODO : recheck this method
     fn _execute(
         &mut self,
-        _proposal_id: u128,
+        _proposal_id: ProposalId,
         transactions: Vec<Transaction>,
         _description_hash: &[u8; 32],
     ) -> Result<(), GovernorError> {
         for tx in transactions {
             build_call::<DefaultEnvironment>()
                 .call_type(
-                    ink::env::call::Call::new(tx.callee)
+                    ink::env::call::Call::new(tx.callee.ok_or(GovernorError::InvalidInput)?)
                         .gas_limit(tx.gas_limit)
                         .transferred_value(tx.transferred_value),
                 )
@@ -466,7 +514,7 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
 
     fn _before_execute(
         &mut self,
-        _proposal_id: u128,
+        _proposal_id: ProposalId,
         transactions: Vec<Transaction>,
         _description_hash: &[u8; 32],
     ) -> Result<(), GovernorError> {
@@ -474,7 +522,9 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
         if self._executor() != account_id {
             for tx in transactions {
                 if tx.callee == Option::from(account_id) {
-                    self.data().governance_call.push(Selector::new(tx.selector));
+                    let mut governance_call: Vec<Selector> = self.data().governance_call.get().unwrap_or_default();
+                    governance_call.push(Selector::new(tx.selector));
+                    self.data().governance_call.set(&governance_call);
                 }
             }
         }
@@ -483,7 +533,7 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
 
     fn _after_execute(
         &mut self,
-        _proposal_id: u128,
+        _proposal_id: ProposalId,
         _transactions: Vec<Transaction>,
         _description_hash: &[u8; 32],
     ) -> Result<(), GovernorError> {
@@ -495,8 +545,12 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
         Ok(())
     }
 
-    fn _cancel(&mut self, transactions: Vec<Transaction>) -> Result<u128, GovernorError> {
-        let proposal_id = self.hash_proposal(transactions)?;
+    fn _cancel(
+        &mut self,
+        transactions: Vec<Transaction>,
+        description_hash: &[u8; 32],
+    ) -> Result<ProposalId, GovernorError> {
+        let proposal_id = self.hash_proposal(transactions, description_hash)?;
 
         let current_state = self.state(&proposal_id)?;
 
@@ -526,7 +580,7 @@ pub trait InternalImpl: Storage<Data> + Internal + GovernorImpl {
 
     fn _cast_vote(
         &mut self,
-        proposal_id: u128,
+        proposal_id: ProposalId,
         voter: AccountId,
         support: bool,
         reason: String,

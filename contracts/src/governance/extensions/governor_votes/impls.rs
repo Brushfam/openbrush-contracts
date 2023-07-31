@@ -1,8 +1,10 @@
 use crate::utils::crypto::SignatureType;
-use openbrush::traits::Timestamp;
+use openbrush::traits::{Storage, Timestamp};
 use openbrush::traits::{AccountId, Balance};
+use crate::governance::extensions::governor_votes::{Data, VotesEvents, VotesInternal};
+use crate::utils::nonces::Nonces;
 
-pub trait GovernorVotesImpl {
+pub trait GovernorVotesImpl: Storage<Data> + VotesInternal + Nonces + VotesEvents{
     fn clock(&self) -> u64;
 
     fn get_votes(&self, account: AccountId) -> Balance;

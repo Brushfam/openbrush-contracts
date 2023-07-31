@@ -1,3 +1,5 @@
+use ink::storage::traits::StorageLayout;
+use openbrush::storage::Mapping;
 use crate::traits::errors::GovernanceError;
 use openbrush::traits::{AccountId, Balance, Timestamp};
 
@@ -102,3 +104,20 @@ impl ProposalState {
 }
 
 pub const ALL_PROPOSAL_STATES: u128 = 0b11111111;
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, StorageLayout))]
+pub struct ProposalVote {
+    against_votes: u128,
+    for_votes: u128,
+    abstain_votes: u128,
+    has_votes: Mapping<AccountId, bool>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, StorageLayout))]
+pub enum VoteType {
+    Against,
+    For,
+    Abstain,
+}

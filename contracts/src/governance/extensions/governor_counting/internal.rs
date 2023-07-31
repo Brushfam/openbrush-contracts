@@ -1,5 +1,7 @@
 use openbrush::traits::{AccountId, Balance};
+use ink::prelude::vec::Vec;
 use crate::traits::governance::ProposalId;
+
 
 pub trait CountingInternal {
     fn _quorum_reached(&self, proposal_id: ProposalId) -> bool;

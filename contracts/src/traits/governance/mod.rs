@@ -1,8 +1,5 @@
-use crate::traits::errors::governance::GovernorError::DeadlineOverflow;
 use crate::traits::errors::GovernanceError;
 use ink::prelude::vec::Vec;
-use ink::storage::traits::StorageLayout;
-use openbrush::storage::Mapping;
 use openbrush::traits::{AccountId, Balance, Timestamp};
 
 pub mod extensions;
@@ -10,9 +7,10 @@ pub mod governor;
 
 pub type ProposalId = [u8; 32];
 pub type HashType = [u8; 32];
+pub type Selector = [u8; 4];
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, StorageLayout))]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct Transaction {
     pub callee: Option<AccountId>,
     pub selector: [u8; 4],
@@ -70,13 +68,13 @@ impl ProposalCore {
         let start = self.vote_start.clone();
         let duration = self.vote_duration.clone();
 
-        start.checked_add(duration).ok_or(DeadlineOverflow)
+        start.checked_add(duration).ok_or(GovernanceError::DeadlineOverflow)
     }
 
     pub fn hash(&self) -> [u8; 32] {
         use ink::env::hash;
 
-        let mut bytes: Vec<u8> = scale::Encode::encode(&self);
+        let bytes: Vec<u8> = scale::Encode::encode(&self);
 
         let mut output = <hash::Blake2x256 as hash::HashOutput>::Type::default();
         ink::env::hash_bytes::<hash::Blake2x256>(&bytes[..], &mut output);
@@ -108,7 +106,7 @@ impl ProposalState {
 pub const ALL_PROPOSAL_STATES: u128 = 0b11111111;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, StorageLayout))]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct ProposalVote {
     against_votes: u128,
     for_votes: u128,
@@ -116,7 +114,7 @@ pub struct ProposalVote {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, StorageLayout))]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub enum VoteType {
     Against,
     For,

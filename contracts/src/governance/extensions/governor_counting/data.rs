@@ -1,5 +1,4 @@
 use crate::traits::governance::{ProposalId, ProposalVote};
-use ink::storage::traits::StorageLayout;
 use openbrush::storage::Mapping;
 use openbrush::traits::AccountId;
 

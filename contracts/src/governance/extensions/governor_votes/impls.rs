@@ -1,4 +1,3 @@
-use crate::traits::governance::ProposalId;
 use crate::utils::crypto::SignatureType;
 use openbrush::traits::Timestamp;
 use openbrush::traits::{AccountId, Balance};

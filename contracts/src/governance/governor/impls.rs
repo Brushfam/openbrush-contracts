@@ -4,6 +4,8 @@ use crate::traits::governance::{HashType, ProposalId, ProposalState, Transaction
 use crate::utils::crypto::SignatureType;
 use openbrush::traits::String;
 use openbrush::traits::{AccountId, Balance, Storage, Timestamp};
+use ink::prelude::vec::Vec;
+
 
 pub trait GovernorImpl: Storage<Data> + GovernorEvents {
     fn hash_proposal(&self, transactions: Vec<Transaction>, description_hash: HashType) -> HashType;

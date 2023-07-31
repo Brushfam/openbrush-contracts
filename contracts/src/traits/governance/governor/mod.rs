@@ -3,6 +3,7 @@ use crate::traits::governance::{HashType, ProposalId, ProposalState, Transaction
 use crate::utils::crypto::SignatureType;
 use openbrush::traits::String;
 use openbrush::traits::{AccountId, Balance, Timestamp};
+use ink::prelude::vec::Vec;
 
 #[openbrush::trait_definition]
 pub trait Governor {

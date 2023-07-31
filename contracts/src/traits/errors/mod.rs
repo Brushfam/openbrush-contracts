@@ -32,6 +32,8 @@ mod psp37;
 mod reentrancy_guard;
 mod timelock_controller;
 mod upgradeable;
+mod checkpoints;
+mod nonces;
 
 pub use access_control::AccessControlError;
 pub use diamond::DiamondError;
@@ -46,3 +48,5 @@ pub use psp37::{PSP37Error, PSP37ReceiverError};
 pub use reentrancy_guard::ReentrancyGuardError;
 pub use timelock_controller::TimelockControllerError;
 pub use upgradeable::UpgradeableError;
+pub use checkpoints::CheckpointsError;
+pub use nonces::NoncesError;

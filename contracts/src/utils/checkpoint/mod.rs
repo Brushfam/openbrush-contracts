@@ -20,11 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use ink::prelude::vec::Vec;
-pub use openbrush::traits::errors::CheckpointsError;
-use openbrush::{
-    storage::Mapping,
-    traits::{AccountId, Storage},
-};
+pub use crate::traits::errors::CheckpointsError;
 
 #[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]

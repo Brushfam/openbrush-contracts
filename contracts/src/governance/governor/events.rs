@@ -1,6 +1,7 @@
 use crate::traits::governance::ProposalId;
 use openbrush::traits::String;
 use openbrush::traits::{AccountId, Balance, Timestamp};
+use ink::prelude::vec::Vec;
 
 pub trait GovernorEvents {
     fn emit_proposal_created(

@@ -1,17 +1,21 @@
-use crate::traits::governance::ProposalId;
-use openbrush::traits::String;
-use openbrush::traits::{AccountId, Balance, Timestamp};
+use crate::traits::governance::{
+    ProposalId,
+    Transaction,
+};
 use ink::prelude::vec::Vec;
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    String,
+    Timestamp,
+};
 
 pub trait GovernorEvents {
     fn emit_proposal_created(
         &self,
         proposal_id: ProposalId,
         proposer: AccountId,
-        targets: Vec<AccountId>,
-        values: Vec<Balance>,
-        signatures: Vec<String>,
-        calldatas: Vec<Vec<u8>>,
+        transactions: Vec<Transaction>,
         vote_start: Timestamp,
         vote_end: Timestamp,
         description: String,

@@ -1,4 +1,5 @@
 use crate::{
+    governance::governor::Data,
     traits::{
         errors::governance::GovernanceError,
         governance::{
@@ -8,6 +9,7 @@ use crate::{
             Transaction,
         },
     },
+    utils::crypto,
 };
 use ink::prelude::vec::Vec;
 use openbrush::traits::{
@@ -17,12 +19,11 @@ use openbrush::traits::{
     String,
     Timestamp,
 };
-use crate::governance::governor::Data;
 
 pub trait GovernorInternal: Storage<Data> {
     fn _hash_proposal(&self, transactions: Vec<Transaction>, description_hash: HashType) -> HashType;
 
-    fn _state(&self, proposal_id: ProposalId) -> ProposalState {
+    fn _state(&self, _proposal_id: ProposalId) -> ProposalState {
         todo!()
     }
 
@@ -45,7 +46,11 @@ pub trait GovernorInternal: Storage<Data> {
         Vec::new()
     }
 
-    fn _execute(&mut self, transactions: Vec<Transaction>, description_hash: HashType) -> Result<(), GovernanceError>;
+    fn _execute(
+        &mut self,
+        transactions: Vec<Transaction>,
+        description_hash: HashType,
+    ) -> Result<ProposalId, GovernanceError>;
 
     fn _before_execute(
         &mut self,
@@ -59,15 +64,26 @@ pub trait GovernorInternal: Storage<Data> {
         description_hash: HashType,
     ) -> Result<(), GovernanceError>;
 
-    fn _cancel(&mut self, transactions: Vec<Transaction>, description_hash: HashType) -> Result<(), GovernanceError>;
+    fn _cancel(
+        &mut self,
+        transactions: Vec<Transaction>,
+        description_hash: HashType,
+    ) -> Result<ProposalId, GovernanceError>;
 
-    fn _cast_vote(&mut self, proposal_id: ProposalId, support: u8, reason: String) -> Result<Balance, GovernanceError> {
-        self._cast_vote_with_params(proposal_id, support, reason, self._default_params())
+    fn _cast_vote(
+        &mut self,
+        proposal_id: ProposalId,
+        account: AccountId,
+        support: u8,
+        reason: String,
+    ) -> Result<Balance, GovernanceError> {
+        self._cast_vote_with_params(proposal_id, account, support, reason, self._default_params())
     }
 
     fn _cast_vote_with_params(
         &mut self,
         proposal_id: ProposalId,
+        account: AccountId,
         support: u8,
         reason: String,
         params: Vec<u8>,
@@ -76,4 +92,12 @@ pub trait GovernorInternal: Storage<Data> {
     fn _executor(&self) -> AccountId;
 
     fn _is_valid_description_for_proposer(&self, proposer: AccountId, description: String) -> bool;
+
+    fn _proposal_threshold(&self) -> u128 {
+        0
+    }
+
+    fn _hash_description(&self, description: String) -> Result<HashType, GovernanceError> {
+        Ok(crypto::hash_message(description.as_bytes())?)
+    }
 }

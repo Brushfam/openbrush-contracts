@@ -1,6 +1,10 @@
 use crate::traits::errors::GovernanceError;
 use ink::prelude::vec::Vec;
-use openbrush::traits::{AccountId, Balance, Timestamp};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Timestamp,
+};
 
 pub mod extensions;
 pub mod governor;
@@ -21,7 +25,7 @@ pub struct Transaction {
 
 #[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
-enum ExecutionStatus {
+pub enum ExecutionStatus {
     #[default]
     NotExecuted,
     Executed,
@@ -29,7 +33,7 @@ enum ExecutionStatus {
 
 #[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
-enum CancellationStatus {
+pub enum CancellationStatus {
     #[default]
     NotCanceled,
     Canceled,
@@ -38,11 +42,23 @@ enum CancellationStatus {
 #[derive(scale::Decode, scale::Encode, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct ProposalCore {
-    proposer: AccountId,
-    vote_start: Timestamp,
-    vote_duration: Timestamp,
-    executed: ExecutionStatus,
-    canceled: CancellationStatus,
+    pub proposer: AccountId,
+    pub vote_start: Timestamp,
+    pub vote_duration: Timestamp,
+    pub executed: ExecutionStatus,
+    pub canceled: CancellationStatus,
+}
+
+impl Default for ProposalCore {
+    fn default() -> Self {
+        Self {
+            proposer: AccountId::from([0x0; 32]),
+            vote_start: Default::default(),
+            vote_duration: Default::default(),
+            executed: Default::default(),
+            canceled: Default::default(),
+        }
+    }
 }
 
 impl ProposalCore {

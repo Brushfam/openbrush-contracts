@@ -1,9 +1,22 @@
-use crate::traits::errors::GovernanceError;
-use crate::traits::governance::{HashType, ProposalId, ProposalState, Transaction};
-use crate::utils::crypto::SignatureType;
-use openbrush::traits::String;
-use openbrush::traits::{AccountId, Balance, Timestamp};
+use crate::{
+    traits::{
+        errors::GovernanceError,
+        governance::{
+            HashType,
+            ProposalId,
+            ProposalState,
+            Transaction,
+        },
+    },
+    utils::crypto::SignatureType,
+};
 use ink::prelude::vec::Vec;
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    String,
+    Timestamp,
+};
 
 #[openbrush::trait_definition]
 pub trait Governor {
@@ -14,13 +27,13 @@ pub trait Governor {
     fn state(&self, proposal_id: ProposalId) -> ProposalState;
 
     #[ink(message)]
-    fn proposal_snapshot(&self, proposal_id: ProposalId) -> u128;
+    fn proposal_snapshot(&self, proposal_id: ProposalId) -> Result<u128, GovernanceError>;
 
     #[ink(message)]
-    fn proposal_deadline(&self, proposal_id: ProposalId) -> Timestamp;
+    fn proposal_deadline(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError>;
 
     #[ink(message)]
-    fn proposal_proposer(&self, proposal_id: ProposalId) -> AccountId;
+    fn proposal_proposer(&self, proposal_id: ProposalId) -> Result<AccountId, GovernanceError>;
 
     #[ink(message)]
     fn voting_delay(&self) -> u64;
@@ -44,10 +57,18 @@ pub trait Governor {
     fn propose(&mut self, transactions: Vec<Transaction>, description: String) -> Result<ProposalId, GovernanceError>;
 
     #[ink(message)]
-    fn execute(&mut self, proposal_id: ProposalId) -> Result<(), GovernanceError>;
+    fn execute(
+        &mut self,
+        transactions: Vec<Transaction>,
+        description_hash: HashType,
+    ) -> Result<ProposalId, GovernanceError>;
 
     #[ink(message)]
-    fn cancel(&mut self, proposal_id: ProposalId) -> Result<(), GovernanceError>;
+    fn cancel(
+        &mut self,
+        transaction: Vec<Transaction>,
+        description_hash: HashType,
+    ) -> Result<ProposalId, GovernanceError>;
 
     #[ink(message)]
     fn cast_vote(&mut self, proposal_id: ProposalId, support: u8) -> Result<Balance, GovernanceError>;

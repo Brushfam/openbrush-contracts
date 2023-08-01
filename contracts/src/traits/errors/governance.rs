@@ -1,7 +1,17 @@
-use crate::traits::governance::{ProposalId, ProposalState};
-use crate::utils::crypto::CryptoError;
-use openbrush::traits::{AccountId, Timestamp};
-use crate::utils::nonces::NoncesError;
+use crate::{
+    traits::governance::{
+        ProposalId,
+        ProposalState,
+    },
+    utils::{
+        crypto::CryptoError,
+        nonces::NoncesError,
+    },
+};
+use openbrush::traits::{
+    AccountId,
+    Timestamp,
+};
 
 /// The Governor error type. Contract will throw one of this errors.
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
@@ -26,6 +36,7 @@ pub enum GovernanceError {
     ProposalNotFound,
     InvalidInput,
     UnderlyingTransactionReverted,
+    ProposalAlreadyExists,
     FutureLookup(Timestamp, Timestamp),
     ExpiredSignature(Timestamp),
     CryptoError(CryptoError),

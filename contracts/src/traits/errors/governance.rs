@@ -13,6 +13,7 @@ use openbrush::traits::{
     AccountId,
     Timestamp,
 };
+use crate::traits::errors::CheckpointsError;
 
 /// The Governor error type. Contract will throw one of this errors.
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
@@ -44,6 +45,10 @@ pub enum GovernanceError {
     CryptoError(CryptoError),
     NoncesError(NoncesError),
     ExecutionFailed(Transaction),
+    CheckpointsError(CheckpointsError),
+    IndexOutOfRange,
+    AccountNotFound,
+    Overflow,
 }
 
 impl From<CryptoError> for GovernanceError {
@@ -55,5 +60,11 @@ impl From<CryptoError> for GovernanceError {
 impl From<NoncesError> for GovernanceError {
     fn from(err: NoncesError) -> Self {
         GovernanceError::NoncesError(err)
+    }
+}
+
+impl From<CheckpointsError> for GovernanceError {
+    fn from(err: CheckpointsError) -> Self {
+        GovernanceError::CheckpointsError(err)
     }
 }

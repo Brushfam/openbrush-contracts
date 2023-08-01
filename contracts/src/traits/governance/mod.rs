@@ -125,9 +125,9 @@ pub const ALL_PROPOSAL_STATES: u128 = 0b11111111;
 #[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct ProposalVote {
-    pub against_votes: u128,
-    pub for_votes: u128,
-    pub abstain_votes: u128,
+    pub against_votes: Balance,
+    pub for_votes: Balance,
+    pub abstain_votes: Balance,
 }
 
 #[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]

@@ -31,11 +31,11 @@ pub struct Checkpoints {
 #[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct Checkpoint {
-    pub key: u32,
+    pub key: u64,
     pub value: u128,
 }
 
-fn sqrt(x: u32) -> u32 {
+fn sqrt(x: u64) -> u64 {
     let mut z = (x + 1) / 2;
     let mut y = x;
     while z < y {
@@ -48,12 +48,12 @@ fn sqrt(x: u32) -> u32 {
 impl Checkpoints {
     /// Pushes a (`key`, `value`) pair into a Trace224 so that it is stored as the checkpoint.
     /// Returns previous value and new value.
-    pub fn push(&mut self, key: u32, value: u128) -> Result<(u128, u128), CheckpointsError> {
+    pub fn push(&mut self, key: u64, value: u128) -> Result<(u128, u128), CheckpointsError> {
         self._insert(key, value)
     }
 
     /// Returns the value in the first (oldest) checkpoint with key greater or equal than the search key, or zero if there is none.
-    pub fn lower_lookup(&self, key: u32) -> Option<u128> {
+    pub fn lower_lookup(&self, key: u64) -> Option<u128> {
         let len = self.checkpoints.len();
         let pos = self._lower_binary_lookup(key, 0, len);
         match pos == len {
@@ -63,7 +63,7 @@ impl Checkpoints {
     }
 
     /// Returns the value in the last (most recent) checkpoint with key lower or equal than the search key, or zero if there is none.
-    pub fn upper_lookup(&self, key: u32) -> Option<u128> {
+    pub fn upper_lookup(&self, key: u64) -> Option<u128> {
         let len = self.checkpoints.len();
         let pos = self._upper_binary_lookup(key, 0, len);
         match pos == 0 {
@@ -75,14 +75,14 @@ impl Checkpoints {
     /// Returns the value in the last (most recent) checkpoint with key lower or equal than the search key, or zero if there is none.
     ///
     /// NOTE: This is a variant of {upperLookup} that is optimised to find "recent" checkpoint (checkpoints with high keys).
-    pub fn upper_lookup_recent(&self, key: u32) -> Option<u128> {
+    pub fn upper_lookup_recent(&self, key: u64) -> Option<u128> {
         let len = self.checkpoints.len();
 
         let mut low = 0;
         let mut high = len;
 
         if len > 5 {
-            let mid = len - sqrt(len as u32) as usize;
+            let mid = len - sqrt(len as u64) as usize;
             if key < self.checkpoints[mid].key {
                 high = mid;
             } else {
@@ -109,7 +109,7 @@ impl Checkpoints {
 
     /// Returns whether there is a checkpoint in the structure (i.e. it is not empty), and if so the key and value
     /// in the most recent checkpoint.
-    pub fn latest_checkpoint(&self) -> (bool, u32, u128) {
+    pub fn latest_checkpoint(&self) -> (bool, u64, u128) {
         let pos = self.checkpoints.len();
 
         match pos == 0 {
@@ -134,7 +134,7 @@ impl Checkpoints {
         }
     }
 
-    fn _insert(&mut self, key: u32, value: u128) -> Result<(u128, u128), CheckpointsError> {
+    fn _insert(&mut self, key: u64, value: u128) -> Result<(u128, u128), CheckpointsError> {
         let pos = self.checkpoints.len();
 
         if pos > 0 {
@@ -156,7 +156,7 @@ impl Checkpoints {
         }
     }
 
-    fn _upper_binary_lookup(&self, key: u32, mut low: usize, mut high: usize) -> usize {
+    fn _upper_binary_lookup(&self, key: u64, mut low: usize, mut high: usize) -> usize {
         while low < high {
             let mid = low / 2 + high / 2;
             if key < self.checkpoints[mid].key {
@@ -168,7 +168,7 @@ impl Checkpoints {
         high
     }
 
-    fn _lower_binary_lookup(&self, key: u32, mut low: usize, mut high: usize) -> usize {
+    fn _lower_binary_lookup(&self, key: u64, mut low: usize, mut high: usize) -> usize {
         while low < high {
             let mid = low / 2 + high / 2;
             if key > self.checkpoints[mid].key {

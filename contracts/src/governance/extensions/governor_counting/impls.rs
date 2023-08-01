@@ -1,5 +1,12 @@
 use crate::{
-    traits::governance::ProposalId,
+    governance::extensions::governor_counting::{
+        CountingInternal,
+        Data,
+    },
+    traits::{
+        errors::GovernanceError,
+        governance::ProposalId,
+    },
 };
 use openbrush::traits::{
     AccountId,
@@ -7,8 +14,6 @@ use openbrush::traits::{
     Storage,
     String,
 };
-use crate::governance::extensions::governor_counting::{Data, CountingInternal};
-use crate::traits::errors::GovernanceError;
 
 pub trait GovernorCountingImpl: Storage<Data> + CountingInternal {
     fn counting_mode(&self) -> String {
@@ -16,8 +21,7 @@ pub trait GovernorCountingImpl: Storage<Data> + CountingInternal {
     }
 
     fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool {
-        self
-            .data::<Data>()
+        self.data::<Data>()
             .has_votes
             .get(&(proposal_id, account))
             .unwrap_or_default()
@@ -29,6 +33,10 @@ pub trait GovernorCountingImpl: Storage<Data> + CountingInternal {
             .proposal_votes
             .get(&proposal_id)
             .ok_or(GovernanceError::ProposalNotFound)?;
-        Ok((proposal_vote.for_votes, proposal_vote.against_votes, proposal_vote.abstain_votes))
+        Ok((
+            proposal_vote.for_votes,
+            proposal_vote.against_votes,
+            proposal_vote.abstain_votes,
+        ))
     }
 }

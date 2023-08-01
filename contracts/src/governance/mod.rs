@@ -20,7 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "timelock_controller")]
-pub mod timelock_controller;
+pub use extensions::timelock_controller;
 
 pub mod extensions;
 pub mod governor;

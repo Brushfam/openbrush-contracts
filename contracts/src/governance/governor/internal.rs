@@ -1,9 +1,4 @@
 use crate::{
-    governance::governor::{
-        Data,
-        GovernorEvents,
-        GovernorImpl,
-    },
     traits::{
         errors::governance::GovernanceError,
         governance::{
@@ -22,6 +17,7 @@ use openbrush::traits::{
     String,
     Timestamp,
 };
+use crate::governance::governor::Data;
 
 pub trait GovernorInternal: Storage<Data> {
     fn _hash_proposal(&self, transactions: Vec<Transaction>, description_hash: HashType) -> HashType;

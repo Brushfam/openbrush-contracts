@@ -105,17 +105,18 @@ impl ProposalState {
 
 pub const ALL_PROPOSAL_STATES: u128 = 0b11111111;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]
+#[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct ProposalVote {
-    against_votes: u128,
-    for_votes: u128,
-    abstain_votes: u128,
+    pub against_votes: u128,
+    pub for_votes: u128,
+    pub abstain_votes: u128,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]
+#[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub enum VoteType {
+    #[default]
     Against,
     For,
     Abstain,

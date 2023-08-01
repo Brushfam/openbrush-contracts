@@ -7,8 +7,8 @@ use openbrush::{
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    delegation: Mapping<AccountId, AccountId>,
-    delegate_checkpoints: Mapping<AccountId, Checkpoints>,
+    pub delegation: Mapping<AccountId, AccountId>,
+    pub delegate_checkpoints: Mapping<AccountId, Checkpoints>,
     #[lazy]
-    total_checkpoints: Checkpoints,
+    pub total_checkpoints: Checkpoints,
 }

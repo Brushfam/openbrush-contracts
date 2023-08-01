@@ -27,7 +27,7 @@ pub trait Governor {
     fn state(&self, proposal_id: ProposalId) -> ProposalState;
 
     #[ink(message)]
-    fn proposal_snapshot(&self, proposal_id: ProposalId) -> Result<u128, GovernanceError>;
+    fn proposal_snapshot(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError>;
 
     #[ink(message)]
     fn proposal_deadline(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError>;

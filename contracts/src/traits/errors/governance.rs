@@ -2,6 +2,7 @@ use crate::{
     traits::governance::{
         ProposalId,
         ProposalState,
+        Transaction,
     },
     utils::{
         crypto::CryptoError,
@@ -37,10 +38,12 @@ pub enum GovernanceError {
     InvalidInput,
     UnderlyingTransactionReverted,
     ProposalAlreadyExists,
+    ErrorParsingDescription,
     FutureLookup(Timestamp, Timestamp),
     ExpiredSignature(Timestamp),
     CryptoError(CryptoError),
     NoncesError(NoncesError),
+    ExecutionFailed(Transaction),
 }
 
 impl From<CryptoError> for GovernanceError {

@@ -18,6 +18,7 @@ pub type Selector = [u8; 4];
 pub struct Transaction {
     pub callee: Option<AccountId>,
     pub selector: [u8; 4],
+    pub destination: AccountId,
     pub input: Vec<u8>,
     pub transferred_value: Balance,
     pub gas_limit: u64,
@@ -36,7 +37,7 @@ pub enum ExecutionStatus {
 pub enum CancellationStatus {
     #[default]
     NotCanceled,
-    Canceled,
+    Cancelled,
 }
 
 #[derive(scale::Decode, scale::Encode, Clone, Debug, PartialEq, Eq)]
@@ -46,7 +47,7 @@ pub struct ProposalCore {
     pub vote_start: Timestamp,
     pub vote_duration: Timestamp,
     pub executed: ExecutionStatus,
-    pub canceled: CancellationStatus,
+    pub cancelled: CancellationStatus,
 }
 
 impl Default for ProposalCore {
@@ -56,7 +57,7 @@ impl Default for ProposalCore {
             vote_start: Default::default(),
             vote_duration: Default::default(),
             executed: Default::default(),
-            canceled: Default::default(),
+            cancelled: Default::default(),
         }
     }
 }
@@ -68,7 +69,7 @@ impl ProposalCore {
             vote_start,
             vote_duration,
             executed: ExecutionStatus::NotExecuted,
-            canceled: CancellationStatus::NotCanceled,
+            cancelled: CancellationStatus::NotCanceled,
         }
     }
 
@@ -77,7 +78,7 @@ impl ProposalCore {
     }
 
     pub fn is_canceled(&self) -> bool {
-        self.canceled == CancellationStatus::Canceled
+        self.cancelled == CancellationStatus::Cancelled
     }
 
     pub fn deadline(&self) -> Result<u64, GovernanceError> {
@@ -105,7 +106,7 @@ pub enum ProposalState {
     #[default]
     Pending = 1 << 0,
     Active = 1 << 1,
-    Canceled = 1 << 2,
+    Cancelled = 1 << 2,
     Defeated = 1 << 3,
     Succeeded = 1 << 4,
     Queued = 1 << 5,

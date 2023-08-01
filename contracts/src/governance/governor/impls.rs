@@ -32,11 +32,15 @@ use openbrush::traits::{
 use scale::Encode;
 
 pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonces {
-    fn hash_proposal(&self, transactions: Vec<Transaction>, description_hash: HashType) -> HashType {
-        self._hash_proposal(transactions, description_hash)
+    fn hash_proposal(
+        &self,
+        transactions: Vec<Transaction>,
+        description_hash: HashType,
+    ) -> Result<HashType, GovernanceError> {
+        self._hash_proposal(transactions, description_hash).into()
     }
 
-    fn state(&self, proposal_id: ProposalId) -> ProposalState {
+    fn state(&self, proposal_id: ProposalId) -> Result<ProposalState, GovernanceError> {
         self._state(proposal_id)
     }
 
@@ -44,13 +48,8 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
         self._proposal_threshold()
     }
 
-    fn proposal_snapshot(&self, proposal_id: ProposalId) -> Result<u128, GovernanceError> {
-        Ok(self
-            .data()
-            .proposals
-            .get(&proposal_id)
-            .ok_or(GovernanceError::ProposalNotFound)?
-            .vote_start as u128)
+    fn proposal_snapshot(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
+        self._proposal_snapshot(proposal_id)
     }
 
     fn proposal_deadline(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
@@ -62,19 +61,20 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
     }
 
     fn proposal_proposer(&self, proposal_id: ProposalId) -> Result<AccountId, GovernanceError> {
-        Ok(self
-            .data()
-            .proposals
-            .get(&proposal_id)
-            .ok_or(GovernanceError::ProposalNotFound)?
-            .proposer)
+        self._proposal_proposer(proposal_id)
     }
 
-    fn voting_delay(&self) -> u64;
+    fn voting_delay(&self) -> u64 {
+        self._voting_delay()
+    }
 
-    fn voting_period(&self) -> u64;
+    fn voting_period(&self) -> u64 {
+        self._voting_period()
+    }
 
-    fn quorum(&self, time_point: Timestamp) -> u128;
+    fn quorum(&self, time_point: Timestamp) -> u128 {
+        self._quorum(time_point)
+    }
 
     fn get_votes(&self, account: AccountId, time_point: Timestamp) -> u128 {
         self._get_votes(account, time_point, Vec::new())
@@ -84,12 +84,10 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
         self._get_votes(account, time_point, params)
     }
 
-    fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool;
-
     fn propose(&mut self, transactions: Vec<Transaction>, description: String) -> Result<ProposalId, GovernanceError> {
         let proposer = Self::env().caller();
 
-        if !self._is_valid_description_for_proposer(proposer, description.clone()) {
+        if !self._is_valid_description_for_proposer(proposer, description.clone())? {
             return Err(GovernanceError::ProposerRestricted(proposer))
         }
 
@@ -109,7 +107,7 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
 
         let description_hash = self._hash_description(description.clone())?;
 
-        let proposal_id = self.hash_proposal(transactions.clone(), description_hash);
+        let proposal_id = self.hash_proposal(transactions.clone(), description_hash)?;
 
         if transactions.len() == 0 {
             return Err(GovernanceError::ZeroProposalLength)
@@ -151,9 +149,9 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
         transactions: Vec<Transaction>,
         description_hash: HashType,
     ) -> Result<ProposalId, GovernanceError> {
-        let proposal_id = self.hash_proposal(transactions.clone(), description_hash);
+        let proposal_id = self.hash_proposal(transactions.clone(), description_hash)?;
 
-        let current_state = self.state(proposal_id.clone());
+        let current_state = self.state(proposal_id.clone())?;
 
         if current_state != ProposalState::Succeeded && current_state != ProposalState::Queued {
             return Err(GovernanceError::UnexpectedProposalState(
@@ -193,9 +191,9 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
         transactions: Vec<Transaction>,
         description_hash: HashType,
     ) -> Result<ProposalId, GovernanceError> {
-        let proposal_id = self.hash_proposal(transactions.clone(), description_hash.clone());
+        let proposal_id = self.hash_proposal(transactions.clone(), description_hash.clone())?;
 
-        let current_state = self.state(proposal_id.clone());
+        let current_state = self.state(proposal_id.clone())?;
 
         let caller = Self::env().caller();
 

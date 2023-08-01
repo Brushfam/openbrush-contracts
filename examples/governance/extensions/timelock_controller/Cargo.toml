@@ -11,11 +11,11 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 # These dependencies
-openbrush = { path = "../..", default-features = false, features = ["governance"] }
+openbrush = { path = "../../../..", default-features = false, features = ["governance"] }
 
 [dev-dependencies]
 ink_e2e = "4.2.1"
-test_helpers = { path = "../test_helpers", default-features = false }
+test_helpers = { path = "../../../test_helpers", default-features = false }
 
 [lib]
 name = "my_timelock_controller"

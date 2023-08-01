@@ -1,11 +1,23 @@
-use openbrush::traits::{AccountId, Balance, Storage};
-use crate::governance::extensions::governor_counting::Data;
-use crate::governance::governor::GovernorImpl;
-use crate::traits::errors::GovernanceError;
-use crate::traits::governance::{ProposalId, VoteType};
+use crate::{
+    governance::{
+        extensions::governor_counting::Data,
+        governor::GovernorImpl,
+    },
+    traits::{
+        errors::GovernanceError,
+        governance::{
+            ProposalId,
+            VoteType,
+        },
+    },
+};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Storage,
+};
 
-
-pub trait CountingInternal: Storage<Data> + GovernorImpl{
+pub trait CountingInternal: Storage<Data> + GovernorImpl {
     fn _quorum_reached(&self, proposal_id: ProposalId) -> Result<bool, GovernanceError> {
         let proposal_vote = self
             .data::<Data>()
@@ -34,7 +46,7 @@ pub trait CountingInternal: Storage<Data> + GovernorImpl{
         account: AccountId,
         support: VoteType,
         weight: Balance,
-        //params: Vec<u8>,
+        // params: Vec<u8>,
     ) -> Result<(), GovernanceError> {
         let mut proposal_vote = self
             .data::<Data>()
@@ -46,14 +58,12 @@ pub trait CountingInternal: Storage<Data> + GovernorImpl{
             .data::<Data>()
             .has_votes
             .get(&(proposal_id, account))
-            .unwrap_or_default() {
-            return Err(GovernanceError::AlreadyCastVote(account))?;
+            .unwrap_or_default()
+        {
+            return Err(GovernanceError::AlreadyCastVote(account))?
         }
 
-        self
-            .data::<Data>()
-            .has_votes
-            .insert(&(proposal_id, account), &true);
+        self.data::<Data>().has_votes.insert(&(proposal_id, account), &true);
 
         match support {
             VoteType::Against => {

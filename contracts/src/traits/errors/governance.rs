@@ -1,8 +1,11 @@
 use crate::{
-    traits::governance::{
-        ProposalId,
-        ProposalState,
-        Transaction,
+    traits::{
+        errors::CheckpointsError,
+        governance::{
+            ProposalId,
+            ProposalState,
+            Transaction,
+        },
     },
     utils::{
         crypto::CryptoError,
@@ -13,13 +16,11 @@ use openbrush::traits::{
     AccountId,
     Timestamp,
 };
-use crate::traits::errors::CheckpointsError;
 
 /// The Governor error type. Contract will throw one of this errors.
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum GovernanceError {
-    /// TODO : make errors as structs
     AlreadyCastVote(AccountId),
     DisabledDeposit,
     OnlyProposer(AccountId),

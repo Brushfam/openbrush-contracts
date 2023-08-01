@@ -27,8 +27,7 @@ mod governance;
 mod security;
 mod token;
 mod upgradeability;
-/// TODO
-pub mod utils;
+mod utils;
 
 pub mod traits;
 
@@ -39,10 +38,10 @@ pub use access::access_control;
 pub use access::ownable;
 #[cfg(feature = "payment_splitter")]
 pub use finance::payment_splitter;
+#[cfg(feature = "governannce")]
+pub use governance::governor;
 #[cfg(feature = "timelock_controller")]
 pub use governance::timelock_controller;
-#[cfg(feature = "governannce")]
-pub use governance::{governor, utils};
 #[cfg(feature = "pausable")]
 pub use security::pausable;
 #[cfg(feature = "reentrancy_guard")]
@@ -61,3 +60,5 @@ pub use upgradeability::diamond;
 pub use upgradeability::proxy;
 #[cfg(feature = "upgradeable")]
 pub use upgradeability::upgradeable;
+#[cfg(feature = "utils")]
+pub use utils::*;

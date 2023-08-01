@@ -67,6 +67,7 @@ timelock_controller = ["openbrush_contracts/timelock_controller"]
 proxy = ["openbrush_contracts/proxy"]
 diamond = ["openbrush_contracts/diamond"]
 upgradeable = ["openbrush_contracts/upgradeable"]
+governance = ["openbrush_contracts/governance"]
 
 test-all = [
     "psp22",
@@ -81,6 +82,7 @@ test-all = [
     "timelock_controller",
     "proxy",
     "diamond",
+    "governance"
 ]
 
 [profile.release]

@@ -57,6 +57,11 @@ proxy = [
 diamond = [
     "ownable",
 ]
+governance = [
+    "timelock_controller",
+    "utils"
+]
+utils = []
 upgradeable = ["ownable"]
 test-all = [
     "psp22",
@@ -70,4 +75,5 @@ test-all = [
     "timelock_controller",
     "proxy",
     "diamond",
+    "governance",
 ]

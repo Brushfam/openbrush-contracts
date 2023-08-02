@@ -1,3 +1,4 @@
+// Copyright (c) 2023 Brushfam
 // Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -19,20 +20,14 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#[allow(clippy::module_inception)]
-mod psp22;
+use crate::checkpoint::Checkpoint;
+use openbrush::traits::AccountId;
 
-pub use psp22::*;
+#[openbrush::trait_definition]
+pub trait PSP22Votes {
+    #[ink(message)]
+    fn num_checkpoints(&self, account: AccountId) -> usize;
 
-pub mod extensions {
-    pub mod burnable;
-    pub mod capped;
-    pub mod metadata;
-    pub mod mintable;
-    pub mod votes;
-    pub mod wrapper;
-}
-
-pub mod utils {
-    pub mod token_timelock;
+    #[ink(message)]
+    fn checkpoints(&self, account: AccountId, pos: usize) -> Option<Checkpoint>;
 }

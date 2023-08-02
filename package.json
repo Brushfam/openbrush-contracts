@@ -7,8 +7,8 @@
     "@babel/plugin-transform-runtime": "^7.14.2",
     "@babel/preset-env": "^7.7.4",
     "@babel/register": "^7.7.4",
-    "@727-ventures/typechain-compiler": "^1.1.1",
-    "@727-ventures/typechain-types": "^1.1.0",
+    "@727-ventures/typechain-compiler": "^1.1.4",
+    "@727-ventures/typechain-types": "^1.1.2",
     "@types/chai": "^4.3.0",
     "@types/chai-as-promised": "^7.1.5",
     "@types/mocha": "^8.0.3",
@@ -16,7 +16,6 @@
     "@typescript-eslint/parser": "^4.8.2",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
-    "deasync": "^0.1.28",
     "eslint": "^7.26.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
@@ -32,6 +31,6 @@
     "typechain": "npx @727-ventures/typechain-polkadot --in artifacts --out ./typechain-generated",
     "test:mocha": "mocha --require @babel/register --require ts-node/register --recursive ./tests --extension \".ts\" --exit --timeout 20000",
     "test:mocha-single": "mocha --require @babel/register --require ts-node/register --extension \".ts\" --exit --timeout 20000",
-    "test": "npm run build:release && npm run test:mocha"
+    "test": "yarn build:release && yarn test:mocha"
   }
 }

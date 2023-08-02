@@ -24,7 +24,7 @@ pub use crate::{
     timelock_controller,
     traits::{
         access_control::*,
-        timelock_controller::*,
+        governance::extensions::timelock_controller::*,
     },
 };
 pub use access_control::{

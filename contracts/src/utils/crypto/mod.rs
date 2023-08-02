@@ -15,7 +15,7 @@ pub fn verify_signature(
     let recovered_account = pub_key_to_ss58(&output)?;
 
     if recovered_account != account.clone() {
-        return Ok(false);
+        return Ok(false)
     }
 
     Ok(true)

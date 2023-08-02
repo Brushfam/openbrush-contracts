@@ -1,11 +1,23 @@
+use crate::{
+    governance::extensions::governor_votes::{
+        Data,
+        VotesEvents,
+        VotesInternal,
+    },
+    traits::errors::GovernanceError,
+    utils::{
+        crypto,
+        crypto::SignatureType,
+        nonces::NoncesImpl,
+    },
+};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Storage,
+    Timestamp,
+};
 use scale::Encode;
-use crate::utils::crypto::SignatureType;
-use openbrush::traits::{Storage, Timestamp};
-use openbrush::traits::{AccountId, Balance};
-use crate::governance::extensions::governor_votes::{Data, VotesEvents, VotesInternal};
-use crate::traits::errors::GovernanceError;
-use crate::utils::crypto;
-use crate::utils::nonces::NoncesImpl;
 
 pub trait GovernorVotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents {
     fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
@@ -27,9 +39,10 @@ pub trait GovernorVotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesE
             .delegate_checkpoints
             .get(&account)
             .ok_or(GovernanceError::AccountNotFound)?
-            .upper_lookup_recent(timestamp) {
+            .upper_lookup_recent(timestamp)
+        {
             Some(value) => Ok(value),
-            None => Ok(0)
+            None => Ok(0),
         }
     }
 
@@ -42,7 +55,7 @@ pub trait GovernorVotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesE
         let checkpoints = &self.data::<Data>().total_checkpoints.get_or_default();
         match checkpoints.upper_lookup_recent(timestamp) {
             Some(value) => Ok(value),
-            None => Ok(0)
+            None => Ok(0),
         }
     }
 
@@ -55,20 +68,21 @@ pub trait GovernorVotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesE
         self._delegate(&account, &delegatee)
     }
 
-    fn delegate_by_signature(&mut self, signer: AccountId, delegatee: AccountId, nonce: u128, expiry: Timestamp, signature: SignatureType) -> Result<(), GovernanceError> {
+    fn delegate_by_signature(
+        &mut self,
+        signer: AccountId,
+        delegatee: AccountId,
+        nonce: u128,
+        expiry: Timestamp,
+        signature: SignatureType,
+    ) -> Result<(), GovernanceError> {
         if Self::env().block_timestamp() > expiry {
-            return Err(GovernanceError::ExpiredSignature(expiry));
+            return Err(GovernanceError::ExpiredSignature(expiry))
         }
-        let message_hash = crypto::hash_message(
-            Encode::encode(&(&delegatee, &nonce, &expiry)).as_slice()
-        )?;
-        let verify_result = crypto::verify_signature(
-            &message_hash,
-            &signer,
-            &signature
-        )?;
+        let message_hash = crypto::hash_message(Encode::encode(&(&delegatee, &nonce, &expiry)).as_slice())?;
+        let verify_result = crypto::verify_signature(&message_hash, &signer, &signature)?;
         if !verify_result {
-            return Err(GovernanceError::InvalidSignature(signer));
+            return Err(GovernanceError::InvalidSignature(signer))
         } else {
             self._use_checked_nonce(&signer, nonce)?;
             self._delegate(&signer, &delegatee)

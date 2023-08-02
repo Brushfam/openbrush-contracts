@@ -1,7 +1,12 @@
-use openbrush::traits::String;
-use crate::traits::governance::ProposalId;
-use openbrush::traits::{AccountId, Balance};
-use crate::traits::errors::GovernanceError;
+use crate::traits::{
+    errors::GovernanceError,
+    governance::ProposalId,
+};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    String,
+};
 
 #[openbrush::trait_definition]
 pub trait GovernorCounting {

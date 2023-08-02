@@ -1,6 +1,11 @@
-use crate::traits::governance::{ProposalId, ProposalVote};
-use openbrush::storage::Mapping;
-use openbrush::traits::AccountId;
+use crate::traits::governance::{
+    ProposalId,
+    ProposalVote,
+};
+use openbrush::{
+    storage::Mapping,
+    traits::AccountId,
+};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]

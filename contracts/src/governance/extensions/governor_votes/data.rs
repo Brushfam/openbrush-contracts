@@ -1,14 +1,9 @@
-use crate::utils::checkpoint::Checkpoints;
-use openbrush::{
-    storage::Mapping,
-    traits::AccountId,
-};
+use crate::checkpoint::Checkpoints;
+use openbrush::traits::AccountId;
 
-#[derive(Default, Debug)]
+#[derive(Debug, Default)]
 #[openbrush::storage_item]
 pub struct Data {
-    pub delegation: Mapping<AccountId, AccountId>,
-    pub delegate_checkpoints: Mapping<AccountId, Checkpoints>,
     #[lazy]
-    pub total_checkpoints: Checkpoints,
+    pub token: AccountId,
 }

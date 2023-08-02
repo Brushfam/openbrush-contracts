@@ -31,3 +31,6 @@ pub trait PSP22Votes {
     #[ink(message)]
     fn checkpoints(&self, account: AccountId, pos: u32) -> Option<Checkpoint>;
 }
+
+#[openbrush::wrapper]
+pub type PSP22VotesWrapper = dyn PSP22Votes + Votes;

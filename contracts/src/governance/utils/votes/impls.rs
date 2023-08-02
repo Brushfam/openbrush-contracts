@@ -1,8 +1,15 @@
 use crate::{
-    governance::extensions::governor_votes::{
-        Data,
-        VotesEvents,
-        VotesInternal,
+    governance::{
+        extensions::governor_votes::{
+            Data,
+            VotesEvents,
+            VotesInternal,
+        },
+        utils::votes::{
+            Data,
+            VotesEvents,
+            VotesInternal,
+        },
     },
     traits::{
         errors::GovernanceError,
@@ -21,7 +28,7 @@ use openbrush::traits::{
 };
 use scale::Encode;
 
-pub trait GovernorVotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents {
+pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents {
     fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
         Ok(self
             .data::<Data>()

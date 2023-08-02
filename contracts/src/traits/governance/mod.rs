@@ -8,6 +8,7 @@ use openbrush::traits::{
 
 pub mod extensions;
 pub mod governor;
+pub mod utils;
 
 pub type ProposalId = [u8; 32];
 pub type HashType = [u8; 32];

@@ -3,45 +3,42 @@
 #[openbrush::implementation(AccessControl)]
 #[openbrush::contract]
 pub mod my_timelock_controller {
+    use ink::prelude::vec::Vec;
     use openbrush::{
         contracts::{
-            crypto::SignatureType,
             extensions::{
-                governor_counting::{
-                    CountingInternal,
-                    GovernorCountingImpl,
-                },
-                governor_votes::{
-                    GovernorVotesImpl,
-                    VotesEvents,
-                    VotesInternal,
-                },
+                governor_counting,
+                governor_counting::*,
+                governor_votes,
+                governor_votes::*,
             },
-            governor::{
-                GovernorEvents,
-                GovernorImpl,
-                GovernorInternal,
+            governor,
+            governor::*,
+            nonces,
+            nonces::{
+                NoncesError,
+                NoncesImpl,
             },
             traits::{
                 errors::GovernanceError,
                 governance::{
                     extensions::{
-                        governor_counting::GovernorCounting,
-                        governor_votes::GovernorVotes,
+                        governor_counting::*,
+                        governor_votes::*,
                     },
-                    governor::Governor,
+                    governor::*,
                     HashType,
                     ProposalId,
                     ProposalState,
                     Transaction,
                 },
+                types::SignatureType,
+                utils::nonces::*,
             },
         },
         traits::{
-            AccountId,
-            Balance,
             Storage,
-            Timestamp,
+            String,
         },
     };
 
@@ -53,7 +50,13 @@ pub mod my_timelock_controller {
         #[storage_field]
         access_control: access_control::Data,
         #[storage_field]
-        timelock: timelock_controller::Data,
+        governor: governor::Data,
+        #[storage_field]
+        governor_counting: governor_counting::Data,
+        #[storage_field]
+        governor_votes: governor_votes::Data,
+        #[storage_field]
+        nonces: nonces::Data,
     }
 
     impl Contract {
@@ -65,13 +68,6 @@ pub mod my_timelock_controller {
             // `TimelockController` and `AccessControl` have `_init_with_admin` methods.
             // You need to call it for each trait separately, to initialize everything for these traits.
             access_control::Internal::_init_with_admin(&mut instance, Some(caller));
-            timelock_controller::Internal::_init_with_admin(
-                &mut instance,
-                Some(caller),
-                min_delay,
-                proposers,
-                executors,
-            );
 
             instance
         }
@@ -131,73 +127,102 @@ pub mod my_timelock_controller {
 
     impl GovernorImpl for Contract {}
 
+    impl NoncesImpl for Contract {}
+
+    impl Nonces for Contract {
+        #[ink(message)]
+        fn nonces(&self, account: AccountId) -> u128 {
+            NoncesImpl::nonces(self, &account)
+        }
+    }
+
     impl GovernorCounting for Contract {
-        fn counting_mode(&self) -> openbrush::traits::String {
+        #[ink(message)]
+        fn counting_mode(&self) -> String {
             GovernorCountingImpl::counting_mode(self)
         }
 
+        #[ink(message)]
         fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool {
             GovernorCountingImpl::has_voted(self, proposal_id, account)
         }
 
+        #[ink(message)]
         fn proposal_votes(&self, proposal_id: ProposalId) -> Result<(Balance, Balance, Balance), GovernanceError> {
             GovernorCountingImpl::proposal_votes(self, proposal_id)
         }
     }
 
     impl Governor for Contract {
-        fn hash_proposal(&self, transactions: Vec<Transaction>, description_hash: HashType) -> HashType {
+        #[ink(message)]
+        fn hash_proposal(
+            &self,
+            transactions: Vec<Transaction>,
+            description_hash: HashType,
+        ) -> Result<HashType, GovernanceError> {
             GovernorImpl::hash_proposal(self, transactions, description_hash)
         }
 
-        fn state(&self, proposal_id: ProposalId) -> ProposalState {
+        #[ink(message)]
+        fn state(&self, proposal_id: ProposalId) -> Result<ProposalState, GovernanceError> {
             GovernorImpl::state(self, proposal_id)
         }
 
+        #[ink(message)]
         fn proposal_snapshot(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
             GovernorImpl::proposal_snapshot(self, proposal_id)
         }
 
+        #[ink(message)]
         fn proposal_deadline(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
             GovernorImpl::proposal_deadline(self, proposal_id)
         }
 
+        #[ink(message)]
         fn proposal_proposer(&self, proposal_id: ProposalId) -> Result<AccountId, GovernanceError> {
             GovernorImpl::proposal_proposer(self, proposal_id)
         }
 
+        #[ink(message)]
         fn voting_delay(&self) -> u64 {
             GovernorImpl::voting_delay(self)
         }
 
+        #[ink(message)]
         fn voting_period(&self) -> u64 {
             GovernorImpl::voting_period(self)
         }
 
+        #[ink(message)]
         fn quorum(&self, time_point: Timestamp) -> u128 {
             GovernorImpl::quorum(self, time_point)
         }
 
+        #[ink(message)]
         fn get_votes(&self, account: AccountId, time_point: Timestamp) -> u128 {
             GovernorImpl::get_votes(self, account, time_point)
         }
 
+        #[ink(message)]
         fn get_votes_with_params(&self, account: AccountId, time_point: Timestamp, params: Vec<u8>) -> u128 {
             GovernorImpl::get_votes_with_params(self, account, time_point, params)
         }
 
+        #[ink(message)]
         fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool {
-            GovernorImpl::has_voted(self, proposal_id, account)
+            todo!()
         }
 
+        #[ink(message)]
         fn propose(
             &mut self,
             transactions: Vec<Transaction>,
-            description: openbrush::traits::String,
+            description: String,
         ) -> Result<ProposalId, GovernanceError> {
             GovernorImpl::propose(self, transactions, description)
         }
 
+        #[ink(message)]
         fn execute(
             &mut self,
             transactions: Vec<Transaction>,
@@ -206,6 +231,7 @@ pub mod my_timelock_controller {
             GovernorImpl::execute(self, transactions, description_hash)
         }
 
+        #[ink(message)]
         fn cancel(
             &mut self,
             transaction: Vec<Transaction>,
@@ -214,44 +240,49 @@ pub mod my_timelock_controller {
             GovernorImpl::cancel(self, transaction, description_hash)
         }
 
+        #[ink(message)]
         fn cast_vote(&mut self, proposal_id: ProposalId, support: u8) -> Result<Balance, GovernanceError> {
             GovernorImpl::cast_vote(self, proposal_id, support)
         }
 
+        #[ink(message)]
         fn cast_vote_with_reason(
             &mut self,
             proposal_id: ProposalId,
             support: u8,
-            reason: openbrush::traits::String,
+            reason: String,
         ) -> Result<Balance, GovernanceError> {
             GovernorImpl::cast_vote_with_reason(self, proposal_id, support, reason)
         }
 
+        #[ink(message)]
         fn cast_vote_with_reason_and_params(
             &mut self,
             proposal_id: ProposalId,
             support: u8,
-            reason: openbrush::traits::String,
+            reason: String,
             params: Vec<u8>,
         ) -> Result<Balance, GovernanceError> {
             GovernorImpl::cast_vote_with_reason_and_params(self, proposal_id, support, reason, params)
         }
 
+        #[ink(message)]
         fn cast_vote_with_signature(
             &mut self,
             proposal_id: ProposalId,
             support: u8,
-            reason: openbrush::traits::String,
+            reason: String,
             signature: SignatureType,
         ) -> Result<Balance, GovernanceError> {
             GovernorImpl::cast_vote_with_signature(self, proposal_id, support, reason, signature)
         }
 
+        #[ink(message)]
         fn cast_vote_with_signature_and_params(
             &mut self,
             proposal_id: ProposalId,
             support: u8,
-            reason: openbrush::traits::String,
+            reason: String,
             signature: SignatureType,
             params: Vec<u8>,
         ) -> Result<Balance, GovernanceError> {
@@ -260,30 +291,37 @@ pub mod my_timelock_controller {
     }
 
     impl GovernorVotes for Contract {
+        #[ink(message)]
         fn clock(&self) -> u64 {
             unimplemented!("clock")
         }
 
-        fn get_votes(&self, account: AccountId) -> Balance {
+        #[ink(message)]
+        fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
             GovernorVotesImpl::get_votes(self, account)
         }
 
+        #[ink(message)]
         fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
             GovernorVotesImpl::get_past_votes(self, account, timestamp)
         }
 
+        #[ink(message)]
         fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
             GovernorVotesImpl::get_past_total_supply(self, timestamp)
         }
 
+        #[ink(message)]
         fn delegates(&mut self, delegator: AccountId) -> AccountId {
             GovernorVotesImpl::delegates(self, delegator)
         }
 
-        fn delegate(&mut self, delegatee: AccountId) {
+        #[ink(message)]
+        fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError> {
             GovernorVotesImpl::delegate(self, delegatee)
         }
 
+        #[ink(message)]
         fn delegate_by_signature(
             &mut self,
             signer: AccountId,

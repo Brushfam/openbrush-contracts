@@ -1,14 +1,12 @@
-use crate::{
-    traits::{
-        errors::GovernanceError,
-        governance::{
-            HashType,
-            ProposalId,
-            ProposalState,
-            Transaction,
-        },
+use crate::traits::{
+    errors::GovernanceError,
+    governance::{
+        HashType,
+        ProposalId,
+        ProposalState,
+        Transaction,
     },
-    utils::crypto::SignatureType,
+    types::SignatureType,
 };
 use ink::prelude::vec::Vec;
 use openbrush::traits::{
@@ -21,10 +19,14 @@ use openbrush::traits::{
 #[openbrush::trait_definition]
 pub trait Governor {
     #[ink(message)]
-    fn hash_proposal(&self, transactions: Vec<Transaction>, description_hash: HashType) -> HashType;
+    fn hash_proposal(
+        &self,
+        transactions: Vec<Transaction>,
+        description_hash: HashType,
+    ) -> Result<HashType, GovernanceError>;
 
     #[ink(message)]
-    fn state(&self, proposal_id: ProposalId) -> ProposalState;
+    fn state(&self, proposal_id: ProposalId) -> Result<ProposalState, GovernanceError>;
 
     #[ink(message)]
     fn proposal_snapshot(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError>;

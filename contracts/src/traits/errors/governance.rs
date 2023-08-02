@@ -1,15 +1,13 @@
-use crate::{
-    traits::{
-        errors::CheckpointsError,
-        governance::{
-            ProposalId,
-            ProposalState,
-            Transaction,
-        },
+use crate::traits::{
+    errors::{
+        CheckpointsError,
+        CryptoError,
+        NoncesError,
     },
-    utils::{
-        crypto::CryptoError,
-        nonces::NoncesError,
+    governance::{
+        ProposalId,
+        ProposalState,
+        Transaction,
     },
 };
 use openbrush::traits::{

@@ -21,6 +21,7 @@
 
 mod access_control;
 mod checkpoints;
+mod crypto;
 mod diamond;
 mod flashloan;
 pub(crate) mod governance;
@@ -37,6 +38,7 @@ mod upgradeable;
 
 pub use access_control::AccessControlError;
 pub use checkpoints::CheckpointsError;
+pub use crypto::CryptoError;
 pub use diamond::DiamondError;
 pub use flashloan::{
     FlashBorrowerError,

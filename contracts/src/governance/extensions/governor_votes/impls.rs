@@ -4,10 +4,12 @@ use crate::{
         VotesEvents,
         VotesInternal,
     },
-    traits::errors::GovernanceError,
+    traits::{
+        errors::GovernanceError,
+        types::SignatureType,
+    },
     utils::{
         crypto,
-        crypto::SignatureType,
         nonces::NoncesImpl,
     },
 };

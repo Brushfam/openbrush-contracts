@@ -22,5 +22,7 @@
 #[cfg(feature = "timelock_controller")]
 pub use extensions::timelock_controller;
 
+#[cfg(feature = "governance")]
 pub mod extensions;
+#[cfg(feature = "governance")]
 pub mod governor;

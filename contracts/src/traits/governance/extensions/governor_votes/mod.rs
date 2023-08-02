@@ -1,6 +1,6 @@
-use crate::{
-    traits::governance::GovernanceError,
-    utils::crypto::SignatureType,
+use crate::traits::{
+    governance::GovernanceError,
+    types::SignatureType,
 };
 use openbrush::traits::{
     AccountId,
@@ -14,7 +14,7 @@ pub trait GovernorVotes {
     fn clock(&self) -> u64;
 
     #[ink(message)]
-    fn get_votes(&self, account: AccountId) -> Balance;
+    fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError>;
 
     #[ink(message)]
     fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError>;
@@ -26,11 +26,12 @@ pub trait GovernorVotes {
     fn delegates(&mut self, delegator: AccountId) -> AccountId;
 
     #[ink(message)]
-    fn delegate(&mut self, delegatee: AccountId);
+    fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError>;
 
     #[ink(message)]
     fn delegate_by_signature(
         &mut self,
+        signer: AccountId,
         delegatee: AccountId,
         nonce: u128,
         expiry: Timestamp,

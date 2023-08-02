@@ -34,14 +34,6 @@ pub struct Data {
     pub nonces: Mapping<AccountId, u128>,
 }
 
-pub trait Nonces {
-    fn nonces(&self, account: &AccountId) -> u128;
-
-    fn _use_nonce(&mut self, account: &AccountId) -> u128;
-
-    fn _use_checked_nonce(&mut self, account: &AccountId, nonce: u128) -> Result<u128, NoncesError>;
-}
-
 pub trait NoncesImpl: Storage<Data> {
     fn nonces(&self, account: &AccountId) -> u128 {
         self.data().nonces.get(account).unwrap_or_default()

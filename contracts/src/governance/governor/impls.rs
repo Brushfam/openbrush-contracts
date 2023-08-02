@@ -14,12 +14,10 @@ use crate::{
             ProposalState,
             Transaction,
         },
+        types::SignatureType,
+        utils::nonces::Nonces,
     },
-    utils::{
-        crypto,
-        crypto::SignatureType,
-        nonces::Nonces,
-    },
+    utils::crypto,
 };
 use ink::prelude::vec::Vec;
 use openbrush::traits::{

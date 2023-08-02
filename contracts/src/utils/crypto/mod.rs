@@ -1,7 +1,8 @@
+use crate::traits::{
+    errors::CryptoError,
+    types::SignatureType,
+};
 use ink::primitives::AccountId;
-use openbrush::traits::String;
-
-pub type SignatureType = [u8; 65];
 
 pub fn verify_signature(
     message_hash: &[u8; 32],
@@ -30,7 +31,7 @@ pub fn hash_message(message: &[u8]) -> Result<[u8; 32], CryptoError> {
 }
 
 pub fn pub_key_to_ss58(pub_key: &[u8; 33]) -> Result<AccountId, CryptoError> {
-    hash_message(pub_key).map(|hash| ink::primitives::AccountId::from(hash))
+    hash_message(pub_key).map(|hash| AccountId::from(hash))
 }
 
 pub fn pub_key_to_eth_address(pub_key: &[u8; 33]) -> Result<[u8; 20], CryptoError> {
@@ -39,12 +40,4 @@ pub fn pub_key_to_eth_address(pub_key: &[u8; 33]) -> Result<[u8; 20], CryptoErro
     ink::env::ecdsa_to_eth_address(pub_key, &mut output).map_err(|_| CryptoError::EcdsaToEthAddressFailed)?;
 
     Ok(output)
-}
-
-#[derive(scale::Decode, scale::Encode, Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
-pub enum CryptoError {
-    EcdsaRecoverFailed,
-    EcdsaToEthAddressFailed,
-    Other(String),
 }

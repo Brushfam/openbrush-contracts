@@ -11,9 +11,6 @@ use openbrush::traits::{
 #[openbrush::trait_definition]
 pub trait GovernorVotes {
     #[ink(message)]
-    fn clock(&self) -> u64;
-
-    #[ink(message)]
     fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError>;
 
     #[ink(message)]

@@ -5,10 +5,14 @@ use crate::traits::{
 use openbrush::traits::{
     AccountId,
     Balance,
+    String,
 };
 
 #[openbrush::trait_definition]
 pub trait GovernorCounting {
+    #[ink(message)]
+    fn counting_mode(&self) -> String;
+
     #[ink(message)]
     fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool;
 

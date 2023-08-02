@@ -48,6 +48,7 @@ pub enum GovernanceError {
     IndexOutOfRange,
     AccountNotFound,
     Overflow,
+    InvalidQuorumFraction(u128, u128),
 }
 
 impl From<CryptoError> for GovernanceError {

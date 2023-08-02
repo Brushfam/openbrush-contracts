@@ -26,8 +26,8 @@ use openbrush::traits::AccountId;
 #[openbrush::trait_definition]
 pub trait PSP22Votes {
     #[ink(message)]
-    fn num_checkpoints(&self, account: AccountId) -> usize;
+    fn num_checkpoints(&self, account: AccountId) -> u32;
 
     #[ink(message)]
-    fn checkpoints(&self, account: AccountId, pos: usize) -> Option<Checkpoint>;
+    fn checkpoints(&self, account: AccountId, pos: u32) -> Option<Checkpoint>;
 }

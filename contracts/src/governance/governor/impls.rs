@@ -15,8 +15,9 @@ use crate::{
             Transaction,
         },
         types::SignatureType,
+        utils::nonces::Nonces,
     },
-    utils::{crypto, nonces::NoncesImpl},
+    utils::crypto,
 };
 use ink::prelude::vec::Vec;
 use openbrush::traits::{
@@ -28,7 +29,7 @@ use openbrush::traits::{
 };
 use scale::Encode;
 
-pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + NoncesImpl {
+pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonces {
     fn hash_proposal(
         &self,
         transactions: Vec<Transaction>,

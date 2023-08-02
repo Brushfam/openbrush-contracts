@@ -20,6 +20,7 @@ use openbrush::traits::{
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum GovernanceError {
     TokenNotSet,
+    InvalidQuorumFraction(u128, u128),
     AlreadyCastVote(AccountId),
     DisabledDeposit,
     OnlyProposer(AccountId),

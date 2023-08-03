@@ -4,7 +4,8 @@
     "examples/upgradeable/**",
     "examples/diamond/**",
     "examples/proxy/**",
-    "examples/governance/governor/Cargo.toml"
+    "examples/governance/governor/Cargo.toml",
+    "examples/nonces/Cargo.toml"
   ],
   "artifactsPath": "./artifacts",
   "typechainGeneratedPath": "./typechain-generated"

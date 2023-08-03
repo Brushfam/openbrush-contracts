@@ -31,6 +31,7 @@
     "typechain": "npx @727-ventures/typechain-polkadot --in artifacts --out ./typechain-generated",
     "test:mocha": "mocha --require @babel/register --require ts-node/register --recursive ./tests --extension \".ts\" --exit --timeout 20000",
     "test:mocha-single": "mocha --require @babel/register --require ts-node/register --extension \".ts\" --exit --timeout 20000",
-    "test": "yarn build:release && yarn test:mocha"
+    "test": "yarn build:release && yarn test:mocha",
+    "raw-mocha": "mocha --require @babel/register --require ts-node/register --extension \".ts\" --exit --timeout 20000"
   }
 }

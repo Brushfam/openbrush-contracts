@@ -315,6 +315,11 @@ pub mod my_governor {
         ) -> Result<Balance, GovernanceError> {
             GovernorImpl::cast_vote_with_signature_and_params(self, proposal_id, support, reason, signature, params)
         }
+
+        #[ink(message)]
+        fn relay(&mut self, target: AccountId, transaction: Transaction) -> Result<(), GovernanceError> {
+            GovernorImpl::relay(self, target, transaction)
+        }
     }
 
     impl Nonces for Contract {

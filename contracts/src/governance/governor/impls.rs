@@ -39,16 +39,14 @@ use ink::{
         },
         DefaultEnvironment,
     },
-    prelude::{
-        collections::VecDeque,
-        vec::Vec,
-    },
+    prelude::vec::Vec,
 };
 use openbrush::{
     modifiers,
     traits::{
         AccountId,
         Balance,
+        DefaultEnv,
         Storage,
         StorageAsRef,
         String,
@@ -64,18 +62,19 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<GovernanceError>,
 {
-    if instance.env().caller() != instance._executor() {
-        return Err(GovernanceError::OnlyExecutor(instance.env().caller()))
+    if T::env().caller() != instance._executor() {
+        return Err(GovernanceError::OnlyExecutor(T::env().caller()).into())
     }
 
-    if instance.env().account_id() != instance._executor() {
-        let transaction = instance.env().decode_input::<Transaction>();
+    if T::env().account_id() != instance._executor() {
+        let transaction = ink::env::decode_input::<Transaction>().map_err(|_| GovernanceError::InvalidInput)?;
 
         while instance
-            .data()
+            .data::<Data>()
             .governance_call
+            .get_or_default()
             .pop_front()
-            .ok_or(GovernanceError::ExecutionFailed(transaction))?
+            .ok_or(GovernanceError::ExecutionFailed(transaction.clone()))?
             != transaction
         {}
     }
@@ -341,6 +340,7 @@ pub trait GovernorImpl:
             .call(target)
             .transferred_value(transaction.transferred_value)
             .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(transaction.input))
+            .returns::<()>()
             .try_invoke()
             .unwrap()
             .unwrap();

@@ -6,7 +6,7 @@ use crate::traits::{
         Transaction,
     },
 };
-use ink::prelude::vec::Vec;
+use ink::prelude::collections::VecDeque;
 use openbrush::{
     storage::Mapping,
     traits::{
@@ -14,7 +14,6 @@ use openbrush::{
         Timestamp,
     },
 };
-use std::collections::VecDeque;
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]

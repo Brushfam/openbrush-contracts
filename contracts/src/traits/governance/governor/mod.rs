@@ -103,7 +103,7 @@ pub trait Governor {
     ) -> Result<Balance, GovernanceError>;
 
     #[ink(message)]
-    fn relay(&mut self, target: AccountId, value: Balance, data: Vec<u8>) -> Result<(), GovernanceError>;
+    fn relay(&mut self, target: AccountId, transaction: Transaction) -> Result<(), GovernanceError>;
 }
 
 #[openbrush::wrapper]

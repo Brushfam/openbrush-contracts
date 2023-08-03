@@ -34,6 +34,7 @@ use ink::{
     },
     prelude::{
         borrow::ToOwned,
+        collections::VecDeque,
         vec::Vec,
     },
 };
@@ -121,7 +122,7 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents + CountingInternal + 
             for tx in transactions.iter() {
                 if tx.destination == self_address {
                     let mut governance_call = self.data::<Data>().governance_call.get_or_default();
-                    governance_call.push(tx.clone());
+                    governance_call.push_back(tx.clone());
                     self.data::<Data>().governance_call.set(&governance_call);
                 }
             }
@@ -137,7 +138,7 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents + CountingInternal + 
         if self._executor() != Self::env().account_id()
             && !self.data::<Data>().governance_call.get_or_default().is_empty()
         {
-            self.data::<Data>().governance_call.set(&Vec::new());
+            self.data::<Data>().governance_call.set(&VecDeque::new());
         }
 
         Ok(())

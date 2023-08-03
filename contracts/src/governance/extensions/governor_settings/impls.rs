@@ -4,6 +4,7 @@ use crate::{
         GovernorSettingsInternal,
     },
     governance::governor::only_governance,
+    governor::GovernorInternal,
     traits::errors::GovernanceError,
 };
 use openbrush::{
@@ -11,7 +12,7 @@ use openbrush::{
     traits::Storage,
 };
 
-pub trait GovernorSettingsImpl: Storage<Data> + GovernorSettingsInternal {
+pub trait GovernorSettingsImpl: Storage<Data> + GovernorSettingsInternal + GovernorInternal {
     #[modifiers(only_governance)]
     fn set_voting_delay(&mut self, new_voting_delay: u64) -> Result<(), GovernanceError> {
         self._set_voting_delay(new_voting_delay)
@@ -27,14 +28,14 @@ pub trait GovernorSettingsImpl: Storage<Data> + GovernorSettingsInternal {
     }
 
     fn voting_delay(&self) -> u64 {
-        self.data().voting_delay.get_or_default()
+        self.data::<Data>().voting_delay.get_or_default()
     }
 
     fn voting_period(&self) -> u64 {
-        self.data().voting_period.get_or_default()
+        self.data::<Data>().voting_period.get_or_default()
     }
 
     fn proposal_threshold(&self) -> u128 {
-        self.data().proposal_threshold.get_or_default()
+        self.data::<Data>().proposal_threshold.get_or_default()
     }
 }

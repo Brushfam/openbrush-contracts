@@ -94,7 +94,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents {
             .get(&account)
             .ok_or(GovernanceError::AccountNotFound)?;
         checkpoints
-            .at(pos.into())
+            .at(pos as usize)
             .ok_or(GovernanceError::IndexOutOfRange)
             .cloned()
     }

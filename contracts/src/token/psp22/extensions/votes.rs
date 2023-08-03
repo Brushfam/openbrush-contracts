@@ -21,7 +21,9 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
+    checkpoint::Checkpoint,
     extensions::governor_votes::VotesInternal,
+    governance::utils::votes::VotesInternal,
     psp22,
     psp22::{
         PSP22Error,
@@ -35,7 +37,7 @@ use crate::{
 use openbrush::traits::AccountId;
 
 pub trait PSP22VotesImpl: VotesInternal {
-    fn num_checkpoints(&self, account: &AccountId) -> Result<usize, GovernanceError> {
+    fn num_checkpoints(&self, account: &AccountId) -> Result<u32, GovernanceError> {
         VotesInternal::_num_checkpoints(self, account)
     }
 
@@ -58,10 +60,12 @@ pub trait InternalImpl: VotesInternal + psp22::Internal {
     }
 
     fn _update(&mut self, from: AccountId, to: AccountId, amount: u128) -> Result<(), PSP22Error> {
-        todo!()
+        psp22::Internal::_transfer_from_to(self, from, to, amount, vec![])?;
+
+        Ok(())
     }
 
     fn _get_voting_units(&self, account: &AccountId) -> u128 {
-        todo!()
+        psp22::Internal::_balance_of(self, account)
     }
 }

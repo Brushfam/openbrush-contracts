@@ -31,15 +31,57 @@ use crate::{
     },
     utils::crypto,
 };
-use ink::prelude::vec::Vec;
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Storage,
-    String,
-    Timestamp,
+use ink::{
+    env::{
+        call::{
+            build_call,
+            ExecutionInput,
+        },
+        DefaultEnvironment,
+    },
+    prelude::{
+        collections::VecDeque,
+        vec::Vec,
+    },
+};
+use openbrush::{
+    modifiers,
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+        StorageAsRef,
+        String,
+        Timestamp,
+    },
 };
 use scale::Encode;
+
+#[openbrush::modifier_definition]
+pub fn only_governance<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
+where
+    T: GovernorInternal + Storage<Data>,
+    F: FnOnce(&mut T) -> Result<R, E>,
+    E: From<GovernanceError>,
+{
+    if instance.env().caller() != instance._executor() {
+        return Err(GovernanceError::OnlyExecutor(instance.env().caller()))
+    }
+
+    if instance.env().account_id() != instance._executor() {
+        let transaction = instance.env().decode_input::<Transaction>();
+
+        while instance
+            .data()
+            .governance_call
+            .pop_front()
+            .ok_or(GovernanceError::ExecutionFailed(transaction))?
+            != transaction
+        {}
+    }
+
+    body(instance)
+}
 
 pub trait GovernorImpl:
     Storage<Data>
@@ -291,5 +333,17 @@ pub trait GovernorImpl:
         }
 
         self._cast_vote_with_params(proposal_id, voter, support, reason, params)
+    }
+
+    #[modifiers(only_governance)]
+    fn relay(&mut self, target: AccountId, transaction: Transaction) -> Result<(), GovernanceError> {
+        build_call::<DefaultEnvironment>()
+            .call(target)
+            .transferred_value(transaction.transferred_value)
+            .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(transaction.input))
+            .try_invoke()
+            .unwrap()
+            .unwrap();
+        Ok(())
     }
 }

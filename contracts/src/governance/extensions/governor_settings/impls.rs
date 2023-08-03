@@ -3,15 +3,21 @@ use crate::{
         Data,
         GovernorSettingsInternal,
     },
+    governance::governor::only_governance,
     traits::errors::GovernanceError,
 };
-use openbrush::traits::Storage;
+use openbrush::{
+    modifiers,
+    traits::Storage,
+};
 
 pub trait GovernorSettingsImpl: Storage<Data> + GovernorSettingsInternal {
+    #[modifiers(only_governance)]
     fn set_voting_delay(&mut self, new_voting_delay: u64) -> Result<(), GovernanceError> {
         self._set_voting_delay(new_voting_delay)
     }
 
+    #[modifiers(only_governance)]
     fn set_voting_period(&mut self, new_voting_period: u64) -> Result<(), GovernanceError> {
         self._set_voting_period(new_voting_period)
     }

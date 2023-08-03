@@ -14,13 +14,14 @@ use openbrush::{
         Timestamp,
     },
 };
+use std::collections::VecDeque;
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
     pub proposals: Mapping<ProposalId, ProposalCore>,
     #[lazy]
-    pub governance_call: Vec<Transaction>,
+    pub governance_call: VecDeque<Transaction>,
 }
 
 pub trait GovernorStorageGetters: Storage<Data> {

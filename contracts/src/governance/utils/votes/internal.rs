@@ -78,22 +78,25 @@ pub trait VotesInternal: Storage<Data> + VotesEvents {
         Ok(())
     }
 
-    fn _num_checkpoints(&self, account: &AccountId) -> Result<usize, GovernanceError> {
+    fn _num_checkpoints(&self, account: &AccountId) -> Result<u32, GovernanceError> {
         Ok(self
             .data::<Data>()
             .delegate_checkpoints
             .get(&account)
             .ok_or(GovernanceError::AccountNotFound)?
-            .len())
+            .len() as u32)
     }
 
-    fn _checkpoints(&self, account: &AccountId, pos: usize) -> Result<Checkpoint, GovernanceError> {
+    fn _checkpoints(&self, account: &AccountId, pos: u32) -> Result<Checkpoint, GovernanceError> {
         let checkpoints = self
             .data::<Data>()
             .delegate_checkpoints
             .get(&account)
             .ok_or(GovernanceError::AccountNotFound)?;
-        checkpoints.at(pos).ok_or(GovernanceError::IndexOutOfRange).cloned()
+        checkpoints
+            .at(pos.into())
+            .ok_or(GovernanceError::IndexOutOfRange)
+            .cloned()
     }
 
     fn _push(

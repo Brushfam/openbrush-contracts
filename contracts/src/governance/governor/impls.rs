@@ -339,11 +339,12 @@ pub trait GovernorImpl:
         build_call::<DefaultEnvironment>()
             .call(target)
             .transferred_value(transaction.transferred_value)
-            .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(transaction.input))
+            .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(transaction.clone().input))
             .returns::<()>()
             .try_invoke()
-            .unwrap()
-            .unwrap();
+            .map_err(|_| GovernanceError::ExecutionFailed(transaction.clone()))?
+            .map_err(|_| GovernanceError::ExecutionFailed(transaction.clone()))?;
+
         Ok(())
     }
 }

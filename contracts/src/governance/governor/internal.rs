@@ -1,4 +1,8 @@
 use crate::{
+    extensions::{
+        governor_counting::CountingInternal,
+        governor_votes::GovernorVotesInternal,
+    },
     governance::governor::{
         Data,
         GovernorEvents,
@@ -13,6 +17,7 @@ use crate::{
             ProposalId,
             ProposalState,
             Transaction,
+            VoteType,
             ALL_PROPOSAL_STATES,
         },
     },
@@ -37,11 +42,10 @@ use openbrush::traits::{
     Balance,
     Storage,
     String,
-    Timestamp,
 };
 use scale::Encode;
 
-pub trait GovernorInternal: Storage<Data> + GovernorEvents {
+pub trait GovernorInternal: Storage<Data> + GovernorEvents + CountingInternal + GovernorVotesInternal {
     fn _hash_proposal(
         &self,
         transactions: Vec<Transaction>,
@@ -55,7 +59,7 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents {
     fn _state(&self, _proposal_id: ProposalId) -> Result<ProposalState, GovernanceError> {
         let current_time = Self::env().block_timestamp();
 
-        let proposal = self.data().proposals.get(&_proposal_id).unwrap_or_default();
+        let proposal = self.data::<Data>().proposals.get(&_proposal_id).unwrap_or_default();
 
         if proposal.executed == ExecutionStatus::Executed {
             return Ok(ProposalState::Executed)
@@ -77,49 +81,12 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents {
             return Ok(ProposalState::Active)
         }
 
-        if self._vote_succeeded(_proposal_id.clone()) && self._quorum_reached(_proposal_id.clone()) {
+        if self._vote_succeeded(_proposal_id.clone())? && self._quorum_reached(_proposal_id.clone())? {
             Ok(ProposalState::Succeeded)
         } else {
             Ok(ProposalState::Defeated)
         }
     }
-
-    fn _proposal_snapshot(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
-        Ok(self
-            .data()
-            .proposals
-            .get(&proposal_id)
-            .ok_or(GovernanceError::ProposalNotFound)?
-            .vote_start)
-    }
-
-    /// Implement this manually
-    fn _voting_delay(&self) -> u64;
-
-    /// Implement this manually
-    fn _voting_period(&self) -> u64;
-
-    /// Implement this manually
-    fn _quorum(&self, time_point: Timestamp) -> u128;
-
-    /// Implement this manually
-    fn _quorum_reached(&self, proposal_id: ProposalId) -> bool;
-
-    /// Implement this manually
-    fn _vote_succeeded(&self, proposal_id: ProposalId) -> bool;
-
-    /// Implement this manually
-    fn _get_votes(&self, account: AccountId, time_point: Timestamp, params: Vec<u8>) -> u128;
-
-    /// Implement this manually
-    fn _count_vote(
-        &mut self,
-        proposal_id: ProposalId,
-        account: AccountId,
-        support: u8,
-        weight: u128,
-        params: Vec<u8>,
-    ) -> Result<(), GovernanceError>;
 
     fn _default_params(&self) -> Vec<u8> {
         Vec::new()
@@ -153,9 +120,9 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents {
         if executor != self_address {
             for tx in transactions.iter() {
                 if tx.destination == self_address {
-                    let mut governance_call = self.data().governance_call.get_or_default();
+                    let mut governance_call = self.data::<Data>().governance_call.get_or_default();
                     governance_call.push(tx.clone());
-                    self.data().governance_call.set(&governance_call);
+                    self.data::<Data>().governance_call.set(&governance_call);
                 }
             }
         }
@@ -167,8 +134,10 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents {
         _transactions: Vec<Transaction>,
         _description_hash: HashType,
     ) -> Result<(), GovernanceError> {
-        if self._executor() != Self::env().account_id() && !self.data().governance_call.get_or_default().is_empty() {
-            self.data().governance_call.set(&Vec::new());
+        if self._executor() != Self::env().account_id()
+            && !self.data::<Data>().governance_call.get_or_default().is_empty()
+        {
+            self.data::<Data>().governance_call.set(&Vec::new());
         }
 
         Ok(())
@@ -193,9 +162,9 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents {
             ))
         }
 
-        let proposal = self.data().proposals.get(&proposal_id).unwrap_or_default();
+        let proposal = self.data::<Data>().proposals.get(&proposal_id).unwrap_or_default();
 
-        self.data().proposals.insert(
+        self.data::<Data>().proposals.insert(
             &proposal_id,
             &ProposalCore {
                 cancelled: CancellationStatus::Cancelled,
@@ -212,7 +181,7 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents {
         &mut self,
         proposal_id: ProposalId,
         account: AccountId,
-        support: u8,
+        support: VoteType,
         reason: String,
     ) -> Result<Balance, GovernanceError> {
         self._cast_vote_with_params(proposal_id, account, support, reason, self._default_params())
@@ -220,7 +189,7 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents {
 
     fn _proposal_proposer(&self, proposal_id: ProposalId) -> Result<AccountId, GovernanceError> {
         Ok(self
-            .data()
+            .data::<Data>()
             .proposals
             .get(&proposal_id)
             .ok_or(GovernanceError::ProposalNotFound)?
@@ -231,7 +200,7 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents {
         &mut self,
         proposal_id: ProposalId,
         account: AccountId,
-        support: u8,
+        support: VoteType,
         reason: String,
         params: Vec<u8>,
     ) -> Result<Balance, GovernanceError> {
@@ -246,15 +215,9 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents {
         }
 
         let snapshot = self._proposal_snapshot(proposal_id.clone())?;
-        let weight = self._get_votes(account.clone(), snapshot, params.clone());
+        let weight = self._get_votes(account.clone(), snapshot, params.clone())?;
 
-        self._count_vote(
-            proposal_id.clone(),
-            account.clone(),
-            support.clone(),
-            weight.clone(),
-            params.clone(),
-        )?;
+        self._count_vote(proposal_id.clone(), account.clone(), support.clone(), weight.clone())?;
 
         if params.len() == 0 {
             self.emit_vote_cast(proposal_id.clone(), account.clone(), support, weight.clone(), reason);

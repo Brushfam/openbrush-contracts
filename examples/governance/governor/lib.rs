@@ -2,35 +2,42 @@
 
 #[openbrush::implementation(AccessControl)]
 #[openbrush::contract]
-pub mod my_timelock_controller {
+pub mod my_governor {
     use ink::prelude::vec::Vec;
     use openbrush::{
         contracts::{
             extensions::{
                 governor_counting,
                 governor_counting::*,
+                governor_quorum,
+                governor_quorum::*,
+                governor_settings,
+                governor_settings::*,
                 governor_votes,
                 governor_votes::*,
+            },
+            governance::utils::{
+                votes,
+                votes::*,
             },
             governor,
             governor::*,
             nonces,
-            nonces::{
-                NoncesError,
-                NoncesImpl,
-            },
+            nonces::NoncesImpl,
             traits::{
                 errors::GovernanceError,
                 governance::{
                     extensions::{
                         governor_counting::*,
-                        governor_votes::*,
+                        governor_quorum::*,
+                        governor_settings::*,
                     },
                     governor::*,
                     HashType,
                     ProposalId,
                     ProposalState,
                     Transaction,
+                    VoteType,
                 },
                 types::SignatureType,
                 utils::nonces::*,
@@ -57,82 +64,65 @@ pub mod my_timelock_controller {
         governor_votes: governor_votes::Data,
         #[storage_field]
         nonces: nonces::Data,
+        #[storage_field]
+        settings: governor_settings::Data,
+        #[storage_field]
+        quorum: governor_quorum::Data,
+        #[storage_field]
+        votes: votes::Data,
     }
 
     impl Contract {
         #[ink(constructor)]
-        pub fn new(min_delay: Timestamp, proposers: Vec<AccountId>, executors: Vec<AccountId>) -> Self {
+        pub fn new(
+            token: AccountId,
+            voting_delay: u64,
+            voting_period: u64,
+            proposal_threshold: u128,
+            numerator: u128,
+        ) -> Self {
             let mut instance = Self::default();
 
             let caller = Self::env().caller();
             access_control::Internal::_init_with_admin(&mut instance, Some(caller));
 
+            instance._init_governor_votes(token).unwrap();
+            instance
+                ._init_governor_settings(voting_delay, voting_period, proposal_threshold)
+                .unwrap();
+            instance._init_quorum_numerator(numerator).unwrap();
+
             instance
         }
     }
 
+    impl NoncesImpl for Contract {}
+
+    impl GovernorSettingsEvents for Contract {}
+    impl GovernorSettingsInternal for Contract {}
+    impl GovernorSettingsImpl for Contract {}
+
+    impl GovernorVotesInternal for Contract {}
+
+    impl QuorumEvents for Contract {}
+    impl QuorumImpl for Contract {}
+
+    impl GovernorStorageGetters for Contract {}
+
+    impl GovernorCountingImpl for Contract {}
     impl CountingInternal for Contract {}
+
+    impl VotesEvents for Contract {}
+    impl VotesImpl for Contract {}
     impl VotesInternal for Contract {
-        fn _get_voting_units(&self, account: &AccountId) -> Balance {
+        fn _get_voting_units(&self, _account: &AccountId) -> u128 {
             MAGIC_NUMBER
         }
     }
 
-    impl GovernorCountingImpl for Contract {}
-    impl GovernorVotesImpl for Contract {}
-
-    impl VotesEvents for Contract {}
+    impl GovernorInternal for Contract {}
     impl GovernorEvents for Contract {}
-
-    impl GovernorInternal for Contract {
-        fn _voting_delay(&self) -> u64 {
-            // VotesInternal::_voting_delay(self)
-            todo!()
-        }
-
-        fn _voting_period(&self) -> u64 {
-            // VotesInternal::_voting_period(self)
-            todo!()
-        }
-
-        fn _quorum(&self, time_point: Timestamp) -> u128 {
-            todo!()
-        }
-
-        fn _quorum_reached(&self, proposal_id: ProposalId) -> bool {
-            todo!()
-        }
-
-        fn _vote_succeeded(&self, proposal_id: ProposalId) -> bool {
-            todo!()
-        }
-
-        fn _get_votes(&self, account: AccountId, time_point: Timestamp, params: Vec<u8>) -> u128 {
-            todo!()
-        }
-
-        fn _count_vote(
-            &mut self,
-            proposal_id: ProposalId,
-            account: AccountId,
-            support: u8,
-            weight: u128,
-            params: Vec<u8>,
-        ) -> Result<(), GovernanceError> {
-            todo!()
-        }
-    }
-
     impl GovernorImpl for Contract {}
-
-    impl NoncesImpl for Contract {}
-
-    impl Nonces for Contract {
-        #[ink(message)]
-        fn nonces(&self, account: AccountId) -> u128 {
-            NoncesImpl::nonces(self, &account)
-        }
-    }
 
     impl GovernorCounting for Contract {
         #[ink(message)]
@@ -148,6 +138,65 @@ pub mod my_timelock_controller {
         #[ink(message)]
         fn proposal_votes(&self, proposal_id: ProposalId) -> Result<(Balance, Balance, Balance), GovernanceError> {
             GovernorCountingImpl::proposal_votes(self, proposal_id)
+        }
+    }
+
+    impl Quorum for Contract {
+        #[ink(message)]
+        fn quorum_numerator(&self) -> u128 {
+            QuorumImpl::quorum_numerator(self)
+        }
+
+        #[ink(message)]
+        fn quorum_numerator_at(&self, time_point: Timestamp) -> u128 {
+            QuorumImpl::quorum_numerator_at(self, time_point)
+        }
+
+        #[ink(message)]
+        fn quorum_denominator(&self) -> u128 {
+            QuorumImpl::quorum_denominator(self)
+        }
+
+        #[ink(message)]
+        fn quorum(&self, time_point: Timestamp) -> Result<u128, GovernanceError> {
+            QuorumImpl::quorum(self, time_point)
+        }
+
+        #[ink(message)]
+        fn update_quorum_numerator(&mut self, numerator: u128) -> Result<(), GovernanceError> {
+            QuorumImpl::update_quorum_numerator(self, numerator)
+        }
+    }
+
+    impl GovernorSettings for Contract {
+        #[ink(message)]
+        fn set_voting_delay(&mut self, new_voting_delay: u64) -> Result<(), GovernanceError> {
+            GovernorSettingsImpl::set_voting_delay(self, new_voting_delay)
+        }
+
+        #[ink(message)]
+        fn set_voting_period(&mut self, new_voting_period: u64) -> Result<(), GovernanceError> {
+            GovernorSettingsImpl::set_voting_period(self, new_voting_period)
+        }
+
+        #[ink(message)]
+        fn set_proposal_threshold(&mut self, new_proposal_threshold: u128) -> Result<(), GovernanceError> {
+            GovernorSettingsImpl::set_proposal_threshold(self, new_proposal_threshold)
+        }
+
+        #[ink(message)]
+        fn voting_delay(&self) -> u64 {
+            GovernorSettingsImpl::voting_delay(self)
+        }
+
+        #[ink(message)]
+        fn voting_period(&self) -> u64 {
+            GovernorSettingsImpl::voting_period(self)
+        }
+
+        #[ink(message)]
+        fn proposal_threshold(&self) -> u128 {
+            GovernorSettingsImpl::proposal_threshold(self)
         }
     }
 
@@ -182,33 +231,13 @@ pub mod my_timelock_controller {
         }
 
         #[ink(message)]
-        fn voting_delay(&self) -> u64 {
-            GovernorImpl::voting_delay(self)
-        }
-
-        #[ink(message)]
-        fn voting_period(&self) -> u64 {
-            GovernorImpl::voting_period(self)
-        }
-
-        #[ink(message)]
-        fn quorum(&self, time_point: Timestamp) -> u128 {
-            GovernorImpl::quorum(self, time_point)
-        }
-
-        #[ink(message)]
-        fn get_votes(&self, account: AccountId, time_point: Timestamp) -> u128 {
-            GovernorImpl::get_votes(self, account, time_point)
-        }
-
-        #[ink(message)]
-        fn get_votes_with_params(&self, account: AccountId, time_point: Timestamp, params: Vec<u8>) -> u128 {
+        fn get_votes_with_params(
+            &mut self,
+            account: AccountId,
+            time_point: Timestamp,
+            params: Vec<u8>,
+        ) -> Result<u128, GovernanceError> {
             GovernorImpl::get_votes_with_params(self, account, time_point, params)
-        }
-
-        #[ink(message)]
-        fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool {
-            todo!()
         }
 
         #[ink(message)]
@@ -232,14 +261,14 @@ pub mod my_timelock_controller {
         #[ink(message)]
         fn cancel(
             &mut self,
-            transaction: Vec<Transaction>,
+            transactions: Vec<Transaction>,
             description_hash: HashType,
         ) -> Result<ProposalId, GovernanceError> {
-            GovernorImpl::cancel(self, transaction, description_hash)
+            GovernorImpl::cancel(self, transactions, description_hash)
         }
 
         #[ink(message)]
-        fn cast_vote(&mut self, proposal_id: ProposalId, support: u8) -> Result<Balance, GovernanceError> {
+        fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType) -> Result<Balance, GovernanceError> {
             GovernorImpl::cast_vote(self, proposal_id, support)
         }
 
@@ -247,7 +276,7 @@ pub mod my_timelock_controller {
         fn cast_vote_with_reason(
             &mut self,
             proposal_id: ProposalId,
-            support: u8,
+            support: VoteType,
             reason: String,
         ) -> Result<Balance, GovernanceError> {
             GovernorImpl::cast_vote_with_reason(self, proposal_id, support, reason)
@@ -257,7 +286,7 @@ pub mod my_timelock_controller {
         fn cast_vote_with_reason_and_params(
             &mut self,
             proposal_id: ProposalId,
-            support: u8,
+            support: VoteType,
             reason: String,
             params: Vec<u8>,
         ) -> Result<Balance, GovernanceError> {
@@ -268,7 +297,7 @@ pub mod my_timelock_controller {
         fn cast_vote_with_signature(
             &mut self,
             proposal_id: ProposalId,
-            support: u8,
+            support: VoteType,
             reason: String,
             signature: SignatureType,
         ) -> Result<Balance, GovernanceError> {
@@ -279,7 +308,7 @@ pub mod my_timelock_controller {
         fn cast_vote_with_signature_and_params(
             &mut self,
             proposal_id: ProposalId,
-            support: u8,
+            support: VoteType,
             reason: String,
             signature: SignatureType,
             params: Vec<u8>,
@@ -288,47 +317,10 @@ pub mod my_timelock_controller {
         }
     }
 
-    impl GovernorVotes for Contract {
+    impl Nonces for Contract {
         #[ink(message)]
-        fn clock(&self) -> u64 {
-            unimplemented!("clock")
-        }
-
-        #[ink(message)]
-        fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
-            GovernorVotesImpl::get_votes(self, account)
-        }
-
-        #[ink(message)]
-        fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
-            GovernorVotesImpl::get_past_votes(self, account, timestamp)
-        }
-
-        #[ink(message)]
-        fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
-            GovernorVotesImpl::get_past_total_supply(self, timestamp)
-        }
-
-        #[ink(message)]
-        fn delegates(&mut self, delegator: AccountId) -> AccountId {
-            GovernorVotesImpl::delegates(self, delegator)
-        }
-
-        #[ink(message)]
-        fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError> {
-            GovernorVotesImpl::delegate(self, delegatee)
-        }
-
-        #[ink(message)]
-        fn delegate_by_signature(
-            &mut self,
-            signer: AccountId,
-            delegatee: AccountId,
-            nonce: u128,
-            expiry: Timestamp,
-            signature: SignatureType,
-        ) -> Result<(), GovernanceError> {
-            GovernorVotesImpl::delegate_by_signature(self, signer, delegatee, nonce, expiry, signature)
+        fn nonces(&self, account: AccountId) -> u128 {
+            NoncesImpl::nonces(self, &account)
         }
     }
 }

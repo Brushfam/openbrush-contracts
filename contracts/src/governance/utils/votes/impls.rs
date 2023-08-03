@@ -1,15 +1,8 @@
 use crate::{
-    governance::{
-        extensions::governor_votes::{
-            Data,
-            VotesEvents,
-            VotesInternal,
-        },
-        utils::votes::{
-            Data,
-            VotesEvents,
-            VotesInternal,
-        },
+    governance::utils::votes::{
+        Data,
+        VotesEvents,
+        VotesInternal,
     },
     traits::{
         errors::GovernanceError,

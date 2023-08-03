@@ -19,3 +19,6 @@ pub trait GovernorCounting {
     #[ink(message)]
     fn proposal_votes(&self, proposal_id: ProposalId) -> Result<(Balance, Balance, Balance), GovernanceError>;
 }
+
+#[openbrush::wrapper]
+pub type GovernorCountingRef = dyn GovernorCounting;

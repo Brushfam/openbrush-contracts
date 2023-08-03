@@ -1,8 +1,7 @@
 use crate::{
-    governance::{
-        extensions::governor_counting::Data,
-        governor::GovernorImpl,
-    },
+    extensions::governor_quorum::QuorumImpl,
+    governance::extensions::governor_counting::Data,
+    governor::GovernorStorageGetters,
     traits::{
         errors::GovernanceError,
         governance::{
@@ -17,7 +16,7 @@ use openbrush::traits::{
     Storage,
 };
 
-pub trait CountingInternal: Storage<Data> + GovernorImpl {
+pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters {
     fn _quorum_reached(&self, proposal_id: ProposalId) -> Result<bool, GovernanceError> {
         let proposal_vote = self
             .data::<Data>()
@@ -28,7 +27,7 @@ pub trait CountingInternal: Storage<Data> + GovernorImpl {
             .for_votes
             .checked_add(proposal_vote.against_votes)
             .ok_or(GovernanceError::Overflow)?;
-        Ok(self.quorum(self.proposal_snapshot(proposal_id)?) <= num_votes)
+        Ok(self.quorum(self._proposal_snapshot(proposal_id)?)? <= num_votes)
     }
 
     fn _vote_succeeded(&self, proposal_id: ProposalId) -> Result<bool, GovernanceError> {

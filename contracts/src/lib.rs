@@ -23,7 +23,7 @@
 
 mod access;
 mod finance;
-mod governance;
+pub mod governance;
 mod security;
 mod token;
 mod upgradeability;

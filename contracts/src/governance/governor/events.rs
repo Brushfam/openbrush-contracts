@@ -1,6 +1,7 @@
 use crate::traits::governance::{
     ProposalId,
     Transaction,
+    VoteType,
 };
 use ink::prelude::vec::Vec;
 use openbrush::traits::{
@@ -35,7 +36,7 @@ pub trait GovernorEvents {
         &self,
         _proposal_id: ProposalId,
         _voter: AccountId,
-        _support: u8,
+        _support: VoteType,
         _weight: Balance,
         _reason: String,
     ) {
@@ -46,7 +47,7 @@ pub trait GovernorEvents {
         &self,
         _proposal_id: ProposalId,
         _voter: AccountId,
-        _support: u8,
+        _support: VoteType,
         _weight: Balance,
         _reason: String,
         _params: Vec<u8>,

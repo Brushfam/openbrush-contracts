@@ -1,5 +1,5 @@
 use crate::traits::{
-    governance::GovernanceError,
+    errors::GovernanceError,
     types::SignatureType,
 };
 use openbrush::traits::{
@@ -9,10 +9,7 @@ use openbrush::traits::{
 };
 
 #[openbrush::trait_definition]
-pub trait GovernorVotes {
-    #[ink(message)]
-    fn clock(&self) -> u64;
-
+pub trait Votes {
     #[ink(message)]
     fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError>;
 
@@ -38,3 +35,6 @@ pub trait GovernorVotes {
         signature: SignatureType,
     ) -> Result<(), GovernanceError>;
 }
+
+#[openbrush::wrapper]
+pub type VotesWrapper = dyn Votes;

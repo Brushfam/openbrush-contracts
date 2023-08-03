@@ -1,4 +1,3 @@
-use crate::checkpoint::Checkpoints;
 use openbrush::traits::AccountId;
 
 #[derive(Debug, Default)]

@@ -1,11 +1,10 @@
 use crate::{
     extensions::{
-        governor_votes,
-        governor_votes_quorum_fraction::{
+        governor_quorum::{
             Data,
             QuorumEvents,
-            QuorumInternal,
         },
+        governor_votes,
     },
     traits::{
         errors::GovernanceError,
@@ -17,7 +16,7 @@ use openbrush::traits::{
     Timestamp,
 };
 
-pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumInternal + QuorumEvents {
+pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumEvents {
     /// Constructor
     fn _init_quorum_numerator(&mut self, numerator: u128) -> Result<(), GovernanceError> {
         self._update_quorum_numerator(numerator)
@@ -38,14 +37,14 @@ pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumInte
     fn quorum_numerator_at(&self, time_point: Timestamp) -> u128 {
         let history = self.data::<Data>().quorum_numerator_history.get_or_default();
 
-        let (exist, timestamp, _) = history.latest_checkpoint();
+        let (exist, timestamp, value) = history.latest_checkpoint();
 
         if !exist {
             return self.quorum_numerator()
         }
 
         if timestamp <= time_point {
-            return last_value
+            return value
         }
 
         history.upper_lookup_recent(time_point).unwrap_or(0)
@@ -57,13 +56,13 @@ pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumInte
     }
 
     fn quorum(&self, time_point: Timestamp) -> Result<u128, GovernanceError> {
-        let token = self
+        let mut token = self
             .data::<governor_votes::Data>()
             .token
             .get()
             .ok_or(GovernanceError::TokenNotSet)?;
 
-        let past_total_supply = VotesWrapper::get_past_total_supply(&mut token)?;
+        let past_total_supply = VotesWrapper::get_past_total_supply(&mut token, time_point)?;
 
         past_total_supply
             .checked_mul(self.quorum_numerator_at(time_point))

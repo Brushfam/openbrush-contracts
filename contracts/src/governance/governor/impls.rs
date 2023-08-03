@@ -1,9 +1,21 @@
 use crate::{
-    governance::governor::{
-        Data,
-        GovernorEvents,
-        GovernorInternal,
+    extensions::{
+        governor_settings::{
+            GovernorSettingsImpl,
+            GovernorSettingsInternal,
+        },
+        governor_votes::GovernorVotesInternal,
     },
+    governance::{
+        governor::{
+            Data,
+            GovernorEvents,
+            GovernorInternal,
+        },
+        utils::votes::VotesImpl,
+    },
+    governor::GovernorStorageGetters,
+    nonces::NoncesImpl,
     traits::{
         errors::governance::GovernanceError,
         governance::{
@@ -13,9 +25,9 @@ use crate::{
             ProposalId,
             ProposalState,
             Transaction,
+            VoteType,
         },
         types::SignatureType,
-        utils::nonces::Nonces,
     },
     utils::crypto,
 };
@@ -29,7 +41,17 @@ use openbrush::traits::{
 };
 use scale::Encode;
 
-pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonces {
+pub trait GovernorImpl:
+    Storage<Data>
+    + GovernorEvents
+    + GovernorInternal
+    + GovernorVotesInternal
+    + GovernorSettingsInternal
+    + NoncesImpl
+    + GovernorSettingsImpl
+    + VotesImpl
+    + GovernorStorageGetters
+{
     fn hash_proposal(
         &self,
         transactions: Vec<Transaction>,
@@ -42,16 +64,12 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
         self._state(proposal_id)
     }
 
-    fn proposal_threshold(&self) -> u128 {
-        self._proposal_threshold()
-    }
-
     fn proposal_snapshot(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
         self._proposal_snapshot(proposal_id)
     }
 
     fn proposal_deadline(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
-        self.data()
+        self.data::<Data>()
             .proposals
             .get(&proposal_id)
             .ok_or(GovernanceError::ProposalNotFound)?
@@ -62,23 +80,12 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
         self._proposal_proposer(proposal_id)
     }
 
-    fn voting_delay(&self) -> u64 {
-        self._voting_delay()
-    }
-
-    fn voting_period(&self) -> u64 {
-        self._voting_period()
-    }
-
-    fn quorum(&self, time_point: Timestamp) -> u128 {
-        self._quorum(time_point)
-    }
-
-    fn get_votes(&self, account: AccountId, time_point: Timestamp) -> u128 {
-        self._get_votes(account, time_point, Vec::new())
-    }
-
-    fn get_votes_with_params(&self, account: AccountId, time_point: Timestamp, params: Vec<u8>) -> u128 {
+    fn get_votes_with_params(
+        &mut self,
+        account: AccountId,
+        time_point: Timestamp,
+        params: Vec<u8>,
+    ) -> Result<u128, GovernanceError> {
         self._get_votes(account, time_point, params)
     }
 
@@ -91,7 +98,7 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
 
         let current_timestamp = Self::env().block_timestamp();
 
-        let proposer_votes = self.get_votes(proposer, current_timestamp.clone());
+        let proposer_votes = self.get_votes_with_params(proposer, current_timestamp.clone(), Vec::new())?;
 
         let votes_threshold = self.proposal_threshold();
 
@@ -111,14 +118,14 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
             return Err(GovernanceError::ZeroProposalLength)
         }
 
-        if self.data().proposals.contains(&proposal_id) {
+        if self.data::<Data>().proposals.contains(&proposal_id) {
             return Err(GovernanceError::ProposalAlreadyExists)
         }
 
         let snapshot = current_timestamp + self.voting_delay();
         let duration = self.voting_period();
 
-        self.data().proposals.insert(
+        self.data::<Data>().proposals.insert(
             &proposal_id,
             &ProposalCore {
                 proposer: proposer.clone(),
@@ -160,12 +167,12 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
         }
 
         let proposal = self
-            .data()
+            .data::<Data>()
             .proposals
             .get(&proposal_id)
             .ok_or(GovernanceError::ProposalNotFound)?;
 
-        self.data().proposals.insert(
+        self.data::<Data>().proposals.insert(
             &proposal_id,
             &ProposalCore {
                 executed: ExecutionStatus::Executed,
@@ -210,7 +217,7 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
         self._cancel(transactions, description_hash)
     }
 
-    fn cast_vote(&mut self, proposal_id: ProposalId, support: u8) -> Result<Balance, GovernanceError> {
+    fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType) -> Result<Balance, GovernanceError> {
         let voter = Self::env().caller();
 
         self._cast_vote(proposal_id, voter, support, String::new())
@@ -219,7 +226,7 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
     fn cast_vote_with_reason(
         &mut self,
         proposal_id: ProposalId,
-        support: u8,
+        support: VoteType,
         reason: String,
     ) -> Result<Balance, GovernanceError> {
         let voter = Self::env().caller();
@@ -230,7 +237,7 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
     fn cast_vote_with_reason_and_params(
         &mut self,
         proposal_id: ProposalId,
-        support: u8,
+        support: VoteType,
         reason: String,
         params: Vec<u8>,
     ) -> Result<Balance, GovernanceError> {
@@ -242,7 +249,7 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
     fn cast_vote_with_signature(
         &mut self,
         proposal_id: ProposalId,
-        support: u8,
+        support: VoteType,
         reason: String,
         signature: SignatureType,
     ) -> Result<Balance, GovernanceError> {
@@ -265,7 +272,7 @@ pub trait GovernorImpl: Storage<Data> + GovernorEvents + GovernorInternal + Nonc
     fn cast_vote_with_signature_and_params(
         &mut self,
         proposal_id: ProposalId,
-        support: u8,
+        support: VoteType,
         reason: String,
         signature: SignatureType,
         params: Vec<u8>,

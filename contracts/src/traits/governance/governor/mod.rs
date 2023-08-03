@@ -5,6 +5,7 @@ use crate::traits::{
         ProposalId,
         ProposalState,
         Transaction,
+        VoteType,
     },
     types::SignatureType,
 };
@@ -38,22 +39,12 @@ pub trait Governor {
     fn proposal_proposer(&self, proposal_id: ProposalId) -> Result<AccountId, GovernanceError>;
 
     #[ink(message)]
-    fn voting_delay(&self) -> u64;
-
-    #[ink(message)]
-    fn voting_period(&self) -> u64;
-
-    #[ink(message)]
-    fn quorum(&self, time_point: Timestamp) -> u128;
-
-    #[ink(message)]
-    fn get_votes(&self, account: AccountId, time_point: Timestamp) -> u128;
-
-    #[ink(message)]
-    fn get_votes_with_params(&self, account: AccountId, time_point: Timestamp, params: Vec<u8>) -> u128;
-
-    #[ink(message)]
-    fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool;
+    fn get_votes_with_params(
+        &mut self,
+        account: AccountId,
+        time_point: Timestamp,
+        params: Vec<u8>,
+    ) -> Result<u128, GovernanceError>;
 
     #[ink(message)]
     fn propose(&mut self, transactions: Vec<Transaction>, description: String) -> Result<ProposalId, GovernanceError>;
@@ -68,18 +59,18 @@ pub trait Governor {
     #[ink(message)]
     fn cancel(
         &mut self,
-        transaction: Vec<Transaction>,
+        transactions: Vec<Transaction>,
         description_hash: HashType,
     ) -> Result<ProposalId, GovernanceError>;
 
     #[ink(message)]
-    fn cast_vote(&mut self, proposal_id: ProposalId, support: u8) -> Result<Balance, GovernanceError>;
+    fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType) -> Result<Balance, GovernanceError>;
 
     #[ink(message)]
     fn cast_vote_with_reason(
         &mut self,
         proposal_id: ProposalId,
-        support: u8,
+        support: VoteType,
         reason: String,
     ) -> Result<Balance, GovernanceError>;
 
@@ -87,7 +78,7 @@ pub trait Governor {
     fn cast_vote_with_reason_and_params(
         &mut self,
         proposal_id: ProposalId,
-        support: u8,
+        support: VoteType,
         reason: String,
         params: Vec<u8>,
     ) -> Result<Balance, GovernanceError>;
@@ -96,7 +87,7 @@ pub trait Governor {
     fn cast_vote_with_signature(
         &mut self,
         proposal_id: ProposalId,
-        support: u8,
+        support: VoteType,
         reason: String,
         signature: SignatureType,
     ) -> Result<Balance, GovernanceError>;
@@ -105,9 +96,12 @@ pub trait Governor {
     fn cast_vote_with_signature_and_params(
         &mut self,
         proposal_id: ProposalId,
-        support: u8,
+        support: VoteType,
         reason: String,
         signature: SignatureType,
         params: Vec<u8>,
     ) -> Result<Balance, GovernanceError>;
 }
+
+#[openbrush::wrapper]
+pub type GovernorRef = dyn Governor;

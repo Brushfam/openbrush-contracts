@@ -38,7 +38,7 @@ describe('Nonces', function () {
       contract,
     } = await setup()
     const nonce = await contract.query.nonces(bob.address)
-    expect(await contract.query.nonces(bob.address)).to.have.output(new BN(0))
+    await expect(contract.query.nonces(bob.address)).to.have.bnToNumber(0)
     await api.disconnect()
   })
 
@@ -50,10 +50,11 @@ describe('Nonces', function () {
         deployer,
         contract,
       } = await setup()
-        expect(await contract.query.nonces(bob.address)).to.have.output(new BN(0))
-      expect(await contract.query.useNonce(bob.address)).to.have.output(new BN(0))
-      expect(await contract.query.useNonce(bob.address)).to.have.output(new BN(1))
-      expect(await contract.query.nonces(bob.address)).to.have.output(new BN(2))
+      await expect(contract.query.nonces(bob.address)).to.have.bnToNumber(0)
+      await contract.tx.useNonce(bob.address)
+      await expect(contract.query.nonces(bob.address)).to.have.bnToNumber(1)
+      await contract.tx.useNonce(bob.address)
+      await expect(contract.query.nonces(bob.address)).to.have.bnToNumber(2)
       await api.disconnect()
     })
 
@@ -70,9 +71,11 @@ describe('Nonces', function () {
         deployer,
         contract,
       } = await setup()
-      expect(await contract.query.nonces(bob.address)).to.have.output(new BN(0))
-      expect(await contract.query.useCheckedNonce(bob.address, new BN(0))).to.have.output(new BN(0))
-      expect(await contract.query.useCheckedNonce(bob.address, new BN(1))).to.have.output(new BN(1))
+      await expect(contract.query.nonces(bob.address)).to.have.bnToNumber(0)
+      await expect(contract.query.useCheckedNonce(bob.address, new BN(0))).to.have.bnToNumber(0)
+      await contract.withSigner(bob).tx.useCheckedNonce(bob.address, new BN(0))
+      await expect(contract.query.nonces(bob.address)).to.have.bnToNumber(1)
+      await expect(contract.query.useCheckedNonce(bob.address, new BN(1))).to.have.bnToNumber(1)
     })
 
     // it('increments only sender\'s nonce', async function () {
@@ -86,7 +89,10 @@ describe('Nonces', function () {
         deployer,
         contract,
       } = await setup()
-      //todo
+      await expect(contract.query.nonces(bob.address)).to.have.bnToNumber(0)
+      await expect(contract.withSigner(bob).tx.useCheckedNonce(bob.address, new BN(1))).to.eventually.be.rejected
+      await expect(contract.tx.useCheckedNonce(bob.address, new BN(0))).to.eventually.be.fulfilled
+
     })
   })
 })

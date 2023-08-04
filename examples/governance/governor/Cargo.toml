@@ -34,3 +34,5 @@ e2e-tests = []
 
 [profile.dev]
 codegen-units = 16
+overflow-checks = false     # Disable integer overflow checks.
+lto = false                 # Enable full link-time optimization.

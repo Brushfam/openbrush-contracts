@@ -92,7 +92,6 @@ panic = "abort"
 lto = false
 
 [profile.dev]
-
 panic = "abort"
 lto = false
 overflow-checks = false

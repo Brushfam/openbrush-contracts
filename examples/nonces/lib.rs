@@ -2,7 +2,6 @@
 
 #[openbrush::contract]
 pub mod my_timelock_controller {
-    use ink::prelude::vec::Vec;
     use openbrush::{
         contracts::{
             nonces,
@@ -10,14 +9,9 @@ pub mod my_timelock_controller {
                 NoncesError,
                 NoncesImpl,
             },
-            traits::{
-                utils::nonces::*,
-            },
+            traits::utils::nonces::*,
         },
-        traits::{
-            Storage,
-            String,
-        },
+        traits::Storage,
     };
 
     #[ink(storage)]

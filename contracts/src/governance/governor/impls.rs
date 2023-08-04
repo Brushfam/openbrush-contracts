@@ -46,9 +46,7 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        DefaultEnv,
         Storage,
-        StorageAsRef,
         String,
         Timestamp,
     },

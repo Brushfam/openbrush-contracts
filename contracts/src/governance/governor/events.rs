@@ -21,15 +21,15 @@ pub trait GovernorEvents {
         _vote_end: Timestamp,
         _description: String,
     ) {
-        unimplemented!("emit_proposal_created")
+        ()
     }
 
     fn emit_proposal_cancelled(&self, _proposal_id: ProposalId) {
-        unimplemented!("emit_proposal_cancelled")
+        ()
     }
 
     fn emit_proposal_executed(&self, _proposal_id: ProposalId) {
-        unimplemented!("emit_proposal_executed")
+        ()
     }
 
     fn emit_vote_cast(
@@ -40,7 +40,7 @@ pub trait GovernorEvents {
         _weight: Balance,
         _reason: String,
     ) {
-        unimplemented!("emit_vote_cast")
+        ()
     }
 
     fn emit_vote_cast_with_params(
@@ -52,6 +52,6 @@ pub trait GovernorEvents {
         _reason: String,
         _params: Vec<u8>,
     ) {
-        unimplemented!("emit_vote_cast_with_params")
+        ()
     }
 }

@@ -27,7 +27,7 @@ pub mod governance;
 mod security;
 mod token;
 mod upgradeability;
-mod utils;
+pub mod utils;
 
 pub mod traits;
 
@@ -58,5 +58,4 @@ pub use upgradeability::diamond;
 pub use upgradeability::proxy;
 #[cfg(feature = "upgradeable")]
 pub use upgradeability::upgradeable;
-#[cfg(feature = "utils")]
 pub use utils::*;

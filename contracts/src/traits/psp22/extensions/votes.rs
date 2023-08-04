@@ -21,8 +21,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    checkpoint::Checkpoint,
     traits::governance::utils::*,
+    utils::checkpoint::Checkpoint,
 };
 use openbrush::traits::AccountId;
 

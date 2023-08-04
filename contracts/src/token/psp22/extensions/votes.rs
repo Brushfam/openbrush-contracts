@@ -22,39 +22,25 @@
 
 use crate::{
     checkpoint::Checkpoint,
-    extensions::governor_votes::VotesInternal,
     governance::utils::votes::VotesInternal,
     psp22,
-    psp22::{
-        PSP22Error,
-        PSP22,
-    },
-    traits::{
-        errors::GovernanceError,
-        psp22::extensions::votes::PSP22Votes,
-    },
+    psp22::PSP22Error,
+    traits::errors::GovernanceError,
 };
+use ink::prelude::vec;
 use openbrush::traits::AccountId;
 
 pub trait PSP22VotesImpl: VotesInternal {
-    fn num_checkpoints(&self, account: &AccountId) -> Result<u32, GovernanceError> {
-        VotesInternal::_num_checkpoints(self, account)
+    fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError> {
+        VotesInternal::_num_checkpoints(self, &account)
     }
 
-    fn checkpoints(&self, account: &AccountId, &pos: u32) -> Result<Checkpoint, GovernanceError> {
-        VotesInternal::_checkpoints(self, account, pos)
+    fn checkpoints(&self, account: AccountId, pos: u32) -> Result<Checkpoint, GovernanceError> {
+        VotesInternal::_checkpoints(self, &account, pos)
     }
 }
 
-pub trait Internal {
-    fn _max_supply(&self) -> u128;
-
-    fn _update(&mut self, from: &AccountId, to: &AccountId, amount: u128) -> Result<(), PSP22Error>;
-
-    fn _get_voting_units(&self, account: &AccountId) -> u128;
-}
-
-pub trait InternalImpl: VotesInternal + psp22::Internal {
+pub trait PSP22VotesInternal: VotesInternal + psp22::Internal {
     fn _max_supply(&self) -> u128 {
         u128::MAX
     }

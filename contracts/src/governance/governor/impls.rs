@@ -6,13 +6,10 @@ use crate::{
         },
         governor_votes::GovernorVotesInternal,
     },
-    governance::{
-        governor::{
-            Data,
-            GovernorEvents,
-            GovernorInternal,
-        },
-        utils::votes::VotesImpl,
+    governance::governor::{
+        Data,
+        GovernorEvents,
+        GovernorInternal,
     },
     governor::GovernorStorageGetters,
     nonces::NoncesImpl,
@@ -88,7 +85,6 @@ pub trait GovernorImpl:
     + GovernorSettingsInternal
     + NoncesImpl
     + GovernorSettingsImpl
-    + VotesImpl
     + GovernorStorageGetters
 {
     fn hash_proposal(

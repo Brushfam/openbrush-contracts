@@ -16,10 +16,7 @@ pub mod my_governor {
                 governor_votes,
                 governor_votes::*,
             },
-            governance::utils::{
-                votes,
-                votes::*,
-            },
+            governance::utils::votes,
             governor,
             governor::*,
             nonces,
@@ -48,8 +45,6 @@ pub mod my_governor {
             String,
         },
     };
-
-    const MAGIC_NUMBER: Balance = 42;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -111,14 +106,6 @@ pub mod my_governor {
 
     impl GovernorCountingImpl for Contract {}
     impl CountingInternal for Contract {}
-
-    impl VotesEvents for Contract {}
-    impl VotesImpl for Contract {}
-    impl VotesInternal for Contract {
-        fn _get_voting_units(&self, _account: &AccountId) -> u128 {
-            MAGIC_NUMBER
-        }
-    }
 
     impl GovernorInternal for Contract {}
     impl GovernorEvents for Contract {}

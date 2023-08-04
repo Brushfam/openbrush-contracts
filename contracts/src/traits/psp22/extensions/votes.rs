@@ -21,18 +21,20 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    traits::governance::utils::*,
-    utils::checkpoint::Checkpoint,
+    checkpoint::Checkpoint,
+    traits::{
+        errors::GovernanceError,
+        governance::utils::*,
+    },
 };
 use openbrush::traits::AccountId;
-
 #[openbrush::trait_definition]
 pub trait PSP22Votes {
     #[ink(message)]
-    fn num_checkpoints(&self, account: AccountId) -> u32;
+    fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError>;
 
     #[ink(message)]
-    fn checkpoints(&self, account: AccountId, pos: u32) -> Option<Checkpoint>;
+    fn checkpoints(&self, account: AccountId, pos: u32) -> Result<Checkpoint, GovernanceError>;
 }
 
 #[openbrush::wrapper]

@@ -1,7 +1,7 @@
 import { expect, getSigners } from '../helpers'
 import { ApiPromise } from '@polkadot/api'
 
-import Constructor from '../../../typechain-generated/constructors/nonces'
+import Constructors from '../../../typechain-generated/constructors/nonces'
 import Contract from '../../../typechain-generated/contracts/nonces'
 import BN from 'bn.js'
 import {KeyringPair} from '@polkadot/keyring/types'
@@ -20,7 +20,7 @@ describe('Nonces', function () {
     deployer = signers[0]
     bob = signers[1]
 
-    const contractFactory = new Constructor(api, deployer)
+    const contractFactory = new Constructors(api, deployer)
     const contractAddress = (await contractFactory.new()).address
 
     contract = new Contract(contractAddress, deployer, api)

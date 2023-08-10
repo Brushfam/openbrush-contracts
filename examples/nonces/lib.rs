@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[openbrush::contract]
-pub mod my_timelock_controller {
+pub mod my_nonces {
     use openbrush::{
         contracts::{
             nonces,

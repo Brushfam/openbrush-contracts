@@ -247,7 +247,7 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents + CountingInternal + 
     ) -> Result<bool, GovernanceError> {
         let proposer_bytes: &[u8; 32] = proposer.as_ref();
         let proposer_str = ink::prelude::format!("{:?}", proposer_bytes);
-        let result = String::from("#proposer={}".to_owned() + &proposer_str);
+        let result = String::from("#proposer=".to_owned() + &proposer_str);
 
         Ok(description.ends_with(&result))
     }

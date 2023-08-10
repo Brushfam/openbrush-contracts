@@ -15,24 +15,23 @@ import {str} from "@scure/base";
 
 describe('Governor', function () {
 
-  async function setup() {
+  async function setup(
+      totalSupply: number = 100000,
+      votingDelay: number = 0,
+      votingPeriod: number = 10,
+      proposalThreshold: number = 0,
+      numrator: number = 0,
+      ){
     const api = await ApiPromise.create()
 
     const signers = getSigners()
     const deployer = signers[0]
     const bob = signers[1]
-
-    const totalSupply = 100000
     const contractFactoryVotes = new ConstructorsVotes(api, deployer)
     const contractAddressVotes = (await contractFactoryVotes.new(totalSupply)).address
     const contractVotes = new ContractVotes(contractAddressVotes, deployer, api)
-
-    const votingDelay = 0
-    const votingPeriod = 10
-    const proposalThreshold = 0
-    const numratom = 0
     const contractFactoryGovernance = new ConstructorsGovernance(api, deployer)
-    const contractAddressGovernance = (await contractFactoryGovernance.new(contractAddressVotes, 0, 10, 0, 0)).address
+    const contractAddressGovernance = (await contractFactoryGovernance.new(contractAddressVotes, votingDelay, votingPeriod, proposalThreshold, numrator)).address
     const contractGovernance = new ContractGovernance(contractAddressGovernance, deployer, api)
 
     return {
@@ -40,7 +39,9 @@ describe('Governor', function () {
       bob,
       deployer,
       contractGovernance,
+      contractAddressGovernance,
       contractVotes,
+      contractAddressVotes,
     }
   }
 
@@ -78,17 +79,11 @@ describe('Governor', function () {
       bob,
       deployer,
       contractGovernance,
+      contractAddressGovernance,
       contractVotes,
+      contractAddressVotes,
     } = await setup()
     api.disconnect()
-  })
-
-  it('nominal workflow', async function () {
-    //
-  })
-
-  it('send ethers', async function () {
-    //
   })
 
   describe('vote with signature', function () {
@@ -113,11 +108,13 @@ describe('Governor', function () {
     describe('on propose', function () {
       it('if proposal already exists', async function () {
         const {
-          api,
-          bob,
-          deployer,
-          contractGovernance,
-          contractVotes,
+              api,
+              bob,
+              deployer,
+              contractGovernance,
+              contractAddressGovernance,
+              contractVotes,
+              contractAddressVotes,
         } = await setup()
         let transactions: Array<ArgumentTypes.Transaction> = [{
           callee: contractVotes.address,
@@ -128,7 +125,7 @@ describe('Governor', function () {
           gasLimit: 1000000000000,
         }]
         console.log("#proposer=" + Uint8ArrayToString(deployer.addressRaw))
-        await expect(contractGovernance.query.propose(transactions,"#proposer=" + Uint8ArrayToString(deployer.addressRaw))).to.have.bnToString('0')
+        await expect(contractGovernance.tx.propose(transactions,"#proposer=" + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
         await expect(contractGovernance.tx.propose(transactions,"#proposer=" + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.rejected
         api.disconnect()
       })
@@ -141,17 +138,71 @@ describe('Governor', function () {
           bob,
           deployer,
           contractGovernance,
+          contractAddressGovernance,
           contractVotes,
+          contractAddressVotes,
         } = await setup()
-        await expect(contractGovernance.tx.castVote([21], VoteType.for)).to.eventually.be.rejected
+        const proposalId : number[] = []
+        for(let i = 0; i < 32; i++) {
+            proposalId.push(0)
+        }
+        console.log(proposalId)
+        await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.rejected
+        api.disconnect()
       })
 
       it('if voting has not started', async function () {
-      //
+        const {
+              api,
+              bob,
+              deployer,
+              contractGovernance,
+              contractAddressGovernance,
+              contractVotes,
+              contractAddressVotes,
+        } = await setup(100000, 29384987, 10, 0, 0)
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+            callee: contractVotes.address,
+            selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+            destination: contractVotes.address,
+            input: [bob.address, new BN(1000), ''], // [to, value, data]
+            transferredValue: 0,
+            gasLimit: 1000000000000,
+        }]
+        await expect(contractGovernance.tx.propose(transactions,"#proposer=" + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+        const proposalId : number[] = []
+        for(let i = 0; i < 32; i++) {
+          proposalId.push(0)
+        }
+        await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.rejected
+        api.disconnect()
       })
 
       it('if support value is invalid', async function () {
-      //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 29384987, 10, 0, 0)
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+        await expect(contractGovernance.tx.propose(transactions,"#proposer=" + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+        const proposalId : number[] = []
+        for(let i = 0; i < 32; i++) {
+          proposalId.push(0)
+        }
+        // await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.rejected
+        api.disconnect()
       })
 
       it('if vote was already casted', async function () {

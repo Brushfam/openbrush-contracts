@@ -251,7 +251,7 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents + CountingInternal + 
 
         let result = String::from("#proposer={}".to_owned() + proposer_str);
 
-        Ok(result == description)
+        Ok(description.ends_with(&result))
     }
 
     fn _proposal_threshold(&self) -> u128 {

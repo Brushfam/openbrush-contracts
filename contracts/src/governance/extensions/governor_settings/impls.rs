@@ -23,6 +23,7 @@ pub trait GovernorSettingsImpl: Storage<Data> + GovernorSettingsInternal + Gover
         self._set_voting_period(new_voting_period)
     }
 
+    #[modifiers(only_governance)]
     fn set_proposal_threshold(&mut self, new_proposal_threshold: u128) -> Result<(), GovernanceError> {
         self._set_proposal_threshold(new_proposal_threshold)
     }

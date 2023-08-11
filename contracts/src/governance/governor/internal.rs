@@ -41,12 +41,15 @@ use ink::{
 use openbrush::traits::{
     AccountId,
     Balance,
+    DefaultEnv,
     Storage,
     String,
 };
 use scale::Encode;
 
-pub trait GovernorInternal: Storage<Data> + GovernorEvents + CountingInternal + GovernorVotesInternal {
+pub trait GovernorInternal:
+    Storage<Data> + GovernorEvents + CountingInternal + GovernorVotesInternal + TimestampProvider
+{
     fn _hash_proposal(
         &self,
         transactions: Vec<Transaction>,
@@ -58,7 +61,7 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents + CountingInternal + 
     }
 
     fn _state(&self, _proposal_id: ProposalId) -> Result<ProposalState, GovernanceError> {
-        let current_time = Self::env().block_timestamp();
+        let current_time = self.block_timestamp();
 
         let proposal = self.data::<Data>().proposals.get(&_proposal_id).unwrap_or_default();
 
@@ -258,5 +261,11 @@ pub trait GovernorInternal: Storage<Data> + GovernorEvents + CountingInternal + 
 
     fn _hash_description(&self, description: String) -> Result<HashType, GovernanceError> {
         Ok(crypto::hash_message(description.as_bytes())?)
+    }
+}
+
+pub trait TimestampProvider: DefaultEnv {
+    fn block_timestamp(&self) -> u64 {
+        Self::env().block_timestamp()
     }
 }

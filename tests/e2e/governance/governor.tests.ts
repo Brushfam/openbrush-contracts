@@ -1,27 +1,27 @@
-import {ApiPromise} from "@polkadot/api";
-import {getSigners} from "../helpers";
-import ConstructorsGovernance from "../../../typechain-generated/constructors/my_governor";
-import ContractGovernance from "../../../typechain-generated/contracts/my_governor";
-import type * as ArgumentTypes from '../../../typechain-generated/types-arguments/my_governor';
-import {VoteType} from "../../../typechain-generated/types-arguments/my_governor";
+import {ApiPromise} from '@polkadot/api'
+import {getSelectorByName, getSigners, Uint8ArrayToString} from '../helpers'
+import ConstructorsGovernance from '../../../typechain-generated/constructors/my_governor'
+import ContractGovernance from '../../../typechain-generated/contracts/my_governor'
+import type * as ArgumentTypes from '../../../typechain-generated/types-arguments/my_governor'
+import {Transaction, VoteType} from '../../../typechain-generated/types-arguments/my_governor'
 
-import ConstructorsVotes from "../../../typechain-generated/constructors/my_psp22_votes";
-import ContractVotes from "../../../typechain-generated/contracts/my_psp22_votes";
-import BN from "bn.js";
-import {expect} from "chai";
-import {AbiMessage} from "@polkadot/api-contract/types";
-import {contractsAbi} from "@polkadot/types/interfaces/definitions";
-import {str} from "@scure/base";
+import ConstructorsVotes from '../../../typechain-generated/constructors/my_psp22_votes'
+import ContractVotes from '../../../typechain-generated/contracts/my_psp22_votes'
+import BN from 'bn.js'
+import {expect} from 'chai'
+import {AbiMessage} from '@polkadot/api-contract/types'
+import {contractsAbi} from '@polkadot/types/interfaces/definitions'
+import {str} from '@scure/base'
 
 describe('Governor', function () {
 
   async function setup(
-      totalSupply: number = 100000,
-      votingDelay: number = 0,
-      votingPeriod: number = 10,
-      proposalThreshold: number = 0,
-      numrator: number = 0,
-      ){
+    totalSupply = 100000,
+    votingDelay = 0,
+    votingPeriod = 10,
+    proposalThreshold = 0,
+    numrator = 0
+  ){
     const api = await ApiPromise.create()
 
     const signers = getSigners()
@@ -41,32 +41,8 @@ describe('Governor', function () {
       contractGovernance,
       contractAddressGovernance,
       contractVotes,
-      contractAddressVotes,
+      contractAddressVotes
     }
-  }
-
-  const getSelectorsFromMessages = (messages: AbiMessage[]): number[][] => {
-    return messages.map((message) => {
-      return message.selector.toU8a() as unknown as number[]
-    })
-  }
-
-  const getSelectorByName = (messages: AbiMessage[], name: string): number[] => {
-    return messages.filter((message) => {
-      return message.identifier == name
-    })[0].selector.toU8a() as unknown as number[]
-  }
-
-  const Uint8ArrayToString = (array : Uint8Array) : string => {
-    let res : string = '['
-    for (let i = 0; i < array.length; i++) {
-        res += array[i]
-        if (i != array.length - 1) {
-            res += ', '
-        }
-    }
-    res += ']'
-    return res
   }
   
   beforeEach(async function () {
@@ -75,13 +51,7 @@ describe('Governor', function () {
     
   it('deployment check', async function () {
     const {
-      api,
-      bob,
-      deployer,
-      contractGovernance,
-      contractAddressGovernance,
-      contractVotes,
-      contractAddressVotes,
+      api
     } = await setup()
     api.disconnect()
   })
@@ -108,25 +78,24 @@ describe('Governor', function () {
     describe('on propose', function () {
       it('if proposal already exists', async function () {
         const {
-              api,
-              bob,
-              deployer,
-              contractGovernance,
-              contractAddressGovernance,
-              contractVotes,
-              contractAddressVotes,
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractVotes,
         } = await setup()
-        let transactions: Array<ArgumentTypes.Transaction> = [{
+        const transactions: Array<ArgumentTypes.Transaction> = [{
           callee: contractVotes.address,
           selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           destination: contractVotes.address,
           input: [bob.address, new BN(1000), ''], // [to, value, data]
           transferredValue: 0,
-          gasLimit: 1000000000000,
+          gasLimit: 1000000000000
         }]
-        console.log("#proposer=" + Uint8ArrayToString(deployer.addressRaw))
-        await expect(contractGovernance.tx.propose(transactions,"#proposer=" + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
-        await expect(contractGovernance.tx.propose(transactions,"#proposer=" + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.rejected
+
+        await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+        await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.rejected
+
         api.disconnect()
       })
     })
@@ -140,11 +109,11 @@ describe('Governor', function () {
           contractGovernance,
           contractAddressGovernance,
           contractVotes,
-          contractAddressVotes,
+          contractAddressVotes
         } = await setup()
         const proposalId : number[] = []
         for(let i = 0; i < 32; i++) {
-            proposalId.push(0)
+          proposalId.push(0)
         }
         console.log(proposalId)
         await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.rejected
@@ -153,23 +122,23 @@ describe('Governor', function () {
 
       it('if voting has not started', async function () {
         const {
-              api,
-              bob,
-              deployer,
-              contractGovernance,
-              contractAddressGovernance,
-              contractVotes,
-              contractAddressVotes,
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes
         } = await setup(100000, 29384987, 10, 0, 0)
-        let transactions: Array<ArgumentTypes.Transaction> = [{
-            callee: contractVotes.address,
-            selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-            destination: contractVotes.address,
-            input: [bob.address, new BN(1000), ''], // [to, value, data]
-            transferredValue: 0,
-            gasLimit: 1000000000000,
+        const transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000
         }]
-        await expect(contractGovernance.tx.propose(transactions,"#proposer=" + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+        await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
         const proposalId : number[] = []
         for(let i = 0; i < 32; i++) {
           proposalId.push(0)
@@ -186,17 +155,17 @@ describe('Governor', function () {
           contractGovernance,
           contractAddressGovernance,
           contractVotes,
-          contractAddressVotes,
+          contractAddressVotes
         } = await setup(100000, 29384987, 10, 0, 0)
-        let transactions: Array<ArgumentTypes.Transaction> = [{
+        const transactions: Array<ArgumentTypes.Transaction> = [{
           callee: contractVotes.address,
           selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           destination: contractVotes.address,
           input: [bob.address, new BN(1000), ''], // [to, value, data]
           transferredValue: 0,
-          gasLimit: 1000000000000,
+          gasLimit: 1000000000000
         }]
-        await expect(contractGovernance.tx.propose(transactions,"#proposer=" + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+        await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
         const proposalId : number[] = []
         for(let i = 0; i < 32; i++) {
           proposalId.push(0)
@@ -411,19 +380,42 @@ describe('Governor', function () {
 
   describe('onlyGovernance updates', function () {
     it('setVotingDelay is protected', async function () {
-      //
+      const {api, contractGovernance} = await setup()
+
+      await expect(contractGovernance.tx.setVotingDelay(100)).to.eventually.be.rejected
+
+      api.disconnect()
     })
 
     it('setVotingPeriod is protected', async function () {
-      //
+      const {api, contractGovernance} = await setup()
+
+      await expect(contractGovernance.tx.setVotingPeriod(100)).to.eventually.be.rejected
+
+      api.disconnect()
     })
 
     it('setProposalThreshold is protected', async function () {
-      //
+      const {api, contractGovernance} = await setup()
+
+      await expect(contractGovernance.tx.setProposalThreshold(100)).to.eventually.be.rejected
+
+      api.disconnect()
     })
 
     it('can setVotingDelay through governance', async function () {
-      // 
+      const {api, contractGovernance} = await setup()
+
+      const proposal: Transaction = {
+        callee: contractGovernance.address,
+        selector: getSelectorByName(contractGovernance.abi.messages, 'setVotingDelay'),
+        destination: contractGovernance.address,
+        input: [100],
+        transferredValue: 0,
+        gasLimit: 1000000000000
+      }
+
+
     })
 
     it('cannot setVotingPeriod to 0 through governance', async function () {

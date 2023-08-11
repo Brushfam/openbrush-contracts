@@ -4,6 +4,7 @@ use crate::{
         VotesEvents,
         VotesInternal,
     },
+    governor::TimestampProvider,
     traits::{
         errors::GovernanceError,
         types::SignatureType,
@@ -21,7 +22,7 @@ use openbrush::traits::{
 };
 use scale::Encode;
 
-pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents {
+pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + TimestampProvider {
     fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
         Ok(self
             .data::<Data>()
@@ -32,7 +33,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents {
     }
 
     fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
-        let current_block_timestamp = Self::env().block_timestamp();
+        let current_block_timestamp = TimestampProvider::block_timestamp(self);
         if timestamp > current_block_timestamp {
             return Err(GovernanceError::FutureLookup(timestamp, current_block_timestamp))
         }
@@ -49,7 +50,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents {
     }
 
     fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
-        let current_block_timestamp = Self::env().block_timestamp();
+        let current_block_timestamp = TimestampProvider::block_timestamp(self);
         if timestamp > current_block_timestamp {
             return Err(GovernanceError::FutureLookup(timestamp, current_block_timestamp))
         }
@@ -78,7 +79,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents {
         expiry: Timestamp,
         signature: SignatureType,
     ) -> Result<(), GovernanceError> {
-        if Self::env().block_timestamp() > expiry {
+        if TimestampProvider::block_timestamp(self) > expiry {
             return Err(GovernanceError::ExpiredSignature(expiry))
         }
         let message_hash = crypto::hash_message(Encode::encode(&(&delegatee, &nonce, &expiry)).as_slice())?;

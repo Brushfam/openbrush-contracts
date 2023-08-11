@@ -6,6 +6,7 @@ use crate::{
         },
         governor_votes,
     },
+    governor::TimestampProvider,
     traits::{
         errors::GovernanceError,
         governance::utils::VotesWrapper,
@@ -16,7 +17,7 @@ use openbrush::traits::{
     Timestamp,
 };
 
-pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumEvents {
+pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumEvents + TimestampProvider {
     /// Constructor
     fn _init_quorum_numerator(&mut self, numerator: u128) -> Result<(), GovernanceError> {
         self._update_quorum_numerator(numerator)
@@ -89,7 +90,7 @@ pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumEven
         let old_quorum_numerator = self.quorum_numerator();
         let mut history = self.data::<Data>().quorum_numerator_history.get_or_default();
 
-        let timestamp = Self::env().block_timestamp();
+        let timestamp = TimestampProvider::block_timestamp(self);
         history.push(timestamp, new_quorum_numerator.clone())?;
 
         self.data::<Data>().quorum_numerator_history.set(&history);

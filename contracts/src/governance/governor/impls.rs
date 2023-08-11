@@ -11,7 +11,10 @@ use crate::{
         GovernorEvents,
         GovernorInternal,
     },
-    governor::GovernorStorageGetters,
+    governor::{
+        GovernorStorageGetters,
+        TimestampProvider,
+    },
     nonces::NoncesImpl,
     traits::{
         errors::governance::GovernanceError,
@@ -86,6 +89,7 @@ pub trait GovernorImpl:
     + NoncesImpl
     + GovernorSettingsImpl
     + GovernorStorageGetters
+    + TimestampProvider
 {
     fn hash_proposal(
         &self,
@@ -131,7 +135,7 @@ pub trait GovernorImpl:
             return Err(GovernanceError::ProposerRestricted(proposer))
         }
 
-        let current_timestamp = Self::env().block_timestamp();
+        let current_timestamp = TimestampProvider::block_timestamp(self);
 
         let proposer_votes = self.get_votes_with_params(proposer, current_timestamp.clone(), Vec::new())?;
 

@@ -2,6 +2,7 @@ import BN from 'bn.js'
 import { expect } from './setup/chai'
 import { KeyringPair } from '@polkadot/keyring/types'
 import { Keyring } from '@polkadot/keyring'
+import {AbiMessage} from "@polkadot/api-contract/types";
 
 export { expect } from './setup/chai'
 
@@ -33,4 +34,28 @@ export function bytesToString(bytes: string): string {
   }
 
   return result
+}
+
+export const getSelectorsFromMessages = (messages: AbiMessage[]): number[][] => {
+  return messages.map((message) => {
+    return message.selector.toU8a() as unknown as number[]
+  })
+}
+
+export const getSelectorByName = (messages: AbiMessage[], name: string): number[] => {
+  return messages.filter((message) => {
+    return message.identifier == name
+  })[0].selector.toU8a() as unknown as number[]
+}
+
+export const Uint8ArrayToString = (array : Uint8Array) : string => {
+  let res  = '['
+  for (let i = 0; i < array.length; i++) {
+    res += array[i]
+    if (i != array.length - 1) {
+      res += ', '
+    }
+  }
+  res += ']'
+  return res
 }

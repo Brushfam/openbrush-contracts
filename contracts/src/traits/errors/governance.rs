@@ -1,4 +1,3 @@
-use ink::prelude::string::String;
 use crate::traits::{
     errors::{
         CheckpointsError,

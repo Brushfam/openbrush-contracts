@@ -38,7 +38,7 @@ pub enum ExecutionStatus {
 pub enum CancellationStatus {
     #[default]
     NotCanceled,
-    Cancelled,
+    Canceled,
 }
 
 #[derive(scale::Decode, scale::Encode, Clone, Debug, PartialEq, Eq)]
@@ -79,7 +79,7 @@ impl ProposalCore {
     }
 
     pub fn is_canceled(&self) -> bool {
-        self.cancelled == CancellationStatus::Cancelled
+        self.cancelled == CancellationStatus::Canceled
     }
 
     pub fn deadline(&self) -> Result<u64, GovernanceError> {
@@ -107,7 +107,7 @@ pub enum ProposalState {
     #[default]
     Pending = 1 << 0,
     Active = 1 << 1,
-    Cancelled = 1 << 2,
+    Canceled = 1 << 2,
     Defeated = 1 << 3,
     Succeeded = 1 << 4,
     Queued = 1 << 5,

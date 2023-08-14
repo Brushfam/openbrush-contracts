@@ -69,8 +69,8 @@ pub trait GovernorInternal:
             return Ok(ProposalState::Executed)
         }
 
-        if proposal.cancelled == CancellationStatus::Cancelled {
-            return Ok(ProposalState::Cancelled)
+        if proposal.cancelled == CancellationStatus::Canceled {
+            return Ok(ProposalState::Canceled)
         }
 
         let snapshot = self._proposal_snapshot(_proposal_id.clone())?;
@@ -171,7 +171,7 @@ pub trait GovernorInternal:
         self.data::<Data>().proposals.insert(
             &proposal_id,
             &ProposalCore {
-                cancelled: CancellationStatus::Cancelled,
+                cancelled: CancellationStatus::Canceled,
                 ..proposal
             },
         );

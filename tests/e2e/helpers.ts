@@ -44,7 +44,7 @@ export const getSelectorsFromMessages = (messages: AbiMessage[]): number[][] => 
 
 export const getSelectorByName = (messages: AbiMessage[], name: string): number[] => {
   return messages.filter((message) => {
-    return message.identifier == name
+    return message.identifier.includes(name)
   })[0].selector.toU8a() as unknown as number[]
 }
 

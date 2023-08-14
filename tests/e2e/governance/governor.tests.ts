@@ -1,5 +1,5 @@
 import {ApiPromise} from '@polkadot/api'
-import {getSelectorByName, getSigners, Uint8ArrayToString} from '../helpers'
+import {bytesToString, getSelectorByName, getSigners, SS58ToHex, Uint8ArrayToString} from '../helpers'
 import ConstructorsGovernance from '../../../typechain-generated/constructors/my_governor'
 import ContractGovernance from '../../../typechain-generated/contracts/my_governor'
 
@@ -15,6 +15,7 @@ import BN from 'bn.js'
 import {expect} from 'chai'
 import {ProposalState} from '../../../typechain-generated/types-returns/my_governor'
 import {GovernorHelper} from './helper'
+import {Keyring} from "@polkadot/keyring";
 
 describe('Governor', function () {
   async function setup(
@@ -104,7 +105,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await expect(helper.propose(deployer)).to.eventually.be.rejected
 
@@ -138,7 +140,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.rejected
 
@@ -161,7 +164,7 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address))
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -186,7 +189,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForDeadline()
 
@@ -243,7 +247,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -268,7 +273,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.against)).to.eventually.be.fulfilled
@@ -293,7 +299,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -324,7 +331,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -371,7 +379,8 @@ describe('Governor', function () {
         contractVotes.address,
         getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
         [bob.address, new BN(1000), ''],
-        '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+        '<description>#proposer=' + SS58ToHex(api, deployer.address)
+      )
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.pending)
       await helper.waitForSnapshot()
@@ -398,7 +407,8 @@ describe('Governor', function () {
         contractVotes.address,
         getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
         [bob.address, new BN(1000), ''],
-        '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+        '<description>#proposer=' + SS58ToHex(api, deployer.address)
+      )
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await helper.waitForDeadline()
       await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.active)
@@ -424,7 +434,8 @@ describe('Governor', function () {
         contractVotes.address,
         getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
         [bob.address, new BN(1000), ''],
-        '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+        '<description>#proposer=' + SS58ToHex(api, deployer.address)
+      )
 
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await helper.waitForSnapshot()
@@ -456,7 +467,8 @@ describe('Governor', function () {
         contractVotes.address,
         getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
         [bob.address, new BN(1000), ''],
-        '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+        '<description>#proposer=' + SS58ToHex(api, deployer.address)
+      )
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await helper.waitForSnapshot()
       await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -499,7 +511,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await expect(helper.cancel(deployer)).to.eventually.be.fulfilled
 
@@ -519,7 +532,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await expect(helper.cancel(bob)).to.eventually.be.rejected
 
@@ -539,7 +553,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot(1)
         await expect(helper.cancel(deployer)).to.eventually.be.rejected
@@ -560,7 +575,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -582,7 +598,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -605,7 +622,8 @@ describe('Governor', function () {
           contractVotes.address,
           getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           [bob.address, new BN(1000), ''],
-          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -634,9 +652,9 @@ describe('Governor', function () {
     describe('without protection', function () {
       describe('without suffix', function () {
         it('proposer can propose', async function () {
-          const {api, helper, deployer} = await setup()
+          const {api, helper} = await setup()
 
-          await expect(helper.propose(deployer)).to.eventually.be.fulfilled
+          await expect(helper.propose()).to.eventually.be.fulfilled
           
           await api.disconnect()
         })
@@ -658,7 +676,7 @@ describe('Governor', function () {
             contractReceiver.address,
             getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
             [],
-            '<description>#wrong-suffix=' + Uint8ArrayToString(deployer.addressRaw)
+            '<description>#wrong-suffix=' + SS58ToHex(api, deployer.address)
           )
 
           await expect(helper.propose(deployer)).to.eventually.be.fulfilled
@@ -673,7 +691,7 @@ describe('Governor', function () {
             contractReceiver.address,
             getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
             [],
-            '<description>#wrong-suffix=' + Uint8ArrayToString(deployer.addressRaw)
+            '<description>#wrong-suffix=' + SS58ToHex(api, deployer.address)
           )
 
           await expect(helper.propose(alice)).to.eventually.be.fulfilled
@@ -690,7 +708,7 @@ describe('Governor', function () {
             contractReceiver.address,
             getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
             [],
-            '<description>#proposer=' + Uint8ArrayToString([0,1,2,3] as unknown as Uint8Array)
+            '<description>#proposer=' + '0x1234'
           )
 
           await expect(helper.propose(deployer)).to.eventually.be.fulfilled
@@ -705,7 +723,7 @@ describe('Governor', function () {
             contractReceiver.address,
             getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
             [],
-            '<description>#proposer=' + Uint8ArrayToString([0,1,2,3] as unknown as Uint8Array)
+            '<description>#proposer=' + '0x1234'
           )
 
           await expect(helper.propose(alice)).to.eventually.be.fulfilled
@@ -723,7 +741,7 @@ describe('Governor', function () {
           contractGovernance.address,
           getSelectorByName(contractGovernance.abi.messages, 'set_voting_delay'),
           [100],
-          '<description>#proposer=' + Uint8ArrayToString(deployer.addressRaw)
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
         )
 
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
@@ -738,7 +756,7 @@ describe('Governor', function () {
           contractGovernance.address,
           getSelectorByName(contractGovernance.abi.messages, 'set_voting_delay'),
           [100],
-          '<description>#proposer=' + Uint8ArrayToString(deployer.addressRaw)
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
         )
 
         await expect(helper.propose(alice)).to.eventually.be.rejected

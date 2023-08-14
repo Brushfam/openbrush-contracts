@@ -3,6 +3,7 @@ import { expect } from './setup/chai'
 import { KeyringPair } from '@polkadot/keyring/types'
 import { Keyring } from '@polkadot/keyring'
 import {AbiMessage} from "@polkadot/api-contract/types";
+import {ApiPromise} from "@polkadot/api";
 
 export { expect } from './setup/chai'
 
@@ -58,4 +59,8 @@ export const Uint8ArrayToString = (array : Uint8Array) : string => {
   }
   res += ']'
   return res
+}
+
+export const SS58ToHex = (api: ApiPromise, ss58: string): string => {
+  return api.registry.createType('AccountId', ss58).toHex()
 }

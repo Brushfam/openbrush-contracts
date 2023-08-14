@@ -248,9 +248,12 @@ pub trait GovernorInternal:
         proposer: AccountId,
         description: String,
     ) -> Result<bool, GovernanceError> {
-        let proposer_bytes: &[u8; 32] = proposer.as_ref();
-        let proposer_str = ink::prelude::format!("{:?}", proposer_bytes);
-        let result = String::from("#proposer=".to_owned() + &proposer_str);
+        if !description.contains("#proposer=0x") {
+            return Ok(true)
+        }
+
+        let proposer_str = hex::encode(proposer);
+        let result = String::from("#proposer=0x".to_owned() + &proposer_str);
 
         Ok(description.ends_with(&result))
     }

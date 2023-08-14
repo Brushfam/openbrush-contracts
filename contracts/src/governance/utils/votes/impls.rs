@@ -28,7 +28,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
             .data::<Data>()
             .delegate_checkpoints
             .get(&account)
-            .ok_or(GovernanceError::AccountNotFound)?
+            .unwrap_or_default()
             .latest())
     }
 
@@ -41,7 +41,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
             .data::<Data>()
             .delegate_checkpoints
             .get(&account)
-            .ok_or(GovernanceError::AccountNotFound)?
+            .unwrap_or_default()
             .upper_lookup_recent(timestamp)
         {
             Some(value) => Ok(value),

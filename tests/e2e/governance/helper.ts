@@ -31,12 +31,24 @@ export class GovernorHelper {
     return this.proposalId
   }
 
+  async calculateProposalId() {
+    if (this.proposal === undefined || this.description === undefined) {
+      throw new Error('Proposal not set')
+    }
+
+    const descriptionHash = blake2AsU8a(this.description!) as unknown as number[]
+
+    const proposalId = (await this.governor?.query.hashProposal([this.proposal!], descriptionHash))?.value.ok!.ok
+
+    return proposalId
+  }
+
   async propose(proposer?: KeyringPair) {
     if (this.proposal === undefined || this.description === undefined) {
       throw new Error('Proposal not set')
     }
-    // todo: check how proposal Id is calculated
-    this.proposalId = (await this.governor?.query.propose([this.proposal!], this.description!))?.value.unwrapRecursively().ok
+
+    console.log('Proposal ID: ', await this.calculateProposalId())
 
     if(proposer) {
       await this.governor?.withSigner(proposer).tx.propose([this.proposal!], this.description!)

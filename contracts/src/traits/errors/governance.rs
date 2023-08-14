@@ -48,7 +48,6 @@ pub enum GovernanceError {
     ExecutionFailed(Transaction),
     CheckpointsError(CheckpointsError),
     IndexOutOfRange,
-    AccountNotFound,
     Overflow,
 }
 

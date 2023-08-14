@@ -94,7 +94,14 @@ impl Checkpoints {
 
         match pos == 0 {
             true => None,
-            false => Some(self.checkpoints[pos - 1].value),
+            false => {
+                Some(
+                    self.checkpoints
+                        .get(pos - 1)
+                        .unwrap_or_else(|| panic!("wrong checkpoint position"))// todo: remove panic
+                        .value,
+                )
+            }
         }
     }
 
@@ -159,7 +166,13 @@ impl Checkpoints {
     fn _upper_binary_lookup(&self, key: u64, mut low: usize, mut high: usize) -> usize {
         while low < high {
             let mid = low / 2 + high / 2;
-            if key < self.checkpoints[mid].key {
+            if key
+                < self
+                    .checkpoints
+                    .get(mid)
+                    .unwrap_or_else(|| panic!("wrong checkpoint position"))// todo: remove panic
+                    .key
+            {
                 high = mid;
             } else {
                 low = mid + 1;

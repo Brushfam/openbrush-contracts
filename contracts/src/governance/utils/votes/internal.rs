@@ -60,11 +60,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents {
         amount: Balance,
     ) -> Result<(), GovernanceError> {
         if from != to && amount > 0 {
-            let mut store = self
-                .data::<Data>()
-                .delegate_checkpoints
-                .get(&from)
-                .ok_or(GovernanceError::AccountNotFound)?;
+            let mut store = self.data::<Data>().delegate_checkpoints.get(&from).unwrap_or_default();
             if from != &AccountId::from([0x0; 32]) {
                 let (old_value, new_value) = self._push(&mut store, Self::_sub, amount)?;
                 self.emit_delegate_votes_changed_event(&from, old_value, new_value);
@@ -83,7 +79,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents {
             .data::<Data>()
             .delegate_checkpoints
             .get(&account)
-            .ok_or(GovernanceError::AccountNotFound)?
+            .unwrap_or_default()
             .len() as u32)
     }
 
@@ -92,7 +88,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents {
             .data::<Data>()
             .delegate_checkpoints
             .get(&account)
-            .ok_or(GovernanceError::AccountNotFound)?;
+            .unwrap_or_default();
         checkpoints
             .at(pos as usize)
             .ok_or(GovernanceError::IndexOutOfRange)

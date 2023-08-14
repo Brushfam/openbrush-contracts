@@ -18,6 +18,7 @@ include = ["Cargo.toml", "src/**/*.rs"]
 ink = { version = "4.2.1", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 
 openbrush = { version = "~4.0.0-beta", package = "openbrush_lang", path = "../lang", default-features = false }
 

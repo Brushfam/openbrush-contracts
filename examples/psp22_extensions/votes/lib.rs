@@ -11,6 +11,7 @@ pub mod my_psp22_votes {
             },
             nonces,
             nonces::*,
+            governor::TimestampProvider,
             psp22::extensions::votes::*,
             traits::{
                 errors::GovernanceError,
@@ -56,6 +57,9 @@ pub mod my_psp22_votes {
         fn _get_voting_units(&self, account: &AccountId) -> Balance {
             PSP22VotesInternal::_get_voting_units(self, account)
         }
+    }
+
+    impl TimestampProvider for Contract {
     }
 
     impl VotesImpl for Contract {}

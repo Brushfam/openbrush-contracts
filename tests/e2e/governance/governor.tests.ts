@@ -1,13 +1,12 @@
 import {ApiPromise} from '@polkadot/api'
-import {bytesToString, getSelectorByName, getSigners, SS58ToHex, Uint8ArrayToString} from '../helpers'
+import {getSelectorByName, getSigners, SS58ToHex} from '../helpers'
 import ConstructorsGovernance from '../../../typechain-generated/constructors/my_governor'
 import ContractGovernance from '../../../typechain-generated/contracts/my_governor'
 
 import ConstructorsReceiver from '../../../typechain-generated/constructors/mock_receiver'
 import ContractReceiver from '../../../typechain-generated/contracts/mock_receiver'
 
-import type * as ArgumentTypes from '../../../typechain-generated/types-arguments/my_governor'
-import {Transaction, VoteType} from '../../../typechain-generated/types-arguments/my_governor'
+import {VoteType} from '../../../typechain-generated/types-arguments/my_governor'
 
 import ConstructorsVotes from '../../../typechain-generated/constructors/my_psp22_votes'
 import ContractVotes from '../../../typechain-generated/contracts/my_psp22_votes'
@@ -15,9 +14,9 @@ import BN from 'bn.js'
 import {expect} from 'chai'
 import {ProposalState} from '../../../typechain-generated/types-returns/my_governor'
 import {GovernorHelper} from './helper'
-import {Keyring} from "@polkadot/keyring";
 
 describe('Governor', function () {
+
   async function setup(
     totalSupply = 100000,
     votingDelay = 0,
@@ -153,10 +152,7 @@ describe('Governor', function () {
           api,
           bob,
           deployer,
-          contractGovernance,
-          contractAddressGovernance,
           contractVotes,
-          contractAddressVotes,
           helper
         } = await setup()
 
@@ -178,10 +174,7 @@ describe('Governor', function () {
           api,
           bob,
           deployer,
-          contractGovernance,
-          contractAddressGovernance,
           contractVotes,
-          contractAddressVotes,
           helper
         } = await setup()
 
@@ -218,12 +211,7 @@ describe('Governor', function () {
       it('if proposal does not exist', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractGovernance,
-          contractAddressGovernance,
-          contractVotes,
-          contractAddressVotes,
           helper
         } = await setup()
 
@@ -237,8 +225,6 @@ describe('Governor', function () {
           api,
           bob,
           deployer,
-          contractGovernance,
-          contractAddressGovernance,
           contractVotes,
           helper
         } = await setup()
@@ -262,10 +248,7 @@ describe('Governor', function () {
           api,
           bob,
           deployer,
-          contractGovernance,
-          contractAddressGovernance,
           contractVotes,
-          contractAddressVotes,
           helper
         } = await setup()
 
@@ -288,10 +271,7 @@ describe('Governor', function () {
           api,
           bob,
           deployer,
-          contractGovernance,
-          contractAddressGovernance,
           contractVotes,
-          contractAddressVotes,
           helper
         } = await setup()
 
@@ -323,7 +303,6 @@ describe('Governor', function () {
           bob,
           deployer,
           contractVotes,
-          contractAddressVotes,
           helper
         } = await setup()
 
@@ -349,12 +328,7 @@ describe('Governor', function () {
     it('Unset', async function () {
       const {
         api,
-        bob,
         deployer,
-        contractGovernance,
-        contractAddressGovernance,
-        contractVotes,
-        contractAddressVotes,
         helper
       } = await setup()
 
@@ -368,10 +342,7 @@ describe('Governor', function () {
         api,
         bob,
         deployer,
-        contractGovernance,
-        contractAddressGovernance,
         contractVotes,
-        contractAddressVotes,
         helper
       } = await setup()
 
@@ -396,10 +367,7 @@ describe('Governor', function () {
         api,
         bob,
         deployer,
-        contractGovernance,
-        contractAddressGovernance,
         contractVotes,
-        contractAddressVotes,
         helper
       } = await setup()
 
@@ -423,10 +391,7 @@ describe('Governor', function () {
         api,
         bob,
         deployer,
-        contractGovernance,
-        contractAddressGovernance,
         contractVotes,
-        contractAddressVotes,
         helper
       } = await setup()
 
@@ -456,10 +421,7 @@ describe('Governor', function () {
         api,
         bob,
         deployer,
-        contractGovernance,
-        contractAddressGovernance,
         contractVotes,
-        contractAddressVotes,
         helper
       } = await setup()
 
@@ -486,10 +448,6 @@ describe('Governor', function () {
         const {
           api,
           deployer,
-          contractGovernance,
-          contractAddressGovernance,
-          contractVotes,
-          contractAddressVotes,
           helper
         } = await setup()
 
@@ -567,8 +525,8 @@ describe('Governor', function () {
           api,
           bob,
           deployer,
-          helper,
-          contractVotes
+          contractVotes,
+          helper
         } = await setup()
 
         helper.addProposal(
@@ -702,7 +660,7 @@ describe('Governor', function () {
 
       describe('with proposer suffix but bad address part', function () {
         it('propose can propose', async function () {
-          const {api, helper, deployer, contractGovernance, contractReceiver} = await setup()
+          const {api, helper, deployer, contractReceiver} = await setup()
 
           helper.addProposal(
             contractReceiver.address,
@@ -717,7 +675,7 @@ describe('Governor', function () {
         })
 
         it('someone else can propose', async function () {
-          const {api, helper, deployer, contractReceiver, alice} = await setup()
+          const {api, helper, contractReceiver, alice} = await setup()
 
           helper.addProposal(
             contractReceiver.address,

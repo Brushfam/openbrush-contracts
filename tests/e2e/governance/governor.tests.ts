@@ -1,17 +1,15 @@
-import {ApiPromise} from '@polkadot/api'
-import {getSelectorByName, getSigners, Uint8ArrayToString} from '../helpers'
-import ConstructorsGovernance from '../../../typechain-generated/constructors/my_governor'
-import ContractGovernance from '../../../typechain-generated/contracts/my_governor'
-import type * as ArgumentTypes from '../../../typechain-generated/types-arguments/my_governor'
-import {Transaction, VoteType} from '../../../typechain-generated/types-arguments/my_governor'
+import {ApiPromise} from "@polkadot/api";
+import {getSelectorByName, getSigners, Uint8ArrayToString} from "../helpers";
+import ConstructorsGovernance from "../../../typechain-generated/constructors/my_governor";
+import ContractGovernance from "../../../typechain-generated/contracts/my_governor";
+import type * as ArgumentTypes from '../../../typechain-generated/types-arguments/my_governor';
+import {Transaction, VoteType} from "../../../typechain-generated/types-arguments/my_governor";
 
-import ConstructorsVotes from '../../../typechain-generated/constructors/my_psp22_votes'
-import ContractVotes from '../../../typechain-generated/contracts/my_psp22_votes'
-import BN from 'bn.js'
-import {expect} from 'chai'
-import {AbiMessage} from '@polkadot/api-contract/types'
-import {contractsAbi} from '@polkadot/types/interfaces/definitions'
-import {str} from '@scure/base'
+import ConstructorsVotes from "../../../typechain-generated/constructors/my_psp22_votes";
+import ContractVotes from "../../../typechain-generated/contracts/my_psp22_votes";
+import BN from "bn.js";
+import {expect} from "chai";
+import {ProposalState} from "../../../typechain-generated/types-returns/my_governor";
 
 describe('Governor', function () {
 
@@ -51,9 +49,9 @@ describe('Governor', function () {
     
   it('deployment check', async function () {
     const {
-      api
+      api,
     } = await setup()
-    api.disconnect()
+   await api.disconnect()
   })
 
   describe('vote with signature', function () {
@@ -78,11 +76,13 @@ describe('Governor', function () {
     describe('on propose', function () {
       it('if proposal already exists', async function () {
         const {
-          api,
-          bob,
-          deployer,
-          contractGovernance,
-          contractVotes,
+              api,
+              bob,
+              deployer,
+              contractGovernance,
+              contractAddressGovernance,
+              contractVotes,
+              contractAddressVotes,
         } = await setup()
         const transactions: Array<ArgumentTypes.Transaction> = [{
           callee: contractVotes.address,
@@ -96,7 +96,7 @@ describe('Governor', function () {
         await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
         await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.rejected
 
-        api.disconnect()
+       await api.disconnect()
       })
     })
 
@@ -117,7 +117,7 @@ describe('Governor', function () {
         }
         console.log(proposalId)
         await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.rejected
-        api.disconnect()
+       await api.disconnect()
       })
 
       it('if voting has not started', async function () {
@@ -144,10 +144,10 @@ describe('Governor', function () {
           proposalId.push(0)
         }
         await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.rejected
-        api.disconnect()
+       await api.disconnect()
       })
 
-      it('if support value is invalid', async function () {
+      it('if voting is over', async function () {
         const {
           api,
           bob,
@@ -155,31 +155,32 @@ describe('Governor', function () {
           contractGovernance,
           contractAddressGovernance,
           contractVotes,
-          contractAddressVotes
-        } = await setup(100000, 29384987, 10, 0, 0)
-        const transactions: Array<ArgumentTypes.Transaction> = [{
+          contractAddressVotes,
+        } = await setup(100000, 0, 100000, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
           callee: contractVotes.address,
           selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
           destination: contractVotes.address,
           input: [bob.address, new BN(1000), ''], // [to, value, data]
           transferredValue: 0,
-          gasLimit: 1000000000000
+          gasLimit: 1000000000000,
         }]
+
         await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
-        const proposalId : number[] = []
-        for(let i = 0; i < 32; i++) {
-          proposalId.push(0)
-        }
-        // await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.rejected
-        api.disconnect()
-      })
 
-      it('if vote was already casted', async function () {
-        //
-      })
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
 
-      it('if voting is over', async function () {
-        //
+        const proposalId  = await contractGovernance.query.hashProposal(transactions, descriptionHash)
+        console.log(proposalId.value.unwrapRecursively().unwrapRecursively())
+
+        await contractGovernance.tx.increaseBlockTimestamp(100001)
+
+        await expect(contractGovernance.tx.castVote(proposalId.value.unwrapRecursively().unwrapRecursively(), VoteType.for)).to.eventually.be.rejected
+
+       await api.disconnect()
       })
     })
 
@@ -199,107 +200,620 @@ describe('Governor', function () {
 
     describe('on execute', function () {
       it('if proposal does not exist', async function () {
-        //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        const proposalId : number[] = []
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        await expect(contractGovernance.tx.execute(transactions, descriptionHash)).to.eventually.be.rejected
+
+       await api.disconnect()
       })
 
       it('if quorum is not reached', async function () {
-        //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+        await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+        await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.fulfilled
+        
+        await expect(contractGovernance.tx.execute(transactions, descriptionHash)).to.eventually.be.rejected
+
+       await api.disconnect()
       })
 
       it('if score not reached', async function () {
-        //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+        await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+        const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
+        await contractGovernance.tx.setBlockTimestamp(proposalSnapshot + 1)
+
+
+
+        await expect(contractGovernance.tx.castVote(proposalId, VoteType.against)).to.eventually.be.fulfilled
+
+        await expect(contractGovernance.tx.execute(transactions, descriptionHash)).to.eventually.be.rejected
+
+       await api.disconnect()
       })
 
       it('if voting is not over', async function () {
-        //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+        await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+        const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
+        await contractGovernance.tx.setBlockTimestamp(proposalSnapshot + 1)
+
+        await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.fulfilled
+
+        await expect(contractGovernance.tx.execute(transactions, descriptionHash)).to.eventually.be.rejected
+
+       await api.disconnect()
       })
 
       it('if receiver revert without reason', async function () {
-        //
+        //TODO
       })
 
       it('if receiver revert with reason', async function () {
-        //
+        //TODO
       })
 
       it('if proposal was already executed', async function () {
-        //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+        await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+        const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
+        await contractGovernance.tx.setBlockTimestamp(proposalSnapshot + 1)
+
+        await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.fulfilled
+        const deadline = (await contractGovernance.query.proposalDeadline(proposalId)).value.unwrapRecursively().unwrapRecursively()
+        await contractGovernance.tx.setBlockTimestamp(deadline + 1)
+
+        await expect(contractGovernance.tx.execute(transactions, descriptionHash)).to.eventually.be.rejected
+
+       await api.disconnect()
       })
     })
   })
 
   describe('state', function () {
     it('Unset', async function () {
-      //
+      const {
+        api,
+        bob,
+        deployer,
+        contractGovernance,
+        contractAddressGovernance,
+        contractVotes,
+        contractAddressVotes,
+      } = await setup(100000, 0, 100, 0, 0)
+      let transactions: Array<ArgumentTypes.Transaction> = [{
+        callee: contractVotes.address,
+        selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+        destination: contractVotes.address,
+        input: [bob.address, new BN(1000), ''], // [to, value, data]
+        transferredValue: 0,
+        gasLimit: 1000000000000,
+      }]
+
+      var blake2 = require('blake2')
+      var descriptionHash = blake2.createHash('blake2b')
+      descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+      const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+      await expect(contractGovernance.tx.state(proposalId)).to.eventually.be.rejected
+
+     await api.disconnect()
     })
 
     it('Pending & Active', async function () {
-      //
+      const {
+        api,
+        bob,
+        deployer,
+        contractGovernance,
+        contractAddressGovernance,
+        contractVotes,
+        contractAddressVotes,
+      } = await setup(100000, 0, 100, 0, 0)
+
+      let transactions: Array<ArgumentTypes.Transaction> = [{
+        callee: contractVotes.address,
+        selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+        destination: contractVotes.address,
+        input: [bob.address, new BN(1000), ''], // [to, value, data]
+        transferredValue: 0,
+        gasLimit: 1000000000000,
+      }]
+      await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+
+      var blake2 = require('blake2')
+      const descriptionHash = blake2.createHash('blake2b')
+      descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+      const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.pending)
+      const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
+      await contractGovernance.tx.setBlockTimestamp(proposalSnapshot)
+      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.pending)
+      await contractGovernance.tx.setBlockTimestamp(proposalSnapshot + 1)
+      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.active)
+     await api.disconnect()
     })
 
     it('Defeated', async function () {
-      //
+      const {
+        api,
+        bob,
+        deployer,
+        contractGovernance,
+        contractAddressGovernance,
+        contractVotes,
+        contractAddressVotes,
+      } = await setup(100000, 0, 100, 0, 0)
+
+      let transactions: Array<ArgumentTypes.Transaction> = [{
+        callee: contractVotes.address,
+        selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+        destination: contractVotes.address,
+        input: [bob.address, new BN(1000), ''], // [to, value, data]
+        transferredValue: 0,
+        gasLimit: 1000000000000,
+      }]
+      await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+
+      var blake2 = require('blake2')
+      const descriptionHash = blake2.createHash('blake2b')
+      descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+      const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+      const proposalDeadline = (await contractGovernance.query.proposalDeadline(proposalId)).value.unwrapRecursively().unwrapRecursively()
+      await contractGovernance.tx.setBlockTimestamp(proposalDeadline)
+      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.active)
+      await contractGovernance.tx.setBlockTimestamp(proposalDeadline + 1)
+      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.defeated)
+     await api.disconnect()
     })
 
     it('Succeeded', async function () {
-      //
+      const {
+        api,
+        bob,
+        deployer,
+        contractGovernance,
+        contractAddressGovernance,
+        contractVotes,
+        contractAddressVotes,
+      } = await setup(100000, 0, 100, 0, 0)
+
+      let transactions: Array<ArgumentTypes.Transaction> = [{
+        callee: contractVotes.address,
+        selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+        destination: contractVotes.address,
+        input: [bob.address, new BN(1000), ''], // [to, value, data]
+        transferredValue: 0,
+        gasLimit: 1000000000000,
+      }]
+      await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+
+      var blake2 = require('blake2')
+      const descriptionHash = blake2.createHash('blake2b')
+      descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+      const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+      const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
+      await contractGovernance.tx.setBlockTimestamp(proposalSnapshot)
+      await contractGovernance.tx.castVote(proposalId, VoteType.for)
+      const proposalDeadline = (await contractGovernance.query.proposalDeadline(proposalId)).value.unwrapRecursively().unwrapRecursively()
+      await contractGovernance.tx.setBlockTimestamp(proposalDeadline)
+      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.active)
+      await contractGovernance.tx.setBlockTimestamp(proposalDeadline + 1)
+      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.succeeded)
+     await api.disconnect()
     })
 
     it('Executed', async function () {
-      //
+      const {
+        api,
+        bob,
+        deployer,
+        contractGovernance,
+        contractAddressGovernance,
+        contractVotes,
+        contractAddressVotes,
+      } = await setup(100000, 0, 100, 0, 0)
+
+      let transactions: Array<ArgumentTypes.Transaction> = [{
+        callee: contractVotes.address,
+        selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+        destination: contractVotes.address,
+        input: [bob.address, new BN(1000), ''], // [to, value, data]
+        transferredValue: 0,
+        gasLimit: 1000000000000,
+      }]
+      await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+
+      var blake2 = require('blake2')
+      const descriptionHash = blake2.createHash('blake2b')
+      descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+      const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+      const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
+      await contractGovernance.tx.setBlockTimestamp(proposalSnapshot)
+      await contractGovernance.tx.castVote(proposalId, VoteType.for)
+      const proposalDeadline = (await contractGovernance.query.proposalDeadline(proposalId)).value.unwrapRecursively().unwrapRecursively()
+      await contractGovernance.tx.setBlockTimestamp(proposalDeadline)
+      await contractGovernance.tx.execute(transactions, descriptionHash)
+      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.executed)
+     await api.disconnect()
     })
   })
 
   describe('cancel', function () {
-    describe('internal', function () {
-      it('before proposal', async function () {
-        //
-      })
-
-      it('after proposal', async function () {
-        //
-      })
-
-      it('after vote', async function () {
-        //
-      })
-
-      it('after deadline', async function () {
-        //
-      })
-
-      it('after execution', async function () {
-        //
-      })
-    })
-
     describe('public', function () {
       it('before proposal', async function () {
-        //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        await expect(contractGovernance.tx.cancel(transactions, descriptionHash)).to.eventually.be.rejected
+
+        await api.disconnect()
       })
 
       it('after proposal', async function () {
-        //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+        await contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))
+
+        await expect(contractGovernance.tx.cancel(transactions, descriptionHash)).to.eventually.be.fulfilled
+
+        await api.disconnect()
       })
 
       it('after proposal - restricted to proposer', async function () {
-        //
-      })
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+        await contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))
+
+        await expect(contractGovernance.withAddress(bob.address).tx.cancel(transactions, descriptionHash)).to.eventually.be.rejected
+
+        await api.disconnect()
+      });
 
       it('after vote started', async function () {
-        //
-      })
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+        await contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))
+
+        const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
+        await contractGovernance.tx.setBlockTimestamp(proposalSnapshot + 1)
+
+        await expect(contractGovernance.tx.cancel(transactions, descriptionHash)).to.eventually.be.rejected
+
+        await api.disconnect()
+      });
 
       it('after vote', async function () {
-        //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+        await contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))
+
+        const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
+        await contractGovernance.tx.setBlockTimestamp(proposalSnapshot)
+
+        await contractGovernance.tx.castVote(proposalId, VoteType.for)
+
+        await expect(contractGovernance.tx.cancel(transactions, descriptionHash)).to.eventually.be.rejected
+
+        await api.disconnect()
       })
 
       it('after deadline', async function () {
-        //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+        await contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))
+
+        const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
+        await contractGovernance.tx.setBlockTimestamp(proposalSnapshot)
+
+        await contractGovernance.tx.castVote(proposalId, VoteType.for)
+
+        const proposalDeadline = (await contractGovernance.query.proposalDeadline(proposalId)).value.unwrapRecursively().unwrapRecursively()
+        await contractGovernance.tx.setBlockTimestamp(proposalDeadline)
+
+        await expect(contractGovernance.tx.cancel(transactions, descriptionHash)).to.eventually.be.rejected
+
+        await api.disconnect()
       })
 
       it('after execution', async function () {
-        //
+        const {
+          api,
+          bob,
+          deployer,
+          contractGovernance,
+          contractAddressGovernance,
+          contractVotes,
+          contractAddressVotes,
+        } = await setup(100000, 0, 100, 0, 0)
+
+        let transactions: Array<ArgumentTypes.Transaction> = [{
+          callee: contractVotes.address,
+          selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          destination: contractVotes.address,
+          input: [bob.address, new BN(1000), ''], // [to, value, data]
+          transferredValue: 0,
+          gasLimit: 1000000000000,
+        }]
+
+        var blake2 = require('blake2')
+        const descriptionHash = blake2.createHash('blake2b')
+        descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
+
+        const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
+
+        await contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))
+
+        const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
+        await contractGovernance.tx.setBlockTimestamp(proposalSnapshot)
+
+        await expect(contractGovernance.tx.castVote(proposalId, VoteType.for)).to.eventually.be.fulfilled
+
+        const proposalDeadline = (await contractGovernance.query.proposalDeadline(proposalId)).value.unwrapRecursively().unwrapRecursively()
+        await contractGovernance.tx.setBlockTimestamp(proposalDeadline)
+
+        await expect(contractGovernance.tx.execute(transactions, descriptionHash)).to.eventually.be.fulfilled
+
+        await expect(contractGovernance.tx.cancel(transactions, descriptionHash)).to.eventually.be.rejected
+
+        await api.disconnect()
       })
     })
   })
@@ -384,7 +898,7 @@ describe('Governor', function () {
 
       await expect(contractGovernance.tx.setVotingDelay(100)).to.eventually.be.rejected
 
-      api.disconnect()
+      await api.disconnect()
     })
 
     it('setVotingPeriod is protected', async function () {
@@ -392,7 +906,7 @@ describe('Governor', function () {
 
       await expect(contractGovernance.tx.setVotingPeriod(100)).to.eventually.be.rejected
 
-      api.disconnect()
+      await api.disconnect()
     })
 
     it('setProposalThreshold is protected', async function () {
@@ -400,7 +914,7 @@ describe('Governor', function () {
 
       await expect(contractGovernance.tx.setProposalThreshold(100)).to.eventually.be.rejected
 
-      api.disconnect()
+      await api.disconnect()
     })
 
     it('can setVotingDelay through governance', async function () {

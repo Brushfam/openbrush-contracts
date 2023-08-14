@@ -41,9 +41,9 @@ export class GovernorHelper {
     await this.governor?.withSigner(proposer).tx.propose([this.proposal!], this.description!)
   }
 
-  async waitForSnapshot() {
+  async waitForSnapshot(offset = 0) {
     const proposalSnapshot = (await this.governor?.query.proposalSnapshot(this.proposalId as unknown as number[]))?.value.unwrapRecursively().ok
-    await this.governor?.tx.setBlockTimestamp(proposalSnapshot as number)
+    await this.governor?.tx.setBlockTimestamp(proposalSnapshot as number + offset)
   }
 
   async castVote(voter: KeyringPair, vote: VoteType) {
@@ -53,9 +53,9 @@ export class GovernorHelper {
     await this.governor?.withSigner(voter).tx.castVote(this.proposalId, vote)
   }
 
-  async waitForDeadline() {
+  async waitForDeadline(offset = 0) {
     const proposalDeadline = (await this.governor?.query.proposalDeadline(this.proposalId as unknown as number[]))?.value.unwrapRecursively().ok
-    await this.governor?.tx.setBlockTimestamp(proposalDeadline as number)
+    await this.governor?.tx.setBlockTimestamp(proposalDeadline as number + offset)
   }
 
   async execute(proposer: KeyringPair) {

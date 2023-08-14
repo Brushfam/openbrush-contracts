@@ -67,4 +67,14 @@ export class GovernorHelper {
 
     await this.governor?.withSigner(proposer).tx.execute([this.proposal!], descriptionHash)
   }
+
+  async cancel(proposer: KeyringPair) {
+    if(this.proposalId === undefined) {
+      throw new Error('Proposal Id not set')
+    }
+
+    const descriptionHash = blake2AsU8a(this.description!) as unknown as number[]
+
+    await this.governor?.withSigner(proposer).tx.cancel([this.proposal!], descriptionHash)
+  }
 }

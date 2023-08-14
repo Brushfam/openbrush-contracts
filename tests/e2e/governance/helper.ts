@@ -5,6 +5,7 @@ import {KeyringPair} from '@polkadot/keyring/types'
 import {expect} from 'chai'
 import {blake2b} from "@polkadot/wasm-crypto";
 import {blake2AsU8a} from "@polkadot/util-crypto";
+import {ProposalState} from "../../../typechain-generated/types-returns/my_governor";
 
 export class GovernorHelper {
   private proposal: Transaction | undefined;
@@ -76,5 +77,9 @@ export class GovernorHelper {
     const descriptionHash = blake2AsU8a(this.description!) as unknown as number[]
 
     await this.governor?.withSigner(proposer).tx.cancel([this.proposal!], descriptionHash)
+  }
+
+  async state(proposer: KeyringPair): Promise<ProposalState> {
+    return ProposalState.active
   }
 }

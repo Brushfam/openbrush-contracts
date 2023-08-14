@@ -342,24 +342,11 @@ describe('Governor', function () {
         contractGovernance,
         contractAddressGovernance,
         contractVotes,
-        contractAddressVotes
-      } = await setup(100000, 0, 100, 0, 0)
-      const transactions: Array<ArgumentTypes.Transaction> = [{
-        callee: contractVotes.address,
-        selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-        destination: contractVotes.address,
-        input: [bob.address, new BN(1000), ''], // [to, value, data]
-        transferredValue: 0,
-        gasLimit: 1000000000000
-      }]
+        contractAddressVotes,
+        helper
+      } = await setup()
 
-      const blake2 = require('blake2')
-      const descriptionHash = blake2.createHash('blake2b')
-      descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
-
-      const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
-
-      await expect(contractGovernance.tx.state(proposalId)).to.eventually.be.rejected
+      await expect(helper.state(deployer)).to.eventually.be.rejected
 
       await api.disconnect()
     })
@@ -376,27 +363,18 @@ describe('Governor', function () {
         helper
       } = await setup()
 
-      const transactions: Array<ArgumentTypes.Transaction> = [{
-        callee: contractVotes.address,
-        selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-        destination: contractVotes.address,
-        input: [bob.address, new BN(1000), ''], // [to, value, data]
-        transferredValue: 0,
-        gasLimit: 1000000000000
-      }]
-      await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+      helper.addProposal(
+          contractVotes.address,
+          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          [bob.address, new BN(1000), ''],
+          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+      await expect(helper.propose(deployer)).to.eventually.be.fulfilled
+      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.pending)
+      await helper.waitForSnapshot()
+      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.pending)
+      await helper.waitForSnapshot(1)
+      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.active)
 
-      const blake2 = require('blake2')
-      const descriptionHash = blake2.createHash('blake2b')
-      descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
-
-      const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
-      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.pending)
-      const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
-      await contractGovernance.tx.setBlockTimestamp(proposalSnapshot)
-      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.pending)
-      await contractGovernance.tx.setBlockTimestamp(proposalSnapshot + 1)
-      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.active)
       await api.disconnect()
     })
 
@@ -408,29 +386,21 @@ describe('Governor', function () {
         contractGovernance,
         contractAddressGovernance,
         contractVotes,
-        contractAddressVotes
-      } = await setup(100000, 0, 100, 0, 0)
+        contractAddressVotes,
+        helper
+      } = await setup()
 
-      const transactions: Array<ArgumentTypes.Transaction> = [{
-        callee: contractVotes.address,
-        selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-        destination: contractVotes.address,
-        input: [bob.address, new BN(1000), ''], // [to, value, data]
-        transferredValue: 0,
-        gasLimit: 1000000000000
-      }]
-      await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+      helper.addProposal(
+          contractVotes.address,
+          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          [bob.address, new BN(1000), ''],
+          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+      await expect(helper.propose(deployer)).to.eventually.be.fulfilled
+      await helper.waitForDeadline()
+      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.active)
+      await helper.waitForDeadline(1)
+      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.defeated)
 
-      const blake2 = require('blake2')
-      const descriptionHash = blake2.createHash('blake2b')
-      descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
-
-      const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
-      const proposalDeadline = (await contractGovernance.query.proposalDeadline(proposalId)).value.unwrapRecursively().unwrapRecursively()
-      await contractGovernance.tx.setBlockTimestamp(proposalDeadline)
-      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.active)
-      await contractGovernance.tx.setBlockTimestamp(proposalDeadline + 1)
-      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.defeated)
       await api.disconnect()
     })
 
@@ -442,32 +412,23 @@ describe('Governor', function () {
         contractGovernance,
         contractAddressGovernance,
         contractVotes,
-        contractAddressVotes
-      } = await setup(100000, 0, 100, 0, 0)
+        contractAddressVotes,
+        helper
+      } = await setup()
 
-      const transactions: Array<ArgumentTypes.Transaction> = [{
-        callee: contractVotes.address,
-        selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-        destination: contractVotes.address,
-        input: [bob.address, new BN(1000), ''], // [to, value, data]
-        transferredValue: 0,
-        gasLimit: 1000000000000
-      }]
-      await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+      helper.addProposal(
+          contractVotes.address,
+          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          [bob.address, new BN(1000), ''],
+          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+      await expect(helper.propose(deployer)).to.eventually.be.fulfilled
+      await helper.waitForSnapshot()
+      await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
+      await helper.waitForDeadline()
+      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.active)
+      await helper.waitForDeadline(1)
+      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.succeeded)
 
-      const blake2 = require('blake2')
-      const descriptionHash = blake2.createHash('blake2b')
-      descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
-
-      const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
-      const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
-      await contractGovernance.tx.setBlockTimestamp(proposalSnapshot)
-      await contractGovernance.tx.castVote(proposalId, VoteType.for)
-      const proposalDeadline = (await contractGovernance.query.proposalDeadline(proposalId)).value.unwrapRecursively().unwrapRecursively()
-      await contractGovernance.tx.setBlockTimestamp(proposalDeadline)
-      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.active)
-      await contractGovernance.tx.setBlockTimestamp(proposalDeadline + 1)
-      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.succeeded)
       await api.disconnect()
     })
 
@@ -479,31 +440,22 @@ describe('Governor', function () {
         contractGovernance,
         contractAddressGovernance,
         contractVotes,
-        contractAddressVotes
-      } = await setup(100000, 0, 100, 0, 0)
+        contractAddressVotes,
+        helper
+      } = await setup()
 
-      const transactions: Array<ArgumentTypes.Transaction> = [{
-        callee: contractVotes.address,
-        selector: getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-        destination: contractVotes.address,
-        input: [bob.address, new BN(1000), ''], // [to, value, data]
-        transferredValue: 0,
-        gasLimit: 1000000000000
-      }]
-      await expect(contractGovernance.tx.propose(transactions,'#proposer=' + Uint8ArrayToString(deployer.addressRaw))).to.eventually.be.fulfilled
+      helper.addProposal(
+          contractVotes.address,
+          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          [bob.address, new BN(1000), ''],
+          '<description>#propser=' + Uint8ArrayToString(deployer.addressRaw))
+      await expect(helper.propose(deployer)).to.eventually.be.fulfilled
+      await helper.waitForSnapshot()
+      await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
+      await helper.waitForDeadline()
+      await expect(helper.execute(deployer)).to.eventually.be.fulfilled
+      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.executed)
 
-      const blake2 = require('blake2')
-      const descriptionHash = blake2.createHash('blake2b')
-      descriptionHash.update(Buffer.from('#proposer=' + Uint8ArrayToString(deployer.addressRaw)))
-
-      const proposalId  = (await contractGovernance.query.hashProposal(transactions, descriptionHash)).value.unwrapRecursively().unwrapRecursively()
-      const proposalSnapshot = (await contractGovernance.query.proposalSnapshot(proposalId)).value.unwrapRecursively().unwrapRecursively()
-      await contractGovernance.tx.setBlockTimestamp(proposalSnapshot)
-      await contractGovernance.tx.castVote(proposalId, VoteType.for)
-      const proposalDeadline = (await contractGovernance.query.proposalDeadline(proposalId)).value.unwrapRecursively().unwrapRecursively()
-      await contractGovernance.tx.setBlockTimestamp(proposalDeadline)
-      await contractGovernance.tx.execute(transactions, descriptionHash)
-      await expect((await contractGovernance.query.state(proposalId)).value.unwrapRecursively().unwrapRecursively()).to.have.equals(ProposalState.executed)
       await api.disconnect()
     })
   })

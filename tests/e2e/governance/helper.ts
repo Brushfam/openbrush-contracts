@@ -2,9 +2,7 @@ import BN from 'bn.js'
 import {Transaction, VoteType} from '../../../typechain-generated/types-arguments/my_governor'
 import ContractGovernance from '../../../typechain-generated/contracts/my_governor'
 import {KeyringPair} from '@polkadot/keyring/types'
-import {expect} from 'chai'
-import {blake2b} from "@polkadot/wasm-crypto";
-import {blake2AsU8a} from "@polkadot/util-crypto";
+import {blake2AsU8a} from '@polkadot/util-crypto'
 import {ProposalState} from "../../../typechain-generated/types-returns/my_governor";
 
 export class GovernorHelper {
@@ -33,13 +31,19 @@ export class GovernorHelper {
     return this.proposalId
   }
 
-  async propose(proposer: KeyringPair) {
+  async propose(proposer?: KeyringPair) {
     if (this.proposal === undefined || this.description === undefined) {
       throw new Error('Proposal not set')
     }
     // todo: check how proposal Id is calculated
     this.proposalId = (await this.governor?.query.propose([this.proposal!], this.description!))?.value.unwrapRecursively().ok
-    await this.governor?.withSigner(proposer).tx.propose([this.proposal!], this.description!)
+
+    if(proposer) {
+      await this.governor?.withSigner(proposer).tx.propose([this.proposal!], this.description!)
+    }
+    else {
+      await this.governor?.tx.propose([this.proposal!], this.description!)
+    }
   }
 
   async waitForSnapshot(offset = 0) {
@@ -59,24 +63,34 @@ export class GovernorHelper {
     await this.governor?.tx.setBlockTimestamp(proposalDeadline as number + offset)
   }
 
-  async execute(proposer: KeyringPair) {
+  async execute(proposer?: KeyringPair) {
     if (this.proposalId === undefined) {
       throw new Error('Proposal Id not set')
     }
 
     const descriptionHash = blake2AsU8a(this.description!) as unknown as number[]
 
-    await this.governor?.withSigner(proposer).tx.execute([this.proposal!], descriptionHash)
+    if (proposer) {
+      await this.governor?.withSigner(proposer).tx.execute([this.proposal!], descriptionHash)
+    }
+    else {
+      await this.governor?.tx.execute([this.proposal!], descriptionHash)
+    }
   }
 
-  async cancel(proposer: KeyringPair) {
+  async cancel(proposer?: KeyringPair) {
     if(this.proposalId === undefined) {
       throw new Error('Proposal Id not set')
     }
 
     const descriptionHash = blake2AsU8a(this.description!) as unknown as number[]
 
-    await this.governor?.withSigner(proposer).tx.cancel([this.proposal!], descriptionHash)
+    if (proposer) {
+      await this.governor?.withSigner(proposer).tx.cancel([this.proposal!], descriptionHash)
+    }
+    else{
+      await this.governor?.tx.cancel([this.proposal!], descriptionHash)
+    }
   }
 
   async state(proposer: KeyringPair): Promise<ProposalState> {

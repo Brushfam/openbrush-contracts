@@ -156,7 +156,7 @@ pub trait GovernorInternal:
         let current_state = self._state(proposal_id.clone())?;
 
         let forbidden_states =
-            ProposalState::Cancelled.u128() | ProposalState::Executed.u128() | ProposalState::Expired.u128();
+            ProposalState::Canceled.u128() | ProposalState::Executed.u128() | ProposalState::Expired.u128();
 
         if forbidden_states.clone() & current_state.clone().u128() != 0 {
             return Err(GovernanceError::UnexpectedProposalState(

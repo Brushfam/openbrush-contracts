@@ -3,6 +3,8 @@ import {Transaction, VoteType} from '../../../typechain-generated/types-argument
 import ContractGovernance from '../../../typechain-generated/contracts/my_governor'
 import {KeyringPair} from '@polkadot/keyring/types'
 import {expect} from 'chai'
+import {blake2b} from "@polkadot/wasm-crypto";
+import {blake2AsU8a} from "@polkadot/util-crypto";
 
 export class GovernorHelper {
   private proposal: Transaction | undefined;
@@ -54,5 +56,15 @@ export class GovernorHelper {
   async waitForDeadline() {
     const proposalDeadline = (await this.governor?.query.proposalDeadline(this.proposalId as unknown as number[]))?.value.unwrapRecursively().ok
     await this.governor?.tx.setBlockTimestamp(proposalDeadline as number)
+  }
+
+  async execute(proposer: KeyringPair) {
+    if (this.proposalId === undefined) {
+      throw new Error('Proposal Id not set')
+    }
+
+    const descriptionHash = blake2AsU8a(this.description!) as unknown as number[]
+
+    await this.governor?.withSigner(proposer).tx.execute([this.proposal!], descriptionHash)
   }
 }

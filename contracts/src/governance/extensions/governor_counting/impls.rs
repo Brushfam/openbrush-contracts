@@ -28,11 +28,7 @@ pub trait GovernorCountingImpl: Storage<Data> + CountingInternal {
     }
 
     fn proposal_votes(&self, proposal_id: ProposalId) -> Result<(Balance, Balance, Balance), GovernanceError> {
-        let proposal_vote = self
-            .data::<Data>()
-            .proposal_votes
-            .get(&proposal_id)
-            .ok_or(GovernanceError::ProposalNotFound)?;
+        let proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
         Ok((
             proposal_vote.for_votes,
             proposal_vote.against_votes,

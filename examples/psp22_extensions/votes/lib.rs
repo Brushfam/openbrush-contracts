@@ -9,9 +9,9 @@ pub mod my_psp22_votes {
                 votes,
                 votes::*,
             },
+            governor::TimestampProvider,
             nonces,
             nonces::*,
-            governor::TimestampProvider,
             psp22::extensions::votes::*,
             traits::{
                 errors::GovernanceError,
@@ -59,8 +59,7 @@ pub mod my_psp22_votes {
         }
     }
 
-    impl TimestampProvider for Contract {
-    }
+    impl TimestampProvider for Contract {}
 
     impl VotesImpl for Contract {}
 
@@ -81,7 +80,7 @@ pub mod my_psp22_votes {
         }
 
         #[ink(message)]
-        fn delegates(&mut self, delegator: AccountId) -> AccountId {
+        fn delegates(&mut self, delegator: AccountId) -> Option<AccountId> {
             VotesImpl::delegates(self, delegator)
         }
 

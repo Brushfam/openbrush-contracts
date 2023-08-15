@@ -20,7 +20,7 @@ pub trait Votes {
     fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError>;
 
     #[ink(message)]
-    fn delegates(&mut self, delegator: AccountId) -> AccountId;
+    fn delegates(&mut self, delegator: AccountId) -> Option<AccountId>;
 
     #[ink(message)]
     fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError>;

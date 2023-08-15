@@ -36,9 +36,11 @@ describe('Governor', function () {
     const deployer = signers[0]
     const alice = signers[1]
     const bob = signers[2]
+
     const contractFactoryVotes = new ConstructorsVotes(api, deployer)
     const contractAddressVotes = (await contractFactoryVotes.new(totalSupply)).address
     const contractVotes = new ContractVotes(contractAddressVotes, deployer, api)
+
     const contractFactoryGovernance = new ConstructorsGovernance(api, deployer)
     const contractAddressGovernance = (await contractFactoryGovernance.new(contractAddressVotes, votingDelay, votingPeriod, proposalThreshold, numrator)).address
     const contractGovernance = new ContractGovernance(contractAddressGovernance, deployer, api)
@@ -48,6 +50,10 @@ describe('Governor', function () {
     const contractReceiver = new ContractReceiver(contractAddressReceiver, deployer, api)
 
     const helper = new GovernorHelper(contractGovernance)
+
+    await helper.delegate(contractVotes, deployer, alice, 10)
+    await helper.delegate(contractVotes, deployer, bob, 10)
+    await helper.delegate(contractVotes, deployer, deployer, 10)
 
     helper.addProposal(
       contractAddressReceiver,
@@ -320,10 +326,10 @@ describe('Governor', function () {
         } = await setup()
 
         helper.addProposal(
-            contractReceiver.address,
-            getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
-            [],
-            '<description>#proposer=' + SS58ToHex(api, deployer.address)
+          contractReceiver.address,
+          getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
+          [],
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
         )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
@@ -345,10 +351,10 @@ describe('Governor', function () {
         } = await setup()
 
         helper.addProposal(
-            contractReceiver.address,
-            getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
-            [],
-            '<description>#proposer=' + SS58ToHex(api, deployer.address)
+          contractReceiver.address,
+          getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
+          [],
+          '<description>#proposer=' + SS58ToHex(api, deployer.address)
         )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
@@ -390,11 +396,11 @@ describe('Governor', function () {
     it('Unset', async function () {
       const {
         api,
-        deployer,
+        contractGovernance,
         helper
       } = await setup()
 
-      await expect(helper.state(deployer)).to.eventually.be.rejected
+      expect((await contractGovernance.query.state(await helper.getProposalId() as unknown as number[]))?.value.ok!.ok).to.be.eq(undefined)
 
       await api.disconnect()
     })
@@ -415,11 +421,11 @@ describe('Governor', function () {
         '<description>#proposer=' + SS58ToHex(api, deployer.address)
       )
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
-      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.pending)
-      await helper.waitForSnapshot()
-      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.pending)
+      await expect(helper.state()).to.eventually.be.equals(ProposalState.pending)
+      await helper.waitForSnapshot(-1)
+      await expect(helper.state()).to.eventually.be.equals(ProposalState.pending)
       await helper.waitForSnapshot(1)
-      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.active)
+      await expect(helper.state()).to.eventually.be.equals(ProposalState.active)
 
       await api.disconnect()
     })
@@ -441,9 +447,9 @@ describe('Governor', function () {
       )
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await helper.waitForDeadline()
-      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.active)
+      await expect(helper.state()).to.eventually.be.equals(ProposalState.active)
       await helper.waitForDeadline(1)
-      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.defeated)
+      await expect(helper.state()).to.eventually.be.equals(ProposalState.defeated)
 
       await api.disconnect()
     })
@@ -470,10 +476,10 @@ describe('Governor', function () {
       await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
       await helper.waitForDeadline()
 
-      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.active)
+      await expect(helper.state()).to.eventually.be.equals(ProposalState.active)
       await helper.waitForDeadline(1)
 
-      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.succeeded)
+      await expect(helper.state()).to.eventually.be.equals(ProposalState.succeeded)
 
       await api.disconnect()
     })
@@ -498,7 +504,7 @@ describe('Governor', function () {
       await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
       await helper.waitForDeadline()
       await expect(helper.execute(deployer)).to.eventually.be.fulfilled
-      await expect(helper.state(deployer)).to.eventually.be.equals(ProposalState.executed)
+      await expect(helper.state()).to.eventually.be.equals(ProposalState.executed)
 
       await api.disconnect()
     })

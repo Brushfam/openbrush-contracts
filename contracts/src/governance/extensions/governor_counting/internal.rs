@@ -75,6 +75,8 @@ pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters 
             }
         }
 
+        self.data::<Data>().proposal_votes.insert(&proposal_id, &proposal_vote);
+
         Ok(())
     }
 }

@@ -62,7 +62,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
         }
     }
 
-    fn delegates(&mut self, delegator: AccountId) -> AccountId {
+    fn delegates(&mut self, delegator: AccountId) -> Option<AccountId> {
         self._delegates(&delegator)
     }
 

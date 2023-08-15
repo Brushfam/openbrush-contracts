@@ -7,8 +7,8 @@ pub trait VotesEvents {
     fn emit_delegate_changed_event(
         &self,
         _delegator: &AccountId,
-        _from_delegate: &AccountId,
-        _to_delegate: &AccountId,
+        _from_delegate: &Option<AccountId>,
+        _to_delegate: &Option<AccountId>,
     ) {
         ()
     }

@@ -321,7 +321,7 @@ describe('Governor', function () {
 
         helper.addProposal(
             contractReceiver.address,
-            getSelectorByName(contractVotes.abi.messages, 'mock_function'),
+            getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
             [],
             '<description>#proposer=' + SS58ToHex(api, deployer.address)
         )
@@ -346,7 +346,7 @@ describe('Governor', function () {
 
         helper.addProposal(
             contractReceiver.address,
-            getSelectorByName(contractVotes.abi.messages, 'mock_function'),
+            getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
             [],
             '<description>#proposer=' + SS58ToHex(api, deployer.address)
         )
@@ -378,8 +378,8 @@ describe('Governor', function () {
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
         await helper.waitForDeadline()
-        await expect(helper.execute(deployer)).to.eventually.be.fulfilled
-        await expect(helper.execute(deployer)).to.eventually.be.rejected
+        await expect(helper.execute()).to.eventually.be.fulfilled
+        await expect(helper.execute()).to.eventually.be.rejected
 
         await api.disconnect()
       })

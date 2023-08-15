@@ -252,6 +252,13 @@ pub trait GovernorInternal:
             return Ok(true)
         }
 
+        let pos = description.find("proposer=0x").unwrap();
+        let address = &description[pos..];
+
+        if hex::decode(address).is_err() {
+            return Ok(true)
+        }
+
         let proposer_str = hex::encode(proposer);
         let result = String::from("#proposer=0x".to_owned() + &proposer_str);
 

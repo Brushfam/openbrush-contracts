@@ -666,7 +666,7 @@ describe('Governor', function () {
             contractReceiver.address,
             getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
             [],
-            '<description>#proposer=' + '0x1234'
+            '<description>#proposer=' + '0x3C44CdDdB6a900fa2b585dd299e03d12FA429XYZ'
           )
 
           await expect(helper.propose(deployer)).to.eventually.be.fulfilled
@@ -681,7 +681,7 @@ describe('Governor', function () {
             contractReceiver.address,
             getSelectorByName(contractReceiver.abi.messages, 'mock_function'),
             [],
-            '<description>#proposer=' + '0x1234'
+            '<description>#proposer=' + '0x3C44CdDdB6a900fa2b585dd299e03d12FA429XYZ'
           )
 
           await expect(helper.propose(alice)).to.eventually.be.fulfilled

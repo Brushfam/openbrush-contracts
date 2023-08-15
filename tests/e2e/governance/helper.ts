@@ -50,6 +50,8 @@ export class GovernorHelper {
 
     console.log('Proposal ID: ', await this.calculateProposalId())
 
+    console.log((await this.governor?.query.propose([this.proposal!], this.description!))?.value.ok?.err)
+
     if(proposer) {
       await this.governor?.withSigner(proposer).tx.propose([this.proposal!], this.description!)
     }

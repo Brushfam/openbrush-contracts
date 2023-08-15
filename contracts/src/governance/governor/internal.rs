@@ -60,10 +60,14 @@ pub trait GovernorInternal:
         crypto::hash_message(message.as_slice()).map_err(|err| err.into())
     }
 
-    fn _state(&self, _proposal_id: ProposalId) -> Result<ProposalState, GovernanceError> {
+    fn _state(&self, proposal_id: ProposalId) -> Result<ProposalState, GovernanceError> {
         let current_time = self.block_timestamp();
 
-        let proposal = self.data::<Data>().proposals.get(&_proposal_id).unwrap_or_default();
+        let proposal = self
+            .data::<Data>()
+            .proposals
+            .get(&proposal_id)
+            .ok_or(GovernanceError::NonexistentProposal(proposal_id))?;
 
         if proposal.executed == ExecutionStatus::Executed {
             return Ok(ProposalState::Executed)
@@ -73,19 +77,13 @@ pub trait GovernorInternal:
             return Ok(ProposalState::Canceled)
         }
 
-        let snapshot = self._proposal_snapshot(_proposal_id.clone())?;
-
-        if snapshot == 0 {
-            return Err(GovernanceError::NonexistentProposal(_proposal_id.clone()))
-        }
-
         let deadline = proposal.deadline()?;
 
         if deadline >= current_time {
             return Ok(ProposalState::Active)
         }
 
-        if self._vote_succeeded(_proposal_id.clone())? && self._quorum_reached(_proposal_id.clone())? {
+        if self._vote_succeeded(proposal_id.clone())? && self._quorum_reached(proposal_id.clone())? {
             Ok(ProposalState::Succeeded)
         } else {
             Ok(ProposalState::Defeated)

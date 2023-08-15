@@ -48,12 +48,12 @@ export class GovernorHelper {
       throw new Error('Proposal not set')
     }
 
-    this.proposalId = await this.calculateProposalId()
-
     if(proposer) {
+      this.proposalId = (await this.governor?.withSigner(proposer).query.propose([this.proposal!], this.description!))?.value.ok!.ok
       await this.governor?.withSigner(proposer).tx.propose([this.proposal!], this.description!)
     }
     else {
+      this.proposalId = (await this.governor?.query.propose([this.proposal!], this.description!))?.value.ok!.ok
       await this.governor?.tx.propose([this.proposal!], this.description!)
     }
   }
@@ -70,6 +70,7 @@ export class GovernorHelper {
     if (this.proposalId === undefined) {
       throw new Error('Proposal Id not set')
     }
+
     await this.governor?.withSigner(voter).tx.castVote(this.proposalId, vote)
   }
 

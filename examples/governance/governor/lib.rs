@@ -87,6 +87,7 @@ pub mod my_governor {
                 ._init_governor_settings(voting_delay, voting_period, proposal_threshold)
                 .unwrap();
             instance._init_quorum_numerator(numerator).unwrap();
+            instance.mock_timestamp = Self::env().block_timestamp();
 
             instance
         }

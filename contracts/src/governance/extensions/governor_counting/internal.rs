@@ -18,24 +18,18 @@ use openbrush::traits::{
 
 pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters {
     fn _quorum_reached(&self, proposal_id: ProposalId) -> Result<bool, GovernanceError> {
-        let proposal_vote = self
-            .data::<Data>()
-            .proposal_votes
-            .get(&proposal_id)
-            .ok_or(GovernanceError::ProposalNotFound)?;
+        let proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
         let num_votes = proposal_vote
             .for_votes
-            .checked_add(proposal_vote.against_votes)
+            .checked_add(proposal_vote.abstain_votes)
             .ok_or(GovernanceError::Overflow)?;
+
         Ok(self.quorum(self._proposal_snapshot(proposal_id)?)? <= num_votes)
     }
 
     fn _vote_succeeded(&self, proposal_id: ProposalId) -> Result<bool, GovernanceError> {
-        let proposal_vote = self
-            .data::<Data>()
-            .proposal_votes
-            .get(&proposal_id)
-            .ok_or(GovernanceError::ProposalNotFound)?;
+        let proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
+
         Ok(proposal_vote.for_votes > proposal_vote.against_votes)
     }
 
@@ -47,11 +41,7 @@ pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters 
         weight: Balance,
         // params: Vec<u8>,
     ) -> Result<(), GovernanceError> {
-        let mut proposal_vote = self
-            .data::<Data>()
-            .proposal_votes
-            .get(&proposal_id)
-            .ok_or(GovernanceError::ProposalNotFound)?;
+        let mut proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
 
         if self
             .data::<Data>()

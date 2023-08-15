@@ -79,7 +79,7 @@ pub trait GovernorInternal:
 
         let snapshot = proposal.vote_start;
 
-        if snapshot >= current_time {
+        if snapshot > current_time {
             return Ok(ProposalState::Pending)
         }
 

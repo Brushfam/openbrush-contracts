@@ -16,7 +16,7 @@ import {ProposalState} from '../../../typechain-generated/types-returns/my_gover
 import {GovernorHelper} from './helper'
 
 const  TOTAL_SUPPLY = 100000
-const  VOTING_DELAY = 0
+const  VOTING_DELAY = 10
 const  VOTING_PERIOD = 10
 const  PROPOSAL_THRESHOLD = 0
 const  NUMRATOR = 0
@@ -25,7 +25,7 @@ describe('Governor', function () {
 
   async function setup(
     totalSupply = 100000,
-    votingDelay = 0,
+    votingDelay = 10,
     votingPeriod = 10,
     proposalThreshold = 0,
     numrator = 0
@@ -647,7 +647,7 @@ describe('Governor', function () {
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
-        await helper.waitForDeadline()
+        await helper.waitForDeadline(1)
         await expect(helper.execute(deployer)).to.eventually.be.fulfilled
         await expect(helper.cancel(deployer)).to.eventually.be.rejected
 

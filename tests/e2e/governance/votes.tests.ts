@@ -87,15 +87,15 @@ describe('Votes', function () {
 
       await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
       await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
-      await expect((await contractVotes.query.delegates(account1.address)).value.ok!).to.equals(ZERO_ADDRESS)
-      await expect((await contractVotes.query.delegates(account2.address)).value.ok!).to.equals(ZERO_ADDRESS)
+      await expect((await contractVotes.query.delegates(account1.address)).value.ok!).to.equals(null)
+      await expect((await contractVotes.query.delegates(account2.address)).value.ok!).to.equals(null)
 
       await contractVotes.withSigner(account1).tx.delegate(account1.address)
 
       await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.ok!.rawNumber.toNumber()).to.equals(amounts.account1)
       await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
       await expect((await contractVotes.query.delegates(account1.address)).value.ok!).to.equals(account1.address)
-      await expect((await contractVotes.query.delegates(account2.address)).value.ok!).to.equals(ZERO_ADDRESS)
+      await expect((await contractVotes.query.delegates(account2.address)).value.ok!).to.equals(null)
 
       await contractVotes.withSigner(account2).tx.delegate(account1.address)
 
@@ -103,6 +103,14 @@ describe('Votes', function () {
       await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
       await expect((await contractVotes.query.delegates(account1.address)).value.ok!).to.equals(account1.address)
       await expect((await contractVotes.query.delegates(account2.address)).value.ok!).to.equals(account1.address)
+
+      await contractVotes.withSigner(account1).tx.delegate(account2.address)
+      await contractVotes.withSigner(account2).tx.delegate(account2.address)
+
+      await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
+      await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.ok!.rawNumber.toNumber()).to.equals(amounts.account1 + amounts.account2)
+      await expect((await contractVotes.query.delegates(account1.address)).value.ok!).to.equals(account2.address)
+      await expect((await contractVotes.query.delegates(account2.address)).value.ok!).to.equals(account2.address)
 
       await api.disconnect()
     })

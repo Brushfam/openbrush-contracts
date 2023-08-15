@@ -48,6 +48,8 @@ export class GovernorHelper {
       throw new Error('Proposal not set')
     }
 
+    this.proposalId = await this.calculateProposalId()
+
     if(proposer) {
       await this.governor?.withSigner(proposer).tx.propose([this.proposal!], this.description!)
     }

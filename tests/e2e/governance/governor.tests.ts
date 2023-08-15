@@ -717,6 +717,8 @@ describe('Governor', function () {
           '<description>#proposer=' + SS58ToHex(api, deployer.address)
         )
 
+        console.log(SS58ToHex(api, deployer.address))
+
         await expect(helper.propose(alice)).to.eventually.be.rejected
 
         await api.disconnect()

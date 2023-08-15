@@ -252,7 +252,7 @@ pub trait GovernorInternal:
             return Ok(true)
         }
 
-        let pos = description.find("proposer=0x").unwrap();
+        let pos = description.find("proposer=0x").unwrap() + 11usize;
         let address = &description[pos..];
 
         if hex::decode(address).is_err() {

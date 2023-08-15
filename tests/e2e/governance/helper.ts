@@ -59,8 +59,11 @@ export class GovernorHelper {
   }
 
   async waitForSnapshot(offset = 0) {
-    const proposalSnapshot = (await this.governor?.query.proposalSnapshot(this.proposalId as unknown as number[]))?.value.unwrapRecursively().ok
-    await this.governor?.tx.setBlockTimestamp(proposalSnapshot as number + offset)
+    const proposalSnapshot = (await this.governor?.query.proposalSnapshot(this.proposalId as unknown as number[]))?.value.ok!.ok
+
+    if(proposalSnapshot === undefined) throw new Error('Proposal snapshot not set')
+
+    await this.governor?.tx.setBlockTimestamp(proposalSnapshot + offset)
   }
 
   async castVote(voter: KeyringPair, vote: VoteType) {
@@ -71,8 +74,11 @@ export class GovernorHelper {
   }
 
   async waitForDeadline(offset = 0) {
-    const proposalDeadline = (await this.governor?.query.proposalDeadline(this.proposalId as unknown as number[]))?.value.unwrapRecursively().ok
-    await this.governor?.tx.setBlockTimestamp(proposalDeadline as number + offset)
+    const proposalDeadline = (await this.governor?.query.proposalDeadline(this.proposalId as unknown as number[]))?.value.ok!.ok
+
+    if(proposalDeadline === undefined) throw new Error('Proposal deadline not set')
+
+    await this.governor?.tx.setBlockTimestamp(proposalDeadline + offset)
   }
 
   async execute(proposer?: KeyringPair) {

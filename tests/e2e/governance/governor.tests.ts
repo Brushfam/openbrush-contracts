@@ -150,21 +150,15 @@ describe('Governor', function () {
       it('if vote was already casted', async function () {
         const {
           api,
-          bob,
-          deployer,
-          contractVotes,
+          alice,
           helper
         } = await setup()
 
-        helper.addProposal(
-          contractVotes.address,
-          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-          [bob.address, new BN(1000), ''],
-          '<description>#proposer=' + SS58ToHex(api, deployer.address))
-        await expect(helper.propose(deployer)).to.eventually.be.fulfilled
+        await expect(helper.propose()).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
-        await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
-        await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.rejected
+
+        await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.fulfilled
+        await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.rejected
 
         await api.disconnect()
       })

@@ -77,6 +77,12 @@ pub trait GovernorInternal:
             return Ok(ProposalState::Canceled)
         }
 
+        let snapshot = proposal.vote_start;
+
+        if snapshot >= current_time {
+            return Ok(ProposalState::Pending)
+        }
+
         let deadline = proposal.deadline()?;
 
         if deadline >= current_time {

@@ -15,6 +15,12 @@ import {expect} from 'chai'
 import {ProposalState} from '../../../typechain-generated/types-returns/my_governor'
 import {GovernorHelper} from './helper'
 
+const  TOTAL_SUPPLY = 100000
+const  VOTING_DELAY = 0
+const  VOTING_PERIOD = 10
+const  PROPOSAL_THRESHOLD = 0
+const  NUMRATOR = 0
+
 describe('Governor', function () {
 
   async function setup(
@@ -66,8 +72,17 @@ describe('Governor', function () {
     
   it('deployment check', async function () {
     const {
-      api
+      api,
+      contractGovernance,
+      helper
     } = await setup()
+
+    await expect((await contractGovernance.query.votingDelay()).value.ok!).to.equals(VOTING_DELAY)
+    await expect((await contractGovernance.query.votingPeriod()).value.ok!).to.equals(VOTING_PERIOD)
+    await expect((await contractGovernance.query.proposalThreshold()).value.ok!.rawNumber.toNumber()).to.equals(PROPOSAL_THRESHOLD)
+    await expect((await contractGovernance.query.quorum(0)).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
+    await expect((await contractGovernance.query.quorumNumerator()).value.ok!.rawNumber.toNumber()).to.equals(NUMRATOR)
+
     await api.disconnect()
   })
 
@@ -151,13 +166,25 @@ describe('Governor', function () {
         const {
           api,
           alice,
+          bob,
+          deployer,
+          contractVotes,
           helper
         } = await setup()
 
-        await expect(helper.propose()).to.eventually.be.fulfilled
-        await helper.waitForSnapshot()
 
+        helper.addProposal(
+          contractVotes.address,
+          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
+          [bob.address, new BN(1000), ''],
+          '<description>#proposer=' + SS58ToHex(api, deployer.address))
+        console.log(1)
+        await expect(helper.propose()).to.eventually.be.fulfilled
+        console.log(2)
+        await helper.waitForSnapshot()
+        console.log(3)
         await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.fulfilled
+        console.log(4)
         await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.rejected
 
         await api.disconnect()
@@ -180,7 +207,6 @@ describe('Governor', function () {
         )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForDeadline()
-
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.rejected
 
         await api.disconnect()
@@ -284,11 +310,53 @@ describe('Governor', function () {
       })
 
       it('if receiver revert without reason', async function () {
-        //TODO
+        const {
+          api,
+          bob,
+          deployer,
+          contractVotes,
+          contractReceiver,
+          helper
+        } = await setup()
+
+        helper.addProposal(
+            contractReceiver.address,
+            getSelectorByName(contractVotes.abi.messages, 'mock_function'),
+            [],
+            '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
+        await expect(helper.propose(deployer)).to.eventually.be.fulfilled
+        await helper.waitForSnapshot()
+        await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
+        await helper.waitForDeadline()
+        await expect(helper.execute(deployer)).to.eventually.be.rejected
+
+        await api.disconnect()
       })
 
       it('if receiver revert with reason', async function () {
-        //TODO
+        const {
+          api,
+          bob,
+          deployer,
+          contractVotes,
+          contractReceiver,
+          helper
+        } = await setup()
+
+        helper.addProposal(
+            contractReceiver.address,
+            getSelectorByName(contractVotes.abi.messages, 'mock_function'),
+            [],
+            '<description>#proposer=' + SS58ToHex(api, deployer.address)
+        )
+        await expect(helper.propose(deployer)).to.eventually.be.fulfilled
+        await helper.waitForSnapshot()
+        await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
+        await helper.waitForDeadline()
+        await expect(helper.execute(deployer)).to.eventually.be.rejected
+
+        await api.disconnect()
       })
 
       it('if proposal was already executed', async function () {

@@ -5,6 +5,8 @@ import {KeyringPair} from '@polkadot/keyring/types'
 import {blake2AsU8a} from '@polkadot/util-crypto'
 import {ProposalState} from "../../../typechain-generated/types-returns/my_governor";
 import ContractVotes from "../../../typechain-generated/contracts/my_psp22_votes"
+import {ReturnNumber} from "@727-ventures/typechain-types";
+import {bool} from "@polkadot/types-codec";
 
 export class GovernorHelper {
   private proposal: Transaction | undefined;
@@ -92,7 +94,7 @@ export class GovernorHelper {
 
     await this.governor?.withSigner(voter).tx.castVote(this.proposalId as unknown as number[], vote)
 
-    console.log((await this.governor?.query.proposalVotes(await this.proposalId as unknown as number[]))?.value.ok!.ok)
+    // console.log((await this.governor?.query.proposalVotes(await this.proposalId as unknown as number[]))?.value.ok!.ok)
   }
 
   async waitForDeadline(offset = 0) {
@@ -158,8 +160,35 @@ export class GovernorHelper {
       this.proposalId = await this.getProposalId()
     }
 
-    console.log((await this.governor?.query.state(this.proposalId as unknown as number[]))?.value)
+    // console.log((await this.governor?.query.state(this.proposalId as unknown as number[]))?.value)
 
     return (await this.governor?.query.state(this.proposalId as unknown as number[]))?.value.ok!.ok!
+  }
+
+  async hasVoted(voter: KeyringPair): Promise<boolean> {
+    if (this.proposal === undefined || this.description === undefined){
+      throw new Error('Proposal not set')
+    }
+
+    if(this.proposalId === undefined) {
+      this.proposalId = await this.getProposalId()
+    }
+
+    console.log('has voted')
+    console.log((await this.governor?.query.hasVoted(this.proposalId as unknown as number[], voter.address))?.value.ok!)
+    return (await this.governor?.query.hasVoted(this.proposalId as unknown as number[], voter.address))?.value.ok!
+  }
+
+  async proposalVotes(): Promise<number[]> {
+    if (this.proposal === undefined || this.description === undefined){
+      throw new Error('Proposal not set')
+    }
+
+    if(this.proposalId === undefined) {
+      this.proposalId = await this.getProposalId()
+    }
+
+    const votes = (await this.governor?.query.proposalVotes(this.proposalId as unknown as number[]))?.value.ok!.ok!
+    return [votes[0].rawNumber.toNumber(), votes[1].rawNumber.toNumber(), votes[2].rawNumber.toNumber()]
   }
 }

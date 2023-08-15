@@ -241,11 +241,11 @@ pub trait GovernorImpl:
 
         let caller = Self::env().caller();
 
-        if current_state != ProposalState::Active {
+        if current_state != ProposalState::Pending {
             return Err(GovernanceError::UnexpectedProposalState(
                 proposal_id.clone(),
                 current_state,
-                ProposalState::Active.u128(),
+                ProposalState::Pending.u128(),
             ))
         }
 

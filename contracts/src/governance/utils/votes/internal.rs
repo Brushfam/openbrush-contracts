@@ -60,12 +60,13 @@ pub trait VotesInternal: Storage<Data> + VotesEvents {
         amount: Balance,
     ) -> Result<(), GovernanceError> {
         if from != to && amount > 0 {
-            let mut store = self.data::<Data>().delegate_checkpoints.get(&from).unwrap_or_default();
             if from != &AccountId::from([0x0; 32]) {
+                let mut store = self.data::<Data>().delegate_checkpoints.get(&from).unwrap_or_default();
                 let (old_value, new_value) = self._push(&mut store, Self::_sub, amount)?;
                 self.emit_delegate_votes_changed_event(&from, old_value, new_value);
             }
             if to != &AccountId::from([0x0; 32]) {
+                let mut store = self.data::<Data>().delegate_checkpoints.get(&to).unwrap_or_default();
                 let (old_value, new_value) = self._push(&mut store, Self::_add, amount)?;
                 self.data::<Data>().delegate_checkpoints.insert(&to, &store);
                 self.emit_delegate_votes_changed_event(&to, old_value, new_value);

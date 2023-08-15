@@ -131,6 +131,10 @@ pub trait GovernorImpl:
     fn propose(&mut self, transactions: Vec<Transaction>, description: String) -> Result<ProposalId, GovernanceError> {
         let proposer = Self::env().caller();
 
+        if transactions.is_empty() {
+            return Err(GovernanceError::ZeroProposalLength)
+        }
+
         if !self._is_valid_description_for_proposer(proposer, description.clone())? {
             return Err(GovernanceError::ProposerRestricted(proposer))
         }
@@ -152,10 +156,6 @@ pub trait GovernorImpl:
         let description_hash = self._hash_description(description.clone())?;
 
         let proposal_id = self.hash_proposal(transactions.clone(), description_hash)?;
-
-        if transactions.len() == 0 {
-            return Err(GovernanceError::ZeroProposalLength)
-        }
 
         if self.data::<Data>().proposals.contains(&proposal_id) {
             return Err(GovernanceError::ProposalAlreadyExists)

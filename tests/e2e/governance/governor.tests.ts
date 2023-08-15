@@ -596,11 +596,9 @@ describe('Governor', function () {
 
   describe('proposal length', function () {
     it('empty', async function () {
-      const {api, helper, deployer} = await setup()
+      const {api, contractGovernance} = await setup()
 
-      helper.addProposal('', [], [], '<description>')
-
-      await expect(helper.propose(deployer)).to.eventually.be.rejected
+      await expect(contractGovernance.tx.propose([], '<description>')).to.eventually.be.rejected
       
       await api.disconnect()
     })

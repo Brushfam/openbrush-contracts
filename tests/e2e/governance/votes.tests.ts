@@ -48,7 +48,7 @@ describe('Votes', function () {
     const {
       api,
       contractVotes,
-    } = await setup()
+    } = await setup(0)
 
     await expect(contractVotes.query.totalSupply()).to.have.bnToNumber(0)
 
@@ -155,7 +155,6 @@ describe('Votes', function () {
       };
 
       const totalSupply = Object.values(amounts).reduce((a, b) => a + b, 0)
-      console.log(totalSupply)
 
       await contractVotes.tx.mint(deployer.address, amounts.account0)
       await contractVotes.tx.mint(account1.address, amounts.account1)

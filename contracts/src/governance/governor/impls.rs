@@ -91,9 +91,10 @@ where
     E: From<GovernanceError>,
 {
     // todo remove comments
-    // if T::env().caller() != T::env().account_id() { todo: maybe _executor()?
-    //     return Err(GovernanceError::OnlyExecutor(T::env().caller()).into())
-    // }
+    if T::env().caller() != T::env().account_id() {
+        // todo: maybe executor
+        return Err(GovernanceError::OnlyExecutor(T::env().caller()).into())
+    }
 
     // if T::env().account_id() != instance._executor() {
     // let transaction = ink::env::decode_input::<Transaction>().map_err(|_| GovernanceError::InvalidInput)?;

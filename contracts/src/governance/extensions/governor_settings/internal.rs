@@ -30,7 +30,7 @@ use crate::{
 use openbrush::traits::Storage;
 
 pub trait GovernorSettingsInternal: Storage<Data> + GovernorSettingsEvents {
-    ///Sets the voting delay
+    /// Sets the voting delay
     fn _set_voting_delay(&mut self, new_voting_delay: u64) -> Result<(), GovernanceError> {
         let old_voting_delay = self.data().voting_delay.get();
         self.data().voting_delay.set(&new_voting_delay);
@@ -38,15 +38,20 @@ pub trait GovernorSettingsInternal: Storage<Data> + GovernorSettingsEvents {
         Ok(())
     }
 
-    ///Sets the voting period
+    /// Sets the voting period
     fn _set_voting_period(&mut self, new_voting_period: u64) -> Result<(), GovernanceError> {
+        if new_voting_period == 0 {
+            return Err(GovernanceError::InvalidVotingPeriod(0))
+        }
+
         let old_voting_period = self.data().voting_period.get();
         self.data().voting_period.set(&new_voting_period);
         self.emit_voting_period_set(old_voting_period, new_voting_period);
+
         Ok(())
     }
 
-    ///Sets the proposal threshold
+    /// Sets the proposal threshold
     fn _set_proposal_threshold(&mut self, new_proposal_threshold: u128) -> Result<(), GovernanceError> {
         let old_proposal_threshold = self.data().proposal_threshold.get();
         self.data().proposal_threshold.set(&new_proposal_threshold);
@@ -54,7 +59,7 @@ pub trait GovernorSettingsInternal: Storage<Data> + GovernorSettingsEvents {
         Ok(())
     }
 
-    ///Initializes the governor settings
+    /// Initializes the governor settings
     fn _init_governor_settings(
         &mut self,
         voting_delay: u64,

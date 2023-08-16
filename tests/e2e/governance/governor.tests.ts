@@ -132,12 +132,6 @@ describe('Governor', function () {
           helper
         } = await setup()
 
-        helper.addProposal(
-          contractVotes.address,
-          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-          [bob.address, new BN(1000), ''],
-          '<description>#proposer=' + SS58ToHex(api, deployer.address)
-        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await expect(helper.propose(deployer)).to.eventually.be.rejected
 
@@ -161,18 +155,10 @@ describe('Governor', function () {
       it('if voting has not started', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractVotes,
           helper
         } = await setup()
 
-        helper.addProposal(
-          contractVotes.address,
-          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-          [bob.address, new BN(1000), ''],
-          '<description>#proposer=' + SS58ToHex(api, deployer.address)
-        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.rejected
 
@@ -183,25 +169,12 @@ describe('Governor', function () {
         const {
           api,
           alice,
-          bob,
-          deployer,
-          contractVotes,
           helper
         } = await setup()
 
-
-        helper.addProposal(
-          contractVotes.address,
-          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-          [bob.address, new BN(1000), ''],
-          '<description>#proposer=' + SS58ToHex(api, deployer.address))
-        console.log(1)
         await expect(helper.propose()).to.eventually.be.fulfilled
-        console.log(2)
         await helper.waitForSnapshot()
-        console.log(3)
         await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.fulfilled
-        console.log(4)
         await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.rejected
 
         await api.disconnect()
@@ -266,12 +239,6 @@ describe('Governor', function () {
           helper
         } = await setup()
 
-        helper.addProposal(
-          contractVotes.address,
-          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-          [bob.address, new BN(1000), ''],
-          '<description>#proposer=' + SS58ToHex(api, deployer.address)
-        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -289,12 +256,6 @@ describe('Governor', function () {
           helper
         } = await setup()
 
-        helper.addProposal(
-          contractVotes.address,
-          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-          [bob.address, new BN(1000), ''],
-          '<description>#proposer=' + SS58ToHex(api, deployer.address)
-        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.against)).to.eventually.be.fulfilled
@@ -312,12 +273,6 @@ describe('Governor', function () {
           helper
         } = await setup()
 
-        helper.addProposal(
-          contractVotes.address,
-          getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-          [bob.address, new BN(1000), ''],
-          '<description>#proposer=' + SS58ToHex(api, deployer.address)
-        )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -329,9 +284,7 @@ describe('Governor', function () {
       it('if receiver revert without reason', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractVotes,
           contractReceiver,
           helper
         } = await setup()
@@ -418,12 +371,6 @@ describe('Governor', function () {
         helper
       } = await setup()
 
-      helper.addProposal(
-        contractVotes.address,
-        getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-        [bob.address, new BN(1000), ''],
-        '<description>#proposer=' + SS58ToHex(api, deployer.address)
-      )
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await expect(helper.state()).to.eventually.be.equals(ProposalState.pending)
       await helper.waitForSnapshot(-1)
@@ -443,12 +390,6 @@ describe('Governor', function () {
         helper
       } = await setup()
 
-      helper.addProposal(
-        contractVotes.address,
-        getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-        [bob.address, new BN(1000), ''],
-        '<description>#proposer=' + SS58ToHex(api, deployer.address)
-      )
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await helper.waitForDeadline()
       await expect(helper.state()).to.eventually.be.equals(ProposalState.active)
@@ -515,9 +456,7 @@ describe('Governor', function () {
       it('after proposal', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractVotes,
           helper
         } = await setup()
 
@@ -742,8 +681,6 @@ describe('Governor', function () {
           '<description>#proposer=' + SS58ToHex(api, deployer.address)
         )
 
-        console.log(SS58ToHex(api, deployer.address))
-
         await expect(helper.propose(alice)).to.eventually.be.rejected
 
         await api.disconnect()
@@ -827,7 +764,7 @@ describe('Governor', function () {
     it('cannot setVotingPeriod to 0 through governance', async function () {
       const {api, contractGovernance, deployer, helper, alice} = await setup()
 
-      const params = helper.paramsToInput(getMessageByName(contractGovernance.abi.messages, 'set_voting_delay').toU8a([0]))
+      const params = helper.paramsToInput(getMessageByName(contractGovernance.abi.messages, 'set_voting_period').toU8a([0]))
 
       helper.addProposal(
         contractGovernance.address,
@@ -841,7 +778,9 @@ describe('Governor', function () {
       await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.fulfilled
       await expect(helper.waitForDeadline(1)).to.eventually.be.fulfilled
 
-      await expect(helper.execute(deployer)).to.eventually.be.rejected
+      await expect(helper.execute()).to.eventually.be.fulfilled
+
+      expect((await contractGovernance.query.votingPeriod()).value.unwrapRecursively()).to.be.eq(10)
 
       await api.disconnect()
     })

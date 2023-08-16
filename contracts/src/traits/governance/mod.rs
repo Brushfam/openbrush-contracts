@@ -39,9 +39,8 @@ pub type Selector = [u8; 4];
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct Transaction {
-    pub callee: Option<AccountId>,
+    pub callee: AccountId,
     pub selector: [u8; 4],
-    pub destination: AccountId,
     pub input: Vec<u8>,
     pub transferred_value: Balance,
     pub gas_limit: u64,

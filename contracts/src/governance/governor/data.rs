@@ -48,8 +48,19 @@ pub struct Data {
     pub governance_call: VecDeque<Transaction>,
 }
 
+/// A wrapper that allows us to encode a blob of bytes.
+///
+/// We use this to pass the set of untyped (bytes) parameters to the `CallBuilder`.
+pub struct CallInput<'a>(pub &'a [u8]);
+
+impl<'a> scale::Encode for CallInput<'a> {
+    fn encode_to<T: scale::Output + ?Sized>(&self, dest: &mut T) {
+        dest.write(self.0);
+    }
+}
+
 pub trait GovernorStorageGetters: Storage<Data> {
-    ///Returns the timestamp when the votes is started for the proposal
+    /// Returns the timestamp when the votes is started for the proposal
     fn _proposal_snapshot(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
         Ok(self
             .data::<Data>()

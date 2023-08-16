@@ -28,7 +28,7 @@
     "mocha": "10.1.0"
   },
   "scripts": {
-    "build": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json",
+    "build": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --toolchain 1.69",
     "build:release:no-compile": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --release --noCompile",
     "build:release": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --release --toolchain 1.69",
     "typechain": "npx @727-ventures/typechain-polkadot --in artifacts --out ./typechain-generated",

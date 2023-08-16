@@ -26,10 +26,10 @@ use crate::{
         governor_votes::GovernorVotesInternal,
     },
     governance::governor::{
+        CallInput,
         Data,
         GovernorEvents,
     },
-    timelock_controller::CallInput,
     traits::{
         errors::governance::GovernanceError,
         governance::{
@@ -50,9 +50,11 @@ use ink::{
     env::{
         call::{
             build_call,
+            Call,
             ExecutionInput,
             Selector,
         },
+        CallFlags,
         DefaultEnvironment,
     },
     prelude::{
@@ -73,7 +75,7 @@ use scale::Encode;
 pub trait GovernorInternal:
     Storage<Data> + GovernorEvents + CountingInternal + GovernorVotesInternal + TimestampProvider
 {
-    ///Hashing function used to (re)build the proposal id from the proposal details.
+    /// Hashing function used to (re)build the proposal id from the proposal details.
     fn _hash_proposal(
         &self,
         transactions: Vec<Transaction>,
@@ -84,7 +86,7 @@ pub trait GovernorInternal:
         crypto::hash_message(message.as_slice()).map_err(|err| err.into())
     }
 
-    ///Current state of a proposal, following Compound's convention
+    /// Current state of a proposal, following Compound's convention
     fn _state(&self, proposal_id: ProposalId) -> Result<ProposalState, GovernanceError> {
         let current_time = self.block_timestamp();
 
@@ -121,19 +123,22 @@ pub trait GovernorInternal:
         }
     }
 
-    ///Returns default parameters for the proposal
+    /// Returns default parameters for the proposal
     fn _default_params(&self) -> Vec<u8> {
         Vec::new()
     }
 
-    ///Executes a proposal if it is in the `Succeeded` state.
+    /// Executes a proposal if it is in the `Succeeded` state.
     fn _execute(&mut self, transactions: Vec<Transaction>, _description_hash: HashType) -> Result<(), GovernanceError> {
         for tx in transactions.iter() {
             build_call::<DefaultEnvironment>()
-                .call(tx.destination.clone())
-                .gas_limit(tx.gas_limit.clone())
-                .transferred_value(tx.transferred_value.clone())
+                .call_type(
+                    Call::new(tx.callee.clone())
+                        .gas_limit(1000000000)
+                        .transferred_value(tx.transferred_value.clone()),
+                )
                 .exec_input(ExecutionInput::new(Selector::new(tx.selector.clone())).push_arg(CallInput(&tx.input)))
+                .call_flags(CallFlags::default().set_allow_reentry(true))
                 .returns::<()>()
                 .try_invoke()
                 .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?
@@ -143,7 +148,7 @@ pub trait GovernorInternal:
         Ok(())
     }
 
-    ///Adds a proposal to the queue of proposals to be executed by the governor.
+    /// Adds a proposal to the queue of proposals to be executed by the governor.
     fn _before_execute(
         &mut self,
         transactions: Vec<Transaction>,
@@ -153,7 +158,7 @@ pub trait GovernorInternal:
         let executor = self._executor();
         if executor != self_address {
             for tx in transactions.iter() {
-                if tx.destination == self_address {
+                if tx.callee == self_address {
                     let mut governance_call = self.data::<Data>().governance_call.get_or_default();
                     governance_call.push_back(tx.clone());
                     self.data::<Data>().governance_call.set(&governance_call);
@@ -163,7 +168,7 @@ pub trait GovernorInternal:
         Ok(())
     }
 
-    ///Removes a proposal from the queue of proposals to be executed by the governor.
+    /// Removes a proposal from the queue of proposals to be executed by the governor.
     fn _after_execute(
         &mut self,
         _transactions: Vec<Transaction>,
@@ -178,7 +183,7 @@ pub trait GovernorInternal:
         Ok(())
     }
 
-    ///Cancels a proposal.
+    /// Cancels a proposal.
     fn _cancel(
         &mut self,
         transactions: Vec<Transaction>,
@@ -208,12 +213,12 @@ pub trait GovernorInternal:
             },
         );
 
-        self.emit_proposal_cancelled(proposal_id.clone());
+        self.emit_proposal_canceled(proposal_id.clone());
 
         Ok(proposal_id)
     }
 
-    ///Casts a vote on a proposal with `proposal_id`, `support`(for/against/abstain) and `reason`.
+    /// Casts a vote on a proposal with `proposal_id`, `support`(for/against/abstain) and `reason`.
     fn _cast_vote(
         &mut self,
         proposal_id: ProposalId,
@@ -224,7 +229,7 @@ pub trait GovernorInternal:
         self._cast_vote_with_params(proposal_id, account, support, reason, self._default_params())
     }
 
-    ///Returns the AccountId of the proposer of a proposal
+    /// Returns the AccountId of the proposer of a proposal
     fn _proposal_proposer(&self, proposal_id: ProposalId) -> Result<AccountId, GovernanceError> {
         Ok(self
             .data::<Data>()
@@ -234,7 +239,7 @@ pub trait GovernorInternal:
             .proposer)
     }
 
-    ///Casts a vote on a proposal with `proposal_id`, `support`(for/against/abstain), `reason` and `params`.
+    /// Casts a vote on a proposal with `proposal_id`, `support`(for/against/abstain), `reason` and `params`.
     fn _cast_vote_with_params(
         &mut self,
         proposal_id: ProposalId,
@@ -274,12 +279,12 @@ pub trait GovernorInternal:
         Ok(weight)
     }
 
-    ///Returns the AccountId of the executor.
+    /// Returns the AccountId of the executor.
     fn _executor(&self) -> AccountId {
         Self::env().account_id()
     }
 
-    ///Checks if the `description` is valid for the `proposer`.
+    /// Checks if the `description` is valid for the `proposer`.
     fn _is_valid_description_for_proposer(
         &self,
         proposer: AccountId,
@@ -302,20 +307,20 @@ pub trait GovernorInternal:
         Ok(description.ends_with(&result))
     }
 
-    ///Returns amount of votes that voter needs to have to be able to vote.
+    /// Returns amount of votes that voter needs to have to be able to vote.
     fn _proposal_threshold(&self) -> u128 {
         0
     }
 
-    ///Return the hash of the description.
+    /// Return the hash of the description.
     fn _hash_description(&self, description: String) -> Result<HashType, GovernanceError> {
         Ok(crypto::hash_message(description.as_bytes())?)
     }
 }
 
-///Provides custom timestamp functionality.
+/// Provides custom timestamp functionality.
 pub trait TimestampProvider: DefaultEnv {
-    ///Returns the current block timestamp.
+    /// Returns the current block timestamp.
     fn block_timestamp(&self) -> u64 {
         Self::env().block_timestamp()
     }

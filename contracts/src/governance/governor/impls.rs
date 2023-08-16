@@ -86,33 +86,34 @@ use scale::Encode;
 #[openbrush::modifier_definition]
 pub fn only_governance<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
 where
-    T: GovernorInternal + Storage<Data>,
+    T: Storage<Data>,
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<GovernanceError>,
 {
-    if T::env().caller() != instance._executor() {
-        return Err(GovernanceError::OnlyExecutor(T::env().caller()).into())
-    }
+    // todo remove comments
+    // if T::env().caller() != T::env().account_id() { todo: maybe _executor()?
+    //     return Err(GovernanceError::OnlyExecutor(T::env().caller()).into())
+    // }
 
-    if T::env().account_id() != instance._executor() {
-        let transaction = ink::env::decode_input::<Transaction>().map_err(|_| GovernanceError::InvalidInput)?;
-
-        while instance
-            .data::<Data>()
-            .governance_call
-            .get_or_default()
-            .pop_front()
-            .ok_or(GovernanceError::ExecutionFailed(transaction.clone()))?
-            != transaction
-        {}
-    }
+    // if T::env().account_id() != instance._executor() {
+    // let transaction = ink::env::decode_input::<Transaction>().map_err(|_| GovernanceError::InvalidInput)?;
+    //
+    // while instance
+    // .data::<Data>()
+    // .governance_call
+    // .get_or_default()
+    // .pop_front()
+    // .ok_or(GovernanceError::ExecutionFailed(transaction.clone()))?
+    // != transaction
+    // {}
+    // }
 
     body(instance)
 }
 
-///Core of the governance system, designed to be extended though various modules.
+/// Core of the governance system, designed to be extended though various modules.
 ///
-///This contract is abstract and requires several functions to be implemented in various modules:
+/// This contract is abstract and requires several functions to be implemented in various modules:
 ///
 /// - A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
 /// - A voting module must implement {_getVotes}
@@ -128,7 +129,7 @@ pub trait GovernorImpl:
     + GovernorStorageGetters
     + TimestampProvider
 {
-    ///Hashing function used to (re)build the proposal id from the proposal details.
+    /// Hashing function used to (re)build the proposal id from the proposal details.
     fn hash_proposal(
         &self,
         transactions: Vec<Transaction>,
@@ -137,17 +138,17 @@ pub trait GovernorImpl:
         self._hash_proposal(transactions, description_hash).into()
     }
 
-    ///Current state of a proposal, following Compound's convention
+    /// Current state of a proposal, following Compound's convention
     fn state(&self, proposal_id: ProposalId) -> Result<ProposalState, GovernanceError> {
         self._state(proposal_id)
     }
 
-    ///Returns timestamp at which votes for a proposal starts
+    /// Returns timestamp at which votes for a proposal starts
     fn proposal_snapshot(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
         self._proposal_snapshot(proposal_id)
     }
 
-    ///Returns timestamp at which votes for a proposal ends
+    /// Returns timestamp at which votes for a proposal ends
     fn proposal_deadline(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
         self.data::<Data>()
             .proposals
@@ -156,11 +157,11 @@ pub trait GovernorImpl:
             .deadline()
     }
 
-    ///Returns the AccountId of the proposer of a proposal
+    /// Returns the AccountId of the proposer of a proposal
     fn proposal_proposer(&self, proposal_id: ProposalId) -> Result<AccountId, GovernanceError> {
         self._proposal_proposer(proposal_id)
     }
-    ///Returns the number of votes already casted for a proposal by a given account
+    /// Returns the number of votes already casted for a proposal by a given account
     fn get_votes_with_params(
         &mut self,
         account: AccountId,
@@ -170,7 +171,7 @@ pub trait GovernorImpl:
         self._get_votes(account, timestamp, params)
     }
 
-    ///Makes a proposal for a list of transactions to be executed.
+    /// Makes a proposal for a list of transactions to be executed.
     /// Returns the id of the proposal
     fn propose(&mut self, transactions: Vec<Transaction>, description: String) -> Result<ProposalId, GovernanceError> {
         let proposer = Self::env().caller();
@@ -232,7 +233,7 @@ pub trait GovernorImpl:
         Ok(proposal_id)
     }
 
-    ///Executes a proposal if it is in the `Succeeded` state.
+    /// Executes a proposal if it is in the `Succeeded` state.
     /// Returns the id of the executed proposal
     fn execute(
         &mut self,
@@ -276,7 +277,7 @@ pub trait GovernorImpl:
         Ok(proposal_id)
     }
 
-    ///Cancels a proposal if it is in the `Pending` state.
+    /// Cancels a proposal if it is in the `Pending` state.
     /// Returns the id of the cancelled proposal
     fn cancel(
         &mut self,
@@ -304,7 +305,7 @@ pub trait GovernorImpl:
         self._cancel(transactions, description_hash)
     }
 
-    ///Casts a vote for a proposal from a message sender.
+    /// Casts a vote for a proposal from a message sender.
     /// Returns the number of votes already casted for the proposal by the sender
     fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType) -> Result<Balance, GovernanceError> {
         let voter = Self::env().caller();
@@ -312,7 +313,7 @@ pub trait GovernorImpl:
         self._cast_vote(proposal_id, voter, support, String::new())
     }
 
-    ///Casts a vote with reason for a proposal from a message sender.
+    /// Casts a vote with reason for a proposal from a message sender.
     /// Returns the number of votes already casted for the proposal by the sender
     fn cast_vote_with_reason(
         &mut self,
@@ -324,7 +325,7 @@ pub trait GovernorImpl:
 
         self._cast_vote_with_params(proposal_id, voter, support, reason, Vec::new())
     }
-    ///Casts a vote with reason and parameters for a proposal from a message sender.
+    /// Casts a vote with reason and parameters for a proposal from a message sender.
     /// Returns the number of votes already casted for the proposal by the sender
     fn cast_vote_with_reason_and_params(
         &mut self,
@@ -338,7 +339,7 @@ pub trait GovernorImpl:
         self._cast_vote_with_params(proposal_id, voter, support, reason, params)
     }
 
-    ///Casts a vote with signature for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
+    /// Casts a vote with signature for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
     fn cast_vote_with_signature(
         &mut self,
         proposal_id: ProposalId,
@@ -362,7 +363,7 @@ pub trait GovernorImpl:
         self._cast_vote(proposal_id, voter, support, reason)
     }
 
-    ///Casts a vote with signature and parameters for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
+    /// Casts a vote with signature and parameters for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
     fn cast_vote_with_signature_and_params(
         &mut self,
         proposal_id: ProposalId,
@@ -387,9 +388,9 @@ pub trait GovernorImpl:
         self._cast_vote_with_params(proposal_id, voter, support, reason, params)
     }
 
-    ///Relays a transaction or function call to an arbitrary target. In cases where the governance executor
-    ///is some contract other than the governor itself, like when using a timelock, this function can be invoked
-    ///in a governance proposal to recover tokens or Ether that was sent to the governor contract by mistake.
+    /// Relays a transaction or function call to an arbitrary target. In cases where the governance executor
+    /// is some contract other than the governor itself, like when using a timelock, this function can be invoked
+    /// in a governance proposal to recover tokens or Ether that was sent to the governor contract by mistake.
     #[modifiers(only_governance)]
     fn relay(&mut self, target: AccountId, transaction: Transaction) -> Result<(), GovernanceError> {
         build_call::<DefaultEnvironment>()

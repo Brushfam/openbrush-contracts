@@ -3,10 +3,11 @@ import {Transaction, VoteType} from '../../../typechain-generated/types-argument
 import ContractGovernance from '../../../typechain-generated/contracts/my_governor'
 import {KeyringPair} from '@polkadot/keyring/types'
 import {blake2AsU8a} from '@polkadot/util-crypto'
-import {ProposalState} from "../../../typechain-generated/types-returns/my_governor";
-import ContractVotes from "../../../typechain-generated/contracts/my_psp22_votes"
-import {ReturnNumber} from "@727-ventures/typechain-types";
-import {bool} from "@polkadot/types-codec";
+import {ProposalState} from '../../../typechain-generated/types-returns/my_governor'
+import ContractVotes from '../../../typechain-generated/contracts/my_psp22_votes'
+import {ReturnNumber} from '@727-ventures/typechain-types'
+import {bool} from '@polkadot/types-codec'
+import {hexToNumbers} from "../helpers";
 
 export class GovernorHelper {
   private proposal: Transaction | undefined;
@@ -20,11 +21,24 @@ export class GovernorHelper {
     this.token = token
   }
 
+  paramsToInput(params: Uint8Array) {
+    let ecdStr = ''
+    for (let i = 1; i < params.length; ++i) {
+      let stemp = params[i].toString(16)
+      if (stemp.length < 2) {
+        stemp = '0' + stemp
+      }
+      ecdStr += stemp
+    }
+    const selector = hexToNumbers(ecdStr.substring(0, 8))
+    const data = hexToNumbers(ecdStr.substring(8))
+    return { selector, data }
+  }
+
   addProposal(callee: string, selector: number[], input: (string | number | BN)[], description: string) {
     this.proposal = {
       callee: callee,
       selector: selector,
-      destination: callee,
       input: input,
       transferredValue: 0,
       gasLimit: 1000000000000
@@ -148,6 +162,7 @@ export class GovernorHelper {
       await this.governor?.withSigner(proposer).tx.execute([this.proposal!], descriptionHash)
     }
     else {
+      console.log((await this.governor?.query.execute([this.proposal!], descriptionHash))?.value.ok!.err)
       await this.governor?.tx.execute([this.proposal!], descriptionHash)
     }
   }

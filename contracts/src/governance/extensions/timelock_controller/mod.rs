@@ -19,17 +19,20 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::traits::{
-    errors::TimelockControllerError,
-    governance::extensions::timelock_controller::{
-        OperationId,
-        Transaction,
-    },
-};
 pub use crate::{
     access_control,
     timelock_controller,
     traits::access_control::*,
+};
+use crate::{
+    governor::CallInput,
+    traits::{
+        errors::TimelockControllerError,
+        governance::extensions::timelock_controller::{
+            OperationId,
+            Transaction,
+        },
+    },
 };
 pub use access_control::{
     AccessControlImpl,
@@ -479,16 +482,5 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
 
     fn _get_timestamp(&self, id: OperationId) -> Timestamp {
         self.data::<Data>().timestamps.get(&id).unwrap_or(Timestamp::default())
-    }
-}
-
-/// A wrapper that allows us to encode a blob of bytes.
-///
-/// We use this to pass the set of untyped (bytes) parameters to the `CallBuilder`.
-pub struct CallInput<'a>(&'a [u8]);
-
-impl<'a> scale::Encode for CallInput<'a> {
-    fn encode_to<T: scale::Output + ?Sized>(&self, dest: &mut T) {
-        dest.write(self.0);
     }
 }

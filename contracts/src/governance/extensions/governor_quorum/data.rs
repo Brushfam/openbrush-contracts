@@ -25,6 +25,7 @@ use crate::checkpoint::Checkpoints;
 #[derive(Debug, Default)]
 #[openbrush::storage_item]
 pub struct Data {
+    /// Stores the quorum numerator history of the governor
     #[lazy]
     pub quorum_numerator_history: Checkpoints,
 }

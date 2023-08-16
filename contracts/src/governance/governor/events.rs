@@ -34,6 +34,7 @@ use openbrush::traits::{
 };
 
 pub trait GovernorEvents {
+    /// Emitted when a proposal is created
     fn emit_proposal_created(
         &self,
         _proposal_id: ProposalId,
@@ -46,14 +47,17 @@ pub trait GovernorEvents {
         ()
     }
 
-    fn emit_proposal_cancelled(&self, _proposal_id: ProposalId) {
+    /// Emitted when a proposal is canceled
+    fn emit_proposal_canceled(&self, _proposal_id: ProposalId) {
         ()
     }
 
+    /// Emitted when a proposal is executed
     fn emit_proposal_executed(&self, _proposal_id: ProposalId) {
         ()
     }
 
+    /// Emitted when the vote is casted
     fn emit_vote_cast(
         &self,
         _proposal_id: ProposalId,
@@ -65,6 +69,7 @@ pub trait GovernorEvents {
         ()
     }
 
+    /// Emitted when the vote is casted with params
     fn emit_vote_cast_with_params(
         &self,
         _proposal_id: ProposalId,

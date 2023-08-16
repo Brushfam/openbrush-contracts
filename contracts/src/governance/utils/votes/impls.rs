@@ -44,7 +44,9 @@ use openbrush::traits::{
 };
 use scale::Encode;
 
+///Common interface for {PSP22Votes}, and other {Votes}-enabled contracts.
 pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + TimestampProvider {
+    ///The amount of votes owned by `account`.
     fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
         Ok(self
             .data::<Data>()
@@ -54,6 +56,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
             .latest())
     }
 
+    ///The amount of votes delegated to `account` at the time `timestamp`.
     fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
         let current_block_timestamp = TimestampProvider::block_timestamp(self);
         if timestamp > current_block_timestamp {
@@ -71,6 +74,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
         }
     }
 
+    ///The total amount of votes at the time `timestamp`.
     fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
         let current_block_timestamp = TimestampProvider::block_timestamp(self);
         if timestamp > current_block_timestamp {
@@ -84,15 +88,18 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
         }
     }
 
+    ///Returns the address delegated to by `delegator`.
     fn delegates(&mut self, delegator: AccountId) -> Option<AccountId> {
         self._delegates(&Some(delegator))
     }
 
+    ///Delegate votes from `signer` to `delegatee`.
     fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError> {
         let account = Self::env().caller();
         self._delegate(&Some(account), &Some(delegatee))
     }
 
+    ///Delegate votes from `signer` to `delegatee` using a signature.
     fn delegate_by_signature(
         &mut self,
         signer: AccountId,

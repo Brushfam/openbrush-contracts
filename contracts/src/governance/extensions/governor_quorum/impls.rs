@@ -38,13 +38,17 @@ use openbrush::traits::{
     Storage,
     Timestamp,
 };
+use crate::governor::only_governance;
 
+///Extension of {Governor} for voting weight extraction from an {PSP22Votes} token and a quorum expressed as a
+///fraction of the total supply.
 pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumEvents + TimestampProvider {
-    /// Constructor
+    /// Initializes the quorum numerator
     fn _init_quorum_numerator(&mut self, numerator: u128) -> Result<(), GovernanceError> {
         self._update_quorum_numerator(numerator)
     }
 
+    ///Returns the current quorum numerator
     fn quorum_numerator(&self) -> u128 {
         let history = self.data::<Data>().quorum_numerator_history.get_or_default();
 
@@ -57,6 +61,7 @@ pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumEven
         }
     }
 
+    ///Returns the quorum numerator at a given timestamp
     fn quorum_numerator_at(&self, time_point: Timestamp) -> u128 {
         let history = self.data::<Data>().quorum_numerator_history.get_or_default();
 
@@ -73,11 +78,12 @@ pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumEven
         history.upper_lookup_recent(time_point).unwrap_or(0)
     }
 
-    /// may be overriden by the contract
+    ///Returns the current quorum denominator. May be overridden by a derived contract.
     fn quorum_denominator(&self) -> u128 {
         100
     }
 
+    ///Returns the quorum at a given timestamp
     fn quorum(&self, time_point: Timestamp) -> Result<u128, GovernanceError> {
         let mut token = self
             .data::<governor_votes::Data>()
@@ -94,11 +100,13 @@ pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumEven
             .ok_or(GovernanceError::Overflow)
     }
 
-    // TODO: [only-governance]
+    ///Updates the quorum numerator
+    #[openbrush::modifiers(only_governance)]
     fn update_quorum_numerator(&mut self, numerator: u128) -> Result<(), GovernanceError> {
         self._update_quorum_numerator(numerator)
     }
 
+    ///Updates the quorum numerator and adds a checkpoint to the history. Emits a {QuorumNumeratorUpdated} event.
     fn _update_quorum_numerator(&mut self, new_quorum_numerator: u128) -> Result<(), GovernanceError> {
         let denominator = self.quorum_denominator();
 

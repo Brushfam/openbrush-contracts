@@ -68,7 +68,7 @@ pub trait Governor {
     #[ink(message)]
     fn proposal_deadline(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError>;
 
-    ///Reeturns the AccountId of the proposer of a proposal
+    ///Returns the AccountId of the proposer of a proposal
     #[ink(message)]
     fn proposal_proposer(&self, proposal_id: ProposalId) -> Result<AccountId, GovernanceError>;
 

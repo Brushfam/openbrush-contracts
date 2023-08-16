@@ -26,6 +26,7 @@ use crate::traits::{
 };
 use ink::primitives::AccountId;
 
+/// Verifies the signature of a message hash with the account
 pub fn verify_signature(
     message_hash: &[u8; 32],
     account: &AccountId,
@@ -44,6 +45,7 @@ pub fn verify_signature(
     Ok(true)
 }
 
+/// Hashes a message
 pub fn hash_message(message: &[u8]) -> Result<[u8; 32], CryptoError> {
     let mut output = [0u8; 32];
 
@@ -52,10 +54,12 @@ pub fn hash_message(message: &[u8]) -> Result<[u8; 32], CryptoError> {
     Ok(output)
 }
 
+/// Converts a public key to SS58
 pub fn pub_key_to_ss58(pub_key: &[u8; 33]) -> Result<AccountId, CryptoError> {
     hash_message(pub_key).map(|hash| AccountId::from(hash))
 }
 
+/// Converts a public key to an Ethereum address
 pub fn pub_key_to_eth_address(pub_key: &[u8; 33]) -> Result<[u8; 20], CryptoError> {
     let mut output = [0u8; 20];
 

@@ -39,6 +39,7 @@ use openbrush::traits::{
 };
 
 pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters {
+    /// Returns true if the quorum is reached for the given proposal, false otherwise
     fn _quorum_reached(&self, proposal_id: ProposalId) -> Result<bool, GovernanceError> {
         let proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
         let num_votes = proposal_vote
@@ -49,12 +50,14 @@ pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters 
         Ok(self.quorum(self._proposal_snapshot(proposal_id)?)? <= num_votes)
     }
 
+    /// Returns true if the proposal has succeeded, false otherwise
     fn _vote_succeeded(&self, proposal_id: ProposalId) -> Result<bool, GovernanceError> {
         let proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
 
         Ok(proposal_vote.for_votes > proposal_vote.against_votes)
     }
 
+    ///Adds a `account`'s vote to `proposal_id` with `weight` votes, to the `support` side.
     fn _count_vote(
         &mut self,
         proposal_id: ProposalId,

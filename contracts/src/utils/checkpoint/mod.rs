@@ -23,6 +23,11 @@
 pub use crate::traits::errors::CheckpointsError;
 use ink::prelude::vec::Vec;
 
+///Struct, for checkpointing values as they change at different points in
+///time, and later looking up past values by block number. See {Votes} as an example.
+///
+/// To create a history of checkpoints define a variable type `Checkpoints` in your contract, and store a new
+/// checkpoint for the current transaction block using the {push} function.
 #[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct Checkpoints {
@@ -127,6 +132,7 @@ impl Checkpoints {
         self.checkpoints.len()
     }
 
+    /// Returns the checkpoint at the given index, or None if there is none.
     pub fn at(&self, index: usize) -> Option<&Checkpoint> {
         let len = self.checkpoints.len();
         match index < len {
@@ -135,6 +141,7 @@ impl Checkpoints {
         }
     }
 
+    ///Inserts a (`key`, `value`) pair into a Checkpoints so that it is stored as the checkpoint.
     fn _insert(&mut self, key: u64, value: u128) -> Result<(u128, u128), CheckpointsError> {
         let pos = self.checkpoints.len();
 
@@ -157,6 +164,8 @@ impl Checkpoints {
         }
     }
 
+    ///Return the index of the last (most recent) checkpoint with key lower or equal than the search key, or `high` if there is none.
+    ///`low` and `high` define a section where to do the search, with inclusive `low` and exclusive `high`.
     fn _upper_binary_lookup(&self, key: u64, mut low: usize, mut high: usize) -> usize {
         while low < high {
             let mid = (low + high) / 2;
@@ -168,7 +177,8 @@ impl Checkpoints {
         }
         high
     }
-
+    ///Return the index of the first (oldest) checkpoint with key is greater or equal than the search key, or `high` if there is none.
+    /// `low` and `high` define a section where to do the search, with inclusive `low` and exclusive `high`.
     fn _lower_binary_lookup(&self, key: u64, mut low: usize, mut high: usize) -> usize {
         while low < high {
             let mid = (low + high) / 2;

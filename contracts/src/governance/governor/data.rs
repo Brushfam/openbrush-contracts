@@ -40,12 +40,16 @@ use openbrush::{
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
+    /// Stores the proposals
+    /// The key is the proposal id and the value is the proposal core
     pub proposals: Mapping<ProposalId, ProposalCore>,
+    /// Stored the cross-contract calls that are executed when a proposal is approved
     #[lazy]
     pub governance_call: VecDeque<Transaction>,
 }
 
 pub trait GovernorStorageGetters: Storage<Data> {
+    ///Returns the timestamp when the votes is started for the proposal
     fn _proposal_snapshot(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
         Ok(self
             .data::<Data>()

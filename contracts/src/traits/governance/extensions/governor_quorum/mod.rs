@@ -30,6 +30,7 @@ pub trait Quorum {
     ///Returns the current quorum numerator
     #[ink(message)]
     fn quorum_numerator(&self) -> u128;
+
     ///Returns the quorum numerator at a given timestamp
     #[ink(message)]
     fn quorum_numerator_at(&self, timestamp: Timestamp) -> u128;

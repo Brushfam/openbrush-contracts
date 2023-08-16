@@ -30,14 +30,20 @@ use openbrush::traits::{
     String,
 };
 
+///Extension of {Governor} for simple, 3 options, vote counting.
 #[openbrush::trait_definition]
 pub trait GovernorCounting {
+    ///Returns the current counting mode
     #[ink(message)]
     fn counting_mode(&self) -> String;
 
+    ///Returns `true` if the account has voted for the proposal, `false` otherwise
     #[ink(message)]
     fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool;
 
+    ///Returns the tuple (for, against, abstain) votes for a proposal, where `for` is the total
+    ///number of votes for the proposal, `against` is the total number of votes against the
+    ///proposal, and `abstain` is the total number of abstained votes.
     #[ink(message)]
     fn proposal_votes(&self, proposal_id: ProposalId) -> Result<(Balance, Balance, Balance), GovernanceError>;
 }

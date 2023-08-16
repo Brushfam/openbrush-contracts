@@ -62,11 +62,11 @@ export class GovernorHelper {
     }
 
     if(proposer) {
-      console.log((await this.governor?.query.propose([this.proposal!], this.description!))?.value)
+      // console.log((await this.governor?.query.propose([this.proposal!], this.description!))?.value)
       await this.governor?.withSigner(proposer).tx.propose([this.proposal!], this.description!)
     }
     else {
-      console.log((await this.governor?.query.propose([this.proposal!], this.description!))?.value)
+      // console.log((await this.governor?.query.propose([this.proposal!], this.description!))?.value)
       await this.governor?.tx.propose([this.proposal!], this.description!)
     }
   }
@@ -86,6 +86,20 @@ export class GovernorHelper {
 
     await this.governor?.tx.setBlockTimestamp(proposalSnapshot + offset)
     await this.token?.tx.setBlockTimestamp(proposalSnapshot + offset)
+    // console.log(proposalSnapshot + offset)
+  }
+
+  async increaseBlockTimestamp(timestamp = 0) {
+    if (this.proposal === undefined || this.description === undefined){
+      throw new Error('Proposal not set')
+    }
+
+    if(this.proposalId === undefined) {
+      this.proposalId = await this.getProposalId()
+    }
+
+    await this.governor?.tx.increaseBlockTimestamp(timestamp)
+    await this.token?.tx.increaseBlockTimestamp(timestamp)
   }
 
   async castVote(voter: KeyringPair, vote: VoteType) {
@@ -180,12 +194,12 @@ export class GovernorHelper {
       this.proposalId = await this.getProposalId()
     }
 
-    console.log('has voted')
-    console.log((await this.governor?.query.hasVoted(this.proposalId as unknown as number[], voter.address))?.value.ok!)
+    // console.log('has voted')
+    // console.log((await this.governor?.query.hasVoted(this.proposalId as unknown as number[], voter.address))?.value.ok!)
     return (await this.governor?.query.hasVoted(this.proposalId as unknown as number[], voter.address))?.value.ok!
   }
 
-  async proposalVotes(): Promise<number[]> {
+  async proposalVotes(): Promise<string> {
     if (this.proposal === undefined || this.description === undefined){
       throw new Error('Proposal not set')
     }
@@ -195,7 +209,8 @@ export class GovernorHelper {
     }
 
     const votes = (await this.governor?.query.proposalVotes(this.proposalId as unknown as number[]))?.value.ok!.ok!
-    return [votes[0].rawNumber.toNumber(), votes[1].rawNumber.toNumber(), votes[2].rawNumber.toNumber()]
+    const votesArr = Array.from(votes.map((vote) => vote.toNumber()))
+    return votesArr.toString()
   }
 
   async getVotes(voter: KeyringPair): Promise<number|undefined> {

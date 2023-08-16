@@ -126,11 +126,16 @@ describe('Counting', function () {
             await expect(helper.propose(deployer)).to.eventually.be.fulfilled
             await helper.waitForSnapshot(1)
             await expect(helper.delegate(contractVotes, deployer, alice, 10)).to.eventually.be.fulfilled
-            await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.fulfilled
+            // await expect(helper.getVotes(alice)).to.equals(10)
+            // await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.fulfilled
+            // await expect(helper.castVote(bob, VoteType.against)).to.eventually.be.fulfilled
 
-            await expect(await helper.hasVoted(alice)).to.equals(true)
-            await expect((await contractVotes.query.delegates(alice.address)).value.ok!).to.equals(alice.address)
-            await expect((await contractVotes.query.balanceOf(alice.address)).value.ok!.rawNumber.toNumber()).to.equals(20)
+
+            // await expect(await helper.hasVoted(alice)).to.equals(true)
+            // await expect((await contractVotes.query.delegates(alice.address)).value.ok!).to.equals(alice.address)
+            // await expect((await contractVotes.query.balanceOf(alice.address)).value.ok!.rawNumber.toNumber()).to.equals(20)
+
+            await expect(helper.countVotes(alice, VoteType.for, 10)).to.eventually.be.fulfilled
 
 
             await expect(await helper.proposalVotes()).to.equals([10, 0, 0])

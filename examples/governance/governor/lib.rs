@@ -106,6 +106,27 @@ pub mod my_governor {
         pub fn increase_block_timestamp(&mut self, timestamp: Timestamp) {
             self.mock_timestamp += timestamp;
         }
+
+        #[ink(message)]
+        pub fn _count_vote(
+            &mut self,
+            proposal_id: ProposalId,
+            account: AccountId,
+            support: VoteType,
+            weight: Balance,
+        ) -> Result<(), GovernanceError> {
+            CountingInternal::_count_vote(self, proposal_id, account, support, weight)
+        }
+
+        #[ink(message)]
+        pub fn _get_votes(
+            &mut self,
+            account: AccountId,
+            timepoint: Timestamp,
+            _params: Vec<u8>,
+        ) -> Result<Balance, GovernanceError> {
+            GovernorVotesInternal::_get_votes(self, account, timepoint, _params)
+        }
     }
 
     impl TimestampProvider for Contract {

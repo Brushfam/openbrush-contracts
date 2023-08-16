@@ -191,4 +191,32 @@ export class GovernorHelper {
     const votes = (await this.governor?.query.proposalVotes(this.proposalId as unknown as number[]))?.value.ok!.ok!
     return [votes[0].rawNumber.toNumber(), votes[1].rawNumber.toNumber(), votes[2].rawNumber.toNumber()]
   }
+
+  async getVotes(voter: KeyringPair): Promise<number|undefined> {
+    if (this.proposal === undefined || this.description === undefined){
+      throw new Error('Proposal not set')
+    }
+
+    if(this.proposalId === undefined) {
+      this.proposalId = await this.getProposalId()
+    }
+
+    const proposalSnapshot = (await this.governor?.query.proposalSnapshot(this.proposalId as unknown as number[]))?.value.ok!.ok
+
+    if(proposalSnapshot === undefined) throw new Error('Proposal snapshot not set')
+
+    return (await this.governor?.query.getVotes(voter.address, proposalSnapshot, []))?.value.ok!.ok!.toNumber()
+  }
+
+  async countVotes(voter: KeyringPair, support: VoteType,  weight: number): Promise<void> {
+    if (this.proposal === undefined || this.description === undefined){
+      throw new Error('Proposal not set')
+    }
+
+    if(this.proposalId === undefined) {
+      this.proposalId = await this.getProposalId()
+    }
+
+    await this.governor?.tx.countVote(this.proposalId as unknown as number[], voter.address, support,  weight)
+  }
 }

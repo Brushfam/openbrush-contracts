@@ -162,7 +162,6 @@ export class GovernorHelper {
       await this.governor?.withSigner(proposer).tx.execute([this.proposal!], descriptionHash)
     }
     else {
-      console.log((await this.governor?.query.execute([this.proposal!], descriptionHash))?.value.ok!.err)
       await this.governor?.tx.execute([this.proposal!], descriptionHash)
     }
   }

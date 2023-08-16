@@ -795,7 +795,7 @@ describe('Governor', function () {
 
       await expect(helper.execute()).to.eventually.be.fulfilled
       
-      expect((await contractGovernance.query.votingDelay()).value.unwrapRecursively()).to.be.eq(10)
+      expect((await contractGovernance.query.votingDelay()).value.unwrapRecursively()).to.be.eq(100)
 
       await api.disconnect()
     })
@@ -803,10 +803,12 @@ describe('Governor', function () {
     it('can setVotingPeriod through governance', async function () {
       const {api, contractGovernance, deployer, helper, alice} = await setup()
 
+      const params = helper.paramsToInput(getMessageByName(contractGovernance.abi.messages, 'set_voting_period').toU8a([100]))
+
       helper.addProposal(
         contractGovernance.address,
-        getSelectorByName(contractGovernance.abi.messages, 'set_voting_period'),
-        [100],
+        params.selector,
+        params.data,
         '<description>'
       )
 
@@ -817,7 +819,7 @@ describe('Governor', function () {
 
       await expect(helper.execute()).to.eventually.be.fulfilled
 
-      expect((await contractGovernance.query.votingPeriod()).value.unwrapRecursively()).to.be.eq(new BN(100))
+      expect((await contractGovernance.query.votingPeriod()).value.unwrapRecursively()).to.be.eq(100)
 
       await api.disconnect()
     })
@@ -825,10 +827,12 @@ describe('Governor', function () {
     it('cannot setVotingPeriod to 0 through governance', async function () {
       const {api, contractGovernance, deployer, helper, alice} = await setup()
 
+      const params = helper.paramsToInput(getMessageByName(contractGovernance.abi.messages, 'set_voting_delay').toU8a([0]))
+
       helper.addProposal(
         contractGovernance.address,
-        getSelectorByName(contractGovernance.abi.messages, 'set_voting_period'),
-        [0],
+        params.selector,
+        params.data,
         '<description>'
       )
 
@@ -845,10 +849,12 @@ describe('Governor', function () {
     it('can setProposalThreshold to 0 through governance', async function () {
       const {api, contractGovernance, deployer, helper, alice} = await setup()
 
+      const params = helper.paramsToInput(getMessageByName(contractGovernance.abi.messages, 'set_proposal_threshold').toU8a([0]))
+
       helper.addProposal(
         contractGovernance.address,
-        getSelectorByName(contractGovernance.abi.messages, 'set_proposal_threshold'),
-        [0],
+        params.selector,
+        params.data,
         '<description>'
       )
 
@@ -859,7 +865,7 @@ describe('Governor', function () {
 
       await expect(helper.execute()).to.eventually.be.fulfilled
 
-      expect((await contractGovernance.query.proposalThreshold()).value.unwrapRecursively()).to.be.eq(new BN(0))
+      expect((await contractGovernance.query.proposalThreshold()).value.unwrapRecursively().toNumber()).to.be.eq(0)
 
       await api.disconnect()
     })

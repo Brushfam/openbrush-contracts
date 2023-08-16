@@ -3,6 +3,7 @@ use crate::{
         Data,
         VotesEvents,
     },
+    governor::TimestampProvider,
     traits::errors::{
         CheckpointsError,
         GovernanceError,
@@ -18,7 +19,7 @@ use openbrush::traits::{
     Storage,
 };
 
-pub trait VotesInternal: Storage<Data> + VotesEvents {
+pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
     fn _get_total_supply(&self) -> Balance {
         self.data::<Data>().total_checkpoints.get_or_default().latest()
     }
@@ -128,7 +129,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents {
         delta: Balance,
     ) -> Result<(u128, u128), GovernanceError> {
         let (old_value, new_value) = store
-            .push(Self::env().block_timestamp(), op(store.latest(), delta)?)
+            .push(TimestampProvider::block_timestamp(self), op(store.latest(), delta)?)
             .map_err(|err| <CheckpointsError as Into<GovernanceError>>::into(err))?;
         Ok((old_value, new_value))
     }

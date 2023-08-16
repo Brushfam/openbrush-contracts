@@ -278,7 +278,7 @@ pub trait GovernorImpl:
     }
 
     /// Cancels a proposal if it is in the `Pending` state.
-    /// Returns the id of the cancelled proposal
+    /// Returns the id of the canceled proposal
     fn cancel(
         &mut self,
         transactions: Vec<Transaction>,

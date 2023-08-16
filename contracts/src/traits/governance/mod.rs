@@ -56,7 +56,7 @@ pub enum ExecutionStatus {
 
 #[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
-pub enum CancellationStatus {
+pub enum CancelationStatus {
     #[default]
     NotCanceled,
     Canceled,
@@ -69,7 +69,7 @@ pub struct ProposalCore {
     pub vote_start: Timestamp,
     pub vote_duration: Timestamp,
     pub executed: ExecutionStatus,
-    pub cancelled: CancellationStatus,
+    pub canceled: CancelationStatus,
 }
 
 impl Default for ProposalCore {
@@ -79,7 +79,7 @@ impl Default for ProposalCore {
             vote_start: Default::default(),
             vote_duration: Default::default(),
             executed: Default::default(),
-            cancelled: Default::default(),
+            canceled: Default::default(),
         }
     }
 }
@@ -91,7 +91,7 @@ impl ProposalCore {
             vote_start,
             vote_duration,
             executed: ExecutionStatus::NotExecuted,
-            cancelled: CancellationStatus::NotCanceled,
+            canceled: CancelationStatus::NotCanceled,
         }
     }
 
@@ -100,7 +100,7 @@ impl ProposalCore {
     }
 
     pub fn is_canceled(&self) -> bool {
-        self.cancelled == CancellationStatus::Canceled
+        self.canceled == CancelationStatus::Canceled
     }
 
     pub fn deadline(&self) -> Result<u64, GovernanceError> {

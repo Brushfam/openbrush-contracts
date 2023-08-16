@@ -1,6 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(AccessControl)]
 #[openbrush::contract]
 pub mod my_governor {
     use ink::prelude::vec::Vec;
@@ -50,8 +49,6 @@ pub mod my_governor {
     #[derive(Default, Storage)]
     pub struct Contract {
         #[storage_field]
-        access_control: access_control::Data,
-        #[storage_field]
         governor: governor::Data,
         #[storage_field]
         governor_counting: governor_counting::Data,
@@ -63,8 +60,6 @@ pub mod my_governor {
         settings: governor_settings::Data,
         #[storage_field]
         quorum: governor_quorum::Data,
-        #[storage_field]
-        votes: votes::Data,
         mock_timestamp: Timestamp,
     }
 
@@ -80,7 +75,6 @@ pub mod my_governor {
             let mut instance = Self::default();
 
             let caller = Self::env().caller();
-            access_control::Internal::_init_with_admin(&mut instance, Some(caller));
 
             instance._init_governor_votes(token).unwrap();
             instance

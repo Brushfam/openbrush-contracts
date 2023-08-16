@@ -33,7 +33,7 @@ use crate::{
     traits::{
         errors::governance::GovernanceError,
         governance::{
-            CancellationStatus,
+            CancelationStatus,
             ExecutionStatus,
             HashType,
             ProposalCore,
@@ -100,7 +100,7 @@ pub trait GovernorInternal:
             return Ok(ProposalState::Executed)
         }
 
-        if proposal.cancelled == CancellationStatus::Canceled {
+        if proposal.canceled == CancelationStatus::Canceled {
             return Ok(ProposalState::Canceled)
         }
 
@@ -208,7 +208,7 @@ pub trait GovernorInternal:
         self.data::<Data>().proposals.insert(
             &proposal_id,
             &ProposalCore {
-                cancelled: CancellationStatus::Canceled,
+                canceled: CancelationStatus::Canceled,
                 ..proposal
             },
         );

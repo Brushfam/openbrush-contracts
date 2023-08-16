@@ -29,6 +29,7 @@ use crate::{
         Data,
         GovernorEvents,
     },
+    timelock_controller::CallInput,
     traits::{
         errors::governance::GovernanceError,
         governance::{
@@ -124,17 +125,15 @@ pub trait GovernorInternal:
 
     fn _execute(&mut self, transactions: Vec<Transaction>, _description_hash: HashType) -> Result<(), GovernanceError> {
         for tx in transactions.iter() {
-            let is_ok = build_call::<DefaultEnvironment>()
+            build_call::<DefaultEnvironment>()
                 .call(tx.destination.clone())
                 .gas_limit(tx.gas_limit.clone())
                 .transferred_value(tx.transferred_value.clone())
-                .exec_input(ExecutionInput::new(Selector::new(tx.selector.clone())).push_arg(tx.input.clone()))
-                .returns::<bool>()
-                .invoke();
-
-            if !is_ok {
-                return Err(GovernanceError::ExecutionFailed(tx.clone()))
-            }
+                .exec_input(ExecutionInput::new(Selector::new(tx.selector.clone())).push_arg(CallInput(&tx.input)))
+                .returns::<()>()
+                .try_invoke()
+                .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?
+                .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?;
         }
 
         Ok(())

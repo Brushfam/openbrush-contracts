@@ -241,13 +241,13 @@ pub trait GovernorImpl:
             },
         );
 
-        self.emit_proposal_executed(proposal_id.clone());
-
         self._before_execute(transactions.clone(), description_hash.clone())?;
 
         self._execute(transactions.clone(), description_hash.clone())?;
 
         self._after_execute(transactions.clone(), description_hash.clone())?;
+
+        self.emit_proposal_executed(proposal_id.clone());
 
         Ok(proposal_id)
     }

@@ -392,7 +392,7 @@ describe('Governor', function () {
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
-        await helper.waitForDeadline()
+        await helper.waitForDeadline(1)
         await expect(helper.execute()).to.eventually.be.fulfilled
         await expect(helper.execute()).to.eventually.be.rejected
 
@@ -494,9 +494,12 @@ describe('Governor', function () {
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await helper.waitForSnapshot()
       await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
-      await helper.waitForDeadline()
-      await expect(helper.execute(deployer)).to.eventually.be.fulfilled
-      await expect(helper.state()).to.eventually.be.equals(ProposalState.executed)
+      await helper.waitForDeadline(1)
+
+      console.log(1)
+      await expect(helper.execute()).to.eventually.be.fulfilled
+      console.log(2)
+      expect(await helper.state()).to.be.eq(ProposalState.executed)
 
       await api.disconnect()
     })
@@ -825,9 +828,11 @@ describe('Governor', function () {
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await expect(helper.waitForSnapshot()).to.eventually.be.fulfilled
       await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.fulfilled
-      await expect(helper.waitForDeadline()).to.eventually.be.fulfilled
+      await expect(helper.waitForDeadline(1)).to.eventually.be.fulfilled
+
+      await expect(helper.execute()).to.eventually.be.fulfilled
       
-      expect((await contractGovernance.query.votingDelay()).value.unwrapRecursively()).to.be.eq(new BN(100))
+      expect((await contractGovernance.query.votingDelay()).value.unwrapRecursively()).to.be.eq(10)
 
       await api.disconnect()
     })
@@ -845,7 +850,9 @@ describe('Governor', function () {
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await expect(helper.waitForSnapshot()).to.eventually.be.fulfilled
       await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.fulfilled
-      await expect(helper.waitForDeadline()).to.eventually.be.fulfilled
+      await expect(helper.waitForDeadline(1)).to.eventually.be.fulfilled
+
+      await expect(helper.execute()).to.eventually.be.fulfilled
 
       expect((await contractGovernance.query.votingPeriod()).value.unwrapRecursively()).to.be.eq(new BN(100))
 
@@ -865,7 +872,7 @@ describe('Governor', function () {
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await expect(helper.waitForSnapshot()).to.eventually.be.fulfilled
       await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.fulfilled
-      await expect(helper.waitForDeadline()).to.eventually.be.fulfilled
+      await expect(helper.waitForDeadline(1)).to.eventually.be.fulfilled
 
       await expect(helper.execute(deployer)).to.eventually.be.rejected
 
@@ -885,7 +892,9 @@ describe('Governor', function () {
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await expect(helper.waitForSnapshot()).to.eventually.be.fulfilled
       await expect(helper.castVote(alice, VoteType.for)).to.eventually.be.fulfilled
-      await expect(helper.waitForDeadline()).to.eventually.be.fulfilled
+      await expect(helper.waitForDeadline(1)).to.eventually.be.fulfilled
+
+      await expect(helper.execute()).to.eventually.be.fulfilled
 
       expect((await contractGovernance.query.proposalThreshold()).value.unwrapRecursively()).to.be.eq(new BN(0))
 

@@ -12,10 +12,12 @@ export class GovernorHelper {
   private proposal: Transaction | undefined;
   private description: string | undefined;
   private governor: ContractGovernance | undefined;
+  private token: ContractVotes | undefined;
   private proposalId: number[] | undefined;
 
-  constructor(governor: ContractGovernance) {
+  constructor(governor: ContractGovernance, token: ContractVotes){
     this.governor = governor
+    this.token = token
   }
 
   addProposal(callee: string, selector: number[], input: (string | number | BN)[], description: string) {
@@ -60,9 +62,11 @@ export class GovernorHelper {
     }
 
     if(proposer) {
+      console.log((await this.governor?.query.propose([this.proposal!], this.description!))?.value)
       await this.governor?.withSigner(proposer).tx.propose([this.proposal!], this.description!)
     }
     else {
+      console.log((await this.governor?.query.propose([this.proposal!], this.description!))?.value)
       await this.governor?.tx.propose([this.proposal!], this.description!)
     }
   }
@@ -81,6 +85,7 @@ export class GovernorHelper {
     if(proposalSnapshot === undefined) throw new Error('Proposal snapshot not set')
 
     await this.governor?.tx.setBlockTimestamp(proposalSnapshot + offset)
+    await this.token?.tx.setBlockTimestamp(proposalSnapshot + offset)
   }
 
   async castVote(voter: KeyringPair, vote: VoteType) {
@@ -111,6 +116,7 @@ export class GovernorHelper {
     if(proposalDeadline === undefined) throw new Error('Proposal deadline not set')
 
     await this.governor?.tx.setBlockTimestamp(proposalDeadline + offset)
+    await this.token?.tx.setBlockTimestamp(proposalDeadline + offset)
   }
 
   async execute(proposer?: KeyringPair) {

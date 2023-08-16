@@ -36,6 +36,7 @@ pub mod my_psp22_votes {
         votes: votes::Data,
         #[storage_field]
         nonces: nonces::Data,
+        mock_timestamp: Timestamp,
     }
 
     impl Contract {
@@ -45,7 +46,24 @@ pub mod my_psp22_votes {
 
             psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
 
+            instance.mock_timestamp = Self::env().block_timestamp();
+
             instance
+        }
+
+        #[ink(message)]
+        pub fn block_timestamp(&self) -> Timestamp {
+            self.mock_timestamp
+        }
+
+        #[ink(message)]
+        pub fn set_block_timestamp(&mut self, timestamp: Timestamp) {
+            self.mock_timestamp = timestamp;
+        }
+
+        #[ink(message)]
+        pub fn increase_block_timestamp(&mut self, timestamp: Timestamp) {
+            self.mock_timestamp += timestamp;
         }
     }
 
@@ -59,7 +77,11 @@ pub mod my_psp22_votes {
         }
     }
 
-    impl TimestampProvider for Contract {}
+    impl TimestampProvider for Contract {
+        fn block_timestamp(&self) -> Timestamp {
+            self.mock_timestamp
+        }
+    }
 
     impl VotesImpl for Contract {}
 

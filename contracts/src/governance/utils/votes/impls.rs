@@ -63,12 +63,12 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
     }
 
     fn delegates(&mut self, delegator: AccountId) -> Option<AccountId> {
-        self._delegates(&delegator)
+        self._delegates(&Some(delegator))
     }
 
     fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError> {
         let account = Self::env().caller();
-        self._delegate(&account, &delegatee)
+        self._delegate(&Some(account), &Some(delegatee))
     }
 
     fn delegate_by_signature(
@@ -88,7 +88,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
             return Err(GovernanceError::InvalidSignature(signer))
         } else {
             self._use_checked_nonce(&signer, nonce)?;
-            self._delegate(&signer, &delegatee)
+            self._delegate(&Some(signer), &Some(delegatee))
         }
     }
 }

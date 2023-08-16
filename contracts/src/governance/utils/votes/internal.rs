@@ -23,35 +23,41 @@ pub trait VotesInternal: Storage<Data> + VotesEvents {
         self.data::<Data>().total_checkpoints.get_or_default().latest()
     }
 
-    fn _delegates(&self, delegator: &AccountId) -> Option<AccountId> {
+    fn _delegates(&self, delegator: &Option<AccountId>) -> Option<AccountId> {
         self.data::<Data>().delegation.get(&delegator)
     }
 
-    fn _delegate(&mut self, delegator: &AccountId, delegatee: &AccountId) -> Result<(), GovernanceError> {
+    fn _delegate(
+        &mut self,
+        delegator: &Option<AccountId>,
+        delegatee: &Option<AccountId>,
+    ) -> Result<(), GovernanceError> {
         let old_delegate = self._delegates(&delegator);
 
-        self.data::<Data>().delegation.insert(&delegator, &delegatee);
+        self.data::<Data>()
+            .delegation
+            .insert(&delegator, &delegatee.ok_or(GovernanceError::InvalidInput)?);
 
-        self.emit_delegate_changed_event(&delegator, &old_delegate, &Some(delegatee.clone()));
+        self.emit_delegate_changed_event(&delegator, &old_delegate, delegatee);
 
         self._move_delegate_votes(
             &old_delegate,
-            &Some(delegatee.clone()),
-            self._get_voting_units(&delegator),
+            delegatee,
+            self._get_voting_units(&delegator.ok_or(GovernanceError::InvalidInput)?),
         )
     }
 
     fn _transfer_voting_units(
         &mut self,
-        from: &AccountId,
-        to: &AccountId,
+        from: &Option<AccountId>,
+        to: &Option<AccountId>,
         amount: Balance,
     ) -> Result<(), GovernanceError> {
         let mut store = self.data::<Data>().total_checkpoints.get_or_default();
-        if from == &AccountId::from([0x0; 32]) {
+        if from.is_none() {
             self._push(&mut store, Self::_add, amount)?;
         }
-        if to == &AccountId::from([0x0; 32]) {
+        if to.is_none() {
             self._push(&mut store, Self::_sub, amount)?;
         }
         self._move_delegate_votes(&self._delegates(from), &self._delegates(to), amount)

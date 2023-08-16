@@ -37,4 +37,4 @@ pub trait Votes {
 }
 
 #[openbrush::wrapper]
-pub type VotesWrapper = dyn Votes;
+pub type VotesRef = dyn Votes;

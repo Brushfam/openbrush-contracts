@@ -6,7 +6,7 @@ use openbrush::traits::{
 pub trait VotesEvents {
     fn emit_delegate_changed_event(
         &self,
-        _delegator: &AccountId,
+        _delegator: &Option<AccountId>,
         _from_delegate: &Option<AccountId>,
         _to_delegate: &Option<AccountId>,
     ) {

@@ -2,7 +2,7 @@ use crate::{
     extensions::governor_votes::Data,
     traits::{
         errors::GovernanceError,
-        governance::utils::VotesWrapper,
+        governance::utils::*,
     },
 };
 use ink::{
@@ -27,8 +27,8 @@ pub trait GovernorVotesInternal: Storage<Data> {
         timepoint: Timestamp,
         _params: Vec<u8>,
     ) -> Result<Balance, GovernanceError> {
-        let mut token = self.data().token.get().ok_or(GovernanceError::TokenNotSet)?;
+        let token = self.data().token.get().ok_or(GovernanceError::TokenNotSet)?;
 
-        VotesWrapper::get_past_votes(&mut token, account, timepoint)
+        VotesRef::get_past_votes(&token, account, timepoint)
     }
 }

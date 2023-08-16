@@ -9,7 +9,7 @@ use crate::{
     governor::TimestampProvider,
     traits::{
         errors::GovernanceError,
-        governance::utils::VotesWrapper,
+        governance::utils::VotesRef,
     },
 };
 use openbrush::traits::{
@@ -63,7 +63,7 @@ pub trait QuorumImpl: Storage<Data> + Storage<governor_votes::Data> + QuorumEven
             .get()
             .ok_or(GovernanceError::TokenNotSet)?;
 
-        let past_total_supply = VotesWrapper::get_past_total_supply(&mut token, time_point)?;
+        let past_total_supply = VotesRef::get_past_total_supply(&mut token, time_point)?;
 
         past_total_supply
             .checked_mul(self.quorum_numerator_at(time_point))

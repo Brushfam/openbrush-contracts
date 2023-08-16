@@ -45,11 +45,13 @@ describe('Governor', function () {
     const contractAddressGovernance = (await contractFactoryGovernance.new(contractAddressVotes, votingDelay, votingPeriod, proposalThreshold, numrator)).address
     const contractGovernance = new ContractGovernance(contractAddressGovernance, deployer, api)
 
+    await contractVotes.tx.setBlockTimestamp((await contractGovernance.query.blockTimestamp()).value.ok!)
+
     const contractFactoryReceiver = new ConstructorsReceiver(api, deployer)
     const contractAddressReceiver = (await contractFactoryReceiver.new()).address
     const contractReceiver = new ContractReceiver(contractAddressReceiver, deployer, api)
 
-    const helper = new GovernorHelper(contractGovernance)
+    const helper = new GovernorHelper(contractGovernance, contractVotes)
 
     await helper.delegate(contractVotes, deployer, alice, 10)
     await helper.delegate(contractVotes, deployer, bob, 10)
@@ -212,7 +214,7 @@ describe('Governor', function () {
           '<description>#proposer=' + SS58ToHex(api, deployer.address)
         )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
-        await helper.waitForDeadline()
+        await helper.waitForDeadline(1)
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.rejected
 
         await api.disconnect()
@@ -457,18 +459,9 @@ describe('Governor', function () {
     it('Succeeded', async function () {
       const {
         api,
-        bob,
         deployer,
-        contractVotes,
         helper
       } = await setup()
-
-      helper.addProposal(
-        contractVotes.address,
-        getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-        [bob.address, new BN(1000), ''],
-        '<description>#proposer=' + SS58ToHex(api, deployer.address)
-      )
 
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await helper.waitForSnapshot()
@@ -487,18 +480,10 @@ describe('Governor', function () {
     it('Executed', async function () {
       const {
         api,
-        bob,
         deployer,
-        contractVotes,
         helper
       } = await setup()
 
-      helper.addProposal(
-        contractVotes.address,
-        getSelectorByName(contractVotes.abi.messages, 'PSP22::transfer'),
-        [bob.address, new BN(1000), ''],
-        '<description>#proposer=' + SS58ToHex(api, deployer.address)
-      )
       await expect(helper.propose(deployer)).to.eventually.be.fulfilled
       await helper.waitForSnapshot()
       await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
@@ -652,9 +637,12 @@ describe('Governor', function () {
         )
         await expect(helper.propose(deployer)).to.eventually.be.fulfilled
         await helper.waitForSnapshot()
+
         await expect(helper.castVote(deployer, VoteType.for)).to.eventually.be.fulfilled
         await helper.waitForDeadline(1)
+
         await expect(helper.execute(deployer)).to.eventually.be.fulfilled
+
         await expect(helper.cancel(deployer)).to.eventually.be.rejected
 
         await api.disconnect()

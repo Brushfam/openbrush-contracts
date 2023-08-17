@@ -116,7 +116,7 @@ pub trait GovernorInternal:
             return Ok(ProposalState::Active)
         }
 
-        if self._vote_succeeded(proposal_id.clone())? && self._quorum_reached(proposal_id.clone())? {
+        if self._vote_succeeded(proposal_id.clone()) && self._quorum_reached(proposal_id.clone())? {
             Ok(ProposalState::Succeeded)
         } else {
             Ok(ProposalState::Defeated)

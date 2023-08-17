@@ -41,6 +41,7 @@ use crate::{
     traits::{
         errors::governance::GovernanceError,
         governance::{
+            CancelationStatus,
             ExecutionStatus,
             HashType,
             ProposalCore,
@@ -112,7 +113,6 @@ pub trait GovernorImpl:
     + GovernorInternal
     + GovernorVotesInternal
     + GovernorSettingsInternal
-    + NoncesImpl
     + GovernorSettingsImpl
     + GovernorStorageGetters
     + TimestampProvider

@@ -56,8 +56,6 @@ pub mod my_governor {
         #[storage_field]
         governor_votes: governor_votes::Data,
         #[storage_field]
-        nonces: nonces::Data,
-        #[storage_field]
         settings: governor_settings::Data,
         #[storage_field]
         quorum: governor_quorum::Data,
@@ -129,8 +127,6 @@ pub mod my_governor {
             self.mock_timestamp
         }
     }
-    impl NoncesImpl for Contract {}
-
     impl GovernorSettingsEvents for Contract {}
     impl GovernorSettingsInternal for Contract {}
     impl GovernorSettingsImpl for Contract {}
@@ -339,13 +335,6 @@ pub mod my_governor {
         #[ink(message)]
         fn relay(&mut self, target: AccountId, transaction: Transaction) -> Result<(), GovernanceError> {
             GovernorImpl::relay(self, target, transaction)
-        }
-    }
-
-    impl Nonces for Contract {
-        #[ink(message)]
-        fn nonces(&self, account: AccountId) -> u128 {
-            NoncesImpl::nonces(self, &account)
         }
     }
 }

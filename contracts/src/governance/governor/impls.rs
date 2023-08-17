@@ -41,7 +41,6 @@ use crate::{
     traits::{
         errors::governance::GovernanceError,
         governance::{
-            CancelationStatus,
             ExecutionStatus,
             HashType,
             ProposalCore,
@@ -104,9 +103,9 @@ where
 ///
 /// This contract is abstract and requires several functions to be implemented in various modules:
 ///
-/// - A counting module must implement `quorum`, {_quorumReached}, {_voteSucceeded} and {_countVote}
+/// - A counting module must implement `quorum`, `_quorum_reached`, `_vote_succeeded` and `_count_vote`
 /// - A voting module must implement {_getVotes}
-/// - Additionally, {votingPeriod} must also be implemented
+/// - Additionally, `voting_period` must also be implemented
 pub trait GovernorImpl:
     Storage<Data>
     + GovernorEvents

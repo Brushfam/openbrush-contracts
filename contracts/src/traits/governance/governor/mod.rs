@@ -43,9 +43,9 @@ use openbrush::traits::{
 ///
 ///This contract is abstract and requires several functions to be implemented in various modules:
 ///
-/// - A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
-/// - A voting module must implement {_getVotes}
-/// - Additionally, {votingPeriod} must also be implemented
+/// - A counting module must implement `quorum`, `_quorum_reached`, `_vote_succeeded` and `_count_vote`}
+/// - A voting module must implement `_get_votes`
+/// - Additionally, `voting_period` must also be implemented
 #[openbrush::trait_definition]
 pub trait Governor {
     ///Hashing function used to (re)build the proposal id from the proposal details.

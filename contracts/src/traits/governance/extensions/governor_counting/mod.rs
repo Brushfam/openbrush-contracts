@@ -33,8 +33,7 @@ use openbrush::traits::{
     String,
 };
 
-/// Extension of {Governor} for simple, 3 options, vote counting.
-#[openbrush::trait_definition]
+/// Extension of `Governor` for simple, 3 options, vote counting.
 pub trait GovernorCounting {
     /// Returns `true` if the account has voted for the proposal, `false` otherwise
     #[ink(message)]

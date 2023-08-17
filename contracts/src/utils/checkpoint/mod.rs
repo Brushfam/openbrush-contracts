@@ -24,10 +24,10 @@ pub use crate::traits::errors::CheckpointsError;
 use ink::prelude::vec::Vec;
 
 ///Struct, for checkpointing values as they change at different points in
-///time, and later looking up past values by block number. See {Votes} as an example.
+///time, and later looking up past values by block number. See `Votes` as an example.
 ///
 /// To create a history of checkpoints define a variable type `Checkpoints` in your contract, and store a new
-/// checkpoint for the current transaction block using the {push} function.
+/// checkpoint for the current transaction block using the `push` function.
 #[derive(scale::Decode, scale::Encode, Default, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct Checkpoints {
@@ -52,7 +52,7 @@ fn sqrt(x: u64) -> u64 {
 }
 
 impl Checkpoints {
-    /// Pushes a (`key`, `value`) pair into a Trace224 so that it is stored as the checkpoint.
+    /// Pushes a (`key`, `value`) pair into a Checkpoint so that it is stored as the checkpoint.
     /// Returns previous value and new value.
     pub fn push(&mut self, key: u64, value: u128) -> Result<(u128, u128), CheckpointsError> {
         self._insert(key, value)
@@ -80,7 +80,7 @@ impl Checkpoints {
 
     /// Returns the value in the last (most recent) checkpoint with key lower or equal than the search key, or zero if there is none.
     ///
-    /// NOTE: This is a variant of {upperLookup} that is optimised to find "recent" checkpoint (checkpoints with high keys).
+    /// NOTE: This is a variant of `upper_lookup` that is optimised to find "recent" checkpoint (checkpoints with high keys).
     pub fn upper_lookup_recent(&self, key: u64) -> Option<u128> {
         let len = self.checkpoints.len();
 

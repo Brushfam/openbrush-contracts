@@ -2936,6 +2936,30 @@ pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(governor));
 }
 
+pub(crate) fn impl_nonces(impl_args: &mut ImplArgs) {
+    let storage_struct_name = &impl_args.contract_name();
+
+    let nonces_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl NoncesImpl for #storage_struct_name {}
+    )).expect("Should parse");
+
+    let nonces = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Nonces for #storage_struct_name {
+            #[ink(message)]
+            fn nonces(&self, account: AccountId) -> u128 {
+                NoncesImpl::nonces(self, &account)
+            }
+        }
+    )).expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::nonces::*;
+    )).expect("Should parse");
+    impl_args.imports.insert("Nonces", import);
+
+    impl_args.items.push(syn::Item::Impl(nonces_impl));
+    impl_args.items.push(syn::Item::Impl(nonces));
+}
 fn override_functions(trait_name: &str, implementation: &mut syn::ItemImpl, map: &OverridenFnMap) {
     if let Some(overrides) = map.get(trait_name) {
         // we will find which fns we wanna override

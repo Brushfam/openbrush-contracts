@@ -116,6 +116,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "GovernorVotes" => impl_governor_votes(&mut impl_args),
             "GovernorQuorum" => impl_governor_quorum(&mut impl_args),
             "GovernorCounting" => impl_governor_counting(&mut impl_args),
+            "Nonces" => impl_nonces(&mut impl_args),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }

@@ -1,18 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[openbrush::implementation(Nonces)]
 #[openbrush::contract]
 pub mod my_nonces {
-    use openbrush::{
-        contracts::{
-            nonces,
-            nonces::{
-                NoncesError,
-                NoncesImpl,
-            },
-            traits::utils::nonces::*,
-        },
-        traits::Storage,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -35,15 +26,6 @@ pub mod my_nonces {
         #[ink(message)]
         pub fn use_checked_nonce(&mut self, account: AccountId, nonce: u128) -> Result<u128, NoncesError> {
             NoncesImpl::_use_checked_nonce(self, &account, nonce)
-        }
-    }
-
-    impl NoncesImpl for Contract {}
-
-    impl Nonces for Contract {
-        #[ink(message)]
-        fn nonces(&self, account: AccountId) -> u128 {
-            NoncesImpl::nonces(self, &account)
         }
     }
 }

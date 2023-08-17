@@ -2726,17 +2726,12 @@ pub(crate) fn impl_governance(impl_args: &mut ImplArgs) {
     let mut governor_counting = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorCounting for #storage_struct_name {
             #[ink(message)]
-            fn counting_mode(&self) -> String {
-                GovernorCountingImpl::counting_mode(self)
-            }
-
-            #[ink(message)]
             fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool {
                 GovernorCountingImpl::has_voted(self, proposal_id, account)
             }
 
             #[ink(message)]
-            fn proposal_votes(&self, proposal_id: ProposalId) -> Result<(Balance, Balance, Balance), GovernanceError> {
+            fn proposal_votes(&self, proposal_id: ProposalId) -> Result<ProposalVote, GovernanceError> {
                 GovernorCountingImpl::proposal_votes(self, proposal_id)
             }
         }
@@ -2905,6 +2900,7 @@ pub(crate) fn impl_governance(impl_args: &mut ImplArgs) {
                     HashType,
                     ProposalId,
                     ProposalState,
+                    ProposalVote,
                     Transaction,
                     VoteType,
                 },

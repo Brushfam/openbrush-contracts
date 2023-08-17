@@ -51,13 +51,15 @@ pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters 
     }
 
     /// Returns true if the proposal has succeeded, false otherwise
-    fn _vote_succeeded(&self, proposal_id: ProposalId) -> Result<bool, GovernanceError> {
-        let proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
-
-        Ok(proposal_vote.for_votes > proposal_vote.against_votes)
+    fn _vote_succeeded(&self, proposal_id: ProposalId) -> bool {
+        self.data::<Data>()
+            .proposal_votes
+            .get(&proposal_id)
+            .map(|proposal_vote| proposal_vote.for_votes > proposal_vote.against_votes)
+            .unwrap_or_default()
     }
 
-    ///Adds a `account`'s vote to `proposal_id` with `weight` votes, to the `support` side.
+    /// Adds a `account`'s vote to `proposal_id` with `weight` votes, to the `support` side.
     fn _count_vote(
         &mut self,
         proposal_id: ProposalId,
@@ -68,16 +70,11 @@ pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters 
     ) -> Result<(), GovernanceError> {
         let mut proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
 
-        if self
-            .data::<Data>()
-            .has_votes
-            .get(&(proposal_id, account))
-            .unwrap_or_default()
-        {
+        if self.data::<Data>().has_votes.get(&(proposal_id, account)).is_some() {
             return Err(GovernanceError::AlreadyCastVote(account))?
         }
 
-        self.data::<Data>().has_votes.insert(&(proposal_id, account), &true);
+        self.data::<Data>().has_votes.insert(&(proposal_id, account), &());
 
         match support {
             VoteType::Against => {

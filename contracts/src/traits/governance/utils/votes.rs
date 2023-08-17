@@ -30,30 +30,30 @@ use openbrush::traits::{
     Timestamp,
 };
 
-///Common interface for `PSP22Votes`, and other `Votes`-enabled contracts.
+/// Common interface for `PSP22Votes`, and other `Votes`-enabled contracts.
 #[openbrush::trait_definition]
 pub trait Votes {
-    ///The amount of votes owned by `account`.
+    /// The amount of votes owned by `account`.
     #[ink(message)]
     fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError>;
 
-    ///The amount of votes delegated to `account` at the time `timestamp`.
+    /// The amount of votes delegated to `account` at the time `timestamp`.
     #[ink(message)]
     fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError>;
 
-    ///The total amount of votes at the time `timestamp`.
+    /// The total amount of votes at the time `timestamp`.
     #[ink(message)]
     fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError>;
 
-    ///Returns the address delegated to by `delegator`.
+    /// Returns the address delegated to by `delegator`.
     #[ink(message)]
     fn delegates(&mut self, delegator: AccountId) -> Option<AccountId>;
 
-    ///Delegate votes from `signer` to `delegatee`.
+    /// Delegate votes from `signer` to `delegatee`.
     #[ink(message)]
     fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError>;
 
-    ///Delegate votes from `signer` to `delegatee` using a signature.
+    /// Delegate votes from `signer` to `delegatee` using a signature.
     #[ink(message)]
     fn delegate_by_signature(
         &mut self,

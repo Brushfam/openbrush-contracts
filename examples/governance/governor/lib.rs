@@ -1,12 +1,11 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(Governance)]
 #[openbrush::contract]
 pub mod my_governor {
     use ink::prelude::vec::Vec;
     use openbrush::traits::{
-            Storage,
-            String,
+        Storage,
+        String,
     };
 
     #[ink(storage)]

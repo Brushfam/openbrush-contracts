@@ -47,12 +47,12 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
         self.data::<Data>().total_checkpoints.get_or_default().latest()
     }
 
-    ///Returns the address delegated to by `delegator`.
+    /// Returns the address delegated to by `delegator`.
     fn _delegates(&self, delegator: &Option<AccountId>) -> Option<AccountId> {
         self.data::<Data>().delegation.get(&delegator)
     }
 
-    ///Delegate votes from `delegator` to `delegatee`.
+    /// Delegate votes from `delegator` to `delegatee`.
     fn _delegate(
         &mut self,
         delegator: &Option<AccountId>,
@@ -73,7 +73,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
         )
     }
 
-    ///Transfers `amount` voting units from `from` to `to`.
+    /// Transfers `amount` voting units from `from` to `to`.
     fn _transfer_voting_units(
         &mut self,
         from: &Option<AccountId>,
@@ -90,7 +90,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
         self._move_delegate_votes(&self._delegates(from), &self._delegates(to), amount)
     }
 
-    ///Moves voting units from `from` to `to`.
+    /// Moves voting units from `from` to `to`.
     fn _move_delegate_votes(
         &mut self,
         from: &Option<AccountId>,
@@ -128,7 +128,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
         Ok(())
     }
 
-    ///Returns number of checkpoints for `account`.
+    /// Returns number of checkpoints for `account`.
     fn _num_checkpoints(&self, account: &AccountId) -> Result<u32, GovernanceError> {
         Ok(self
             .data::<Data>()
@@ -138,7 +138,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
             .len() as u32)
     }
 
-    ///Returns the checkpoint for `account` at the given `pos`.
+    /// Returns the checkpoint for `account` at the given `pos`.
     fn _checkpoints(&self, account: &AccountId, pos: u32) -> Result<Checkpoint, GovernanceError> {
         let checkpoints = self
             .data::<Data>()
@@ -151,7 +151,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
             .cloned()
     }
 
-    ///Creates a new checkpoint for `account` and returns its `old_value` and `new_value`.
+    /// Creates a new checkpoint for `account` and returns its `old_value` and `new_value`.
     fn _push(
         &mut self,
         store: &mut Checkpoints,
@@ -172,6 +172,6 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
         Ok(a.checked_sub(b).ok_or(GovernanceError::Overflow)?)
     }
 
-    ///Returns the number of voting units owned by `account`.
+    /// Returns the number of voting units owned by `account`.
     fn _get_voting_units(&self, account: &AccountId) -> Balance;
 }

@@ -37,9 +37,11 @@ use crate::{
         GovernorStorageGetters,
         TimestampProvider,
     },
+    nonces::NoncesImpl,
     traits::{
         errors::governance::GovernanceError,
         governance::{
+            CancelationStatus,
             ExecutionStatus,
             HashType,
             ProposalCore,
@@ -75,7 +77,7 @@ use openbrush::{
 use scale::Encode;
 
 /// @dev Restricts a function so it can only be executed through governance proposals. For example, governance
-/// parameter setters in `GovernorSettings` are protected using this modifier.
+/// parameter setters in {GovernorSettings} are protected using this modifier.
 ///
 /// The governance executing address may be different from the Governor's own address, for example it could be a
 /// timelock. This can be customized by modules by overriding {_executor}. The executor is only able to invoke these
@@ -89,24 +91,11 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<GovernanceError>,
 {
-    // todo remove comments
     if T::env().caller() != T::env().account_id() {
-        // todo: maybe executor
         return Err(GovernanceError::OnlyExecutor(T::env().caller()).into())
     }
 
-    // if T::env().account_id() != instance._executor() {
-    // let transaction = ink::env::decode_input::<Transaction>().map_err(|_| GovernanceError::InvalidInput)?;
-    //
-    // while instance
-    // .data::<Data>()
-    // .governance_call
-    // .get_or_default()
-    // .pop_front()
-    // .ok_or(GovernanceError::ExecutionFailed(transaction.clone()))?
-    // != transaction
-    // {}
-    // }
+    // todo: add check if executor is not this contract
 
     body(instance)
 }
@@ -214,7 +203,8 @@ pub trait GovernorImpl:
                 proposer: proposer.clone(),
                 vote_start: snapshot.clone(),
                 vote_duration: duration.clone(),
-                ..Default::default()
+                executed: ExecutionStatus::NotExecuted,
+                canceled: CancelationStatus::NotCanceled,
             },
         );
 

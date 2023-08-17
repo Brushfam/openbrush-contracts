@@ -29,7 +29,7 @@ use crate::{
 };
 use openbrush::traits::AccountId;
 
-///Extension of ERC20 to support Compound-like voting and delegation.
+/// Extension of ERC20 to support Compound-like voting and delegation.
 ///
 /// This extension keeps a history (checkpoints) of each account's vote power. Vote power can be delegated either
 /// by calling the `delegate` function directly, or by providing a signature to be used with `delegate_by_sig`. Voting
@@ -39,11 +39,11 @@ use openbrush::traits::AccountId;
 /// requires users to delegate to themselves in order to activate checkpoints and have their voting power tracked.
 #[openbrush::trait_definition]
 pub trait PSP22Votes {
-    ///Get number of checkpoints for `account`.
+    /// Get number of checkpoints for `account`.
     #[ink(message)]
     fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError>;
 
-    ///Get the `pos`-th checkpoint for `account`.
+    /// Get the `pos`-th checkpoint for `account`.
     #[ink(message)]
     fn checkpoints(&self, account: AccountId, pos: u32) -> Result<Checkpoint, GovernanceError>;
 }

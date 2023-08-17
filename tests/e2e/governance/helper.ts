@@ -3,11 +3,8 @@ import {Transaction, VoteType} from '../../../typechain-generated/types-argument
 import ContractGovernance from '../../../typechain-generated/contracts/my_governor'
 import {KeyringPair} from '@polkadot/keyring/types'
 import {blake2AsU8a} from '@polkadot/util-crypto'
-import {ProposalState} from '../../../typechain-generated/types-returns/my_governor'
 import ContractVotes from '../../../typechain-generated/contracts/my_psp22_votes'
-import {ReturnNumber} from '@727-ventures/typechain-types'
-import {bool} from '@polkadot/types-codec'
-import {hexToNumbers} from "../helpers";
+import {hexToNumbers} from '../helpers'
 
 export class GovernorHelper {
   private proposal: Transaction | undefined;
@@ -59,11 +56,6 @@ export class GovernorHelper {
   async delegate(token: ContractVotes, from: KeyringPair, to: KeyringPair, amount: number) {
     await token.withSigner(from).tx.transfer(to.address, amount, [])
     await token.withSigner(to).tx.delegate(to.address)
-
-    /*console.log('delegate to' +  to.address)
-
-    console.log((await token.query.getVotes(to.address)).value.ok?.ok?.toNumber())
-    console.log((await token.query.balanceOf(to.address)).value.unwrapRecursively().toNumber())*/
   }
 
   async propose(proposer?: KeyringPair) {
@@ -76,11 +68,9 @@ export class GovernorHelper {
     }
 
     if(proposer) {
-      // console.log((await this.governor?.query.propose([this.proposal!], this.description!))?.value)
       await this.governor?.withSigner(proposer).tx.propose([this.proposal!], this.description!)
     }
     else {
-      // console.log((await this.governor?.query.propose([this.proposal!], this.description!))?.value)
       await this.governor?.tx.propose([this.proposal!], this.description!)
     }
   }
@@ -100,7 +90,6 @@ export class GovernorHelper {
 
     await this.governor?.tx.setBlockTimestamp(proposalSnapshot + offset)
     await this.token?.tx.setBlockTimestamp(proposalSnapshot + offset)
-    // console.log(proposalSnapshot + offset)
   }
 
   async increaseBlockTimestamp(timestamp = 0) {
@@ -126,8 +115,6 @@ export class GovernorHelper {
     }
 
     await this.governor?.withSigner(voter).tx.castVote(this.proposalId as unknown as number[], vote)
-
-    // console.log((await this.governor?.query.proposalVotes(await this.proposalId as unknown as number[]))?.value.ok!.ok)
   }
 
   async waitForDeadline(offset = 0) {
@@ -185,7 +172,7 @@ export class GovernorHelper {
     }
   }
 
-  async state(): Promise<ProposalState> {
+  async state() {
     if (this.proposal === undefined || this.description === undefined){
       throw new Error('Proposal not set')
     }
@@ -194,12 +181,10 @@ export class GovernorHelper {
       this.proposalId = await this.getProposalId()
     }
 
-    // console.log((await this.governor?.query.state(this.proposalId as unknown as number[]))?.value)
-
-    return (await this.governor?.query.state(this.proposalId as unknown as number[]))?.value.ok!.ok!
+    return (await this.governor?.query.state(this.proposalId as unknown as number[]))?.value.ok?.ok
   }
 
-  async hasVoted(voter: KeyringPair): Promise<boolean> {
+  async hasVoted(voter: KeyringPair) {
     if (this.proposal === undefined || this.description === undefined){
       throw new Error('Proposal not set')
     }
@@ -208,9 +193,7 @@ export class GovernorHelper {
       this.proposalId = await this.getProposalId()
     }
 
-    // console.log('has voted')
-    // console.log((await this.governor?.query.hasVoted(this.proposalId as unknown as number[], voter.address))?.value.ok!)
-    return (await this.governor?.query.hasVoted(this.proposalId as unknown as number[], voter.address))?.value.ok!
+    return (await this.governor?.query.hasVoted(this.proposalId as unknown as number[], voter.address))?.value.ok
   }
 
   async proposalVotes(): Promise<string> {
@@ -222,7 +205,7 @@ export class GovernorHelper {
       this.proposalId = await this.getProposalId()
     }
 
-    const votes = (await this.governor?.query.proposalVotes(this.proposalId as unknown as number[]))?.value.ok!.ok!
+    const votes = (await this.governor?.query.proposalVotes(this.proposalId as unknown as number[]))?.value.ok!.ok
     const votesArr = Array.from(votes.map((vote) => vote.toNumber()))
     return votesArr.toString()
   }

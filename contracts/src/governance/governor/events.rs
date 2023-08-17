@@ -44,18 +44,13 @@ pub trait GovernorEvents {
         _vote_end: Timestamp,
         _description: String,
     ) {
-        ()
     }
 
     /// Emitted when a proposal is canceled
-    fn emit_proposal_canceled(&self, _proposal_id: ProposalId) {
-        ()
-    }
+    fn emit_proposal_canceled(&self, _proposal_id: ProposalId) {}
 
     /// Emitted when a proposal is executed
-    fn emit_proposal_executed(&self, _proposal_id: ProposalId) {
-        ()
-    }
+    fn emit_proposal_executed(&self, _proposal_id: ProposalId) {}
 
     /// Emitted when the vote is casted
     fn emit_vote_cast(
@@ -66,7 +61,6 @@ pub trait GovernorEvents {
         _weight: Balance,
         _reason: String,
     ) {
-        ()
     }
 
     /// Emitted when the vote is casted with params
@@ -79,6 +73,5 @@ pub trait GovernorEvents {
         _reason: String,
         _params: Vec<u8>,
     ) {
-        ()
     }
 }

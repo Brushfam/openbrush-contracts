@@ -35,14 +35,14 @@ pub struct Data {
     pub nonces: Mapping<AccountId, u128>,
 }
 
-///Provides tracking nonces for addresses. Nonces will only increment.
+/// Provides tracking nonces for addresses. Nonces will only increment.
 pub trait NoncesImpl: Storage<Data> {
-    ///Returns the nonce of `account`.
+    /// Returns the nonce of `account`.
     fn nonces(&self, account: &AccountId) -> u128 {
         self.data().nonces.get(account).unwrap_or_default()
     }
 
-    ///Returns the next nonce of `account`, and increments the nonce.
+    /// Returns the next nonce of `account`, and increments the nonce.
     fn _use_nonce(&mut self, account: &AccountId) -> Result<u128, NoncesError> {
         let nonce = self.nonces(account);
         self.data()
@@ -51,7 +51,7 @@ pub trait NoncesImpl: Storage<Data> {
         Ok(nonce)
     }
 
-    ///Returns the next nonce of `account`, and increments the nonce if `nonce` matches the current nonce.
+    /// Returns the next nonce of `account`, and increments the nonce if `nonce` matches the current nonce.
     fn _use_checked_nonce(&mut self, account: &AccountId, nonce: u128) -> Result<u128, NoncesError> {
         let current_nonce = self.nonces(&account);
         if nonce != current_nonce {

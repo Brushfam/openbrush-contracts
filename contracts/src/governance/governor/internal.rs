@@ -116,7 +116,7 @@ pub trait GovernorInternal:
             return Ok(ProposalState::Active)
         }
 
-        if self._vote_succeeded(proposal_id.clone())? && self._quorum_reached(proposal_id.clone())? {
+        if self._vote_succeeded(proposal_id.clone()) && self._quorum_reached(proposal_id.clone())? {
             Ok(ProposalState::Succeeded)
         } else {
             Ok(ProposalState::Defeated)
@@ -203,7 +203,11 @@ pub trait GovernorInternal:
             ))
         }
 
-        let proposal = self.data::<Data>().proposals.get(&proposal_id).unwrap_or_default();
+        let proposal = self
+            .data::<Data>()
+            .proposals
+            .get(&proposal_id)
+            .ok_or(GovernanceError::ProposalNotFound)?;
 
         self.data::<Data>().proposals.insert(
             &proposal_id,

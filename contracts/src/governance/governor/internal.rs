@@ -203,7 +203,11 @@ pub trait GovernorInternal:
             ))
         }
 
-        let proposal = self.data::<Data>().proposals.get(&proposal_id).unwrap_or_default();
+        let proposal = self
+            .data::<Data>()
+            .proposals
+            .get(&proposal_id)
+            .ok_or(GovernanceError::ProposalNotFound)?;
 
         self.data::<Data>().proposals.insert(
             &proposal_id,

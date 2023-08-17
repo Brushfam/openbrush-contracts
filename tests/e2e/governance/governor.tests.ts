@@ -103,32 +103,12 @@ describe('Governor', function () {
     await api.disconnect()
   })
 
-  describe('vote with signature', function () {
-    afterEach('no other votes are cast for proposalId', async function () {
-    // 
-    })
-
-    it('votes with an EOA signature', async function () {
-    // 
-    })
-
-    it('votes with a valid EIP-1271 signature', async function () {
-    // 
-    })
-
-    afterEach('no other votes are cast', async function () {
-    //  
-    })
-  })
-
   describe('should revert', function () {
     describe('on propose', function () {
       it('if proposal already exists', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractVotes,
           helper
         } = await setup()
 
@@ -204,10 +184,6 @@ describe('Governor', function () {
     })
 
     describe('on vote by signature', function () {
-      beforeEach(async function () {
-        //
-      })
-
       it('if signature does not match signer', async function () {
         //
       })
@@ -233,9 +209,7 @@ describe('Governor', function () {
       it('if quorum is not reached', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractVotes,
           helper
         } = await setup()
 
@@ -250,9 +224,7 @@ describe('Governor', function () {
       it('if score not reached', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractVotes,
           helper
         } = await setup()
 
@@ -267,9 +239,7 @@ describe('Governor', function () {
       it('if voting is not over', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractVotes,
           helper
         } = await setup()
 
@@ -307,9 +277,7 @@ describe('Governor', function () {
       it('if receiver revert with reason', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractVotes,
           contractReceiver,
           helper
         } = await setup()
@@ -365,9 +333,7 @@ describe('Governor', function () {
     it('Pending & Active', async function () {
       const {
         api,
-        bob,
         deployer,
-        contractVotes,
         helper
       } = await setup()
 
@@ -384,9 +350,7 @@ describe('Governor', function () {
     it('Defeated', async function () {
       const {
         api,
-        bob,
         deployer,
-        contractVotes,
         helper
       } = await setup()
 
@@ -471,7 +435,6 @@ describe('Governor', function () {
           api,
           bob,
           deployer,
-          contractVotes,
           helper
         } = await setup()
 
@@ -484,9 +447,7 @@ describe('Governor', function () {
       it('after vote started', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractVotes,
           helper
         } = await setup()
 
@@ -500,9 +461,7 @@ describe('Governor', function () {
       it('after vote', async function () {
         const {
           api,
-          bob,
           deployer,
-          contractVotes,
           helper
         } = await setup()
 

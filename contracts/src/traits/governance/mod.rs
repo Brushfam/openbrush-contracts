@@ -72,18 +72,6 @@ pub struct ProposalCore {
     pub canceled: CancelationStatus,
 }
 
-impl Default for ProposalCore {
-    fn default() -> Self {
-        Self {
-            proposer: AccountId::from([0x0; 32]),
-            vote_start: Default::default(),
-            vote_duration: Default::default(),
-            executed: Default::default(),
-            canceled: Default::default(),
-        }
-    }
-}
-
 impl ProposalCore {
     pub fn new(proposer: AccountId, vote_start: Timestamp, vote_duration: Timestamp) -> Self {
         Self {

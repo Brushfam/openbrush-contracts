@@ -41,6 +41,7 @@ use crate::{
     traits::{
         errors::governance::GovernanceError,
         governance::{
+            CancelationStatus,
             ExecutionStatus,
             HashType,
             ProposalCore,
@@ -90,24 +91,11 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<GovernanceError>,
 {
-    // todo remove comments
     if T::env().caller() != T::env().account_id() {
-        // todo: maybe executor
         return Err(GovernanceError::OnlyExecutor(T::env().caller()).into())
     }
 
-    // if T::env().account_id() != instance._executor() {
-    // let transaction = ink::env::decode_input::<Transaction>().map_err(|_| GovernanceError::InvalidInput)?;
-    //
-    // while instance
-    // .data::<Data>()
-    // .governance_call
-    // .get_or_default()
-    // .pop_front()
-    // .ok_or(GovernanceError::ExecutionFailed(transaction.clone()))?
-    // != transaction
-    // {}
-    // }
+    // todo: add check if executor is not this contract
 
     body(instance)
 }
@@ -116,7 +104,7 @@ where
 ///
 /// This contract is abstract and requires several functions to be implemented in various modules:
 ///
-/// - A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
+/// - A counting module must implement `quorum`, {_quorumReached}, {_voteSucceeded} and {_countVote}
 /// - A voting module must implement {_getVotes}
 /// - Additionally, {votingPeriod} must also be implemented
 pub trait GovernorImpl:
@@ -216,7 +204,8 @@ pub trait GovernorImpl:
                 proposer: proposer.clone(),
                 vote_start: snapshot.clone(),
                 vote_duration: duration.clone(),
-                ..Default::default()
+                executed: ExecutionStatus::NotExecuted,
+                canceled: CancelationStatus::NotCanceled,
             },
         );
 

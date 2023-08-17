@@ -32,6 +32,7 @@ pub mod my_governor {
                     HashType,
                     ProposalId,
                     ProposalState,
+                    ProposalVote,
                     Transaction,
                     VoteType,
                 },
@@ -150,17 +151,12 @@ pub mod my_governor {
 
     impl GovernorCounting for Contract {
         #[ink(message)]
-        fn counting_mode(&self) -> String {
-            GovernorCountingImpl::counting_mode(self)
-        }
-
-        #[ink(message)]
         fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool {
             GovernorCountingImpl::has_voted(self, proposal_id, account)
         }
 
         #[ink(message)]
-        fn proposal_votes(&self, proposal_id: ProposalId) -> Result<(Balance, Balance, Balance), GovernanceError> {
+        fn proposal_votes(&self, proposal_id: ProposalId) -> Result<ProposalVote, GovernanceError> {
             GovernorCountingImpl::proposal_votes(self, proposal_id)
         }
     }

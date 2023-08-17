@@ -29,7 +29,7 @@ use openbrush::{
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    ///Stores the delegations of the governor.
+    /// Stores the delegations of the governor.
     /// The key is the delegator and the value is the delegatee
     pub delegation: Mapping<Option<AccountId>, AccountId>,
     /// Stores the checkpoints of the delegations of the governor

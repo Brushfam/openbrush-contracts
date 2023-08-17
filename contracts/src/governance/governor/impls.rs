@@ -37,7 +37,6 @@ use crate::{
         GovernorStorageGetters,
         TimestampProvider,
     },
-    nonces::NoncesImpl,
     traits::{
         errors::governance::GovernanceError,
         governance::{
@@ -76,7 +75,7 @@ use openbrush::{
 use scale::Encode;
 
 /// @dev Restricts a function so it can only be executed through governance proposals. For example, governance
-/// parameter setters in {GovernorSettings} are protected using this modifier.
+/// parameter setters in `GovernorSettings` are protected using this modifier.
 ///
 /// The governance executing address may be different from the Governor's own address, for example it could be a
 /// timelock. This can be customized by modules by overriding {_executor}. The executor is only able to invoke these
@@ -116,16 +115,15 @@ where
 ///
 /// This contract is abstract and requires several functions to be implemented in various modules:
 ///
-/// - A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
+/// - A counting module must implement `quorum`, `_quorum_reached`, `_vote_succeeded` and `_count_vote`
 /// - A voting module must implement {_getVotes}
-/// - Additionally, {votingPeriod} must also be implemented
+/// - Additionally, `voting_period` must also be implemented
 pub trait GovernorImpl:
     Storage<Data>
     + GovernorEvents
     + GovernorInternal
     + GovernorVotesInternal
     + GovernorSettingsInternal
-    + NoncesImpl
     + GovernorSettingsImpl
     + GovernorStorageGetters
     + TimestampProvider

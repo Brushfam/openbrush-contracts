@@ -44,7 +44,7 @@ use openbrush::traits::{
 };
 use scale::Encode;
 
-///Common interface for {PSP22Votes}, and other {Votes}-enabled contracts.
+///Common interface for `PSP22Votes`, and other `Votes`-enabled contracts.
 pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + TimestampProvider {
     ///The amount of votes owned by `account`.
     fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {

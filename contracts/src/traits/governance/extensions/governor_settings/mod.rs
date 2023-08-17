@@ -23,7 +23,7 @@
 use crate::traits::errors::GovernanceError;
 
 
-///Extension of {Governor} for settings updatable through governance.
+///Extension of `Governor` for settings updatable through governance.
 #[openbrush::trait_definition]
 pub trait GovernorSettings {
     ///Sets the voting delay

@@ -23,7 +23,7 @@
 use crate::traits::errors::GovernanceError;
 use openbrush::traits::Timestamp;
 
-///Extension of {Governor} for voting weight extraction from an {PSP22Votes} token and a quorum expressed as a
+///Extension of `Governor` for voting weight extraction from an `PSP22Votes` token and a quorum expressed as a
 ///fraction of the total supply.
 #[openbrush::trait_definition]
 pub trait Quorum {

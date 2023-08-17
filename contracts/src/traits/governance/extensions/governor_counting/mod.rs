@@ -30,7 +30,7 @@ use openbrush::traits::{
     String,
 };
 
-///Extension of {Governor} for simple, 3 options, vote counting.
+///Extension of `Governor` for simple, 3 options, vote counting.
 #[openbrush::trait_definition]
 pub trait GovernorCounting {
     ///Returns the current counting mode

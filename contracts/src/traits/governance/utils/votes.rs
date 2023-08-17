@@ -30,7 +30,7 @@ use openbrush::traits::{
     Timestamp,
 };
 
-///Common interface for {PSP22Votes}, and other {Votes}-enabled contracts.
+///Common interface for `PSP22Votes`, and other `Votes`-enabled contracts.
 #[openbrush::trait_definition]
 pub trait Votes {
     ///The amount of votes owned by `account`.

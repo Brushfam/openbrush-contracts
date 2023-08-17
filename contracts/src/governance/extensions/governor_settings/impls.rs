@@ -34,7 +34,7 @@ use openbrush::{
     traits::Storage,
 };
 
-/// Extension of {Governor} for settings updatable through governance.
+/// Extension of `Governor` for settings updatable through governance.
 pub trait GovernorSettingsImpl: Storage<Data> + GovernorSettingsInternal + GovernorInternal {
     /// Sets the voting delay
     #[modifiers(only_governance)]

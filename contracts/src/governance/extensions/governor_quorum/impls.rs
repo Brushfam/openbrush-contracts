@@ -44,7 +44,7 @@ use openbrush::traits::{
     Timestamp,
 };
 
-/// Extension of {Governor} for voting weight extraction from an {PSP22Votes} token and a quorum expressed as a
+/// Extension of `Governor` for voting weight extraction from an `PSP22Votes` token and a quorum expressed as a
 /// fraction of the total supply.
 pub trait QuorumImpl:
     Storage<governor::Data> + Storage<Data> + Storage<governor_votes::Data> + QuorumEvents + TimestampProvider
@@ -112,7 +112,7 @@ pub trait QuorumImpl:
         self._update_quorum_numerator(numerator)
     }
 
-    /// Updates the quorum numerator and adds a checkpoint to the history. Emits a {QuorumNumeratorUpdated} event.
+    /// Updates the quorum numerator and adds a checkpoint to the history. Emits a `quorum_numerator_updated` event.
     fn _update_quorum_numerator(&mut self, new_quorum_numerator: u128) -> Result<(), GovernanceError> {
         let denominator = self.quorum_denominator();
 

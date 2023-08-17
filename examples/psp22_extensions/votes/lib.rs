@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(PSP22, PSP22Mintable)]
+#[openbrush::implementation(PSP22, PSP22Mintable, Nonces)]
 #[openbrush::contract]
 pub mod my_psp22_votes {
     use openbrush::{
@@ -10,8 +10,6 @@ pub mod my_psp22_votes {
                 votes::*,
             },
             governor::TimestampProvider,
-            nonces,
-            nonces::*,
             psp22::extensions::votes::*,
             traits::{
                 errors::GovernanceError,
@@ -66,8 +64,6 @@ pub mod my_psp22_votes {
             self.mock_timestamp += timestamp;
         }
     }
-
-    impl NoncesImpl for Contract {}
 
     impl VotesEvents for Contract {}
 

@@ -2625,7 +2625,7 @@ pub(crate) fn impl_upgradeable(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(upgradeable_impl));
 }
 
-pub(crate) fn impl_governance(impl_args: &mut ImplArgs) {
+pub(crate) fn impl_governor_settings(impl_args: &mut ImplArgs) {
     let storage_struct_name = impl_args.contract_name();
     let governor_settings_events = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorSettingsEvents for #storage_struct_name {}
@@ -2670,10 +2670,33 @@ pub(crate) fn impl_governance(impl_args: &mut ImplArgs) {
         }
     )).expect("Should parse");
 
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::extensions::governor_settings::*;
+    )).expect("Should parse");
+    impl_args.imports.insert("GovernorSettings", import);
+
+    impl_args.items.push(syn::Item::Impl(governor_settings_events));
+    impl_args.items.push(syn::Item::Impl(governor_settings_internal));
+    impl_args.items.push(syn::Item::Impl(governor_settings_impl));
+    impl_args.items.push(syn::Item::Impl(governor_settings));
+}
+
+pub(crate) fn impl_governor_votes(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let governor_votes_internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorVotesInternal for #storage_struct_name {}
     )).expect("Should parse");
 
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::extensions::governor_votes::*;
+    )).expect("Should parse");
+    impl_args.imports.insert("GovernorVotes", import);
+
+    impl_args.items.push(syn::Item::Impl(governor_votes_internal));
+}
+
+pub(crate) fn impl_governor_quorum(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
     let quorum_events = syn::parse2::<syn::ItemImpl>(quote!(
         impl QuorumEvents for #storage_struct_name {}
     )).expect("Should parse");
@@ -2711,9 +2734,20 @@ pub(crate) fn impl_governance(impl_args: &mut ImplArgs) {
         }
     )).expect("Should parse");
 
-    let governor_storage_getters = syn::parse2::<syn::ItemImpl>(quote!(
-        impl GovernorStorageGetters for #storage_struct_name {}
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::extensions::governor_quorum::*;
     )).expect("Should parse");
+    impl_args.imports.insert("GovernorQuorum", import);
+
+    override_functions("Quorum", &mut quorum, impl_args.map);
+
+    impl_args.items.push(syn::Item::Impl(quorum_events));
+    impl_args.items.push(syn::Item::Impl(quorum_impl));
+    impl_args.items.push(syn::Item::Impl(quorum));
+}
+
+pub(crate) fn impl_governor_counting(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
 
     let governor_counting_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorCountingImpl for #storage_struct_name {}
@@ -2723,7 +2757,7 @@ pub(crate) fn impl_governance(impl_args: &mut ImplArgs) {
         impl CountingInternal for #storage_struct_name {}
     )).expect("Should parse");
 
-    let mut governor_counting = syn::parse2::<syn::ItemImpl>(quote!(
+    let governor_counting = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorCounting for #storage_struct_name {
             #[ink(message)]
             fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool {
@@ -2735,8 +2769,23 @@ pub(crate) fn impl_governance(impl_args: &mut ImplArgs) {
                 GovernorCountingImpl::proposal_votes(self, proposal_id)
             }
         }
-    ))
-    .expect("Should parse");
+    )).expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::extensions::governor_counting::*;
+    )).expect("Should parse");
+    impl_args.imports.insert("GovernorCounting", import);
+
+    impl_args.items.push(syn::Item::Impl(governor_counting_impl));
+    impl_args.items.push(syn::Item::Impl(counting_internal));
+    impl_args.items.push(syn::Item::Impl(governor_counting));
+}
+pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+
+    let governor_storage_getters = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorStorageGetters for #storage_struct_name {}
+    )).expect("Should parse");
 
     let governor_internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorInternal for #storage_struct_name {}
@@ -2875,56 +2924,12 @@ pub(crate) fn impl_governance(impl_args: &mut ImplArgs) {
     )).expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::{
-            extensions::{
-                governor_counting,
-                governor_counting::*,
-                governor_quorum,
-                governor_quorum::*,
-                governor_settings,
-                governor_settings::*,
-                governor_votes,
-                governor_votes::*,
-            },
-            governor,
-            governor::*,
-            traits::{
-                errors::GovernanceError,
-                governance::{
-                    extensions::{
-                        governor_counting::*,
-                        governor_quorum::*,
-                        governor_settings::*,
-                    },
-                    governor::*,
-                    HashType,
-                    ProposalId,
-                    ProposalState,
-                    ProposalVote,
-                    Transaction,
-                    VoteType,
-                },
-                types::SignatureType,
-            },
-        };
+        use openbrush::contracts::governor::*;
     ))
     .expect("Should parse");
-    impl_args.imports.insert("Governance", import);
+    impl_args.imports.insert("Governor", import);
 
-    override_functions("Quorum", &mut quorum, impl_args.map);
-
-    impl_args.items.push(syn::Item::Impl(governor_settings_events));
-    impl_args.items.push(syn::Item::Impl(governor_settings_internal));
-    impl_args.items.push(syn::Item::Impl(governor_settings_impl));
-    impl_args.items.push(syn::Item::Impl(governor_settings));
-    impl_args.items.push(syn::Item::Impl(governor_votes_internal));
-    impl_args.items.push(syn::Item::Impl(quorum_events));
-    impl_args.items.push(syn::Item::Impl(quorum_impl));
-    impl_args.items.push(syn::Item::Impl(quorum));
     impl_args.items.push(syn::Item::Impl(governor_storage_getters));
-    impl_args.items.push(syn::Item::Impl(governor_counting_impl));
-    impl_args.items.push(syn::Item::Impl(counting_internal));
-    impl_args.items.push(syn::Item::Impl(governor_counting));
     impl_args.items.push(syn::Item::Impl(governor_internal));
     impl_args.items.push(syn::Item::Impl(governor_events));
     impl_args.items.push(syn::Item::Impl(governor_impl));

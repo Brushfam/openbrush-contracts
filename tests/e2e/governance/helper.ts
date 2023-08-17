@@ -205,8 +205,8 @@ export class GovernorHelper {
       this.proposalId = await this.getProposalId()
     }
 
-    const votes = (await this.governor?.query.proposalVotes(this.proposalId as unknown as number[]))?.value.ok!.ok
-    const votesArr = Array.from(votes.map((vote) => vote.toNumber()))
+    const votes = (await this.governor?.query.proposalVotes(this.proposalId as unknown as number[]))?.value.ok!.ok!
+    const votesArr = Array.from([votes.forVotes, votes.againstVotes, votes.abstainVotes])
     return votesArr.toString()
   }
 

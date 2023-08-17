@@ -19,8 +19,18 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-use crate::{
+pub use crate::{
+    governance,
+    traits::governance::{
+        governor::*,
+        extensions::{
+            governor_quorum::*,
+            governor_counting::*,
+            governor_settings::*,
+        }
+    },
+};
+pub use crate::{
     extensions::{
         governor_settings::{
             GovernorSettingsImpl,
@@ -47,6 +57,7 @@ use crate::{
             ProposalCore,
             ProposalId,
             ProposalState,
+            ProposalVote,
             Transaction,
             VoteType,
         },
@@ -75,13 +86,40 @@ use openbrush::{
     },
 };
 use scale::Encode;
+pub use governance::{
+    governor::{
+        GovernorImpl as _,
+        GovernorInternal as _,
+        GovernorEvents as _,
+        GovernorStorageGetters as _,
+    },
+    extensions::{
+        governor_quorum::{
+            QuorumImpl as _,
+            QuorumEvents as _,
+        },
+        governor_votes::{
+            GovernorVotesInternal as _,
+        },
+        governor_settings::{
+            GovernorSettingsImpl as _,
+            GovernorSettingsInternal as _,
+            GovernorSettingsEvents as _,
+        },
+        governor_counting::{
+            GovernorCountingImpl as _,
+            CountingInternal as _,
+        }
+    }
+};
+
 
 /// @dev Restricts a function so it can only be executed through governance proposals. For example, governance
 /// parameter setters in {GovernorSettings} are protected using this modifier.
 ///
 /// The governance executing address may be different from the Governor's own address, for example it could be a
-/// timelock. This can be customized by modules by overriding {_executor}. The executor is only able to invoke these
-/// functions during the execution of the governor's {execute} function, and not under any other circumstances. Thus,
+/// timelock. This can be customized by modules by overriding `_executor`. The executor is only able to invoke these
+/// functions during the execution of the governor's `execute` function, and not under any other circumstances. Thus,
 /// for example, additional timelock proposers are not able to change governance parameters without going through the
 /// governance protocol.
 #[openbrush::modifier_definition]
@@ -105,7 +143,7 @@ where
 /// This contract is abstract and requires several functions to be implemented in various modules:
 ///
 /// - A counting module must implement `quorum`, `_quorum_reached`, `_vote_succeeded` and `_count_vote`
-/// - A voting module must implement {_getVotes}
+/// - A voting module must implement `_get_votes`
 /// - Additionally, `voting_period` must also be implemented
 pub trait GovernorImpl:
     Storage<Data>

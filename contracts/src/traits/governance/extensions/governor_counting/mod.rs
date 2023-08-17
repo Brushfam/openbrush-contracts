@@ -20,18 +20,14 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::traits::{
+pub use crate::traits::{
     errors::GovernanceError,
     governance::{
         ProposalId,
         ProposalVote,
     },
 };
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    String,
-};
+use openbrush::traits::AccountId;
 
 /// Extension of `Governor` for simple, 3 options, vote counting.
 #[openbrush::trait_definition]

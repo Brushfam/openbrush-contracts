@@ -20,7 +20,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::{
+pub use crate::{
     extensions::governor_quorum::QuorumImpl,
     governance::extensions::governor_counting::Data,
     governor::GovernorStorageGetters,
@@ -32,7 +32,7 @@ use crate::{
         },
     },
 };
-use openbrush::traits::{
+pub use openbrush::traits::{
     AccountId,
     Balance,
     Storage,

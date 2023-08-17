@@ -20,24 +20,28 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::{
+pub use crate::{
     governance::extensions::governor_counting::{
         CountingInternal,
         Data,
     },
+    extensions::governor_counting,
+    governor,
     traits::{
         errors::GovernanceError,
         governance::{
             ProposalId,
             ProposalVote,
         },
+        governance::{
+            *,
+            extensions::governor_counting::*,
+        }
     },
 };
 use openbrush::traits::{
     AccountId,
-    Balance,
     Storage,
-    String,
 };
 
 /// Extension of `Governor` for simple, 3 options, vote counting.

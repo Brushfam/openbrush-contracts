@@ -20,11 +20,14 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::{
+pub use crate::{
+    governance::governor,
     extensions::governor_votes::Data,
     traits::{
         errors::GovernanceError,
-        governance::utils::*,
+        governance::{
+            utils::*,
+        },
     },
 };
 use ink::{

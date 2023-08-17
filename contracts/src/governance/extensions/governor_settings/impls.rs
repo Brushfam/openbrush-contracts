@@ -20,7 +20,9 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::{
+pub use crate::{
+    governor,
+    extensions::governor_settings,
     extensions::governor_settings::{
         Data,
         GovernorSettingsInternal,
@@ -28,6 +30,10 @@ use crate::{
     governance::governor::only_governance,
     governor::GovernorInternal,
     traits::errors::GovernanceError,
+    traits::governance::{
+        *,
+        extensions::governor_settings::*,
+    }
 };
 use openbrush::{
     modifiers,

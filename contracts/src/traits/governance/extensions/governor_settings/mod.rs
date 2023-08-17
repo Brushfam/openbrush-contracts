@@ -20,7 +20,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::traits::errors::GovernanceError;
+pub use crate::traits::errors::GovernanceError;
 
 /// Extension of `Governor` for settings updatable through governance.
 #[openbrush::trait_definition]

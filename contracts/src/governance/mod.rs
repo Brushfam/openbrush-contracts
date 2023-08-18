@@ -35,7 +35,10 @@ pub mod extensions {
     #[cfg(feature = "timelock_controller")]
     pub mod timelock_controller;
 }
+
 #[cfg(feature = "governance")]
 pub mod governor;
 #[cfg(feature = "governance")]
-pub mod utils;
+pub mod utils {
+    pub mod votes;
+}

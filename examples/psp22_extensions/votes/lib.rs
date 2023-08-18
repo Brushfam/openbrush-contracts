@@ -1,29 +1,30 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(PSP22, PSP22Mintable, Nonces)]
+#[openbrush::implementation(PSP22, PSP22Mintable, PSP22Votes, Nonces)]
 #[openbrush::contract]
 pub mod my_psp22_votes {
-    use openbrush::{
-        contracts::{
-            governance::utils::{
-                votes,
-                votes::*,
-            },
-            governor::TimestampProvider,
-            psp22::extensions::votes::*,
-            traits::{
-                errors::GovernanceError,
-                governance::utils::*,
-                psp22::{
-                    extensions::votes::*,
-                    *,
-                },
-                types::SignatureType,
-            },
-            utils::checkpoint::Checkpoint,
-        },
-        traits::Storage,
-    };
+    // use openbrush::{
+    //     contracts::{
+    //         governance::utils::{
+    //             votes,
+    //             votes::*,
+    //         },
+    //         governor::TimestampProvider,
+    //         psp22::extensions::votes::*,
+    //         traits::{
+    //             errors::GovernanceError,
+    //             governance::utils::*,
+    //             psp22::{
+    //                 extensions::votes::*,
+    //                 *,
+    //             },
+    //             types::SignatureType,
+    //         },
+    //         utils::checkpoint::Checkpoint,
+    //     },
+    //     traits::Storage,
+    // };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -64,74 +65,9 @@ pub mod my_psp22_votes {
             self.mock_timestamp += timestamp;
         }
     }
-
-    impl VotesEvents for Contract {}
-
-    impl VotesInternal for Contract {
-        fn _get_voting_units(&self, account: &AccountId) -> Balance {
-            PSP22VotesInternal::_get_voting_units(self, account)
-        }
-    }
-
     impl TimestampProvider for Contract {
         fn block_timestamp(&self) -> Timestamp {
             self.mock_timestamp
-        }
-    }
-
-    impl VotesImpl for Contract {}
-
-    impl Votes for Contract {
-        #[ink(message)]
-        fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
-            VotesImpl::get_votes(self, account)
-        }
-
-        #[ink(message)]
-        fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
-            VotesImpl::get_past_votes(self, account, timestamp)
-        }
-
-        #[ink(message)]
-        fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
-            VotesImpl::get_past_total_supply(self, timestamp)
-        }
-
-        #[ink(message)]
-        fn delegates(&mut self, delegator: AccountId) -> Option<AccountId> {
-            VotesImpl::delegates(self, delegator)
-        }
-
-        #[ink(message)]
-        fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError> {
-            VotesImpl::delegate(self, delegatee)
-        }
-
-        #[ink(message)]
-        fn delegate_by_signature(
-            &mut self,
-            signer: AccountId,
-            delegatee: AccountId,
-            nonce: u128,
-            expiry: Timestamp,
-            signature: SignatureType,
-        ) -> Result<(), GovernanceError> {
-            VotesImpl::delegate_by_signature(self, signer, delegatee, nonce, expiry, signature)
-        }
-    }
-
-    impl PSP22VotesImpl for Contract {}
-    impl PSP22VotesInternal for Contract {}
-
-    impl PSP22Votes for Contract {
-        #[ink(message)]
-        fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError> {
-            PSP22VotesImpl::num_checkpoints(self, account)
-        }
-
-        #[ink(message)]
-        fn checkpoints(&self, account: AccountId, pos: u32) -> Result<Checkpoint, GovernanceError> {
-            PSP22VotesImpl::checkpoints(self, account, pos)
         }
     }
 }

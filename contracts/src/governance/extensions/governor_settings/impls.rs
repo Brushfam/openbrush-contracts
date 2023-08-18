@@ -21,19 +21,17 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::{
-    governor,
-    extensions::governor_settings,
-    extensions::governor_settings::{
+    governance::extensions::governor_settings,
+    traits::governance::extensions::governor_settings::*,
+};
+use crate::{
+    governance::extensions::governor_settings::{
         Data,
         GovernorSettingsInternal,
     },
     governance::governor::only_governance,
-    governor::GovernorInternal,
+    governance::governor::GovernorInternal,
     traits::errors::GovernanceError,
-    traits::governance::{
-        *,
-        extensions::governor_settings::*,
-    }
 };
 use openbrush::{
     modifiers,

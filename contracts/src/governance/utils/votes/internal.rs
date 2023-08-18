@@ -25,7 +25,7 @@ use crate::{
         Data,
         VotesEvents,
     },
-    governor::TimestampProvider,
+    governance::governor::TimestampProvider,
     traits::errors::{
         CheckpointsError,
         GovernanceError,

@@ -21,26 +21,26 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::{
-    extensions::{
+    governance::extensions::governor_quorum,
+    traits::governance::extensions::governor_quorum::*,
+};
+
+use crate::{
+    governance::extensions::{
         governor_quorum::{
             Data,
             QuorumEvents,
         },
         governor_votes,
-        governor_quorum,
     },
-    governor,
-    governor::{
+    governance::governor,
+    governance::governor::{
         only_governance,
         TimestampProvider,
     },
     traits::{
         errors::GovernanceError,
-        governance::utils::VotesRef,
-        governance::{
-            *,
-            extensions::governor_quorum::*,
-        }
+        governance::utils::votes::*,
     },
 };
 use openbrush::traits::{
@@ -94,17 +94,17 @@ pub trait QuorumImpl:
     }
 
     /// Returns the quorum at a given timestamp
-    fn quorum(&self, time_point: Timestamp) -> Result<u128, GovernanceError> {
+    fn quorum(&self, timestamp: Timestamp) -> Result<u128, GovernanceError> {
         let mut token = self
             .data::<governor_votes::Data>()
             .token
             .get()
             .ok_or(GovernanceError::TokenNotSet)?;
 
-        let past_total_supply = VotesRef::get_past_total_supply(&mut token, time_point)?;
+        let past_total_supply = VotesRef::get_past_total_supply(&mut token, timestamp)?;
 
         past_total_supply
-            .checked_mul(self.quorum_numerator_at(time_point))
+            .checked_mul(self.quorum_numerator_at(timestamp))
             .ok_or(GovernanceError::Overflow)?
             .checked_div(self.quorum_denominator())
             .ok_or(GovernanceError::Overflow)

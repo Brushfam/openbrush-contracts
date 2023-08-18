@@ -21,7 +21,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    extensions::{
+    governance::extensions::{
         governor_counting::CountingInternal,
         governor_votes::GovernorVotesInternal,
     },

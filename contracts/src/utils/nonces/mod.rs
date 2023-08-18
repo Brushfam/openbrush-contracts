@@ -22,7 +22,7 @@
 
 pub use crate::traits::errors::NoncesError;
 pub use crate::{
-    nonces,
+    utils::nonces,
     traits::utils::nonces::*,
 };
 use openbrush::{

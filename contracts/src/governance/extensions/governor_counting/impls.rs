@@ -21,22 +21,20 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::{
+    governance::extensions::governor_counting,
+    traits::governance::extensions::governor_counting::*,
+};
+use crate::{
     governance::extensions::governor_counting::{
         CountingInternal,
         Data,
     },
-    extensions::governor_counting,
-    governor,
     traits::{
         errors::GovernanceError,
         governance::{
             ProposalId,
             ProposalVote,
         },
-        governance::{
-            *,
-            extensions::governor_counting::*,
-        }
     },
 };
 use openbrush::traits::{

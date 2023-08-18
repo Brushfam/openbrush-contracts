@@ -21,7 +21,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    extensions::governor_settings::{
+    governance::extensions::governor_settings::{
         Data,
         GovernorSettingsEvents,
     },

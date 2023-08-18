@@ -21,10 +21,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    checkpoint::Checkpoint,
+    utils::checkpoint::Checkpoint,
     traits::{
         errors::GovernanceError,
-        governance::utils::*,
+        governance::utils::votes::*,
     },
 };
 use openbrush::traits::AccountId;

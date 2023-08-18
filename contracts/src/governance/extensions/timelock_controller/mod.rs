@@ -25,7 +25,7 @@ pub use crate::{
     traits::access_control::*,
 };
 use crate::{
-    governor::CallInput,
+    governance::governor::CallInput,
     traits::{
         errors::TimelockControllerError,
         governance::extensions::timelock_controller::{

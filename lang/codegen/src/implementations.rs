@@ -578,6 +578,103 @@ pub(crate) fn impl_token_timelock(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(timelock));
 }
 
+pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let votes_events = syn::parse2::<syn::ItemImpl>(quote!(
+        impl VotesEvents for Contract {}
+    )).expect("Should parse");
+
+    let votes_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl VotesInternal for Contract {
+            fn _get_voting_units(&self, account: &AccountId) -> Balance {
+                PSP22VotesInternal::_get_voting_units(self, account)
+            }
+        }
+    )).expect("Should parse");
+
+    let votes_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl VotesImpl for Contract {}
+    )).expect("Should parse");
+
+    let votes = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Votes for Contract {
+            #[ink(message)]
+            fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
+                VotesImpl::get_votes(self, account)
+            }
+
+            #[ink(message)]
+            fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
+                VotesImpl::get_past_votes(self, account, timestamp)
+            }
+
+            #[ink(message)]
+            fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
+                VotesImpl::get_past_total_supply(self, timestamp)
+            }
+
+            #[ink(message)]
+            fn delegates(&mut self, delegator: AccountId) -> Option<AccountId> {
+                VotesImpl::delegates(self, delegator)
+            }
+
+            #[ink(message)]
+            fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError> {
+                VotesImpl::delegate(self, delegatee)
+            }
+
+            #[ink(message)]
+            fn delegate_by_signature(
+                &mut self,
+                signer: AccountId,
+                delegatee: AccountId,
+                nonce: u128,
+                expiry: Timestamp,
+                signature: SignatureType,
+            ) -> Result<(), GovernanceError> {
+                VotesImpl::delegate_by_signature(self, signer, delegatee, nonce, expiry, signature)
+            }
+        }
+    )).expect("Should parse");
+
+    let psp22_votes_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP22VotesImpl for Contract {}
+    )).expect("Should parse");
+
+    let psp22_votes_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP22VotesInternal for Contract {}
+    )).expect("Should parse");
+
+    let psp22_votes = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP22Votes for Contract {
+            #[ink(message)]
+            fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError> {
+                PSP22VotesImpl::num_checkpoints(self, account)
+            }
+
+            #[ink(message)]
+            fn checkpoints(&self, account: AccountId, pos: u32) -> Result<Checkpoint, GovernanceError> {
+                PSP22VotesImpl::checkpoints(self, account, pos)
+            }
+        }
+    )).expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::{
+            governance::utils::votes::*,
+            psp22::extensions::votes::*,
+        };
+    )).expect("Should parse");
+    impl_args.imports.insert("PSP22Votes", import);
+
+    impl_args.items.push(syn::Item::Impl(votes_events));
+    impl_args.items.push(syn::Item::Impl(votes_internal));
+    impl_args.items.push(syn::Item::Impl(votes_impl));
+    impl_args.items.push(syn::Item::Impl(votes));
+    impl_args.items.push(syn::Item::Impl(psp22_votes_impl));
+    impl_args.items.push(syn::Item::Impl(psp22_votes_internal));
+    impl_args.items.push(syn::Item::Impl(psp22_votes));
+}
 pub(crate) fn impl_psp22_pallet(impl_args: &mut ImplArgs) {
     let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
@@ -2671,7 +2768,7 @@ pub(crate) fn impl_governor_settings(impl_args: &mut ImplArgs) {
     )).expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::extensions::governor_settings::*;
+        use openbrush::contracts::governance::extensions::governor_settings::*;
     )).expect("Should parse");
     impl_args.imports.insert("GovernorSettings", import);
 
@@ -2688,7 +2785,7 @@ pub(crate) fn impl_governor_votes(impl_args: &mut ImplArgs) {
     )).expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::extensions::governor_votes::*;
+        use openbrush::contracts::governance::extensions::governor_votes::*;
     )).expect("Should parse");
     impl_args.imports.insert("GovernorVotes", import);
 
@@ -2735,7 +2832,7 @@ pub(crate) fn impl_governor_quorum(impl_args: &mut ImplArgs) {
     )).expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::extensions::governor_quorum::*;
+        use openbrush::contracts::governance::extensions::governor_quorum::*;
     )).expect("Should parse");
     impl_args.imports.insert("GovernorQuorum", import);
 
@@ -2772,7 +2869,7 @@ pub(crate) fn impl_governor_counting(impl_args: &mut ImplArgs) {
     )).expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::extensions::governor_counting::*;
+        use openbrush::contracts::governance::extensions::governor_counting::*;
     )).expect("Should parse");
     impl_args.imports.insert("GovernorCounting", import);
 
@@ -2924,7 +3021,7 @@ pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
     )).expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::governor::*;
+        use openbrush::contracts::governance::governor::*;
     ))
     .expect("Should parse");
     impl_args.imports.insert("Governor", import);
@@ -2953,7 +3050,7 @@ pub(crate) fn impl_nonces(impl_args: &mut ImplArgs) {
     )).expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::nonces::*;
+        use openbrush::contracts::utils::nonces::*;
     )).expect("Should parse");
     impl_args.imports.insert("Nonces", import);
 

@@ -20,18 +20,18 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 pub use crate::{
-    governance,
-    traits::governance::{
-        governor::*,
-        extensions::{
-            governor_quorum::*,
-            governor_counting::*,
-            governor_settings::*,
-        }
+    governance::governor,
+    traits::{
+        governance::{
+            *,
+            governor::*
+        },
+        types::SignatureType,
+        errors::governance::GovernanceError,
     },
 };
-pub use crate::{
-    extensions::{
+use crate::{
+    governance::extensions::{
         governor_settings::{
             GovernorSettingsImpl,
             GovernorSettingsInternal,
@@ -43,25 +43,9 @@ pub use crate::{
         GovernorEvents,
         GovernorInternal,
     },
-    governor::{
+    governance::governor::{
         GovernorStorageGetters,
         TimestampProvider,
-    },
-    nonces::NoncesImpl,
-    traits::{
-        errors::governance::GovernanceError,
-        governance::{
-            CancelationStatus,
-            ExecutionStatus,
-            HashType,
-            ProposalCore,
-            ProposalId,
-            ProposalState,
-            ProposalVote,
-            Transaction,
-            VoteType,
-        },
-        types::SignatureType,
     },
     utils::crypto,
 };
@@ -86,33 +70,6 @@ use openbrush::{
     },
 };
 use scale::Encode;
-pub use governance::{
-    governor::{
-        GovernorImpl as _,
-        GovernorInternal as _,
-        GovernorEvents as _,
-        GovernorStorageGetters as _,
-    },
-    extensions::{
-        governor_quorum::{
-            QuorumImpl as _,
-            QuorumEvents as _,
-        },
-        governor_votes::{
-            GovernorVotesInternal as _,
-        },
-        governor_settings::{
-            GovernorSettingsImpl as _,
-            GovernorSettingsInternal as _,
-            GovernorSettingsEvents as _,
-        },
-        governor_counting::{
-            GovernorCountingImpl as _,
-            CountingInternal as _,
-        }
-    }
-};
-
 
 /// @dev Restricts a function so it can only be executed through governance proposals. For example, governance
 /// parameter setters in {GovernorSettings} are protected using this modifier.

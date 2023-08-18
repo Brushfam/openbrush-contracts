@@ -21,15 +21,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::{
-    governance::governor,
-    extensions::governor_votes::Data,
-    traits::{
-        errors::GovernanceError,
-        governance::{
-            utils::*,
-        },
-    },
+    governance::extensions::governor_votes,
+    traits::governance::utils::votes::*
 };
+
+use crate::governance::extensions::governor_votes::Data;
+
 use ink::{
     prelude::vec::Vec,
     primitives::AccountId,

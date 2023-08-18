@@ -20,8 +20,11 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+pub use crate::{
+    traits::psp22::extensions::votes::*,
+};
 use crate::{
-    checkpoint::Checkpoint,
+    utils::checkpoint::Checkpoint,
     governance::utils::votes::VotesInternal,
     psp22,
     psp22::PSP22Error,

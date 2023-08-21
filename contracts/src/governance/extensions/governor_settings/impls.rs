@@ -25,12 +25,16 @@ pub use crate::{
     traits::governance::extensions::governor_settings::*,
 };
 use crate::{
-    governance::extensions::governor_settings::{
-        Data,
-        GovernorSettingsInternal,
+    governance::{
+        extensions::governor_settings::{
+            Data,
+            GovernorSettingsInternal,
+        },
+        governor::{
+            only_governance,
+            GovernorInternal,
+        },
     },
-    governance::governor::only_governance,
-    governance::governor::GovernorInternal,
     traits::errors::GovernanceError,
 };
 use openbrush::{

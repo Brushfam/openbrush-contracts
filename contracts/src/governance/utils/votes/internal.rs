@@ -21,11 +21,13 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    governance::utils::votes::{
-        Data,
-        VotesEvents,
+    governance::{
+        governor::TimestampProvider,
+        utils::votes::{
+            Data,
+            VotesEvents,
+        },
     },
-    governance::governor::TimestampProvider,
     traits::errors::{
         CheckpointsError,
         GovernanceError,

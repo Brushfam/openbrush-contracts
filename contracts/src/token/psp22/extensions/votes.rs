@@ -20,15 +20,13 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    traits::psp22::extensions::votes::*,
-};
+pub use crate::traits::psp22::extensions::votes::*;
 use crate::{
-    utils::checkpoint::Checkpoint,
     governance::utils::votes::VotesInternal,
     psp22,
     psp22::PSP22Error,
     traits::errors::GovernanceError,
+    utils::checkpoint::Checkpoint,
 };
 use ink::prelude::vec;
 use openbrush::traits::AccountId;

@@ -20,10 +20,12 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::traits::errors::NoncesError;
 pub use crate::{
+    traits::{
+        errors::NoncesError,
+        utils::nonces::*,
+    },
     utils::nonces,
-    traits::utils::nonces::*,
 };
 use openbrush::{
     storage::Mapping,

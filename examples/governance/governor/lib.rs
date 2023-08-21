@@ -36,8 +36,6 @@ pub mod my_governor {
         ) -> Self {
             let mut instance = Self::default();
 
-            let caller = Self::env().caller();
-
             instance._init_governor_votes(token).unwrap();
             instance
                 ._init_governor_settings(voting_delay, voting_period, proposal_threshold)

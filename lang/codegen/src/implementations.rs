@@ -582,7 +582,8 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
     let storage_struct_name = impl_args.contract_name();
     let votes_events = syn::parse2::<syn::ItemImpl>(quote!(
         impl VotesEvents for Contract {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let votes_internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl VotesInternal for Contract {
@@ -590,11 +591,13 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
                 PSP22VotesInternal::_get_voting_units(self, account)
             }
         }
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let votes_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl VotesImpl for Contract {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let votes = syn::parse2::<syn::ItemImpl>(quote!(
         impl Votes for Contract {
@@ -635,15 +638,18 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
                 VotesImpl::delegate_by_signature(self, signer, delegatee, nonce, expiry, signature)
             }
         }
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let psp22_votes_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl PSP22VotesImpl for Contract {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let psp22_votes_internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl PSP22VotesInternal for Contract {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let psp22_votes = syn::parse2::<syn::ItemImpl>(quote!(
         impl PSP22Votes for Contract {
@@ -657,14 +663,16 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
                 PSP22VotesImpl::checkpoints(self, account, pos)
             }
         }
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::{
             governance::utils::votes::*,
             psp22::extensions::votes::*,
         };
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
     impl_args.imports.insert("PSP22Votes", import);
 
     impl_args.items.push(syn::Item::Impl(votes_events));
@@ -2726,13 +2734,16 @@ pub(crate) fn impl_governor_settings(impl_args: &mut ImplArgs) {
     let storage_struct_name = impl_args.contract_name();
     let governor_settings_events = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorSettingsEvents for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
     let governor_settings_internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorSettingsInternal for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
     let governor_settings_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorSettingsImpl for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
     let governor_settings = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorSettings for #storage_struct_name {
             #[ink(message)]
@@ -2765,11 +2776,13 @@ pub(crate) fn impl_governor_settings(impl_args: &mut ImplArgs) {
                 GovernorSettingsImpl::proposal_threshold(self)
             }
         }
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::governance::extensions::governor_settings::*;
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
     impl_args.imports.insert("GovernorSettings", import);
 
     impl_args.items.push(syn::Item::Impl(governor_settings_events));
@@ -2782,11 +2795,13 @@ pub(crate) fn impl_governor_votes(impl_args: &mut ImplArgs) {
     let storage_struct_name = impl_args.contract_name();
     let governor_votes_internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorVotesInternal for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::governance::extensions::governor_votes::*;
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
     impl_args.imports.insert("GovernorVotes", import);
 
     impl_args.items.push(syn::Item::Impl(governor_votes_internal));
@@ -2796,11 +2811,13 @@ pub(crate) fn impl_governor_quorum(impl_args: &mut ImplArgs) {
     let storage_struct_name = impl_args.contract_name();
     let quorum_events = syn::parse2::<syn::ItemImpl>(quote!(
         impl QuorumEvents for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let quorum_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl QuorumImpl for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let mut quorum = syn::parse2::<syn::ItemImpl>(quote!(
         impl Quorum for #storage_struct_name {
@@ -2829,11 +2846,13 @@ pub(crate) fn impl_governor_quorum(impl_args: &mut ImplArgs) {
                 QuorumImpl::update_quorum_numerator(self, numerator)
             }
         }
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::governance::extensions::governor_quorum::*;
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
     impl_args.imports.insert("GovernorQuorum", import);
 
     override_functions("Quorum", &mut quorum, impl_args.map);
@@ -2848,11 +2867,13 @@ pub(crate) fn impl_governor_counting(impl_args: &mut ImplArgs) {
 
     let governor_counting_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorCountingImpl for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let counting_internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl CountingInternal for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let governor_counting = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorCounting for #storage_struct_name {
@@ -2866,11 +2887,13 @@ pub(crate) fn impl_governor_counting(impl_args: &mut ImplArgs) {
                 GovernorCountingImpl::proposal_votes(self, proposal_id)
             }
         }
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::governance::extensions::governor_counting::*;
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
     impl_args.imports.insert("GovernorCounting", import);
 
     impl_args.items.push(syn::Item::Impl(governor_counting_impl));
@@ -2882,21 +2905,25 @@ pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
 
     let governor_storage_getters = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorStorageGetters for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let governor_internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorInternal for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let governor_events = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorEvents for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let governor_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl GovernorImpl for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
-    let governor= syn::parse2::<syn::ItemImpl>(quote!(
+    let governor = syn::parse2::<syn::ItemImpl>(quote!(
         impl Governor for Contract {
             #[ink(message)]
             fn hash_proposal(
@@ -3018,7 +3045,8 @@ pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
                 GovernorImpl::relay(self, target, transaction)
             }
         }
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::governance::governor::*;
@@ -3038,7 +3066,8 @@ pub(crate) fn impl_nonces(impl_args: &mut ImplArgs) {
 
     let nonces_impl = syn::parse2::<syn::ItemImpl>(quote!(
         impl NoncesImpl for #storage_struct_name {}
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let nonces = syn::parse2::<syn::ItemImpl>(quote!(
         impl Nonces for #storage_struct_name {
@@ -3047,11 +3076,13 @@ pub(crate) fn impl_nonces(impl_args: &mut ImplArgs) {
                 NoncesImpl::nonces(self, &account)
             }
         }
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
         use openbrush::contracts::utils::nonces::*;
-    )).expect("Should parse");
+    ))
+    .expect("Should parse");
     impl_args.imports.insert("Nonces", import);
 
     impl_args.items.push(syn::Item::Impl(nonces_impl));

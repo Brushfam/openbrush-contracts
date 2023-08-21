@@ -113,7 +113,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "DiamondLoupe" => impl_diamond_loupe(&mut impl_args),
             "Upgradeable" => impl_upgradeable(&mut impl_args),
             "Governor" => impl_governor(&mut impl_args),
-            "GovernorSettings"  => impl_governor_settings(&mut impl_args),
+            "GovernorSettings" => impl_governor_settings(&mut impl_args),
             "GovernorVotes" => impl_governor_votes(&mut impl_args),
             "GovernorQuorum" => impl_governor_quorum(&mut impl_args),
             "GovernorCounting" => impl_governor_counting(&mut impl_args),

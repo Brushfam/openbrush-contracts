@@ -22,7 +22,7 @@
 
 pub use crate::{
     governance::extensions::governor_votes,
-    traits::governance::utils::votes::*
+    traits::governance::utils::votes::*,
 };
 
 use crate::governance::extensions::governor_votes::Data;

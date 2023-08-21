@@ -22,30 +22,30 @@
 pub use crate::{
     governance::governor,
     traits::{
+        errors::governance::GovernanceError,
         governance::{
+            governor::*,
             *,
-            governor::*
         },
         types::SignatureType,
-        errors::governance::GovernanceError,
     },
 };
 use crate::{
-    governance::extensions::{
-        governor_settings::{
-            GovernorSettingsImpl,
-            GovernorSettingsInternal,
+    governance::{
+        extensions::{
+            governor_settings::{
+                GovernorSettingsImpl,
+                GovernorSettingsInternal,
+            },
+            governor_votes::GovernorVotesInternal,
         },
-        governor_votes::GovernorVotesInternal,
-    },
-    governance::governor::{
-        Data,
-        GovernorEvents,
-        GovernorInternal,
-    },
-    governance::governor::{
-        GovernorStorageGetters,
-        TimestampProvider,
+        governor::{
+            Data,
+            GovernorEvents,
+            GovernorInternal,
+            GovernorStorageGetters,
+            TimestampProvider,
+        },
     },
     utils::crypto,
 };

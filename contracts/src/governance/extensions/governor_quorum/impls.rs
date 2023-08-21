@@ -26,17 +26,19 @@ pub use crate::{
 };
 
 use crate::{
-    governance::extensions::{
-        governor_quorum::{
-            Data,
-            QuorumEvents,
+    governance::{
+        extensions::{
+            governor_quorum::{
+                Data,
+                QuorumEvents,
+            },
+            governor_votes,
         },
-        governor_votes,
-    },
-    governance::governor,
-    governance::governor::{
-        only_governance,
-        TimestampProvider,
+        governor,
+        governor::{
+            only_governance,
+            TimestampProvider,
+        },
     },
     traits::{
         errors::GovernanceError,

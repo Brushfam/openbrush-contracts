@@ -21,11 +21,13 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    governance::extensions::{
-        governor_quorum::QuorumImpl,
-        governor_counting::Data,
+    governance::{
+        extensions::{
+            governor_counting::Data,
+            governor_quorum::QuorumImpl,
+        },
+        governor::GovernorStorageGetters,
     },
-    governance::governor::GovernorStorageGetters,
     traits::{
         errors::GovernanceError,
         governance::{

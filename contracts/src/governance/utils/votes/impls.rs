@@ -20,32 +20,28 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    governance::{
-        utils::votes,
-        governor::TimestampProvider,
-    },
-    traits::{
-        governance::utils::votes::*,
-        errors::GovernanceError,
-        types::SignatureType,
-    },
-    utils::checkpoint::*,
-};
 use crate::{
-    governance::utils::votes::*,
     governance::utils::votes::{
         Data,
         VotesEvents,
         VotesInternal,
     },
-    traits::{
-        governance::utils::votes::*,
-    },
     utils::{
         crypto,
         nonces::NoncesImpl,
     },
+};
+pub use crate::{
+    governance::{
+        governor::TimestampProvider,
+        utils::votes,
+    },
+    traits::{
+        errors::GovernanceError,
+        governance::utils::votes::*,
+        types::SignatureType,
+    },
+    utils::checkpoint::*,
 };
 use openbrush::traits::{
     AccountId,

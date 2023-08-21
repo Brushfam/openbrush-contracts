@@ -75,6 +75,7 @@ test-all = [
     "pausable",
     "timelock_controller",
     "proxy",
+    "utils",
     "diamond",
     "governance",
 ]

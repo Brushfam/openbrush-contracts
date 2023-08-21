@@ -39,8 +39,10 @@ pub use access::access_control;
 pub use access::ownable;
 #[cfg(feature = "payment_splitter")]
 pub use finance::payment_splitter;
+#[cfg(feature = "timelock_controller")]
+pub use governance::timelock_controller;
 #[cfg(feature = "governance")]
-// pub use governance::*;
+pub use governance::*;
 #[cfg(feature = "pausable")]
 pub use security::pausable;
 #[cfg(feature = "reentrancy_guard")]
@@ -59,6 +61,5 @@ pub use upgradeability::diamond;
 pub use upgradeability::proxy;
 #[cfg(feature = "upgradeable")]
 pub use upgradeability::upgradeable;
-#[cfg(feature = "timelock_controller")]
-pub use governance::timelock_controller;
-// pub use utils::*;
+#[cfg(feature = "utils")]
+pub use utils::*;

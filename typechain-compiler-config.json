@@ -1,9 +1,6 @@
 {
   "projectFiles": [
-    "examples/psp22_extensions/votes/Cargo.toml",
-    "examples/governance/governor/Cargo.toml",
-    "examples/nonces/Cargo.toml",
-    "mocks/mock_receiver/Cargo.toml"
+    "example_project_structure/contracts/**", "examples/upgradeable/**", "examples/diamond/**", "examples/proxy/**", "examples/governance/**"
   ],
   "artifactsPath": "./artifacts",
   "typechainGeneratedPath": "./typechain-generated"

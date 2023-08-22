@@ -579,7 +579,7 @@ pub(crate) fn impl_token_timelock(impl_args: &mut ImplArgs) {
 }
 
 pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
-    let storage_struct_name = impl_args.contract_name();
+    let _storage_struct_name = impl_args.contract_name();
     let votes_events = syn::parse2::<syn::ItemImpl>(quote!(
         impl VotesEvents for Contract {}
     ))

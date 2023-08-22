@@ -14,7 +14,7 @@ IGNORED_DIRS=("./examples/reentrancy_guard"
   "./examples/flash-borrower" 
   "./examples/psp22_extensions/flashmint/" 
   "./examples/psp22_extensions/wrapper/"
-  "./examples/psp22_utils/token_timelock/")
+  "./examples/psp22_utils/token_timelock/",
 
 ignore_dir() {
   local element

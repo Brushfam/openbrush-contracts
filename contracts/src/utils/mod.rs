@@ -21,12 +21,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #[cfg(feature = "utils")]
-pub mod utils {
-    pub mod checkpoint;
-    pub mod crypto;
-    pub mod nonces;
-}
-
 pub mod checkpoint;
+#[cfg(feature = "utils")]
 pub mod crypto;
+#[cfg(feature = "utils")]
 pub mod nonces;

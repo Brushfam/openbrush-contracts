@@ -22,20 +22,30 @@
 pub use crate::{
     psp22,
     psp22::extensions::permit,
-    traits::psp22::{extensions::permit::*, *},
+    traits::psp22::{
+        extensions::permit::*,
+        *,
+    },
 };
 
-use blake2::digest::Update;
-use blake2::{Blake2s, Digest};
-use ink::blake2x256;
-use openbrush::storage::Mapping;
-use openbrush::traits::AccountId;
-use openbrush::traits::{Balance, Storage};
-pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
-use sp_core::crypto::Pair;
-use sp_core::sr25519::{Public, Signature};
-pub const PERMIT_TYPE_HASH: [u8; 32] =
-    blake2x256!("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+use ink::env::hash::{
+    Blake2x256,
+    HashOutput,
+};
+use openbrush::{
+    storage::Mapping,
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
+};
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22Impl,
+};
+use scale::Encode;
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -43,6 +53,16 @@ pub struct Data {
     pub nonces: Mapping<AccountId, u64>,
     #[lazy]
     pub cached_domain_separator: [u8; 32],
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, scale::Encode, scale::Decode)]
+pub struct PermitMessage {
+    domain_separator: [u8; 32],
+    owner: AccountId,
+    spender: AccountId,
+    amount: Balance,
+    deadline: u64,
+    nonce: u64,
 }
 
 pub trait PSP22PermitImpl: Internal {
@@ -94,28 +114,22 @@ pub trait InternalImpl: Storage<Data> + psp22::Internal {
     ) -> Result<(), PSP22Error> {
         let block_time = Self::env().block_timestamp();
         if deadline < block_time {
-            return Err(PSP22Error::PermitExpired);
+            return Err(PSP22Error::PermitExpired)
         }
 
         let nonce = self._use_nonce(owner);
-        let message_hash: [u8; 32] = Blake2s::new()
-            .chain(PERMIT_TYPE_HASH)
-            .chain(self._domain_separator())
-            .chain(owner)
-            .chain(spender)
-            .chain(amount.to_le_bytes())
-            .chain(nonce.to_le_bytes())
-            .chain(deadline.to_le_bytes())
-            .finalize()
-            .into();
+        let domain_separator = self._domain_separator();
 
-        let message = &message_hash[..];
-        let sig = Signature::from_raw(signature);
+        let message = &scale::Encode::encode(&PermitMessage {
+            domain_separator,
+            owner,
+            spender,
+            amount,
+            deadline,
+            nonce,
+        });
 
-        let owner_bytes: &[u8; 32] = owner.as_ref();
-        let pubkey = Public::from_raw(owner_bytes.clone());
-
-        if sp_core::sr25519::Pair::verify(&sig, message, &pubkey) {
+        if ink::env::sr25519_verify(&signature, message, (&owner).as_ref()).is_ok() {
             self._approve_from_to(owner, spender, amount)?;
             Ok(())
         } else {
@@ -137,11 +151,13 @@ pub trait InternalImpl: Storage<Data> + psp22::Internal {
         if self.data().cached_domain_separator.get().is_none() {
             let account_id = &Self::env().account_id();
 
-            let result: [u8; 32] = Blake2s::new().chain(account_id).finalize().into();
+            let mut output = <Blake2x256 as HashOutput>::Type::default();
 
-            self.data().cached_domain_separator.set(&result.clone());
+            ink::env::hash_bytes::<Blake2x256>(&account_id.encode(), &mut output);
 
-            result
+            self.data().cached_domain_separator.set(&output);
+
+            output
         } else {
             cached
         }

@@ -35,11 +35,11 @@ use openbrush_lang_codegen::{
     wrapper,
 };
 
-/// Entry point for use openbrush's macros in ink! smart contracts.
+/// Entry point for use OpenBrush's macros in ink! smart contracts.
 ///
 /// # Description
 ///
-/// The macro consumes openbrush's macros to simplify the usage of the library.
+/// The macro consumes OpenBrush's macros to simplify the usage of the library.
 /// After consumption, it pastes ink! code and then ink!'s macros will be processed.
 ///
 /// This macro consumes impl section for traits defined with [`#[openbrush::trait_definition]`](`macro@crate::trait_definition`).
@@ -48,7 +48,7 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     contract::generate(_attrs.into(), ink_module.into()).into()
 }
 
-/// Defines extensible trait in the scope of openbrush::contract.
+/// Defines extensible trait in the scope of `openbrush::contract`.
 /// It is a common rust trait, so you can use any features of rust inside of this trait.
 /// If this trait contains some methods marked with `#[ink(message)]` or `#[ink(constructor)]` attributes,
 /// this macro will extract these attributes and will put them into a separate trait
@@ -406,13 +406,20 @@ pub fn wrapper(attrs: TokenStream, input: TokenStream) -> TokenStream {
     wrapper::generate(attrs.into(), input.into()).into()
 }
 
-/// The macro implements `openbrush::traits::Storage` and `openbrush::traits::OccupiedStorage`
-/// traits for each field marked by `#[storage_field]` attribute. Each field's type should implement
-/// the `openbrush::traits::OccupyStorage` trait with a unique storage key. Each occupied storage
-/// key should be unique for each type otherwise compilation will fail.
+/// The macro implements `openbrush::traits::Storage`
+/// trait for each field marked by `#[storage_field]` attribute,
+/// so it will be possible to access them via `self.data::<Type>()` method. It is mostly used for OpenBrush
+/// to understand which fields should be accessed by traits.
 ///
-/// `OccupyStorage` can be implemented for the type manually or automatically via
-/// [`#[openbrush::upgradeable_storage]`](`macro@crate::upgradeable_storage`) macro.
+/// # Example
+/// ```skip
+///     #[ink(storage)]
+///     #[derive(Storage)]
+///     pub struct Contract {
+///         #[storage_field]
+///         field: u32,
+///     }
+/// ```
 #[proc_macro_derive(Storage, attributes(storage_field))]
 pub fn storage_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     storage_derive::storage_derive(item.into()).into()
@@ -420,8 +427,8 @@ pub fn storage_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
 synstructure::decl_attribute!(
     [accessors] =>
-    /// Macro that automatically implements accessors like get/set for struct fields, that implements scale::Encode
-    /// and scale::Decode traits. You should specify the getters trait naming in the macro's attribute.
+    /// Macro that automatically implements accessors like get/set for struct fields, that implements `scale::Encode`
+    /// and `scale::Decode` traits. You should specify the getters trait naming in the macro's attribute.
     /// Also, fields that you want getters to be generated, should be marked by `#[get]` attribute.
     /// Fields, that you want setters to be generated, should be marked by `#[set]` attribute.
     /// The name of the accessor message will be concatenation of `get/set` + `_` + field's name.
@@ -525,5 +532,31 @@ pub fn implementation(attrs: TokenStream, ink_module: TokenStream) -> TokenStrea
 
 synstructure::decl_attribute!(
     [storage_item] =>
+    /// The macro implements `ink::storage_item` macro for the struct, which means that it prepares your struct
+    /// to be a part of contract's storage. Also, inside of struct marked by this macro you can use
+    /// `#[lazy]` attribute to mark fields, that should be lazily loaded and wrapped in `::ink::storage::Lazy`.
+    /// The macro also generates constant storage keys for every mapping or lazy field and inserts them into
+    /// type definition.
+    ///
+    /// # Example
+    /// ```skip
+    /// #[openbrush::storage_item]
+    /// pub struct MyStruct {
+    ///    a: u32,
+    ///    b: u32,
+    /// }
+    /// ```
+    ///
+    /// # Example
+    ///
+    /// ```skip
+    /// #[openbrush::storage_item]
+    /// pub struct MyStruct {
+    ///     #[lazy]
+    ///     a: u32,
+    ///     #[lazy]
+    ///     b: u32,
+    /// }
+    ///
     storage_item::storage_item
 );

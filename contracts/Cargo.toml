@@ -1,14 +1,14 @@
 [package]
 name = "openbrush_contracts"
-version = "3.1.1"
+version= "4.0.0-beta"
 authors = ["Brushfam <green@727.ventures>"]
 edition = "2021"
 
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/Brushfam/openbrush-contracts"
-documentation = "https://docs.openbrush.io"
-homepage = "https://727.ventures"
+documentation = "https://learn.brushfam.io/docs/openbrush"
+homepage = "https://brushfam.io/"
 description = "Reusable implementations of contracts and traits for interaction with them."
 keywords = ["wasm", "brushfam", "smart-contracts", "blockchain", "ink"]
 categories = ["no-std", "embedded"]
@@ -19,7 +19,7 @@ ink = { version = "4.2.1", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
-openbrush = { version = "~3.1.1", package = "openbrush_lang", path = "../lang", default-features = false }
+openbrush = { version = "~4.0.0-beta", package = "openbrush_lang", path = "../lang", default-features = false }
 
 pallet-assets-chain-extension = { git = "https://github.com/Brushfam/pallet-assets-chain-extension", branch = "polkadot-v0.9.37", default-features = false, features = ["ink-lang"]  }
 blake2 = { version = "0.10.6", default-features = false }

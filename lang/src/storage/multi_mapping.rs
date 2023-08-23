@@ -42,7 +42,6 @@ use scale::{
     Output,
 };
 
-// TODO: More doc
 /// A mapping of one key to many values. The mapping provides iteration functionality over all
 /// key's values.
 pub struct MultiMapping<K, V, KeyType: StorageKey = AutoKey, TGK = RefGuard<K>, TGV = ValueGuard<V>> {
@@ -64,8 +63,8 @@ where
         }
     }
 
-    // Contains count of values by key.
-    // key_count: Mapping<K, u128>,
+    /// Contains count of values by key.
+    /// key_count: Mapping<K, u128>,
     fn key_count(&self) -> RawMapping<<TGK as TypeGuard>::Type, u128, (&Key, &u32)>
     where
         for<'a> TGK: TypeGuard<'a>,
@@ -73,8 +72,8 @@ where
         RawMapping::new((&KeyType::KEY, &0))
     }
 
-    // Mapping from key's value to local index.
-    // value_to_index: Mapping<(K, V), u128>,
+    /// Mapping from key's value to local index.
+    /// value_to_index: Mapping<(K, V), u128>,
     fn value_to_index(&self) -> RawMapping<ValueToIndex<TGK, TGV>, u128, (&Key, &u32)>
     where
         for<'a> TGK: TypeGuard<'a>,
@@ -83,8 +82,8 @@ where
         RawMapping::new((&KeyType::KEY, &1))
     }
 
-    // Mapping from local key's index to value.
-    // index_to_value: Mapping<(K, u128), V>,
+    /// Mapping from local key's index to value.
+    /// index_to_value: Mapping<(K, u128), V>,
     fn index_to_value(&self) -> RawMapping<IndexToValue<TGK>, <TGV as TypeGuard>::Type, (&Key, &u32)>
     where
         for<'a> TGK: TypeGuard<'a>,

@@ -103,16 +103,14 @@ impl<T: StorageAsRef> StorageAsMut for T {}
 
 /// This trait is automatically implemented for storage structs.
 pub trait Flush: Storable + Sized + StorageKey {
-    /// Method flushes the current state of `Self` into storage.
-    /// ink! recursively calculate a key of each field.
+    /// Method flushes the current state of `Self` into storage with its `StorageKey`.
     /// So if you want to flush the correct state of the contract,
     /// you have to this method on storage struct.
     fn flush(&self) {
         ink::env::set_contract_storage(&Self::KEY, self);
     }
 
-    /// Method loads the current state of `Self` from storage.
-    /// ink! recursively calculate a key of each field.
+    /// Method loads the current state of `Self` from storage with its `StorageKey`.
     /// So if you want to load the correct state of the contract,
     /// you have to this method on storage struct.
     fn load(&mut self) {

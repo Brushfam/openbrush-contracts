@@ -1,14 +1,14 @@
 [package]
 name = "openbrush_contracts"
-version = "3.1.1"
+version= "4.0.0-beta"
 authors = ["Brushfam <green@727.ventures>"]
 edition = "2021"
 
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/Brushfam/openbrush-contracts"
-documentation = "https://docs.openbrush.io"
-homepage = "https://727.ventures"
+documentation = "https://learn.brushfam.io/docs/openbrush"
+homepage = "https://brushfam.io/"
 description = "Reusable implementations of contracts and traits for interaction with them."
 keywords = ["wasm", "brushfam", "smart-contracts", "blockchain", "ink"]
 categories = ["no-std", "embedded"]

@@ -3,7 +3,6 @@
 #[openbrush::implementation(PaymentSplitter)]
 #[openbrush::contract]
 pub mod my_payment_splitter {
-    use ink::prelude::vec::Vec;
     use openbrush::traits::Storage;
 
     #[ink(storage)]

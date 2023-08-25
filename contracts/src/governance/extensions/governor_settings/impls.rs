@@ -52,16 +52,16 @@ pub trait GovernorSettingsImpl: Storage<Data> + GovernorSettingsInternal + Gover
 
     /// Returns the voting delay
     fn voting_delay(&self) -> u64 {
-        self.data::<Data>().voting_delay
+        self.data::<Data>().voting_delay.get_or_default()
     }
 
     /// Returns the voting period
     fn voting_period(&self) -> u64 {
-        self.data::<Data>().voting_period
+        self.data::<Data>().voting_period.get_or_default()
     }
 
     /// Returns the proposal threshold
     fn proposal_threshold(&self) -> u128 {
-        self.data::<Data>().proposal_threshold
+        self.data::<Data>().proposal_threshold.get_or_default()
     }
 }

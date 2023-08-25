@@ -30,11 +30,8 @@ pub trait VotesEvents {
         _from_delegate: &Option<AccountId>,
         _to_delegate: &Option<AccountId>,
     ) {
-        ()
     }
 
     /// Emitted when a voter's votes are delegated to another account
-    fn emit_delegate_votes_changed_event(&self, _delegate: &AccountId, _previous_votes: Balance, _new_votes: Balance) {
-        ()
-    }
+    fn emit_delegate_votes_changed_event(&self, _delegate: &AccountId, _previous_votes: Balance, _new_votes: Balance) {}
 }

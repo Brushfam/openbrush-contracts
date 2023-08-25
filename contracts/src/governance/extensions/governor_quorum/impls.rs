@@ -51,10 +51,10 @@ pub trait QuorumImpl:
 
         let (exist, _, last_value) = history.latest_checkpoint();
 
-        if !exist {
-            0
-        } else {
+        if exist {
             last_value
+        } else {
+            0
         }
     }
 

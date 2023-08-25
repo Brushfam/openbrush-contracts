@@ -41,7 +41,7 @@ use openbrush::traits::AccountId;
 /// requires users to delegate to themselves in order to activate checkpoints and have their voting power tracked.
 pub trait PSP22VotesImpl: VotesInternal {
     /// Get number of checkpoints for `account`.
-    fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError> {
+    fn num_checkpoints(&self, account: AccountId) -> u32 {
         VotesInternal::_num_checkpoints(self, &account)
     }
 

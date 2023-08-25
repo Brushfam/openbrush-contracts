@@ -602,7 +602,7 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
     let votes = syn::parse2::<syn::ItemImpl>(quote!(
         impl Votes for Contract {
             #[ink(message)]
-            fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
+            fn get_votes(&self, account: AccountId) -> Balance {
                 VotesImpl::get_votes(self, account)
             }
 
@@ -654,7 +654,7 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
     let psp22_votes = syn::parse2::<syn::ItemImpl>(quote!(
         impl PSP22Votes for Contract {
             #[ink(message)]
-            fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError> {
+            fn num_checkpoints(&self, account: AccountId) -> u32 {
                 PSP22VotesImpl::num_checkpoints(self, account)
             }
 

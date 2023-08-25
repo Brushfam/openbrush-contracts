@@ -54,13 +54,12 @@ use scale::Encode;
 /// Common interface for `PSP22Votes`, and other `Votes`-enabled contracts.
 pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + TimestampProvider {
     /// The amount of votes owned by `account`.
-    fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
-        Ok(self
-            .data::<Data>()
+    fn get_votes(&self, account: AccountId) -> Balance {
+        self.data::<Data>()
             .delegate_checkpoints
             .get(&account)
             .unwrap_or_default()
-            .latest())
+            .latest()
     }
 
     /// The amount of votes delegated to `account` at the time `timestamp`.

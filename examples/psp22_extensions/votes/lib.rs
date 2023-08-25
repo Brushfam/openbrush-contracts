@@ -3,27 +3,6 @@
 #[openbrush::implementation(PSP22, PSP22Mintable, PSP22Votes, Nonces)]
 #[openbrush::contract]
 pub mod my_psp22_votes {
-    // use openbrush::{
-    //     contracts::{
-    //         governance::utils::{
-    //             votes,
-    //             votes::*,
-    //         },
-    //         governor::TimestampProvider,
-    //         psp22::extensions::votes::*,
-    //         traits::{
-    //             errors::GovernanceError,
-    //             governance::utils::*,
-    //             psp22::{
-    //                 extensions::votes::*,
-    //                 *,
-    //             },
-    //             types::SignatureType,
-    //         },
-    //         utils::checkpoint::Checkpoint,
-    //     },
-    //     traits::Storage,
-    // };
     use openbrush::traits::Storage;
 
     #[ink(storage)]

@@ -53,10 +53,6 @@ pub trait GovernorCountingImpl: Storage<Data> + CountingInternal {
     /// proposal, and `abstain` is the total number of abstained votes.
     fn proposal_votes(&self, proposal_id: ProposalId) -> Result<ProposalVote, GovernanceError> {
         let proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
-        Ok(ProposalVote {
-            for_votes: proposal_vote.for_votes,
-            against_votes: proposal_vote.against_votes,
-            abstain_votes: proposal_vote.abstain_votes,
-        })
+        Ok(ProposalVote { ..proposal_vote })
     }
 }

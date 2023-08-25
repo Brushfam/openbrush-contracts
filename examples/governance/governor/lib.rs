@@ -4,10 +4,7 @@
 #[openbrush::contract]
 pub mod my_governor {
     use ink::prelude::vec::Vec;
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::{Storage, String};
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -36,7 +33,7 @@ pub mod my_governor {
         ) -> Self {
             let mut instance = Self::default();
 
-            instance._init_governor_votes(token).unwrap();
+            instance._init_governor_votes(token);
             instance
                 ._init_governor_settings(voting_delay, voting_period, proposal_threshold)
                 .unwrap();

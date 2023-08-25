@@ -95,11 +95,6 @@ pub trait GovernorInternal:
         }
     }
 
-    /// Returns default parameters for the proposal
-    fn _default_params(&self) -> Vec<u8> {
-        Vec::new()
-    }
-
     /// Executes a proposal if it is in the `Succeeded` state.
     fn _execute(&mut self, transactions: Vec<Transaction>, _description_hash: HashType) -> Result<(), GovernanceError> {
         for tx in transactions.iter() {
@@ -188,17 +183,6 @@ pub trait GovernorInternal:
         self.emit_proposal_canceled(proposal_id.clone());
 
         Ok(proposal_id)
-    }
-
-    /// Casts a vote on a proposal with `proposal_id`, `support`(for/against/abstain) and `reason`.
-    fn _cast_vote(
-        &mut self,
-        proposal_id: ProposalId,
-        account: AccountId,
-        support: VoteType,
-        reason: String,
-    ) -> Result<Balance, GovernanceError> {
-        self._cast_vote_with_params(proposal_id, account, support, reason, self._default_params())
     }
 
     /// Returns the AccountId of the proposer of a proposal

@@ -21,10 +21,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::utils::checkpoint::Checkpoints;
-use openbrush::{
-    storage::Mapping,
-    traits::AccountId,
-};
+use openbrush::{storage::Mapping, traits::AccountId};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]

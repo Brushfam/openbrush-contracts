@@ -114,7 +114,7 @@ export class GovernorHelper {
       this.proposalId = await this.getProposalId()
     }
 
-    await this.governor?.withSigner(voter).tx.castVote(this.proposalId as unknown as number[], vote)
+    await this.governor?.withSigner(voter).tx.castVote(this.proposalId as unknown as number[], vote, null, null)
   }
 
   async waitForDeadline(offset = 0) {

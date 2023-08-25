@@ -162,8 +162,8 @@ pub trait GovernorImpl:
             return Err(GovernanceError::ProposalAlreadyExists);
         }
 
-        let mut duration = self.voting_period();
-        let snapshot = current_timestamp + duration;
+        let snapshot = current_timestamp + self.voting_delay();
+        let duration = self.voting_period();
 
         self.data::<Data>().proposals.insert(
             &proposal_id,
@@ -254,32 +254,21 @@ pub trait GovernorImpl:
 
     /// Casts a vote for a proposal from a message sender.
     /// Returns the number of votes already casted for the proposal by the sender
-    fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType) -> Result<Balance, GovernanceError> {
-        self._cast_vote(proposal_id, Self::env().caller(), support, String::new())
-    }
-
-    /// Casts a vote with reason for a proposal from a message sender.
-    /// Returns the number of votes already casted for the proposal by the sender
-    fn cast_vote_with_reason(
+    fn cast_vote(
         &mut self,
         proposal_id: ProposalId,
         support: VoteType,
-        reason: String,
+        reason: Option<String>,
+        params: Option<Vec<u8>>,
     ) -> Result<Balance, GovernanceError> {
-        self._cast_vote_with_params(proposal_id, Self::env().caller(), support, reason, Vec::new())
+        self._cast_vote_with_params(
+            proposal_id,
+            Self::env().caller(),
+            support,
+            reason.unwrap_or_default(),
+            params.unwrap_or_default(),
+        )
     }
-    /// Casts a vote with reason and parameters for a proposal from a message sender.
-    /// Returns the number of votes already casted for the proposal by the sender
-    fn cast_vote_with_reason_and_params(
-        &mut self,
-        proposal_id: ProposalId,
-        support: VoteType,
-        reason: String,
-        params: Vec<u8>,
-    ) -> Result<Balance, GovernanceError> {
-        self._cast_vote_with_params(proposal_id, Self::env().caller(), support, reason, params)
-    }
-
     /// Casts a vote with signature for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
     fn cast_vote_with_signature(
         &mut self,
@@ -287,9 +276,15 @@ pub trait GovernorImpl:
         support: VoteType,
         reason: String,
         signature: SignatureType,
+        params: Option<Vec<u8>>,
     ) -> Result<Balance, GovernanceError> {
         let message = crypto::hash_message(
-            (proposal_id.clone(), support.clone(), reason.clone(), Vec::<u8>::new())
+            (
+                proposal_id.clone(),
+                support.clone(),
+                reason.clone(),
+                params.clone().unwrap_or_default(),
+            )
                 .encode()
                 .as_slice(),
         )?;
@@ -300,31 +295,13 @@ pub trait GovernorImpl:
             return Err(GovernanceError::InvalidSignature);
         }
 
-        self._cast_vote(proposal_id, Self::env().caller(), support, reason)
-    }
-
-    /// Casts a vote with signature and parameters for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
-    fn cast_vote_with_signature_and_params(
-        &mut self,
-        proposal_id: ProposalId,
-        support: VoteType,
-        reason: String,
-        signature: SignatureType,
-        params: Vec<u8>,
-    ) -> Result<Balance, GovernanceError> {
-        let message = crypto::hash_message(
-            (proposal_id.clone(), support.clone(), reason.clone(), params.clone())
-                .encode()
-                .as_slice(),
-        )?;
-
-        let valid = crypto::verify_signature(&message, &Self::env().caller(), &signature)?;
-
-        if !valid {
-            return Err(GovernanceError::InvalidSignature);
-        }
-
-        self._cast_vote_with_params(proposal_id, Self::env().caller(), support, reason, params)
+        self._cast_vote_with_params(
+            proposal_id,
+            Self::env().caller(),
+            support,
+            reason,
+            params.unwrap_or_default(),
+        )
     }
 
     /// Relays a transaction or function call to an arbitrary target. In cases where the governance executor

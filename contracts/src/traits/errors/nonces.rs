@@ -26,6 +26,6 @@ use openbrush::traits::AccountId;
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum NoncesError {
     ///
-    InvalidAccountNonce(AccountId, u128),
+    InvalidAccountNonce,
     NonceOverflow,
 }

@@ -23,25 +23,12 @@
 use crate::{
     governance::{
         governor::TimestampProvider,
-        utils::votes::{
-            Data,
-            VotesEvents,
-        },
+        utils::votes::{Data, VotesEvents},
     },
-    traits::errors::{
-        CheckpointsError,
-        GovernanceError,
-    },
-    utils::checkpoint::{
-        Checkpoint,
-        Checkpoints,
-    },
+    traits::errors::{CheckpointsError, GovernanceError},
+    utils::checkpoint::{Checkpoint, Checkpoints},
 };
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Storage,
-};
+use openbrush::traits::{AccountId, Balance, Storage};
 
 pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
     /// Returns the total number of votes.

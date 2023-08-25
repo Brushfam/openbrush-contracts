@@ -20,29 +20,18 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    governance::extensions::governor_votes,
-    traits::governance::utils::votes::*,
-};
+pub use crate::{governance::extensions::governor_votes, traits::governance::utils::votes::*};
 
 use crate::governance::extensions::governor_votes::Data;
 
-use ink::{
-    prelude::vec::Vec,
-    primitives::AccountId,
-};
-use openbrush::traits::{
-    Balance,
-    Storage,
-    Timestamp,
-};
+use ink::{prelude::vec::Vec, primitives::AccountId};
+use openbrush::traits::{Balance, Storage, Timestamp};
 
 /// Extension of `Governor` for voting weight extraction from an `PSP22Votes` token
 pub trait GovernorVotesInternal: Storage<Data> {
     /// Initializes the governor votes extension
-    fn _init_governor_votes(&mut self, token: AccountId) -> Result<(), GovernanceError> {
+    fn _init_governor_votes(&mut self, token: AccountId) {
         self.data().token.set(&token);
-        Ok(())
     }
 
     /// Returns the total number of votes for an account at a given timestamp.

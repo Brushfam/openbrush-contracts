@@ -1,7 +1,4 @@
-use quote::{
-    format_ident,
-    quote,
-};
+use quote::{format_ident, quote};
 use std::collections::HashMap;
 use syn::Block;
 
@@ -667,10 +664,7 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
     .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::{
-            governance::utils::votes::*,
-            psp22::extensions::votes::*,
-        };
+        use openbrush::contracts::{governance::utils::votes::*, psp22::extensions::votes::*};
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Votes", import);
@@ -2992,29 +2986,8 @@ pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
             }
 
             #[ink(message)]
-            fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType) -> Result<Balance, GovernanceError> {
-                GovernorImpl::cast_vote(self, proposal_id, support)
-            }
-
-            #[ink(message)]
-            fn cast_vote_with_reason(
-                &mut self,
-                proposal_id: ProposalId,
-                support: VoteType,
-                reason: String,
-            ) -> Result<Balance, GovernanceError> {
-                GovernorImpl::cast_vote_with_reason(self, proposal_id, support, reason)
-            }
-
-            #[ink(message)]
-            fn cast_vote_with_reason_and_params(
-                &mut self,
-                proposal_id: ProposalId,
-                support: VoteType,
-                reason: String,
-                params: Vec<u8>,
-            ) -> Result<Balance, GovernanceError> {
-                GovernorImpl::cast_vote_with_reason_and_params(self, proposal_id, support, reason, params)
+            fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType, reason: Option<String>, params: Option<Vec<u8>>) -> Result<Balance, GovernanceError> {
+                GovernorImpl::cast_vote(self, proposal_id, support, reason, params)
             }
 
             #[ink(message)]
@@ -3024,20 +2997,9 @@ pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
                 support: VoteType,
                 reason: String,
                 signature: SignatureType,
+                params: Option<Vec<u8>>
             ) -> Result<Balance, GovernanceError> {
-                GovernorImpl::cast_vote_with_signature(self, proposal_id, support, reason, signature)
-            }
-
-            #[ink(message)]
-            fn cast_vote_with_signature_and_params(
-                &mut self,
-                proposal_id: ProposalId,
-                support: VoteType,
-                reason: String,
-                signature: SignatureType,
-                params: Vec<u8>,
-            ) -> Result<Balance, GovernanceError> {
-                GovernorImpl::cast_vote_with_signature_and_params(self, proposal_id, support, reason, signature, params)
+                GovernorImpl::cast_vote_with_signature(self, proposal_id, support, reason, signature, params)
             }
 
             #[ink(message)]

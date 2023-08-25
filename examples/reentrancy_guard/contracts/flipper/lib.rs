@@ -4,15 +4,18 @@ pub use openbrush::examples::contracts::reentrancy_guard::my_flipper_guard::*;
 
 #[openbrush::contract]
 pub mod my_flipper_guard {
-    use flipper::traits::flipper::*;
-    use flipper::traits::flip_on_me::*;
-    use openbrush::{
-        modifiers,
-        traits::Storage,
+    use flipper::traits::{
+        flip_on_me::*,
+        flipper::*,
     };
     use ink::env::CallFlags;
-    use openbrush::traits::DefaultEnv;
-
+    use openbrush::{
+        modifiers,
+        traits::{
+            DefaultEnv,
+            Storage,
+        },
+    };
 
     #[ink(storage)]
     #[derive(Default, Storage)]

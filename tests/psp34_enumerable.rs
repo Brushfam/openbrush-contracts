@@ -25,10 +25,7 @@
 mod psp34_enumerable {
     use openbrush::{
         contracts::psp34::Id,
-        test_utils::{
-            accounts,
-            change_caller,
-        },
+        test_utils::{accounts, change_caller},
         traits::Storage,
     };
 

@@ -21,11 +21,7 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{
-    parse2,
-    spanned::Spanned,
-    Data,
-};
+use syn::{parse2, spanned::Spanned, Data};
 
 pub fn storage_derive(item: TokenStream) -> TokenStream {
     let derive: syn::DeriveInput = parse2(item).expect("Expected DeriveInput");

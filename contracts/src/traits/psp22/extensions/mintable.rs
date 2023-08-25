@@ -22,10 +22,7 @@
 /// Extension of [`PSP22`] that allows create `amount` tokens
 /// and assigns them to `account`, increasing the total supply
 pub use crate::traits::errors::PSP22Error;
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use openbrush::traits::{AccountId, Balance};
 
 #[openbrush::wrapper]
 pub type PSP22MintableRef = dyn PSP22Mintable;

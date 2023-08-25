@@ -20,10 +20,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::traits::{
-    errors::CryptoError,
-    types::SignatureType,
-};
+use crate::traits::{errors::CryptoError, types::SignatureType};
 use ink::primitives::AccountId;
 
 /// Verifies the signature of a message hash with the account
@@ -39,7 +36,7 @@ pub fn verify_signature(
     let recovered_account = pub_key_to_ss58(&output)?;
 
     if recovered_account != account.clone() {
-        return Ok(false)
+        return Ok(false);
     }
 
     Ok(true)

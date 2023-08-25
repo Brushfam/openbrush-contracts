@@ -21,20 +21,10 @@
 
 pub use crate::{
     psp34,
-    traits::psp34::{
-        extensions::mintable::*,
-        *,
-    },
+    traits::psp34::{extensions::mintable::*, *},
 };
 use openbrush::traits::AccountId;
-pub use psp34::{
-    BalancesManager as _,
-    Internal as _,
-    InternalImpl as _,
-    Operator,
-    Owner,
-    PSP34Impl,
-};
+pub use psp34::{BalancesManager as _, Internal as _, InternalImpl as _, Operator, Owner, PSP34Impl};
 
 pub trait PSP34MintableImpl: psp34::Internal {
     fn mint(&mut self, account: AccountId, id: Id) -> Result<(), PSP34Error> {

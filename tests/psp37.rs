@@ -23,19 +23,10 @@
 #[openbrush::implementation(PSP37)]
 #[openbrush::contract]
 mod psp37 {
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
+    use ink::codegen::{EmitEvent, Env};
     use openbrush::{
-        test_utils::{
-            accounts,
-            change_caller,
-        },
-        traits::{
-            Storage,
-            String,
-        },
+        test_utils::{accounts, change_caller},
+        traits::{Storage, String},
     };
 
     #[ink(event)]
@@ -97,7 +88,7 @@ mod psp37 {
         _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error> {
         if self.return_err_on_before {
-            return Err(PSP37Error::Custom(String::from("Error on _before_token_transfer")))
+            return Err(PSP37Error::Custom(String::from("Error on _before_token_transfer")));
         }
         Ok(())
     }
@@ -110,7 +101,7 @@ mod psp37 {
         _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error> {
         if self.return_err_on_after {
-            return Err(PSP37Error::Custom(String::from("Error on _after_token_transfer")))
+            return Err(PSP37Error::Custom(String::from("Error on _after_token_transfer")));
         }
         Ok(())
     }

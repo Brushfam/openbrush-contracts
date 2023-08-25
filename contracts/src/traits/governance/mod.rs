@@ -22,11 +22,7 @@
 
 use crate::traits::errors::GovernanceError;
 use ink::prelude::vec::Vec;
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Timestamp,
-};
+use openbrush::traits::{AccountId, Balance, Timestamp};
 
 pub mod governor;
 

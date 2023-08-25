@@ -20,16 +20,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use proc_macro2::TokenStream;
-use quote::{
-    quote,
-    quote_spanned,
-    ToTokens,
-};
-use syn::{
-    parse2,
-    spanned::Spanned,
-    ItemFn,
-};
+use quote::{quote, quote_spanned, ToTokens};
+use syn::{parse2, spanned::Spanned, ItemFn};
 
 pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
     let fn_item: ItemFn = parse2(_input).unwrap();
@@ -41,7 +33,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
                     "Modifier must take at least two arguments, \
                     where first is a reference to instance `instance: \
                     & Trait/Struct` and second is Fn, FnMut or FnOnce");
-        }
+        };
     }
 
     let instance_ty: syn::TypeReference;
@@ -53,13 +45,13 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
             return quote_spanned! {
                 pat.ty.as_ref().span() =>
                     compile_error!("First argument of modifier must be a reference to instance `&T` or `&mut T`");
-            }
+            };
         }
     } else {
         return quote_spanned! {
             first.span() =>
                 compile_error!("First argument of modifier can't be `self`");
-        }
+        };
     }
 
     let return_ty = fn_item.sig.output.clone();
@@ -156,7 +148,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
             return quote_spanned! {
                 pat.ty.span() =>
                     compile_error!(#err_message);
-            }
+            };
         } else {
             let mut modifier_ty_str = fn_item.sig.output.to_token_stream().to_string();
             modifier_ty_str.retain(|c| !c.is_whitespace());
@@ -169,14 +161,14 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
                 return quote_spanned! {
                     found_span.unwrap().span() =>
                         compile_error!("Return type of body mismatched with return type of modifier");
-                }
+                };
             }
         }
     } else if let syn::FnArg::Receiver(rec) = first {
         return quote_spanned! {
             rec.span() =>
                 compile_error!("Second argument of modifier can't be `self`");
-        }
+        };
     }
 
     for arg in fn_item.sig.inputs.iter().skip(2) {
@@ -186,13 +178,13 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
                     refer.span() =>
                         compile_error!("The argument is a reference. \
                         Modifier only accepts arguments which implement `Clone` trait and only by value.");
-                }
+                };
             }
         } else {
             return quote_spanned! {
                 arg.span() =>
                     compile_error!("`self` is not allowed.");
-            }
+            };
         }
     }
 

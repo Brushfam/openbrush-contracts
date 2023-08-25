@@ -20,10 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use core::marker::PhantomData;
-use ink::{
-    primitives::Key,
-    storage::traits::Packed,
-};
+use ink::{primitives::Key, storage::traits::Packed};
 
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub struct RawMapping<K, V, T = Key> {

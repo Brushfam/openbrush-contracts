@@ -22,10 +22,7 @@
 /// Extension of [`PSP22`] that allows token holders to destroy both their own
 /// tokens and those that they have an allowance for.
 pub use crate::traits::errors::PSP22Error;
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use openbrush::traits::{AccountId, Balance};
 
 #[openbrush::wrapper]
 pub type PSP22BurnableRef = dyn PSP22Burnable;

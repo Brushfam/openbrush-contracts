@@ -19,28 +19,14 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use super::{
-    RefGuard,
-    TypeGuard,
-    ValueGuard,
-};
+use super::{RefGuard, TypeGuard, ValueGuard};
 use crate::storage::RawMapping;
 use core::marker::PhantomData;
 use ink::{
     primitives::Key,
-    storage::traits::{
-        AutoKey,
-        Packed,
-        Storable,
-        StorableHint,
-        StorageKey,
-    },
+    storage::traits::{AutoKey, Packed, Storable, StorableHint, StorageKey},
 };
-use scale::{
-    Error,
-    Input,
-    Output,
-};
+use scale::{Error, Input, Output};
 
 /// A mapping of one key to many values. The mapping provides iteration functionality over all
 /// key's values.
@@ -260,7 +246,7 @@ where
         if let Some(op_index) = op_index {
             index = op_index;
         } else {
-            return
+            return;
         }
         let index = &index;
         self.swap_and_remove(key, value, index);
@@ -280,7 +266,7 @@ where
         if let Some(op_value) = op_value {
             value = op_value;
         } else {
-            return
+            return;
         }
         self.swap_and_remove(key, &value.into(), index);
     }
@@ -316,20 +302,10 @@ where
 #[cfg(feature = "std")]
 const _: () = {
     use ink::{
-        metadata::layout::{
-            Layout,
-            LayoutKey,
-            RootLayout,
-        },
+        metadata::layout::{Layout, LayoutKey, RootLayout},
         storage::traits::StorageLayout,
     };
-    use scale_info::{
-        build::Fields,
-        type_params,
-        Path,
-        Type,
-        TypeInfo,
-    };
+    use scale_info::{build::Fields, type_params, Path, Type, TypeInfo};
 
     impl<K, V, TGK, TGV, KeyType> TypeInfo for MultiMapping<K, V, KeyType, TGK, TGV>
     where

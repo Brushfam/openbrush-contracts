@@ -19,15 +19,9 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use ::ink::env::{
-    DefaultEnvironment,
-    Environment,
-};
+use ::ink::env::{DefaultEnvironment, Environment};
 use core::mem::ManuallyDrop;
-use ink::storage::traits::{
-    Storable,
-    StorageKey,
-};
+use ink::storage::traits::{Storable, StorageKey};
 pub use openbrush_lang_macro::Storage;
 
 /// Aliases for types of the default environment

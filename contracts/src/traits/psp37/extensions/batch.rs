@@ -20,15 +20,9 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /// Extension of [`PSP37`] that allows to transfer a batch of tokens
-use crate::traits::psp37::{
-    Id,
-    PSP37Error,
-};
+use crate::traits::psp37::{Id, PSP37Error};
 use ink::prelude::vec::Vec;
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use openbrush::traits::{AccountId, Balance};
 
 #[openbrush::wrapper]
 pub type PSP37BatchRef = dyn PSP37Batch;

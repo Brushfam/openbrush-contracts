@@ -25,17 +25,11 @@
 mod timelock_controller {
     use ::ink::env::DefaultEnvironment;
     use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
+        codegen::{EmitEvent, Env},
         env::test::DefaultAccounts,
     };
     use openbrush::{
-        test_utils::{
-            accounts,
-            change_caller,
-        },
+        test_utils::{accounts, change_caller},
         traits::Storage,
     };
     use openbrush_contracts::traits::timelock_controller::AccessControlError;

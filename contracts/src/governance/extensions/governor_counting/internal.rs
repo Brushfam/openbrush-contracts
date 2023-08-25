@@ -22,25 +22,15 @@
 
 use crate::{
     governance::{
-        extensions::{
-            governor_counting::Data,
-            governor_quorum::QuorumImpl,
-        },
+        extensions::{governor_counting::Data, governor_quorum::QuorumImpl},
         governor::GovernorStorageGetters,
     },
     traits::{
         errors::GovernanceError,
-        governance::{
-            ProposalId,
-            VoteType,
-        },
+        governance::{ProposalId, VoteType},
     },
 };
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Storage,
-};
+use openbrush::traits::{AccountId, Balance, Storage};
 
 pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters {
     /// Returns true if the quorum is reached for the given proposal, false otherwise
@@ -75,7 +65,7 @@ pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters 
         let mut proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
 
         if self.data::<Data>().has_votes.get(&(proposal_id, account)).is_some() {
-            return Err(GovernanceError::AlreadyCastVote(account))?
+            return Err(GovernanceError::AlreadyCastVote)?;
         }
 
         self.data::<Data>().has_votes.insert(&(proposal_id, account), &());

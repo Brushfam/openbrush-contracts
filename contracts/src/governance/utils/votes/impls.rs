@@ -21,34 +21,15 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    governance::utils::votes::{
-        Data,
-        VotesEvents,
-        VotesInternal,
-    },
-    utils::{
-        crypto,
-        nonces::NoncesImpl,
-    },
+    governance::utils::votes::{Data, VotesEvents, VotesInternal},
+    utils::{crypto, nonces::NoncesImpl},
 };
 pub use crate::{
-    governance::{
-        governor::TimestampProvider,
-        utils::votes,
-    },
-    traits::{
-        errors::GovernanceError,
-        governance::utils::votes::*,
-        types::SignatureType,
-    },
+    governance::{governor::TimestampProvider, utils::votes},
+    traits::{errors::GovernanceError, governance::utils::votes::*, types::SignatureType},
     utils::checkpoint::*,
 };
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Storage,
-    Timestamp,
-};
+use openbrush::traits::{AccountId, Balance, Storage, Timestamp};
 use scale::Encode;
 
 /// Common interface for `PSP22Votes`, and other `Votes`-enabled contracts.
@@ -67,7 +48,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
     fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
         let current_block_timestamp = TimestampProvider::block_timestamp(self);
         if timestamp > current_block_timestamp {
-            return Err(GovernanceError::FutureLookup(timestamp, current_block_timestamp))
+            return Err(GovernanceError::FutureLookup);
         }
         match self
             .data::<Data>()
@@ -85,7 +66,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
     fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
         let current_block_timestamp = TimestampProvider::block_timestamp(self);
         if timestamp > current_block_timestamp {
-            return Err(GovernanceError::FutureLookup(timestamp, current_block_timestamp))
+            return Err(GovernanceError::FutureLookup);
         }
 
         let checkpoints = &self.data::<Data>().total_checkpoints.get_or_default();
@@ -102,8 +83,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
 
     /// Delegate votes from `signer` to `delegatee`.
     fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError> {
-        let account = Self::env().caller();
-        self._delegate(&Some(account), &Some(delegatee))
+        self._delegate(&Some(Self::env().caller()), &Some(delegatee))
     }
 
     /// Delegate votes from `signer` to `delegatee` using a signature.
@@ -116,12 +96,12 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
         signature: SignatureType,
     ) -> Result<(), GovernanceError> {
         if TimestampProvider::block_timestamp(self) > expiry {
-            return Err(GovernanceError::ExpiredSignature(expiry))
+            return Err(GovernanceError::ExpiredSignature);
         }
         let message_hash = crypto::hash_message(Encode::encode(&(&delegatee, &nonce, &expiry)).as_slice())?;
         let verify_result = crypto::verify_signature(&message_hash, &signer, &signature)?;
         if !verify_result {
-            return Err(GovernanceError::InvalidSignature(signer))
+            return Err(GovernanceError::InvalidSignature);
         } else {
             self._use_checked_nonce(&signer, nonce)?;
             self._delegate(&Some(signer), &Some(delegatee))

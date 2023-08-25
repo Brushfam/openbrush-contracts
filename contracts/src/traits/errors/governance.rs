@@ -21,39 +21,28 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::traits::{
-    errors::{
-        CheckpointsError,
-        CryptoError,
-        NoncesError,
-    },
-    governance::{
-        ProposalId,
-        ProposalState,
-        Transaction,
-    },
+    errors::{CheckpointsError, CryptoError, NoncesError},
+    governance::{ProposalId, ProposalState, Transaction},
 };
-use openbrush::traits::{
-    AccountId,
-    Timestamp,
-};
+use openbrush::traits::{AccountId, Timestamp};
 
 /// The Governor error type. Contract will throw one of this errors.
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum GovernanceError {
     TokenNotSet,
-    InvalidQuorumFraction(u128, u128),
-    AlreadyCastVote(AccountId),
+    InvalidQuorumFraction,
+    AlreadyCastVote,
     DisabledDeposit,
-    OnlyProposer(AccountId),
-    OnlyExecutor(AccountId),
-    NonexistentProposal(ProposalId),
-    UnexpectedProposalState(ProposalId, ProposalState, u128),
-    InvalidVotingPeriod(Timestamp),
-    InsufficientProposerVotes(AccountId, u128, u128),
+    OnlyProposer,
+    OnlyExecutor,
+    NonexistentProposal,
+    UnexpectedProposalState,
+    InvalidVotingPeriod,
+    InsufficientProposerVotes,
     InvalidVoteType,
-    InvalidSignature(AccountId),
-    ProposerRestricted(AccountId),
+    InvalidSignature,
+    ProposerRestricted,
     InvalidDestination,
     ZeroSnapshot,
     DeadlineOverflow,
@@ -63,11 +52,11 @@ pub enum GovernanceError {
     UnderlyingTransactionReverted,
     ProposalAlreadyExists,
     ErrorParsingDescription,
-    FutureLookup(Timestamp, Timestamp),
-    ExpiredSignature(Timestamp),
+    FutureLookup,
+    ExpiredSignature,
     CryptoError(CryptoError),
     NoncesError(NoncesError),
-    ExecutionFailed(Transaction),
+    ExecutionFailed,
     CheckpointsError(CheckpointsError),
     IndexOutOfRange,
     Overflow,

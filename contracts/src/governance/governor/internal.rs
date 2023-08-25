@@ -22,56 +22,26 @@
 
 use crate::{
     governance::{
-        extensions::{
-            governor_counting::CountingInternal,
-            governor_votes::GovernorVotesInternal,
-        },
-        governor::{
-            CallInput,
-            Data,
-            GovernorEvents,
-        },
+        extensions::{governor_counting::CountingInternal, governor_votes::GovernorVotesInternal},
+        governor::{CallInput, Data, GovernorEvents},
     },
     traits::{
         errors::governance::GovernanceError,
         governance::{
-            CancelationStatus,
-            ExecutionStatus,
-            HashType,
-            ProposalCore,
-            ProposalId,
-            ProposalState,
-            Transaction,
-            VoteType,
-            ALL_PROPOSAL_STATES,
+            CancelationStatus, ExecutionStatus, HashType, ProposalCore, ProposalId, ProposalState, Transaction,
+            VoteType, ALL_PROPOSAL_STATES,
         },
     },
     utils::crypto,
 };
 use ink::{
     env::{
-        call::{
-            build_call,
-            Call,
-            ExecutionInput,
-            Selector,
-        },
-        CallFlags,
-        DefaultEnvironment,
+        call::{build_call, Call, ExecutionInput, Selector},
+        CallFlags, DefaultEnvironment,
     },
-    prelude::{
-        borrow::ToOwned,
-        collections::VecDeque,
-        vec::Vec,
-    },
+    prelude::{borrow::ToOwned, collections::VecDeque, vec::Vec},
 };
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    DefaultEnv,
-    Storage,
-    String,
-};
+use openbrush::traits::{AccountId, Balance, DefaultEnv, Storage, String};
 use scale::Encode;
 
 pub trait GovernorInternal:
@@ -96,26 +66,26 @@ pub trait GovernorInternal:
             .data::<Data>()
             .proposals
             .get(&proposal_id)
-            .ok_or(GovernanceError::NonexistentProposal(proposal_id))?;
+            .ok_or(GovernanceError::NonexistentProposal)?;
 
         if proposal.executed == ExecutionStatus::Executed {
-            return Ok(ProposalState::Executed)
+            return Ok(ProposalState::Executed);
         }
 
         if proposal.canceled == CancelationStatus::Canceled {
-            return Ok(ProposalState::Canceled)
+            return Ok(ProposalState::Canceled);
         }
 
         let snapshot = proposal.vote_start;
 
         if snapshot > current_time {
-            return Ok(ProposalState::Pending)
+            return Ok(ProposalState::Pending);
         }
 
         let deadline = proposal.deadline()?;
 
         if deadline >= current_time {
-            return Ok(ProposalState::Active)
+            return Ok(ProposalState::Active);
         }
 
         if self._vote_succeeded(proposal_id.clone()) && self._quorum_reached(proposal_id.clone())? {
@@ -143,8 +113,8 @@ pub trait GovernorInternal:
                 .call_flags(CallFlags::default().set_allow_reentry(true))
                 .returns::<()>()
                 .try_invoke()
-                .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?
-                .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?;
+                .map_err(|_| GovernanceError::ExecutionFailed)?
+                .map_err(|_| GovernanceError::ExecutionFailed)?;
         }
 
         Ok(())
@@ -198,11 +168,7 @@ pub trait GovernorInternal:
             ProposalState::Canceled.u128() | ProposalState::Executed.u128() | ProposalState::Expired.u128();
 
         if forbidden_states.clone() & current_state.clone().u128() != 0 {
-            return Err(GovernanceError::UnexpectedProposalState(
-                proposal_id.clone(),
-                current_state,
-                ALL_PROPOSAL_STATES ^ forbidden_states,
-            ))
+            return Err(GovernanceError::UnexpectedProposalState);
         }
 
         let proposal = self
@@ -257,11 +223,7 @@ pub trait GovernorInternal:
         let current_state = self._state(proposal_id.clone())?;
 
         if current_state != ProposalState::Active {
-            return Err(GovernanceError::UnexpectedProposalState(
-                proposal_id.clone(),
-                current_state,
-                ProposalState::Active.u128(),
-            ))
+            return Err(GovernanceError::UnexpectedProposalState);
         }
 
         let snapshot = self._proposal_snapshot(proposal_id.clone())?;
@@ -297,14 +259,14 @@ pub trait GovernorInternal:
         description: String,
     ) -> Result<bool, GovernanceError> {
         if !description.contains("#proposer=0x") {
-            return Ok(true)
+            return Ok(true);
         }
 
         let pos = description.find("proposer=0x").unwrap() + 11usize;
         let address = &description[pos..];
 
         if hex::decode(address).is_err() {
-            return Ok(true)
+            return Ok(true);
         }
 
         let proposer_str = hex::encode(proposer);

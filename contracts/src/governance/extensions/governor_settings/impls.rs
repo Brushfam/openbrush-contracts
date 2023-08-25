@@ -20,27 +20,15 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    governance::extensions::governor_settings,
-    traits::governance::extensions::governor_settings::*,
-};
+pub use crate::{governance::extensions::governor_settings, traits::governance::extensions::governor_settings::*};
 use crate::{
     governance::{
-        extensions::governor_settings::{
-            Data,
-            GovernorSettingsInternal,
-        },
-        governor::{
-            only_governance,
-            GovernorInternal,
-        },
+        extensions::governor_settings::{Data, GovernorSettingsInternal},
+        governor::{only_governance, GovernorInternal},
     },
     traits::errors::GovernanceError,
 };
-use openbrush::{
-    modifiers,
-    traits::Storage,
-};
+use openbrush::{modifiers, traits::Storage};
 
 /// Extension of `Governor` for settings updatable through governance.
 pub trait GovernorSettingsImpl: Storage<Data> + GovernorSettingsInternal + GovernorInternal {
@@ -64,16 +52,16 @@ pub trait GovernorSettingsImpl: Storage<Data> + GovernorSettingsInternal + Gover
 
     /// Returns the voting delay
     fn voting_delay(&self) -> u64 {
-        self.data::<Data>().voting_delay.get_or_default()
+        self.data::<Data>().voting_delay
     }
 
     /// Returns the voting period
     fn voting_period(&self) -> u64 {
-        self.data::<Data>().voting_period.get_or_default()
+        self.data::<Data>().voting_period
     }
 
     /// Returns the proposal threshold
     fn proposal_threshold(&self) -> u128 {
-        self.data::<Data>().proposal_threshold.get_or_default()
+        self.data::<Data>().proposal_threshold
     }
 }

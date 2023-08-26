@@ -26,9 +26,9 @@
     "mocha": "10.1.0"
   },
   "scripts": {
-    "build": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json",
-    "build:release:no-compile": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --release --noCompile",
-    "build:release": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --release",
+    "build": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --toolchain 1.70",
+    "build:release:no-compile": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --release --noCompile --toolchain 1.70",
+    "build:release": "npx @727-ventures/typechain-compiler --config ./typechain-compiler-config.json --release --toolchain 1.70",
     "typechain": "npx @727-ventures/typechain-polkadot --in artifacts --out ./typechain-generated",
     "test:mocha": "mocha --require @babel/register --require ts-node/register --recursive ./tests --extension \".ts\" --exit --timeout 20000",
     "test:mocha-single": "mocha --require @babel/register --require ts-node/register --extension \".ts\" --exit --timeout 20000",

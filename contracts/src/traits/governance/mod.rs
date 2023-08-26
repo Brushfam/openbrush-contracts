@@ -26,6 +26,8 @@ use openbrush::traits::{AccountId, Balance, Timestamp};
 
 pub mod governor;
 
+pub use governor::*;
+
 pub mod extensions {
     pub mod governor_counting;
     pub mod governor_quorum;
@@ -36,7 +38,6 @@ pub mod extensions {
 pub mod utils {
     pub mod votes;
 }
-
 pub type ProposalId = [u8; 32];
 pub type HashType = [u8; 32];
 pub type Selector = [u8; 4];

@@ -2465,7 +2465,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
         .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::timelock_controller::*;
+        use openbrush::contracts::governance::extensions::timelock_controller::*;
     ))
     .expect("Should parse");
     impl_args.imports.insert("TimelockController", import);

@@ -21,16 +21,15 @@
 
 pub use crate::{
     access_control,
-    timelock_controller,
-    traits::access_control::*,
-};
-use crate::{
     governance::governor::CallInput,
+    timelock_controller,
     traits::{
+        access_control::*,
         errors::TimelockControllerError,
         governance::extensions::timelock_controller::{
             OperationId,
             Transaction,
+            *,
         },
     },
 };
@@ -430,21 +429,17 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
     }
 
     fn _call(&mut self, id: OperationId, i: u8, transaction: Transaction) -> Result<(), TimelockControllerError> {
-        let result = if let Some(callee) = transaction.callee {
-            build_call::<DefaultEnvironment>()
-                .call_type(
-                    Call::new(callee)
-                        .gas_limit(transaction.gas_limit)
-                        .transferred_value(transaction.transferred_value),
-                )
-                .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(CallInput(&transaction.input)))
-                .returns::<()>()
-                .call_flags(CallFlags::default().set_allow_reentry(true))
-                .try_invoke()
-                .map_err(|_| TimelockControllerError::UnderlyingTransactionReverted)
-        } else {
-            Err(TimelockControllerError::CalleeZeroAddress)
-        };
+        let result = build_call::<DefaultEnvironment>()
+            .call_type(
+                Call::new(transaction.callee)
+                    .gas_limit(transaction.gas_limit)
+                    .transferred_value(transaction.transferred_value),
+            )
+            .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(CallInput(&transaction.input)))
+            .returns::<()>()
+            .call_flags(CallFlags::default().set_allow_reentry(true))
+            .try_invoke()
+            .map_err(|_| TimelockControllerError::UnderlyingTransactionReverted);
 
         result?.unwrap();
         Internal::_emit_call_executed_event(self, id, i, transaction);

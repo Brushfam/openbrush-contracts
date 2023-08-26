@@ -23,10 +23,7 @@ pub use crate::{
     governance::governor,
     traits::{
         errors::governance::GovernanceError,
-        governance::{
-            governor::*,
-            *,
-        },
+        governance::*,
         types::SignatureType,
     },
 };

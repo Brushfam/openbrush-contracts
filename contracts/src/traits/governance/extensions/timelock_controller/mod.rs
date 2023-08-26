@@ -1,3 +1,4 @@
+// Copyright (c) 2023 Brushfam
 // Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -22,17 +23,16 @@
 pub use crate::traits::{
     access_control::*,
     errors::TimelockControllerError,
-    governance::*,
+    governance::{
+        OperationId,
+        Transaction,
+    },
 };
 use ink::prelude::vec::Vec;
 use openbrush::traits::{
-    AccountId,
-    Balance,
     Hash,
     Timestamp,
 };
-
-pub type OperationId = Hash;
 
 /// TimelockController is AccessControl itself, so creating wrapper for both traits
 #[openbrush::wrapper]
@@ -60,7 +60,7 @@ pub trait TimelockController: AccessControl {
     #[ink(message)]
     fn is_operation_pending(&self, id: OperationId) -> bool;
 
-    /// Returns whether an operation is ready or not.
+    /// Returns whether an operation is ready or not.Returns whether an operation is ready or not.
     #[ink(message)]
     fn is_operation_ready(&self, id: OperationId) -> bool;
 

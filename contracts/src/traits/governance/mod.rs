@@ -25,6 +25,7 @@ use ink::prelude::vec::Vec;
 use openbrush::traits::{
     AccountId,
     Balance,
+    Hash,
     Timestamp,
 };
 
@@ -42,14 +43,16 @@ pub mod extensions {
 pub mod utils {
     pub mod votes;
 }
+
 pub type ProposalId = [u8; 32];
 pub type HashType = [u8; 32];
 pub type Selector = [u8; 4];
+pub type OperationId = Hash;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]
+#[derive(Debug, Default, PartialEq, Eq, PartialOrd, Ord, Clone, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct Transaction {
-    pub callee: AccountId,
+    pub callee: Option<AccountId>,
     pub selector: [u8; 4],
     pub input: Vec<u8>,
     pub transferred_value: Balance,

@@ -133,18 +133,22 @@ pub trait GovernorInternal:
     /// Executes a proposal if it is in the `Succeeded` state.
     fn _execute(&mut self, transactions: Vec<Transaction>, _description_hash: HashType) -> Result<(), GovernanceError> {
         for tx in transactions.iter() {
-            build_call::<DefaultEnvironment>()
-                .call_type(
-                    Call::new(tx.callee.clone())
-                        .gas_limit(1000000000)
-                        .transferred_value(tx.transferred_value.clone()),
-                )
-                .exec_input(ExecutionInput::new(Selector::new(tx.selector.clone())).push_arg(CallInput(&tx.input)))
-                .call_flags(CallFlags::default().set_allow_reentry(true))
-                .returns::<()>()
-                .try_invoke()
-                .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?
-                .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?;
+            if let Some(callee) = tx.callee {
+                build_call::<DefaultEnvironment>()
+                    .call_type(
+                        Call::new(callee)
+                            .gas_limit(1000000000)
+                            .transferred_value(tx.transferred_value.clone()),
+                    )
+                    .exec_input(ExecutionInput::new(Selector::new(tx.selector.clone())).push_arg(CallInput(&tx.input)))
+                    .call_flags(CallFlags::default().set_allow_reentry(true))
+                    .returns::<()>()
+                    .try_invoke()
+                    .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?
+                    .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?;
+            } else {
+                return Err(GovernanceError::ExecutionFailed(tx.clone()))
+            }
         }
 
         Ok(())
@@ -158,9 +162,11 @@ pub trait GovernorInternal:
     ) -> Result<(), GovernanceError> {
         let self_address = Self::env().account_id();
         let executor = self._executor();
+
         if executor != self_address {
             for tx in transactions.iter() {
-                if tx.callee == self_address {
+                let callee = tx.callee.clone().ok_or(GovernanceError::InvalidDestination)?;
+                if callee == self_address {
                     let mut governance_call = self.data::<Data>().governance_call.get_or_default();
                     governance_call.push_back(tx.clone());
                     self.data::<Data>().governance_call.set(&governance_call);

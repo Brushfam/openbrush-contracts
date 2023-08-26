@@ -40,7 +40,7 @@ pub enum TimelockControllerError {
     MissingDependency,
     UnderlyingTransactionReverted,
     CallerMustBeTimeLock,
-    CalleeZeroAddress,
+    CalleeMustExist,
 }
 
 impl From<AccessControlError> for TimelockControllerError {

@@ -40,10 +40,7 @@ use crate::{
             TimestampProvider,
         },
     },
-    traits::{
-        errors::GovernanceError,
-        governance::utils::votes::*,
-    },
+    traits::governance::utils::votes::*,
 };
 use openbrush::traits::{
     Storage,

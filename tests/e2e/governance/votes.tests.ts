@@ -1,22 +1,22 @@
-import {ApiPromise} from "@polkadot/api";
-import {expect, getSigners} from "../helpers";
-import ConstructorsVotes from "../../../typechain-generated/constructors/my_psp22_votes";
-import ContractVotes from "../../../typechain-generated/contracts/my_psp22_votes";
-import ConstructorsGovernance from "../../../typechain-generated/constructors/my_governor";
-import ContractGovernance from "../../../typechain-generated/contracts/my_governor";
-import {GovernorHelper} from "./helper";
-import {q} from "@noble/curves/pasta";
-import {consts} from "../constants";
+import {ApiPromise} from '@polkadot/api'
+import {expect, getSigners} from '../helpers'
+import ConstructorsVotes from '../../../typechain-generated/constructors/my_psp22_votes'
+import ContractVotes from '../../../typechain-generated/contracts/my_psp22_votes'
+import ConstructorsGovernance from '../../../typechain-generated/constructors/my_governor'
+import ContractGovernance from '../../../typechain-generated/contracts/my_governor'
+import {GovernorHelper} from './helper'
+import {q} from '@noble/curves/pasta'
+import {consts} from '../constants'
 
 const ZERO_ADDRESS = '5C4hrfjw9DjXZTzV3MwzrrAr9P1MJhSrvWGWqi1eSuyUpnhM'
 describe('Votes', function () {
 
   async function setup(
-      totalSupply = 100000,
-      votingDelay = 0,
-      votingPeriod = 10,
-      proposalThreshold = 0,
-      numrator = 0
+    totalSupply = 100000,
+    votingDelay = 0,
+    votingPeriod = 10,
+    proposalThreshold = 0,
+    numrator = 0
   ){
     const api = await ApiPromise.create()
 
@@ -36,7 +36,7 @@ describe('Votes', function () {
       account3,
       deployer,
       contractVotes,
-      contractAddressVotes,
+      contractAddressVotes
     }
   }
 
@@ -47,7 +47,7 @@ describe('Votes', function () {
   it('starts with zero votes', async function () {
     const {
       api,
-      contractVotes,
+      contractVotes
     } = await setup(0)
 
     await expect(contractVotes.query.totalSupply()).to.have.bnToNumber(0)
@@ -72,43 +72,43 @@ describe('Votes', function () {
         account3,
         deployer,
         contractVotes,
-        contractAddressVotes,
+        contractAddressVotes
       } = await setup()
 
       const amounts = {
         account1: 100000,
         account2: 10,
         account0: 20
-      };
+      }
 
       await contractVotes.tx.mint(deployer.address, amounts.account0)
       await contractVotes.tx.mint(account1.address, amounts.account1)
       await contractVotes.tx.mint(account2.address, amounts.account2)
 
-      await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
-      await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
+      await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.rawNumber.toNumber()).to.equals(0)
+      await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.rawNumber.toNumber()).to.equals(0)
       await expect((await contractVotes.query.delegates(account1.address)).value.ok!).to.equals(null)
       await expect((await contractVotes.query.delegates(account2.address)).value.ok!).to.equals(null)
 
       await contractVotes.withSigner(account1).tx.delegate(account1.address)
 
-      await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.ok!.rawNumber.toNumber()).to.equals(amounts.account1)
-      await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
+      await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.rawNumber.toNumber()).to.equals(amounts.account1)
+      await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.rawNumber.toNumber()).to.equals(0)
       await expect((await contractVotes.query.delegates(account1.address)).value.ok!).to.equals(account1.address)
       await expect((await contractVotes.query.delegates(account2.address)).value.ok!).to.equals(null)
 
       await contractVotes.withSigner(account2).tx.delegate(account1.address)
 
-      await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.ok!.rawNumber.toNumber()).to.equals(amounts.account1 + amounts.account2)
-      await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
+      await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.rawNumber.toNumber()).to.equals(amounts.account1 + amounts.account2)
+      await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.rawNumber.toNumber()).to.equals(0)
       await expect((await contractVotes.query.delegates(account1.address)).value.ok!).to.equals(account1.address)
       await expect((await contractVotes.query.delegates(account2.address)).value.ok!).to.equals(account1.address)
 
       await contractVotes.withSigner(account1).tx.delegate(account2.address)
       await contractVotes.withSigner(account2).tx.delegate(account2.address)
 
-      await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
-      await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.ok!.rawNumber.toNumber()).to.equals(amounts.account1 + amounts.account2)
+      await expect((await (contractVotes.query.getVotes(account1.address))).value.ok!.rawNumber.toNumber()).to.equals(0)
+      await expect((await contractVotes.query.getVotes(account2.address)).value.ok!.rawNumber.toNumber()).to.equals(amounts.account1 + amounts.account2)
       await expect((await contractVotes.query.delegates(account1.address)).value.ok!).to.equals(account2.address)
       await expect((await contractVotes.query.delegates(account2.address)).value.ok!).to.equals(account2.address)
 
@@ -123,14 +123,14 @@ describe('Votes', function () {
         account3,
         deployer,
         contractVotes,
-        contractAddressVotes,
+        contractAddressVotes
       } = await setup(0)
 
       const amounts = {
         account1: 100000,
         account2: 10,
         account0: 20
-      };
+      }
 
       await contractVotes.tx.mint(deployer.address, amounts.account0)
       await contractVotes.tx.mint(account1.address, amounts.account1)
@@ -153,14 +153,14 @@ describe('Votes', function () {
         account3,
         deployer,
         contractVotes,
-        contractAddressVotes,
+        contractAddressVotes
       } = await setup(0)
 
       const amounts = {
         account1: 100000,
         account2: 10,
         account0: 20
-      };
+      }
 
       const totalSupply = Object.values(amounts).reduce((a, b) => a + b, 0)
 

@@ -1,6 +1,6 @@
 {
   "projectFiles": [
-    "example_project_structure/contracts/**", "examples/upgradeable/**", "examples/diamond/**", "examples/proxy/**", "examples/governance/**"
+    "example_project_structure/contracts/**", "examples/**/Cargo.toml", "examples/**/**/Cargo.toml"
   ],
   "artifactsPath": "./artifacts",
   "typechainGeneratedPath": "./typechain-generated"

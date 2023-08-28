@@ -54,14 +54,14 @@ pub mod my_psp37 {
             let amount_1 = 1;
             let amount_2 = 2;
 
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_2.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_2.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_2.clone())), 0);
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(alice), vec![(token_1.clone(), amount_1)]));
+                    .call(|contract| contract.mint(address_of!(Alice), vec![(token_1.clone(), amount_1)]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -73,7 +73,7 @@ pub mod my_psp37 {
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(alice), vec![(token_2.clone(), amount_2)]));
+                    .call(|contract| contract.mint(address_of!(Alice), vec![(token_2.clone(), amount_2)]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -86,7 +86,7 @@ pub mod my_psp37 {
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
                     contract.mint(
-                        address_of!(bob),
+                        address_of!(Bob),
                         vec![(token_1.clone(), amount_1), (token_2.clone(), amount_2)],
                     )
                 });
@@ -99,10 +99,10 @@ pub mod my_psp37 {
 
             assert_eq!(mint_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_1.clone())), amount_1);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_1.clone())), amount_1);
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_2.clone())), amount_2);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_1.clone())), amount_1);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), amount_1);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_2.clone())), amount_2);
 
             Ok(())
         }

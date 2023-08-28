@@ -5,8 +5,7 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
-#TODO: tests for reentrancy guard, proxy, flash-borrower, wrapper, token timelock
-IGNORED_DIRS=("./examples/reentrancy_guard" 
+IGNORED_DIRS=("./examples/reentrancy_guard"
   "./examples/test_helpers" 
   "./examples/diamond" 
   "./examples/alternatives" 

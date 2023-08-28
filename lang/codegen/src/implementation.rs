@@ -73,6 +73,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "PSP22Metadata" => impl_psp22_metadata(&mut impl_args),
             "PSP22Capped" => impl_psp22_capped(&mut impl_args),
             "PSP22Wrapper" => impl_psp22_wrapper(&mut impl_args),
+            "PSP22Votes" => impl_psp22_votes(&mut impl_args),
             "Flashmint" => impl_flashmint(&mut impl_args),
             "PSP22TokenTimelock" => impl_token_timelock(&mut impl_args),
             "PSP22Pallet" => impl_psp22_pallet(&mut impl_args),
@@ -100,6 +101,12 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "Diamond" => impl_diamond(&mut impl_args),
             "DiamondLoupe" => impl_diamond_loupe(&mut impl_args),
             "Upgradeable" => impl_upgradeable(&mut impl_args),
+            "Governor" => impl_governor(&mut impl_args),
+            "GovernorSettings" => impl_governor_settings(&mut impl_args),
+            "GovernorVotes" => impl_governor_votes(&mut impl_args),
+            "GovernorQuorum" => impl_governor_quorum(&mut impl_args),
+            "GovernorCounting" => impl_governor_counting(&mut impl_args),
+            "Nonces" => impl_nonces(&mut impl_args),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }

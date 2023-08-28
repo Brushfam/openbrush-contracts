@@ -52,9 +52,9 @@ describe('QuorumImpl', () => {
   it('should return the quorum numerator at a specific time point', async () => {
     await expect(contract.query.quorumNumeratorAt(0)).to.have.bnToNumber(0)
     
-    const current_time = Date.now()
+    const current_time = (await contract.query.blockTimestamp()).value.ok
 
-    await expect(contract.query.quorumNumeratorAt(current_time)).to.have.bnToNumber(QUORUM_NUMERATOR)
+    await expect(contract.query.quorumNumeratorAt(current_time as unknown as number)).to.have.bnToNumber(QUORUM_NUMERATOR)
   })
 
   it('should calculate quorum with valid numerator and denominator', async () => {

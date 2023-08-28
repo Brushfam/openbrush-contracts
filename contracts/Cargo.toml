@@ -18,6 +18,7 @@ include = ["Cargo.toml", "src/**/*.rs"]
 ink = { version = "4.3.0", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 
 openbrush = { version = "~4.0.0-beta.1", package = "openbrush_lang", path = "../lang", default-features = false }
 
@@ -57,6 +58,11 @@ proxy = [
 diamond = [
     "ownable",
 ]
+governance = [
+    "timelock_controller",
+    "utils"
+]
+utils = []
 upgradeable = ["ownable"]
 test-all = [
     "psp22",
@@ -69,5 +75,7 @@ test-all = [
     "pausable",
     "timelock_controller",
     "proxy",
+    "utils",
     "diamond",
+    "governance",
 ]

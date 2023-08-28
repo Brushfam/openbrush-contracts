@@ -61,7 +61,7 @@ pub mod my_access_control {
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
+        use ink_e2e::{build_message};
 
         use openbrush::contracts::access_control::DEFAULT_ADMIN_ROLE;
 
@@ -85,15 +85,15 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(has_role!(client, address, MINTER, bob), false);
+            assert_eq!(has_role!(client, address, MINTER, Bob), false);
 
-            assert!(matches!(mint_dry_run!(client, address, bob, bob, Id::U8(0)), Err(_)));
+            assert!(matches!(mint_dry_run!(client, address, bob, Bob, Id::U8(0)), Err(_)));
 
-            assert_eq!(grant_role!(client, address, MINTER, bob), Ok(()));
+            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
 
-            assert_eq!(has_role!(client, address, MINTER, bob), true);
+            assert_eq!(has_role!(client, address, MINTER, Bob), true);
 
-            assert_eq!(mint!(client, address, bob, bob, Id::U8(0)), Ok(()));
+            assert_eq!(mint!(client, address, bob, Bob, Id::U8(0)), Ok(()));
 
             let owner_of = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.owner_of(Id::U8(0)));
@@ -101,7 +101,7 @@ pub mod my_access_control {
             }
             .return_value();
 
-            assert_eq!(owner_of, Some(address_of!(bob)));
+            assert_eq!(owner_of, Some(address_of!(Bob)));
 
             Ok(())
         }
@@ -115,8 +115,8 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(has_role!(client, address, MINTER, alice), true);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, alice), true);
+            assert_eq!(has_role!(client, address, MINTER, Alice), true);
+            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Alice), true);
 
             Ok(())
         }
@@ -130,8 +130,8 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(has_role!(client, address, MINTER, bob), false);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, bob), false);
+            assert_eq!(has_role!(client, address, MINTER, Bob), false);
+            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Bob), false);
 
             Ok(())
         }
@@ -145,11 +145,11 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(has_role!(client, address, MINTER, bob), false);
+            assert_eq!(has_role!(client, address, MINTER, Bob), false);
 
-            assert_eq!(grant_role!(client, address, MINTER, bob), Ok(()));
+            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
 
-            assert_eq!(has_role!(client, address, MINTER, bob), true);
+            assert_eq!(has_role!(client, address, MINTER, Bob), true);
 
             Ok(())
         }
@@ -163,17 +163,17 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(has_role!(client, address, MINTER, bob), false);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, bob), false);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, alice), true);
-            assert_eq!(has_role!(client, address, MINTER, alice), true);
+            assert_eq!(has_role!(client, address, MINTER, Bob), false);
+            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Bob), false);
+            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Alice), true);
+            assert_eq!(has_role!(client, address, MINTER, Alice), true);
 
-            assert_eq!(grant_role!(client, address, MINTER, bob), Ok(()));
+            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
 
-            assert_eq!(has_role!(client, address, MINTER, bob), true);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, bob), false);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, alice), true);
-            assert_eq!(has_role!(client, address, MINTER, alice), true);
+            assert_eq!(has_role!(client, address, MINTER, Bob), true);
+            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Bob), false);
+            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Alice), true);
+            assert_eq!(has_role!(client, address, MINTER, Alice), true);
 
             Ok(())
         }
@@ -187,15 +187,15 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(has_role!(client, address, MINTER, bob), false);
+            assert_eq!(has_role!(client, address, MINTER, Bob), false);
 
-            assert_eq!(grant_role!(client, address, MINTER, bob), Ok(()));
+            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
 
-            assert_eq!(has_role!(client, address, MINTER, bob), true);
+            assert_eq!(has_role!(client, address, MINTER, Bob), true);
 
             let revoke_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.revoke_role(MINTER, Some(address_of!(bob))));
+                    .call(|contract| contract.revoke_role(MINTER, Some(address_of!(Bob))));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -205,7 +205,7 @@ pub mod my_access_control {
 
             assert_eq!(revoke_role, Ok(()));
 
-            assert_eq!(has_role!(client, address, MINTER, bob), false);
+            assert_eq!(has_role!(client, address, MINTER, Bob), false);
 
             Ok(())
         }
@@ -219,11 +219,11 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(has_role!(client, address, MINTER, alice), true);
+            assert_eq!(has_role!(client, address, MINTER, Alice), true);
 
             let renounce_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.renounce_role(MINTER, Some(address_of!(alice))));
+                    .call(|contract| contract.renounce_role(MINTER, Some(address_of!(Alice))));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -233,7 +233,7 @@ pub mod my_access_control {
 
             assert_eq!(renounce_role, Ok(()));
 
-            assert_eq!(has_role!(client, address, MINTER, alice), false);
+            assert_eq!(has_role!(client, address, MINTER, Alice), false);
 
             Ok(())
         }
@@ -249,11 +249,11 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(grant_role!(client, address, MINTER, bob), Ok(()));
+            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
 
             let grant_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.grant_role(MINTER, Some(address_of!(charlie))));
+                    .call(|contract| contract.grant_role(MINTER, Some(address_of!(Charlie))));
                 client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
             }
             .return_value();
@@ -262,7 +262,7 @@ pub mod my_access_control {
 
             let revoke_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.revoke_role(MINTER, Some(address_of!(charlie))));
+                    .call(|contract| contract.revoke_role(MINTER, Some(address_of!(Charlie))));
                 client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
             }
             .return_value();
@@ -281,12 +281,12 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(grant_role!(client, address, MINTER, bob), Ok(()));
-            assert_eq!(has_role!(client, address, MINTER, bob), true);
+            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
+            assert_eq!(has_role!(client, address, MINTER, Bob), true);
 
             let renounce_role = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.renounce_role(MINTER, Some(address_of!(bob))));
+                    .call(|contract| contract.renounce_role(MINTER, Some(address_of!(Bob))));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -305,10 +305,10 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(grant_role!(client, address, MINTER, bob), Ok(()));
-            assert_eq!(has_role!(client, address, MINTER, bob), true);
+            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
+            assert_eq!(has_role!(client, address, MINTER, Bob), true);
 
-            assert_eq!(mint!(client, address, bob, bob, Id::U8(0)), Ok(()));
+            assert_eq!(mint!(client, address, bob, Bob, Id::U8(0)), Ok(()));
 
             let owner_of = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.owner_of(Id::U8(0)));
@@ -316,14 +316,14 @@ pub mod my_access_control {
             }
             .return_value();
 
-            assert_eq!(owner_of, Some(address_of!(bob)));
+            assert_eq!(owner_of, Some(address_of!(Bob)));
 
-            assert_eq!(revoke_role!(client, address, MINTER, bob), Ok(()));
-            assert_eq!(has_role!(client, address, MINTER, bob), false);
+            assert_eq!(revoke_role!(client, address, MINTER, Bob), Ok(()));
+            assert_eq!(has_role!(client, address, MINTER, Bob), false);
 
             let burn = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(bob), Id::U8(0)));
+                    .call(|contract| contract.burn(address_of!(Bob), Id::U8(0)));
                 client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
             }
             .return_value();

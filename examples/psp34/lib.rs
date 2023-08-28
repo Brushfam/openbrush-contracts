@@ -130,14 +130,14 @@ pub mod my_psp34 {
             assert_eq!(mint_result, Ok(()));
 
             let expected_balance = 1;
-            let actual_balance = balance_of!(client, address, alice);
+            let actual_balance = balance_of!(client, address, Alice);
 
             assert_eq!(expected_balance, actual_balance);
-            assert_eq!(0, balance_of!(client, address, bob));
+            assert_eq!(0, balance_of!(client, address, Bob));
 
             let transfer_result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), Id::U8(0), vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), Id::U8(0), vec![]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -147,8 +147,8 @@ pub mod my_psp34 {
 
             assert_eq!(transfer_result, Ok(()));
 
-            assert_eq!(0, balance_of!(client, address, alice));
-            assert_eq!(1, balance_of!(client, address, bob));
+            assert_eq!(0, balance_of!(client, address, Alice));
+            assert_eq!(1, balance_of!(client, address, Bob));
 
             Ok(())
         }
@@ -174,14 +174,14 @@ pub mod my_psp34 {
             assert_eq!(mint_result, Ok(()));
 
             let expected_balance = 1;
-            let actual_balance = balance_of!(client, address, alice);
+            let actual_balance = balance_of!(client, address, Alice);
 
             assert_eq!(expected_balance, actual_balance);
-            assert_eq!(0, balance_of!(client, address, bob));
+            assert_eq!(0, balance_of!(client, address, Bob));
 
             let approve_result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.approve(address_of!(bob), Some(Id::U8(0)), true));
+                    .call(|contract| contract.approve(address_of!(Bob), Some(Id::U8(0)), true));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -193,7 +193,7 @@ pub mod my_psp34 {
 
             let transfer_result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), Id::U8(0), vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), Id::U8(0), vec![]));
                 client
                     .call(&ink_e2e::bob(), _msg, 0, None)
                     .await
@@ -203,8 +203,8 @@ pub mod my_psp34 {
 
             assert_eq!(transfer_result, Ok(()));
 
-            assert_eq!(0, balance_of!(client, address, alice));
-            assert_eq!(1, balance_of!(client, address, bob));
+            assert_eq!(0, balance_of!(client, address, Alice));
+            assert_eq!(1, balance_of!(client, address, Bob));
 
             Ok(())
         }
@@ -230,14 +230,14 @@ pub mod my_psp34 {
             assert_eq!(mint_result, Ok(()));
 
             let expected_balance = 1;
-            let actual_balance = balance_of!(client, address, alice);
+            let actual_balance = balance_of!(client, address, Alice);
 
             assert_eq!(expected_balance, actual_balance);
-            assert_eq!(0, balance_of!(client, address, bob));
+            assert_eq!(0, balance_of!(client, address, Bob));
 
             let approve_result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.approve(address_of!(bob), None, true));
+                    .call(|contract| contract.approve(address_of!(Bob), None, true));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -249,7 +249,7 @@ pub mod my_psp34 {
 
             let transfer_result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), Id::U8(0), vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), Id::U8(0), vec![]));
                 client
                     .call(&ink_e2e::bob(), _msg, 0, None)
                     .await
@@ -259,8 +259,8 @@ pub mod my_psp34 {
 
             assert_eq!(transfer_result, Ok(()));
 
-            assert_eq!(0, balance_of!(client, address, alice));
-            assert_eq!(1, balance_of!(client, address, bob));
+            assert_eq!(0, balance_of!(client, address, Alice));
+            assert_eq!(1, balance_of!(client, address, Bob));
 
             Ok(())
         }
@@ -285,11 +285,11 @@ pub mod my_psp34 {
 
             assert_eq!(mint_result, Ok(()));
 
-            assert_eq!(owner_of!(client, address, Id::U8(0)), Some(address_of!(alice)));
+            assert_eq!(owner_of!(client, address, Id::U8(0)), Some(address_of!(Alice)));
 
             let transfer_result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), Id::U8(0), vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), Id::U8(0), vec![]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -299,7 +299,7 @@ pub mod my_psp34 {
 
             assert_eq!(transfer_result, Ok(()));
 
-            assert_eq!(owner_of!(client, address, Id::U8(0)), Some(address_of!(bob)));
+            assert_eq!(owner_of!(client, address, Id::U8(0)), Some(address_of!(Bob)));
 
             Ok(())
         }
@@ -313,17 +313,17 @@ pub mod my_psp34 {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(balance_of!(client, address, alice), 0);
+            assert_eq!(balance_of!(client, address, Alice), 0);
 
             let transfer_result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), Id::U8(0), vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), Id::U8(0), vec![]));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             assert!(matches!(transfer_result, Err(PSP34Error::TokenNotExists)));
-            assert_eq!(balance_of!(client, address, alice), 0);
+            assert_eq!(balance_of!(client, address, Alice), 0);
 
             Ok(())
         }
@@ -350,14 +350,14 @@ pub mod my_psp34 {
 
             let transfer_result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), Id::U8(0), vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), Id::U8(0), vec![]));
                 client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
             }
             .return_value();
 
             assert!(matches!(transfer_result, Err(PSP34Error::NotApproved)));
-            assert_eq!(balance_of!(client, address, alice), 1);
-            assert_eq!(balance_of!(client, address, bob), 0);
+            assert_eq!(balance_of!(client, address, Alice), 1);
+            assert_eq!(balance_of!(client, address, Bob), 0);
 
             Ok(())
         }
@@ -371,7 +371,7 @@ pub mod my_psp34 {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(balance_of!(client, address, alice), 0);
+            assert_eq!(balance_of!(client, address, Alice), 0);
 
             let ids = vec![
                 Id::U8(0),
@@ -395,7 +395,7 @@ pub mod my_psp34 {
                 assert_eq!(mint_result, Ok(()));
             }
 
-            assert_eq!(balance_of!(client, address, alice), 6);
+            assert_eq!(balance_of!(client, address, Alice), 6);
 
             Ok(())
         }

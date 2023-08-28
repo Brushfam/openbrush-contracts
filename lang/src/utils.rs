@@ -22,6 +22,7 @@
 pub use const_format;
 pub use xxhash_rust;
 
+use crate::traits::AccountId;
 use xxhash_rust::const_xxh32::xxh32;
 
 /// The value 0 is a valid seed.
@@ -32,5 +33,29 @@ pub struct ConstHasher;
 impl ConstHasher {
     pub const fn hash(str: &str) -> u32 {
         xxh32(str.as_bytes(), XXH32_SEED)
+    }
+}
+
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, scale::Encode, scale::Decode)]
+pub enum SignatureType {
+    #[default]
+    ECDSA,
+    SR25519,
+}
+
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, scale::Encode, scale::Decode)]
+pub struct Signature {
+    pub signature_type: SignatureType,
+    pub raw_signature: [u8],
+}
+
+impl Signature {
+    pub fn verify(&self, message: &[u8], pub_key: &AccountId) -> bool {
+        match self.signature_type {
+            SignatureType::ECDSA => ink::env::ecdsa_recover(&self.raw_signature.into(), message.into()).is_ok(),
+            SignatureType::SR25519 => {
+                ink::env::sr25519_verify(&self.raw_signature.into(), message, pub_key.as_ref()).is_ok()
+            }
+        }
     }
 }

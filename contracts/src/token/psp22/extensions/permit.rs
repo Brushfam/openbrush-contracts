@@ -39,6 +39,7 @@ use openbrush::{
         Balance,
         Storage,
     },
+    utils::Signature,
 };
 pub use psp22::{
     Internal as _,
@@ -72,7 +73,7 @@ pub trait PSP22PermitImpl: Internal {
         spender: AccountId,
         amount: Balance,
         deadline: u64,
-        signature: [u8; 64],
+        signature: Signature,
     ) -> Result<(), PSP22Error> {
         self._permit(owner, spender, amount, deadline, signature)
     }
@@ -93,7 +94,7 @@ pub trait Internal {
         spender: AccountId,
         amount: Balance,
         deadline: u64,
-        signature: [u8; 64],
+        signature: Signature,
     ) -> Result<(), PSP22Error>;
 
     fn _nonces(&self, owner: AccountId) -> u64;

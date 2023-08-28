@@ -35,23 +35,3 @@ impl ConstHasher {
         xxh32(str.as_bytes(), XXH32_SEED)
     }
 }
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy, scale::Encode, scale::Decode)]
-pub enum Signature {
-    ECDSA([u8; 65]),
-}
-
-impl Signature {
-    pub fn verify(&self, message: &[u8], pub_key: &AccountId) -> bool {
-        match self {
-            Signature::ECDSA(sig) => {
-                let mut output: [u8; 33];
-                let mut message_hash: [u8; 32];
-                ink_ir::blake2b_256(message, &mut message_hash);
-                let result = ink::env::ecdsa_recover(sig, &message_hash, &mut output);
-                return result.is_ok() && output == pub_key.as_ref()
-            }
-            _ => false,
-        }
-    }
-}

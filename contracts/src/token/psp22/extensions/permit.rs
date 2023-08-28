@@ -37,9 +37,9 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
+        Signature,
         Storage,
     },
-    utils::Signature,
 };
 pub use psp22::{
     Internal as _,

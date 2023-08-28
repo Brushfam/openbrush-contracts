@@ -1,4 +1,7 @@
-use quote::{format_ident, quote};
+use quote::{
+    format_ident,
+    quote,
+};
 use std::collections::HashMap;
 use syn::Block;
 
@@ -267,7 +270,7 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
                 spender: AccountId,
                 amount: Balance,
                 deadline: u64,
-                signature: [u8; 64],
+                signature: Signature,
             ) -> Result<(), PSP22Error> {
                 permit::InternalImpl::_permit(self, owner, spender, amount, deadline, signature)
             }
@@ -301,7 +304,7 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
                 spender: AccountId,
                 value: Balance,
                 deadline: u64,
-                signature: [u8; 64],
+                signature: Signature,
             ) -> Result<(), PSP22Error> {
                 permit::PSP22PermitImpl::permit(self, owner, spender, value, deadline, signature)
             }

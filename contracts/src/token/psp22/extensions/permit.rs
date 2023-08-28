@@ -111,7 +111,7 @@ pub trait InternalImpl: Storage<Data> + psp22::Internal {
         spender: AccountId,
         amount: Balance,
         deadline: u64,
-        signature: [u8; 64],
+        signature: Signature,
     ) -> Result<(), PSP22Error> {
         let block_time = Self::env().block_timestamp();
         if deadline < block_time {
@@ -130,7 +130,7 @@ pub trait InternalImpl: Storage<Data> + psp22::Internal {
             nonce,
         });
 
-        if ink::env::sr25519_verify(&signature, message, (&owner).as_ref()).is_ok() {
+        if signature.verify(message, &(owner).as_ref()) {
             self._approve_from_to(owner, spender, amount)?;
             Ok(())
         } else {

@@ -22,30 +22,15 @@
 pub use crate::{
     psp22,
     psp22::extensions::permit,
-    traits::psp22::{
-        extensions::permit::*,
-        *,
-    },
+    traits::psp22::{extensions::permit::*, *},
 };
 
-use ink::env::hash::{
-    Blake2x256,
-    HashOutput,
-};
+use ink::env::hash::{Blake2x256, HashOutput};
 use openbrush::{
     storage::Mapping,
-    traits::{
-        AccountId,
-        Balance,
-        Signature,
-        Storage,
-    },
+    traits::{AccountId, Balance, Signature, Storage},
 };
-pub use psp22::{
-    Internal as _,
-    InternalImpl as _,
-    PSP22Impl,
-};
+pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
 use scale::Encode;
 
 #[derive(Default, Debug)]
@@ -58,12 +43,12 @@ pub struct Data {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, scale::Encode, scale::Decode)]
 pub struct PermitMessage {
-    domain_separator: [u8; 32],
-    owner: AccountId,
-    spender: AccountId,
-    amount: Balance,
-    deadline: u64,
-    nonce: u64,
+    pub domain_separator: [u8; 32],
+    pub owner: AccountId,
+    pub spender: AccountId,
+    pub amount: Balance,
+    pub deadline: u64,
+    pub nonce: u64,
 }
 
 pub trait PSP22PermitImpl: Internal {
@@ -115,7 +100,7 @@ pub trait InternalImpl: Storage<Data> + psp22::Internal {
     ) -> Result<(), PSP22Error> {
         let block_time = Self::env().block_timestamp();
         if deadline < block_time {
-            return Err(PSP22Error::PermitExpired)
+            return Err(PSP22Error::PermitExpired);
         }
 
         let nonce = self._use_nonce(owner);

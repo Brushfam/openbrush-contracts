@@ -20,9 +20,9 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use const_format;
+use ink::env::hash;
 pub use xxhash_rust;
 
-use crate::traits::AccountId;
 use xxhash_rust::const_xxh32::xxh32;
 
 /// The value 0 is a valid seed.
@@ -34,4 +34,10 @@ impl ConstHasher {
     pub const fn hash(str: &str) -> u32 {
         xxh32(str.as_bytes(), XXH32_SEED)
     }
+}
+
+pub fn hash_blake2b256(input: &[u8]) -> [u8; 32] {
+    let mut output = <hash::Blake2x256 as hash::HashOutput>::Type::default();
+    ink::env::hash_bytes::<hash::Blake2x256>(input, &mut output);
+    output
 }

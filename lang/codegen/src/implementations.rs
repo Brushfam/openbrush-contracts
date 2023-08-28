@@ -44,6 +44,14 @@ impl<'a> ImplArgs<'a> {
         .expect("Should parse");
         self.imports.insert("vec", vec_import);
     }
+
+    fn signature_import(&mut self) {
+        let sig_import = syn::parse2::<syn::ItemUse>(quote!(
+            use openbrush::traits::Signature;
+        ))
+        .expect("Should parse");
+        self.imports.insert("Signature", sig_import);
+    }
 }
 
 pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
@@ -328,6 +336,7 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
     .expect("Should parse");
 
     impl_args.imports.insert("PSP22Permit", import);
+    impl_args.signature_import();
     impl_args.vec_import();
 
     // TODO

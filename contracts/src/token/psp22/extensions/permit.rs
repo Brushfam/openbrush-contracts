@@ -130,7 +130,7 @@ pub trait InternalImpl: Storage<Data> + psp22::Internal {
             nonce,
         });
 
-        if signature.verify(message, &(owner).as_ref()) {
+        if signature.verify(message, &owner) {
             self._approve_from_to(owner, spender, amount)?;
             Ok(())
         } else {

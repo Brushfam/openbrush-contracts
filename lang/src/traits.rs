@@ -19,6 +19,8 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+// use crate::utils::blake2b_256;
+use crate::utils::hash_blake2b256;
 use ::ink::env::{
     DefaultEnvironment,
     Environment,
@@ -124,18 +126,20 @@ pub trait Flush: Storable + Sized + StorageKey {
 
 impl<T: Storable + Sized + StorageKey> Flush for T {}
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, scale::Encode, scale::Decode)]
+#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum Signature {
     ECDSA([u8; 65]),
 }
 
 impl Signature {
+    #[allow(unreachable_patterns)]
     pub fn verify(&self, message: &[u8], pub_key: &AccountId) -> bool {
         match self {
             Signature::ECDSA(sig) => {
-                let mut output: [u8; 33];
-                let mut message_hash: [u8; 32];
-                ink_ir::blake2b_256(message, &mut message_hash);
+                let mut output: [u8; 33] = [0; 33];
+                let message_hash = hash_blake2b256(message);
+
                 let result = ink::env::ecdsa_recover(sig, &message_hash, &mut output);
                 return result.is_ok() && output == pub_key.as_ref()
             }

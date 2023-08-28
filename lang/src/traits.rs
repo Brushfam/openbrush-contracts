@@ -141,7 +141,10 @@ impl Signature {
                 let message_hash = hash_blake2b256(message);
 
                 let result = ink::env::ecdsa_recover(sig, &message_hash, &mut output);
-                return result.is_ok() && output == pub_key.as_ref()
+
+                let address = hash_blake2b256(&output);
+
+                return result.is_ok() && address == pub_key.as_ref()
             }
             _ => false,
         }

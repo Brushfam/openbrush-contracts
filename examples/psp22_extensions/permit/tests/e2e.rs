@@ -2,19 +2,34 @@
 
 extern crate my_psp22_permit;
 
-use ink::env::hash::{Blake2x256, HashOutput};
+use ink::env::hash::{
+    Blake2x256,
+    HashOutput,
+};
 #[rustfmt::skip]
 use ink_e2e::build_message;
-use openbrush::contracts::psp22::extensions::permit::psp22permit_external::PSP22Permit;
-use openbrush::contracts::psp22::psp22_external::PSP22;
+use openbrush::contracts::psp22::{
+    extensions::permit::psp22permit_external::PSP22Permit,
+    psp22_external::PSP22,
+};
 #[rustfmt::skip]
 use crate::my_psp22_permit::*;
 // use openbrush::contracts::psp22::extensions::permit::PERMIT_TYPE_HASH;
-use openbrush::contracts::psp22::extensions::permit::PermitMessage;
-use openbrush::traits::{AccountId, Balance, Signature};
-use openbrush::utils::hash_blake2b256;
+use openbrush::{
+    contracts::psp22::extensions::permit::PermitMessage,
+    traits::{
+        AccountId,
+        Balance,
+        Signature,
+    },
+    utils::hash_blake2b256,
+};
 use scale::Encode;
-use test_helpers::{address_of, balance_of, method_call_dry_run};
+use test_helpers::{
+    address_of,
+    balance_of,
+    method_call_dry_run,
+};
 
 type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -69,7 +84,13 @@ async fn check_domain_separator(mut client: ink_e2e::Client<C, E>) -> E2EResult<
 #[ink_e2e::test]
 async fn check_permit_signature(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
     use ink_e2e::Keypair;
-    use secp256k1::{ecdsa::RecoverableSignature, Message, PublicKey, SecretKey, SECP256K1};
+    use secp256k1::{
+        ecdsa::RecoverableSignature,
+        Message,
+        PublicKey,
+        SecretKey,
+        SECP256K1,
+    };
 
     let constructor = ContractRef::new(1000);
     let address = client
@@ -88,16 +109,12 @@ async fn check_permit_signature(mut client: ink_e2e::Client<C, E>) -> E2EResult<
         59, 148, 11, 85, 134, 130, 61, 253, 2, 174, 59, 70, 27, 180, 51, 107, 94, 203, 174, 253, 102, 39, 170, 146, 46,
         252, 4, 143, 236, 12, 136, 28,
     ];
-    let pubkey = PublicKey::from_slice(&[
-        2, 29, 21, 35, 7, 198, 183, 43, 14, 208, 65, 139, 14, 112, 205, 128, 231, 245, 41, 91, 141, 134, 245, 114, 45,
-        63, 82, 19, 251, 210, 57, 79, 54,
-    ])
-    .expect("pubkey creation failed");
+    let pubkey = PublicKey::from_secret_key(
+        &SECP256K1,
+        &SecretKey::from_slice(&seckey).expect("seckey creation failed"),
+    );
 
-    let owner = AccountId::from([
-        2, 29, 21, 35, 7, 198, 183, 43, 14, 208, 65, 139, 14, 112, 205, 128, 231, 245, 41, 91, 141, 134, 245, 114, 45,
-        63, 82, 19, 251, 210, 57, 79,
-    ]);
+    let owner = AccountId::from(hash_blake2b256(&pubkey.serialize().to_vec()));
     let spender = address_of!(Bob);
 
     let permit_message = PermitMessage {

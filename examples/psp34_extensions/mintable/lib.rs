@@ -48,15 +48,15 @@ pub mod my_psp34_mintable {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(balance_of!(client, address, alice), 0);
-            assert_eq!(balance_of!(client, address, bob), 0);
+            assert_eq!(balance_of!(client, address, Alice), 0);
+            assert_eq!(balance_of!(client, address, Bob), 0);
 
             let id_1 = Id::U8(1);
             let id_2 = Id::U8(2);
 
             let mint_1 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(alice), id_1.clone()));
+                    .call(|contract| contract.mint(address_of!(Alice), id_1.clone()));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -68,7 +68,7 @@ pub mod my_psp34_mintable {
 
             let mint_2 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), id_2.clone()));
+                    .call(|contract| contract.mint(address_of!(Bob), id_2.clone()));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -78,8 +78,8 @@ pub mod my_psp34_mintable {
 
             assert_eq!(mint_2, Ok(()));
 
-            assert_eq!(balance_of!(client, address, alice), 1);
-            assert_eq!(balance_of!(client, address, bob), 1);
+            assert_eq!(balance_of!(client, address, Alice), 1);
+            assert_eq!(balance_of!(client, address, Bob), 1);
 
             Ok(())
         }
@@ -93,14 +93,14 @@ pub mod my_psp34_mintable {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(balance_of!(client, address, alice), 0);
-            assert_eq!(balance_of!(client, address, bob), 0);
+            assert_eq!(balance_of!(client, address, Alice), 0);
+            assert_eq!(balance_of!(client, address, Bob), 0);
 
             let id_1 = Id::U8(1);
 
             let mint_1 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(alice), id_1.clone()));
+                    .call(|contract| contract.mint(address_of!(Alice), id_1.clone()));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -112,15 +112,15 @@ pub mod my_psp34_mintable {
 
             let mint_2 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), id_1.clone()));
+                    .call(|contract| contract.mint(address_of!(Bob), id_1.clone()));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             assert!(matches!(mint_2, Err(_)));
 
-            assert_eq!(balance_of!(client, address, alice), 1);
-            assert_eq!(balance_of!(client, address, bob), 0);
+            assert_eq!(balance_of!(client, address, Alice), 1);
+            assert_eq!(balance_of!(client, address, Bob), 0);
 
             Ok(())
         }

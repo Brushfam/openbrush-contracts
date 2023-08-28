@@ -58,7 +58,7 @@ pub mod my_psp22_burnable {
                 .expect("instantiate failed")
                 .account_id;
 
-            let balance_of_alice = balance_of!(client, address, alice);
+            let balance_of_alice = balance_of!(client, address, Alice);
 
             assert!(matches!(balance_of_alice, 100));
 
@@ -76,7 +76,7 @@ pub mod my_psp22_burnable {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(alice), 10));
+                    .call(|contract| contract.burn(address_of!(Alice), 10));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -85,7 +85,7 @@ pub mod my_psp22_burnable {
 
             assert!(matches!(result.return_value(), Ok(())));
 
-            let balance_of_alice = balance_of!(client, address, alice);
+            let balance_of_alice = balance_of!(client, address, Alice);
 
             assert!(matches!(balance_of_alice, 90));
 
@@ -101,18 +101,18 @@ pub mod my_psp22_burnable {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert!(matches!(balance_of!(client, address, bob), 0));
-            assert!(matches!(balance_of!(client, address, alice), 100));
+            assert!(matches!(balance_of!(client, address, Bob), 0));
+            assert!(matches!(balance_of!(client, address, Alice), 100));
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(alice), 10));
+                    .call(|contract| contract.burn(address_of!(Alice), 10));
                 client.call(&ink_e2e::bob(), _msg, 0, None).await.expect("call failed")
             };
 
             assert!(matches!(result.return_value(), Ok(())));
 
-            let balance_of_alice = balance_of!(client, address, alice);
+            let balance_of_alice = balance_of!(client, address, Alice);
 
             assert!(matches!(balance_of_alice, 90));
 
@@ -137,7 +137,7 @@ pub mod my_psp22_burnable {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(alice), 10));
+                    .call(|contract| contract.burn(address_of!(Alice), 10));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -167,7 +167,7 @@ pub mod my_psp22_burnable {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), 10, vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), 10, vec![]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -176,13 +176,13 @@ pub mod my_psp22_burnable {
 
             assert!(matches!(result.return_value(), Ok(())));
 
-            let balance_of_bob = balance_of!(client, address, bob);
+            let balance_of_bob = balance_of!(client, address, Bob);
 
             assert!(matches!(balance_of_bob, 10));
 
             let result = {
                 let _msg =
-                    build_message::<ContractRef>(address.clone()).call(|contract| contract.burn(address_of!(bob), 10));
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.burn(address_of!(Bob), 10));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -191,7 +191,7 @@ pub mod my_psp22_burnable {
 
             assert!(matches!(result.return_value(), Ok(())));
 
-            let balance_of_bob = balance_of!(client, address, bob);
+            let balance_of_bob = balance_of!(client, address, Bob);
 
             assert!(matches!(balance_of_bob, 0));
 
@@ -209,7 +209,7 @@ pub mod my_psp22_burnable {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), 10, vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), 10, vec![]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -220,7 +220,7 @@ pub mod my_psp22_burnable {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(charlie), 10, vec![]));
+                    .call(|contract| contract.transfer(address_of!(Charlie), 10, vec![]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -229,15 +229,15 @@ pub mod my_psp22_burnable {
 
             assert!(matches!(result.return_value(), Ok(())));
 
-            let balance_of_bob = balance_of!(client, address, bob);
-            let balance_of_charlie = balance_of!(client, address, charlie);
+            let balance_of_bob = balance_of!(client, address, Bob);
+            let balance_of_charlie = balance_of!(client, address, Charlie);
 
             assert!(matches!(balance_of_bob, 10));
             assert!(matches!(balance_of_charlie, 10));
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn_from_many(vec![(address_of!(bob), 10), (address_of!(charlie), 10)]));
+                    .call(|contract| contract.burn_from_many(vec![(address_of!(Bob), 10), (address_of!(Charlie), 10)]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -246,8 +246,8 @@ pub mod my_psp22_burnable {
 
             assert!(matches!(result.return_value(), Ok(())));
 
-            let balance_of_bob = balance_of!(client, address, bob);
-            let balance_of_charlie = balance_of!(client, address, charlie);
+            let balance_of_bob = balance_of!(client, address, Bob);
+            let balance_of_charlie = balance_of!(client, address, Charlie);
 
             assert!(matches!(balance_of_bob, 0));
             assert!(matches!(balance_of_charlie, 0));
@@ -268,7 +268,7 @@ pub mod my_psp22_burnable {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), 10, vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), 10, vec![]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -279,7 +279,7 @@ pub mod my_psp22_burnable {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(charlie), 5, vec![]));
+                    .call(|contract| contract.transfer(address_of!(Charlie), 5, vec![]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -288,22 +288,22 @@ pub mod my_psp22_burnable {
 
             assert!(matches!(result.return_value(), Ok(())));
 
-            let balance_of_bob = balance_of!(client, address, bob);
-            let balance_of_charlie = balance_of!(client, address, charlie);
+            let balance_of_bob = balance_of!(client, address, Bob);
+            let balance_of_charlie = balance_of!(client, address, Charlie);
 
             assert!(matches!(balance_of_bob, 10));
             assert!(matches!(balance_of_charlie, 5));
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn_from_many(vec![(address_of!(bob), 10), (address_of!(charlie), 10)]));
+                    .call(|contract| contract.burn_from_many(vec![(address_of!(Bob), 10), (address_of!(Charlie), 10)]));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             };
 
             assert!(matches!(result.return_value(), Err(PSP22Error::InsufficientBalance)));
 
-            let balance_of_bob = balance_of!(client, address, bob);
-            let balance_of_charlie = balance_of!(client, address, charlie);
+            let balance_of_bob = balance_of!(client, address, Bob);
+            let balance_of_charlie = balance_of!(client, address, Charlie);
 
             assert!(matches!(balance_of_bob, 10));
             assert!(matches!(balance_of_charlie, 5));

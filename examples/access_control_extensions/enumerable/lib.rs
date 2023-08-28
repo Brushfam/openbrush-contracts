@@ -79,7 +79,7 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(get_role_member!(client, address, MINTER, 0), Some(address_of!(alice)));
+            assert_eq!(get_role_member!(client, address, MINTER, 0), Some(address_of!(Alice)));
 
             Ok(())
         }
@@ -93,11 +93,11 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(has_role!(client, address, MINTER, bob), false);
+            assert_eq!(has_role!(client, address, MINTER, Bob), false);
 
-            assert_eq!(grant_role!(client, address, MINTER, bob), Ok(()));
+            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
 
-            assert_eq!(get_role_member!(client, address, MINTER, 1), Some(address_of!(bob)));
+            assert_eq!(get_role_member!(client, address, MINTER, 1), Some(address_of!(Bob)));
 
             Ok(())
         }
@@ -111,13 +111,13 @@ pub mod my_access_control {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(has_role!(client, address, MINTER, bob), false);
+            assert_eq!(has_role!(client, address, MINTER, Bob), false);
 
-            assert_eq!(has_role!(client, address, MINTER, alice), true);
+            assert_eq!(has_role!(client, address, MINTER, Alice), true);
 
             assert_eq!(get_role_member_count!(client, address, MINTER), 1);
 
-            assert_eq!(revoke_role!(client, address, MINTER, alice), Ok(()));
+            assert_eq!(revoke_role!(client, address, MINTER, Alice), Ok(()));
 
             assert_eq!(get_role_member_count!(client, address, MINTER), 0);
 

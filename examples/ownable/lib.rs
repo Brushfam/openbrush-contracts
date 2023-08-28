@@ -68,7 +68,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, Some(address_of!(alice)));
+            assert_eq!(owner, Some(address_of!(Alice)));
 
             Ok(())
         }
@@ -88,11 +88,11 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, Some(address_of!(alice)));
+            assert_eq!(owner, Some(address_of!(Alice)));
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), vec![(Id::U8(0), 1)]));
+                    .call(|contract| contract.mint(address_of!(Bob), vec![(Id::U8(0), 1)]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -123,11 +123,11 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, Some(address_of!(alice)));
+            assert_eq!(owner, Some(address_of!(Alice)));
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), ids_amounts.clone()));
+                    .call(|contract| contract.mint(address_of!(Bob), ids_amounts.clone()));
                 client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
             }
             .return_value();
@@ -136,7 +136,7 @@ pub mod ownable {
 
             let balance_before = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.balance_of(address_of!(bob), Some(token.clone())));
+                    .call(|contract| contract.balance_of(address_of!(Bob), Some(token.clone())));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -145,7 +145,7 @@ pub mod ownable {
 
             let transfer_ownership_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer_ownership(address_of!(bob)));
+                    .call(|contract| contract.transfer_ownership(address_of!(Bob)));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -161,11 +161,11 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, Some(address_of!(bob)));
+            assert_eq!(owner, Some(address_of!(Bob)));
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), ids_amounts.clone()));
+                    .call(|contract| contract.mint(address_of!(Bob), ids_amounts.clone()));
                 client.call(&ink_e2e::bob(), _msg, 0, None).await.expect("mint failed")
             }
             .return_value();
@@ -174,7 +174,7 @@ pub mod ownable {
 
             let balance_after = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.balance_of(address_of!(bob), Some(token.clone())));
+                    .call(|contract| contract.balance_of(address_of!(Bob), Some(token.clone())));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -199,7 +199,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, Some(address_of!(alice)));
+            assert_eq!(owner, Some(address_of!(Alice)));
 
             let renounce_ownership_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.renounce_ownership());
@@ -238,7 +238,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, Some(address_of!(alice)));
+            assert_eq!(owner, Some(address_of!(Alice)));
 
             let renounce_ownership_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.renounce_ownership());
@@ -254,7 +254,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, Some(address_of!(alice)));
+            assert_eq!(owner, Some(address_of!(Alice)));
 
             Ok(())
         }
@@ -274,7 +274,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, Some(address_of!(alice)));
+            assert_eq!(owner, Some(address_of!(Alice)));
 
             let renounce_ownership_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.renounce_ownership());
@@ -290,7 +290,7 @@ pub mod ownable {
             }
             .return_value();
 
-            assert_eq!(owner, Some(address_of!(alice)));
+            assert_eq!(owner, Some(address_of!(Alice)));
 
             Ok(())
         }

@@ -14,13 +14,8 @@ scale-info = { version = "2.6", default-features = false, features = ["derive"],
 openbrush = { path = "../../../..", default-features = false, features = ["governance"] }
 
 [dev-dependencies]
-<<<<<<< HEAD:examples/governance/extensions/timelock_controller/Cargo.toml
-ink_e2e = "4.2.1"
 test_helpers = { path = "../../../test_helpers", default-features = false }
-=======
 ink_e2e = "4.3.0"
-test_helpers = { path = "../test_helpers", default-features = false }
->>>>>>> develop:examples/timelock_controller/Cargo.toml
 
 [lib]
 name = "my_timelock_controller"

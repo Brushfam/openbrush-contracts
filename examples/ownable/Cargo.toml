@@ -1,11 +1,11 @@
 [package]
 name = "my_ownable"
-version= "4.0.0-beta"
+version= "4.0.0-beta.1"
 authors = ["Brushfam <green@727.ventures>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.2.1", default-features = false}
+ink = { version = "4.3.0", default-features = false}
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
@@ -14,7 +14,7 @@ scale-info = { version = "2.6", default-features = false, features = ["derive"],
 openbrush = { path = "../..", default-features = false, features = ["ownable", "psp37"] }
 
 [dev-dependencies]
-ink_e2e = "4.2.1"
+ink_e2e = "4.3.0"
 test_helpers = { path = "../test_helpers", default-features = false }
 
 [lib]

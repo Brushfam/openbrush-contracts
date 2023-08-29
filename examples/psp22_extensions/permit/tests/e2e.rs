@@ -2,21 +2,47 @@
 
 extern crate my_psp22_permit;
 
-use ink::env::hash::{Blake2x256, HashOutput};
+use ink::env::hash::{
+    Blake2x256,
+    HashOutput,
+};
 #[rustfmt::skip]
 use ink_e2e::build_message;
-use openbrush::contracts::psp22::{extensions::permit::psp22permit_external::PSP22Permit, psp22_external::PSP22};
+use openbrush::contracts::{
+    nonces::nonces_external::Nonces,
+    psp22::{
+        extensions::permit::psp22permit_external::PSP22Permit,
+        psp22_external::PSP22,
+    },
+};
 #[rustfmt::skip]
 use crate::my_psp22_permit::*;
 // use openbrush::contracts::psp22::extensions::permit::PERMIT_TYPE_HASH;
 use openbrush::{
     contracts::psp22::extensions::permit::PermitMessage,
-    traits::{AccountId, Balance, Signature},
-    utils::hash_blake2b256,
+    traits::{
+        AccountId,
+        Balance,
+    },
+    utils::crypto::{
+        hash_blake2b256,
+        Signature,
+    },
 };
 use scale::Encode;
-use secp256k1::{ecdsa::RecoverableSignature, Message, PublicKey, SecretKey, SECP256K1};
-use test_helpers::{address_of, balance_of, method_call, method_call_dry_run};
+use secp256k1::{
+    ecdsa::RecoverableSignature,
+    Message,
+    PublicKey,
+    SecretKey,
+    SECP256K1,
+};
+use test_helpers::{
+    address_of,
+    balance_of,
+    method_call,
+    method_call_dry_run,
+};
 
 type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

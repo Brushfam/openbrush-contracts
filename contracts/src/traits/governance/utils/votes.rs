@@ -28,7 +28,7 @@ use openbrush::traits::{AccountId, Balance, Timestamp};
 pub trait Votes {
     /// The amount of votes owned by `account`.
     #[ink(message)]
-    fn get_votes(&self, account: AccountId) -> Balance;
+    fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError>;
 
     /// The amount of votes delegated to `account` at the time `timestamp`.
     #[ink(message)]

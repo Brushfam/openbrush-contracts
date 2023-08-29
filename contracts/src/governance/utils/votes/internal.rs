@@ -87,7 +87,9 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
         amount: Balance,
     ) -> Result<(), GovernanceError> {
         if from != to && amount > 0 {
-            if let Some(from_addr) = from {
+            if from.is_some() {
+                let from_addr = from.unwrap();
+
                 let mut store = self
                     .data::<Data>()
                     .delegate_checkpoints
@@ -98,7 +100,9 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
                 self.data::<Data>().delegate_checkpoints.insert(&from_addr, &store);
                 self.emit_delegate_votes_changed_event(&from_addr, old_value, new_value);
             }
-            if let Some(to_addr) = to {
+            if to.is_some() {
+                let to_addr = to.unwrap();
+
                 let mut store = self
                     .data::<Data>()
                     .delegate_checkpoints
@@ -114,20 +118,23 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
     }
 
     /// Returns number of checkpoints for `account`.
-    fn _num_checkpoints(&self, account: &AccountId) -> u32 {
-        self.data::<Data>()
+    fn _num_checkpoints(&self, account: &AccountId) -> Result<u32, GovernanceError> {
+        Ok(self
+            .data::<Data>()
             .delegate_checkpoints
             .get(&account)
             .unwrap_or_default()
-            .len() as u32
+            .len() as u32)
     }
 
     /// Returns the checkpoint for `account` at the given `pos`.
     fn _checkpoints(&self, account: &AccountId, pos: u32) -> Result<Checkpoint, GovernanceError> {
-        self.data::<Data>()
+        let checkpoints = self
+            .data::<Data>()
             .delegate_checkpoints
             .get(&account)
-            .unwrap_or_default()
+            .unwrap_or_default();
+        checkpoints
             .at(pos as usize)
             .ok_or(GovernanceError::IndexOutOfRange)
             .cloned()

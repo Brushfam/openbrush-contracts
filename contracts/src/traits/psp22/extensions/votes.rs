@@ -38,7 +38,7 @@ use openbrush::traits::AccountId;
 pub trait PSP22Votes {
     /// Get number of checkpoints for `account`.
     #[ink(message)]
-    fn num_checkpoints(&self, account: AccountId) -> u32;
+    fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError>;
 
     /// Get the `pos`-th checkpoint for `account`.
     #[ink(message)]

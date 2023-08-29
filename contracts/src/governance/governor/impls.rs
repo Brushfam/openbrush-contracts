@@ -269,20 +269,6 @@ pub trait GovernorImpl:
             params.unwrap_or_default(),
         )
     }
-    /// Casts a vote with reason and parameters for a proposal from a message sender.
-    /// Returns the number of votes already casted for the proposal by the sender
-    fn cast_vote_with_reason_and_params(
-        &mut self,
-        proposal_id: ProposalId,
-        support: VoteType,
-        reason: String,
-        params: Vec<u8>,
-    ) -> Result<Balance, GovernanceError> {
-        let voter = Self::env().caller();
-
-        self._cast_vote_with_params(proposal_id, voter, support, reason, params)
-    }
-
     /// Casts a vote with signature for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
     fn cast_vote_with_signature(
         &mut self,

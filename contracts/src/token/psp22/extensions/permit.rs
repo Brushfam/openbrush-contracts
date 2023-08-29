@@ -22,15 +22,30 @@
 pub use crate::{
     psp22,
     psp22::extensions::permit,
-    traits::psp22::{extensions::permit::*, *},
+    traits::psp22::{
+        extensions::permit::*,
+        *,
+    },
 };
 
-use ink::env::hash::{Blake2x256, HashOutput};
+use ink::env::hash::{
+    Blake2x256,
+    HashOutput,
+};
 use openbrush::{
     storage::Mapping,
-    traits::{AccountId, Balance, Signature, Storage},
+    traits::{
+        AccountId,
+        Balance,
+        Signature,
+        Storage,
+    },
 };
-pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22Impl,
+};
 use scale::Encode;
 
 #[derive(Default, Debug)]
@@ -100,7 +115,7 @@ pub trait InternalImpl: Storage<Data> + psp22::Internal {
     ) -> Result<(), PSP22Error> {
         let block_time = Self::env().block_timestamp();
         if deadline < block_time {
-            return Err(PSP22Error::PermitExpired);
+            return Err(PSP22Error::PermitExpired)
         }
 
         let nonce = self._use_nonce(owner);

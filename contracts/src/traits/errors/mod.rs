@@ -1,3 +1,4 @@
+// Copyright (c) 2023 Brushfam
 // Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -20,8 +21,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 mod access_control;
+mod checkpoints;
+mod crypto;
 mod diamond;
 mod flashloan;
+pub(crate) mod governance;
+mod nonces;
 mod ownable;
 mod pausable;
 mod payment_splitter;
@@ -33,11 +38,15 @@ mod timelock_controller;
 mod upgradeable;
 
 pub use access_control::AccessControlError;
+pub use checkpoints::CheckpointsError;
+pub use crypto::CryptoError;
 pub use diamond::DiamondError;
 pub use flashloan::{
     FlashBorrowerError,
     FlashLenderError,
 };
+pub use governance::GovernanceError;
+pub use nonces::NoncesError;
 pub use ownable::OwnableError;
 pub use pausable::PausableError;
 pub use payment_splitter::PaymentSplitterError;

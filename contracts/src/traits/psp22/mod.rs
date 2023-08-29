@@ -29,6 +29,8 @@ pub mod extensions {
     pub mod capped;
     pub mod metadata;
     pub mod mintable;
+    #[cfg(feature = "governance")]
+    pub mod votes;
     pub mod wrapper;
 }
 

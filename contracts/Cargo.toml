@@ -1,6 +1,6 @@
 [package]
 name = "openbrush_contracts"
-version= "4.0.0-beta"
+version= "4.0.0-beta.1"
 authors = ["Brushfam <green@727.ventures>"]
 edition = "2021"
 
@@ -15,11 +15,12 @@ categories = ["no-std", "embedded"]
 include = ["Cargo.toml", "src/**/*.rs"]
 
 [dependencies]
-ink = { version = "4.2.1", default-features = false}
+ink = { version = "4.3.0", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 
-openbrush = { version = "~4.0.0-beta", package = "openbrush_lang", path = "../lang", default-features = false }
+openbrush = { version = "~4.0.0-beta.1", package = "openbrush_lang", path = "../lang", default-features = false }
 
 pallet-assets-chain-extension = { git = "https://github.com/Brushfam/pallet-assets-chain-extension", branch = "polkadot-v0.9.37", default-features = false, features = ["ink-lang"]  }
 
@@ -58,6 +59,11 @@ proxy = [
 diamond = [
     "ownable",
 ]
+governance = [
+    "timelock_controller",
+    "utils"
+]
+utils = []
 upgradeable = ["ownable"]
 test-all = [
     "psp22",
@@ -70,5 +76,7 @@ test-all = [
     "pausable",
     "timelock_controller",
     "proxy",
+    "utils",
     "diamond",
+    "governance",
 ]

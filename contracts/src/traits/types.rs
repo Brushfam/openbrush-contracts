@@ -41,3 +41,5 @@ impl Default for Id {
         Self::U8(0)
     }
 }
+
+pub type SignatureType = [u8; 65];

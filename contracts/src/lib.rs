@@ -1,3 +1,4 @@
+// Copyright (c) 2023 Brushfam
 // Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -23,11 +24,11 @@
 
 mod access;
 mod finance;
-mod governance;
+pub mod governance;
 mod security;
 mod token;
 mod upgradeability;
-mod utils;
+pub mod utils;
 
 pub mod traits;
 
@@ -40,6 +41,8 @@ pub use access::ownable;
 pub use finance::payment_splitter;
 #[cfg(feature = "timelock_controller")]
 pub use governance::timelock_controller;
+#[cfg(feature = "governance")]
+pub use governance::*;
 #[cfg(feature = "pausable")]
 pub use security::pausable;
 #[cfg(feature = "reentrancy_guard")]
@@ -58,5 +61,5 @@ pub use upgradeability::diamond;
 pub use upgradeability::proxy;
 #[cfg(feature = "upgradeable")]
 pub use upgradeability::upgradeable;
-#[cfg(feature = "psp61")]
-pub use utils::psp61;
+#[cfg(feature = "utils")]
+pub use utils::*;

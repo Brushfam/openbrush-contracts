@@ -2,6 +2,8 @@ import BN from 'bn.js'
 import { expect } from './setup/chai'
 import { KeyringPair } from '@polkadot/keyring/types'
 import { Keyring } from '@polkadot/keyring'
+import {AbiMessage} from '@polkadot/api-contract/types'
+import {ApiPromise} from '@polkadot/api'
 
 export { expect } from './setup/chai'
 
@@ -33,4 +35,48 @@ export function bytesToString(bytes: string): string {
   }
 
   return result
+}
+
+export function hexToNumbers(hex: string): number[] {
+  const byteArray = new Uint8Array(hex.length / 2)
+
+  for (let i = 0; i < hex.length; i += 2) {
+    byteArray[i / 2] = parseInt(hex.substr(i, 2), 16)
+  }
+
+  return Array.from(byteArray)
+}
+
+export const getSelectorsFromMessages = (messages: AbiMessage[]): number[][] => {
+  return messages.map((message) => {
+    return message.selector.toU8a() as unknown as number[]
+  })
+}
+
+export const getSelectorByName = (messages: AbiMessage[], name: string): number[] => {
+  return messages.filter((message) => {
+    return message.identifier.includes(name)
+  })[0].selector.toU8a() as unknown as number[]
+}
+
+export const getMessageByName = (messages: AbiMessage[], name: string): AbiMessage => {
+  return messages.filter((message) => {
+    return message.identifier.includes(name)
+  })[0]
+}
+
+export const Uint8ArrayToString = (array : Uint8Array) : string => {
+  let res  = '['
+  for (let i = 0; i < array.length; i++) {
+    res += array[i]
+    if (i != array.length - 1) {
+      res += ', '
+    }
+  }
+  res += ']'
+  return res
+}
+
+export const SS58ToHex = (api: ApiPromise, ss58: string): string => {
+  return api.registry.createType('AccountId', ss58).toHex()
 }

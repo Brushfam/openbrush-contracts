@@ -47,14 +47,14 @@ pub mod my_psp34_enumerable {
 
             let owners_token_by_index_1 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(alice), 0));
+                    .call(|contract| contract.owners_token_by_index(address_of!(Alice), 0));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             let owners_token_by_index_2 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(bob), 0));
+                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -67,7 +67,7 @@ pub mod my_psp34_enumerable {
 
             let mint_result_1 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), psp34_id1.clone()));
+                    .call(|contract| contract.mint(address_of!(Bob), psp34_id1.clone()));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -77,7 +77,7 @@ pub mod my_psp34_enumerable {
 
             let mint_result_2 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), psp34_id2.clone()));
+                    .call(|contract| contract.mint(address_of!(Bob), psp34_id2.clone()));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -90,14 +90,14 @@ pub mod my_psp34_enumerable {
 
             let owners_token_by_index_1 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(bob), 0));
+                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             let owners_token_by_index_2 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(bob), 1));
+                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 1));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -137,14 +137,14 @@ pub mod my_psp34_enumerable {
 
             let owners_token_by_index_1 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(alice), 0));
+                    .call(|contract| contract.owners_token_by_index(address_of!(Alice), 0));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             let owners_token_by_index_2 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(bob), 0));
+                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -154,7 +154,7 @@ pub mod my_psp34_enumerable {
 
             let mint_result_1 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), psp34_id1.clone()));
+                    .call(|contract| contract.mint(address_of!(Bob), psp34_id1.clone()));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -164,7 +164,7 @@ pub mod my_psp34_enumerable {
 
             let mint_result_2 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), psp34_id2.clone()));
+                    .call(|contract| contract.mint(address_of!(Bob), psp34_id2.clone()));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -192,7 +192,7 @@ pub mod my_psp34_enumerable {
 
             let burn_result_1 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(bob), psp34_id2.clone()));
+                    .call(|contract| contract.burn(address_of!(Bob), psp34_id2.clone()));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -204,14 +204,14 @@ pub mod my_psp34_enumerable {
 
             let owners_token_by_index_1 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(bob), 0));
+                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             let owners_token_by_index_2 = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(bob), 1));
+                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 1));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();

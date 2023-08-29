@@ -37,7 +37,6 @@ use openbrush::{
     traits::{
         AccountId,
         Balance,
-        Signature,
         Storage,
     },
 };

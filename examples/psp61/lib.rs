@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(PSP61, Ownable, AccessControl, Pausable, TimelockController, Upgradeable)]
+#[openbrush::implementation(PSP61, Ownable, AccessControl, Pausable, Upgradeable)]
 #[openbrush::contract]
 pub mod my_psp61 {
     use ink::prelude::vec;
@@ -21,8 +21,6 @@ pub mod my_psp61 {
         pub access_control: access_control::Data,
         #[storage_field]
         pub pausable: pausable::Data,
-        #[storage_field]
-        pub timelock_controller: timelock_controller::Data,
     }
 
     supported_interfaces!(Contract);
@@ -49,11 +47,6 @@ pub mod my_psp61 {
         }
 
         #[ink(message)]
-        pub fn timelock_controller_id(&self) -> u32 {
-            timelock_controller::timelockcontroller_external::TRAIT_ID
-        }
-
-        #[ink(message)]
         pub fn upgradeable_id(&self) -> u32 {
             upgradeable::upgradeable_external::TRAIT_ID
         }
@@ -72,10 +65,6 @@ pub mod my_psp61 {
                     access_control::accesscontrol_external::TRAIT_ID,
                 ),
                 (String::from("pausable"), pausable::pausable_external::TRAIT_ID),
-                (
-                    String::from("timelock_controller"),
-                    timelock_controller::timelockcontroller_external::TRAIT_ID,
-                ),
                 (String::from("upgradeable"), upgradeable::upgradeable_external::TRAIT_ID),
                 (String::from("psp61"), psp61::psp61_external::TRAIT_ID),
             ]

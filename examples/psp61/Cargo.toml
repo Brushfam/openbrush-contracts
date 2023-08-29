@@ -17,7 +17,6 @@ openbrush = { path = "../..", default-features = false, features = [
     "access_control",
     "pausable",
     "reentrancy_guard",
-    "timelock_controller",
     "upgradeable",
     "payment_splitter"
 ] }

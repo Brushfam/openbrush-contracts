@@ -22,11 +22,11 @@
 /// Extension of [`PSP22`] that allows create `amount` tokens
 /// and assigns them to `account`, increasing the total supply
 pub use crate::traits::errors::PSP22Error;
-pub use openbrush::traits::Signature;
 use openbrush::traits::{
     AccountId,
     Balance,
 };
+pub use openbrush::utils::crypto::Signature;
 
 #[openbrush::wrapper]
 pub type PSP22PermitRef = dyn PSP22Permit;
@@ -45,12 +45,6 @@ pub trait PSP22Permit {
         deadline: u64,
         signature: Signature,
     ) -> Result<(), PSP22Error>;
-
-    /// Returns the current permit nonce for `owner`. This value must be
-    ///     
-    /// This value must be included whenever a signature is generated for
-    #[ink(message)]
-    fn nonces(&self, owner: AccountId) -> u64;
 
     #[ink(message)]
     fn domain_separator(&mut self) -> [u8; 32];

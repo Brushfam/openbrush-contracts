@@ -20,52 +20,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    traits::{
-        errors::NoncesError,
-        utils::nonces::*,
-    },
-    utils::nonces,
-};
-use openbrush::{
-    storage::Mapping,
-    traits::{
-        AccountId,
-        Storage,
-    },
-};
+pub mod nonces;
 
-#[derive(Default, Debug)]
-#[openbrush::storage_item]
-pub struct Data {
-    pub nonces: Mapping<AccountId, u128>,
-}
-
-/// Provides tracking nonces for addresses. Nonces will only increment.
-pub trait NoncesImpl: Storage<Data> {
-    /// Returns the nonce of `account`.
-    fn nonces(&self, account: &AccountId) -> u128 {
-        self.data().nonces.get(account).unwrap_or_default()
-    }
-
-    /// Returns the next nonce of `account`, and increments the nonce.
-    fn _use_nonce(&mut self, account: &AccountId) -> Result<u128, NoncesError> {
-        let nonce = self.nonces(account);
-        self.data()
-            .nonces
-            .insert(account, &(nonce.checked_add(1).ok_or(NoncesError::NonceOverflow)?));
-        Ok(nonce)
-    }
-
-    /// Returns the next nonce of `account`, and increments the nonce if `nonce` matches the current nonce.
-    fn _use_checked_nonce(&mut self, account: &AccountId, nonce: u128) -> Result<u128, NoncesError> {
-        let current_nonce = self.nonces(&account);
-        if nonce != current_nonce {
-            return Err(NoncesError::InvalidAccountNonce(account.clone(), current_nonce))
-        }
-        self.data()
-            .nonces
-            .insert(account, &(nonce.checked_add(1).ok_or(NoncesError::NonceOverflow)?));
-        Ok(nonce)
-    }
-}
+pub use nonces::*;

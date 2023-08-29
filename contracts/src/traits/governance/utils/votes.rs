@@ -22,7 +22,7 @@
 
 pub use crate::traits::{
     errors::GovernanceError,
-    types::SignatureType,
+    types::Signature,
 };
 use openbrush::traits::{
     AccountId,
@@ -59,9 +59,9 @@ pub trait Votes {
         &mut self,
         signer: AccountId,
         delegatee: AccountId,
-        nonce: u128,
+        nonce: u64,
         expiry: Timestamp,
-        signature: SignatureType,
+        signature: Signature,
     ) -> Result<(), GovernanceError>;
 }
 

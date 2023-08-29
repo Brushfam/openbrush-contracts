@@ -28,19 +28,19 @@ use crate::{
             VotesEvents,
         },
     },
-    traits::errors::{
-        CheckpointsError,
-        GovernanceError,
+    traits::errors::GovernanceError,
+};
+use openbrush::{
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
     },
-    utils::checkpoint::{
+    utils::checkpoints::{
         Checkpoint,
         Checkpoints,
+        CheckpointsError,
     },
-};
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Storage,
 };
 
 pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {

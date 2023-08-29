@@ -29,7 +29,7 @@ pub use crate::traits::{
         Transaction,
         VoteType,
     },
-    types::SignatureType,
+    types::Signature,
 };
 use ink::prelude::vec::Vec;
 use openbrush::traits::{
@@ -137,7 +137,7 @@ pub trait Governor {
         proposal_id: ProposalId,
         support: VoteType,
         reason: String,
-        signature: SignatureType,
+        signature: Signature,
     ) -> Result<Balance, GovernanceError>;
 
     /// Casts a vote with signature and parameters for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
@@ -147,7 +147,7 @@ pub trait Governor {
         proposal_id: ProposalId,
         support: VoteType,
         reason: String,
-        signature: SignatureType,
+        signature: Signature,
         params: Vec<u8>,
     ) -> Result<Balance, GovernanceError>;
 

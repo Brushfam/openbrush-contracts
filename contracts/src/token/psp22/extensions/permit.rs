@@ -20,6 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::{
+    nonces::*,
     psp22,
     psp22::extensions::permit,
     traits::psp22::{
@@ -27,19 +28,17 @@ pub use crate::{
         *,
     },
 };
-
-use ink::env::hash::{
-    Blake2x256,
-    HashOutput,
-};
 use openbrush::{
-    storage::Mapping,
     traits::{
         AccountId,
         Balance,
         Storage,
     },
+    utils::crypto::hash_blake2b256,
 };
+
+pub use openbrush::utils::crypto::Signature;
+
 pub use psp22::{
     Internal as _,
     InternalImpl as _,
@@ -50,7 +49,6 @@ use scale::Encode;
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    pub nonces: Mapping<AccountId, u64>,
     #[lazy]
     pub cached_domain_separator: [u8; 32],
 }
@@ -77,10 +75,6 @@ pub trait PSP22PermitImpl: Internal {
         self._permit(owner, spender, amount, deadline, signature)
     }
 
-    fn nonces(&self, owner: AccountId) -> u64 {
-        self._nonces(owner)
-    }
-
     fn domain_separator(&mut self) -> [u8; 32] {
         self._domain_separator()
     }
@@ -96,14 +90,10 @@ pub trait Internal {
         signature: Signature,
     ) -> Result<(), PSP22Error>;
 
-    fn _nonces(&self, owner: AccountId) -> u64;
-
     fn _domain_separator(&mut self) -> [u8; 32];
-
-    fn _use_nonce(&mut self, owner: AccountId) -> u64;
 }
 
-pub trait InternalImpl: Storage<Data> + psp22::Internal {
+pub trait InternalImpl: Storage<Data> + psp22::Internal + NoncesImpl {
     fn _permit(
         &mut self,
         owner: AccountId,
@@ -117,7 +107,7 @@ pub trait InternalImpl: Storage<Data> + psp22::Internal {
             return Err(PSP22Error::PermitExpired)
         }
 
-        let nonce = self._use_nonce(owner);
+        let nonce = self._use_nonce(&owner)?;
         let domain_separator = self._domain_separator();
 
         let message = &scale::Encode::encode(&PermitMessage {
@@ -137,35 +127,17 @@ pub trait InternalImpl: Storage<Data> + psp22::Internal {
         }
     }
 
-    fn _nonces(&self, owner: AccountId) -> u64 {
-        self.data().nonces.get(&owner).unwrap_or_default()
-    }
-
-    fn _set_nonce(&mut self, owner: AccountId, nonce: u64) {
-        self.data().nonces.insert(&owner, &nonce);
-    }
-
     fn _domain_separator(&mut self) -> [u8; 32] {
-        let cached = self.data().cached_domain_separator.get_or_default();
+        let cached = self.data::<Data>().cached_domain_separator.get_or_default();
 
-        if self.data().cached_domain_separator.get().is_none() {
-            let account_id = &Self::env().account_id();
+        if self.data::<Data>().cached_domain_separator.get().is_none() {
+            let account_hash = hash_blake2b256(&Self::env().account_id().encode());
 
-            let mut output = <Blake2x256 as HashOutput>::Type::default();
+            self.data::<Data>().cached_domain_separator.set(&account_hash);
 
-            ink::env::hash_bytes::<Blake2x256>(&account_id.encode(), &mut output);
-
-            self.data().cached_domain_separator.set(&output);
-
-            output
+            account_hash
         } else {
             cached
         }
-    }
-
-    fn _use_nonce(&mut self, owner: AccountId) -> u64 {
-        let nonce = self._nonces(owner);
-        self._set_nonce(owner, nonce.clone() + 1);
-        nonce
     }
 }

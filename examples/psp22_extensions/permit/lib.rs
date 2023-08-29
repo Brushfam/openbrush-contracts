@@ -2,7 +2,7 @@
 
 pub use crate::my_psp22_permit::*;
 
-#[openbrush::implementation(PSP22, PSP22Permit)]
+#[openbrush::implementation(PSP22, PSP22Permit, Nonces)]
 #[openbrush::contract]
 pub mod my_psp22_permit {
     use openbrush::traits::Storage;
@@ -12,6 +12,8 @@ pub mod my_psp22_permit {
     pub struct Contract {
         #[storage_field]
         psp22: psp22::Data,
+        #[storage_field]
+        nonces: nonces::Data,
         #[storage_field]
         psp22_permit: psp22::extensions::permit::Data,
     }

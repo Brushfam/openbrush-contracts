@@ -43,6 +43,8 @@ pub mod utils {
     pub mod votes;
 }
 
+pub use openbrush::utils::crypto::Signature;
+
 pub type ProposalId = [u8; 32];
 pub type HashType = [u8; 32];
 pub type Selector = [u8; 4];

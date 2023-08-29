@@ -20,8 +20,13 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-pub enum CheckpointsError {
-    UnorderedInsertion,
+pub use crate::traits::errors::NoncesError;
+use openbrush::traits::AccountId;
+
+/// Provides tracking nonces for addresses. Nonces will only increment.
+#[openbrush::trait_definition]
+pub trait Nonces {
+    /// Returns the nonce of `account`.
+    #[ink(message)]
+    fn nonces(&self, account: AccountId) -> u64;
 }

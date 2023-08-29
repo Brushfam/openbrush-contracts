@@ -21,6 +21,7 @@
 
 use super::{
     AccessControlError,
+    NoncesError,
     OwnableError,
     PausableError,
     ReentrancyGuardError,
@@ -47,6 +48,8 @@ pub enum PSP22Error {
     PermitInvalidSignature,
     /// Returned if permit deadline is expired
     PermitExpired,
+    /// Returned if permit nonce is invalid
+    NoncesError(NoncesError),
 }
 
 impl From<OwnableError> for PSP22Error {
@@ -142,5 +145,11 @@ impl From<PausableError> for PSP22TokenTimelockError {
 impl From<ReentrancyGuardError> for PSP22TokenTimelockError {
     fn from(guard: ReentrancyGuardError) -> Self {
         PSP22TokenTimelockError::PSP22Error(guard.into())
+    }
+}
+
+impl From<NoncesError> for PSP22Error {
+    fn from(error: NoncesError) -> Self {
+        PSP22Error::NoncesError(error)
     }
 }

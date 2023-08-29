@@ -114,6 +114,7 @@ impl From<PSP22Error> for FlashLenderError {
                 FlashLenderError::Custom(String::from("PSP22: Permit Invalid Signature"))
             }
             PSP22Error::PermitExpired => FlashLenderError::Custom(String::from("PSP22: Permit Expired")),
+            PSP22Error::NoncesError(_) => FlashLenderError::Custom(String::from("PSP22: Nonces Error")),
         }
     }
 }

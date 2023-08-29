@@ -19,18 +19,18 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// use crate::utils::blake2b_256;
-use crate::utils::hash_blake2b256;
 use ::ink::env::{
     DefaultEnvironment,
     Environment,
 };
+pub use const_format;
 use core::mem::ManuallyDrop;
 use ink::storage::traits::{
     Storable,
     StorageKey,
 };
 pub use openbrush_lang_macro::Storage;
+use xxhash_rust::const_xxh32::xxh32;
 
 /// Aliases for types of the default environment
 pub type AccountId = <DefaultEnvironment as Environment>::AccountId;
@@ -126,27 +126,13 @@ pub trait Flush: Storable + Sized + StorageKey {
 
 impl<T: Storable + Sized + StorageKey> Flush for T {}
 
-#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-pub enum Signature {
-    ECDSA([u8; 65]),
-}
+/// The value 0 is a valid seed.
+const XXH32_SEED: u32 = 0;
 
-impl Signature {
-    #[allow(unreachable_patterns)]
-    pub fn verify(&self, message: &[u8], pub_key: &AccountId) -> bool {
-        match self {
-            Signature::ECDSA(sig) => {
-                let mut output: [u8; 33] = [0; 33];
-                let message_hash = hash_blake2b256(message);
+pub struct ConstHasher;
 
-                let result = ink::env::ecdsa_recover(sig, &message_hash, &mut output);
-
-                let address = hash_blake2b256(&output);
-
-                return result.is_ok() && address == pub_key.as_ref()
-            }
-            _ => false,
-        }
+impl ConstHasher {
+    pub const fn hash(str: &str) -> u32 {
+        xxh32(str.as_bytes(), XXH32_SEED)
     }
 }

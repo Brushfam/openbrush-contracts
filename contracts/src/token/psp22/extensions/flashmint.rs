@@ -58,7 +58,7 @@ pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Inte
         let this = Self::env().account_id();
         let current_allowance = self.allowance(receiver_account, this);
         if current_allowance < amount + fee {
-            return Err(FlashLenderError::AllowanceDoesNotAllowRefund);
+            return Err(FlashLenderError::AllowanceDoesNotAllowRefund)
         }
         psp22::Internal::_approve_from_to(self, receiver_account, this, current_allowance - amount - fee)?;
         psp22::Internal::_burn_from(self, receiver_account, amount + fee)?;
@@ -104,9 +104,11 @@ pub trait InternalImpl: Storage<psp22::Data> + Internal {
             Ok(Err(ink::LangError::CouldNotReadInput)) => Ok(()),
             // `NotCallable` means that the receiver is not a contract.
             Err(ink::env::Error::NotCallable) => Ok(()),
-            _ => Err(FlashLenderError::BorrowerRejected(String::from(
-                "Error while performing the `on_flashloan`",
-            ))),
+            _ => {
+                Err(FlashLenderError::BorrowerRejected(String::from(
+                    "Error while performing the `on_flashloan`",
+                )))
+            }
         };
 
         result

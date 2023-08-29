@@ -1,12 +1,10 @@
 #!/bin/bash
 
-OLD_SIZE=$(find target/ink -maxdepth 1 -type f -name "*.wasm" -printf "%s")
-
 cargo contract build --release
 
 NEW_SIZE=$(find target/ink -maxdepth 1 -type f -name "*.wasm" -printf "%s")
 
-echo "OLD_SIZE | NEW_SIZE | DIFFERENCE | MAX_SIZE | MIN_SIZE"
+echo "NEW_SIZE | DIFFERENCE | MAX_SIZE | MIN_SIZE"
 
 
 
@@ -30,6 +28,6 @@ Info=($MAX_SIZE $MIN_SIZE)
 # shellcheck disable=SC2068
 echo ${Info[@]} > contract_size.txt
 
-DIFF=$(( $NEW_SIZE - $OLD_SIZE ))
+DIFF=$(( $NEW_SIZE - $MIN_SIZE ))
 
-echo "$OLD_SIZE | $NEW_SIZE | $DIFF | $MAX_SIZE | $MIN_SIZE"
+echo "$NEW_SIZE | $DIFF | $MAX_SIZE | $MIN_SIZE"

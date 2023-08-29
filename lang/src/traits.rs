@@ -30,7 +30,7 @@ use ink::storage::traits::{
     StorageKey,
 };
 pub use openbrush_lang_macro::Storage;
-use xxhash_rust::const_xxh32::xxh32;
+pub use xxhash_rust::const_xxh32::xxh32;
 
 /// Aliases for types of the default environment
 pub type AccountId = <DefaultEnvironment as Environment>::AccountId;

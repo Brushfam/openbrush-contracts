@@ -39,9 +39,9 @@ pub mod my_psp22 {
             symbol: Option<String>,
             decimal: u8,
         ) -> Result<(), PSP22Error> {
-            self.metadata.name.set(&name);
-            self.metadata.symbol.set(&symbol);
-            self.metadata.decimals.set(&decimal);
+            self.metadata.name = name;
+            self.metadata.symbol = symbol;
+            self.metadata.decimals = decimal;
             if let Some(owner) = Ownable::owner(self) {
                 psp22::Internal::_mint_to(self, owner, total_supply)
             } else {

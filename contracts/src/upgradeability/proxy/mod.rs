@@ -41,12 +41,12 @@ pub struct Data {
 
 pub trait ProxyImpl: Storage<Data> + Storage<ownable::Data> + Internal {
     fn get_delegate_code(&self) -> Hash {
-        self.data::<Data>().forward_to.get_or_default()
+        self.data::<Data>().forward_to
     }
 
     #[modifiers(ownable::only_owner)]
     fn change_delegate_code(&mut self, new_code_hash: Hash) -> Result<(), OwnableError> {
-        let old_code_hash = self.data::<Data>().forward_to.get_or_default();
+        let old_code_hash = self.data::<Data>().forward_to;
         self.data::<Data>().forward_to = new_code_hash;
         self._emit_delegate_code_changed_event(Some(old_code_hash), Some(new_code_hash));
         Ok(())
@@ -71,7 +71,7 @@ pub trait InternalImpl: Internal + Storage<Data> {
 
     fn _fallback(&self) -> ! {
         ink::env::call::build_call::<ink::env::DefaultEnvironment>()
-            .delegate(self.data().forward_to.get_or_default())
+            .delegate(self.data().forward_to)
             .call_flags(
                 ink::env::CallFlags::default()
                 // We don't plan to use the input data after the delegated call, so the 
@@ -85,14 +85,14 @@ pub trait InternalImpl: Internal + Storage<Data> {
             .unwrap_or_else(|err| {
                 panic!(
                     "delegate call to {:?} failed due to {:?}",
-                    self.data().forward_to.get_or_default().clone(),
+                    self.data().forward_to.clone(),
                     err
                 )
             })
             .unwrap_or_else(|err| {
                 panic!(
                     "delegate call to {:?} failed due to {:?}",
-                    self.data().forward_to.get_or_default().clone(),
+                    self.data().forward_to.clone(),
                     err
                 )
             });

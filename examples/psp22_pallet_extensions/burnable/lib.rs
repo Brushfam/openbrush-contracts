@@ -22,8 +22,8 @@ pub mod my_psp22_pallet_burnable {
 
             psp22_pallet::Internal::_create(&mut instance, asset_id, Self::env().account_id(), min_balance)
                 .expect("Should create an asset");
-            instance.pallet.asset_id.set(&asset_id);
-            instance.pallet.origin.set(&Origin::Caller);
+            instance.pallet.asset_id = asset_id;
+            instance.pallet.origin = Origin::Caller;
             psp22_pallet::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
 
             instance

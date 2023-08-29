@@ -129,7 +129,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
     }
 
     fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
-        let payees = self.data().payees;
+        let payees = self.data().payees.clone();
         let len = payees.len();
 
         for account in payees.iter().take(len) {

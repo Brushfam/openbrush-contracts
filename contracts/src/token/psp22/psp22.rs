@@ -30,7 +30,6 @@ pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl as _};
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy]
     pub supply: Balance,
     pub balances: Mapping<AccountId, Balance>,
     pub allowances: Mapping<(AccountId, AccountId), Balance, AllowancesKey>,
@@ -150,7 +149,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 
     fn _total_supply(&self) -> Balance {
-        self.data().supply.get_or_default()
+        self.data().supply
     }
 
     fn _balance_of(&self, owner: &AccountId) -> Balance {
@@ -199,8 +198,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
         new_balance += amount;
         self.data().balances.insert(&account, &new_balance);
 
-        let new_supply = self.data().supply.get_or_default() + amount;
-        self.data().supply.set(&new_supply);
+        self.data().supply = self.data().supply + amount;
 
         Internal::_after_token_transfer(self, None, Some(&account), &amount)?;
         Internal::_emit_transfer_event(self, None, Some(account), amount);
@@ -220,8 +218,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
         from_balance -= amount;
         self.data().balances.insert(&account, &from_balance);
 
-        let new_supply = self.data().supply.get_or_default() - amount;
-        self.data().supply.set(&new_supply);
+        self.data().supply = self.data().supply - amount;
 
         Internal::_after_token_transfer(self, Some(&account), None, &amount)?;
         Internal::_emit_transfer_event(self, Some(account), None, amount);

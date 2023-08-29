@@ -37,7 +37,6 @@ pub struct Data {
     pub token_owner: Mapping<Id, Owner>,
     pub operator_approvals: Mapping<(Owner, Operator, Option<Id>), (), ApprovalsKey>,
     pub owned_tokens_count: Mapping<Owner, u32>,
-    #[lazy]
     pub total_supply: Balance,
 }
 
@@ -258,8 +257,7 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         let to_balance = self.data().owned_tokens_count.get(owner).unwrap_or(0);
         self.data().owned_tokens_count.insert(owner, &(to_balance + 1));
         if increase_supply {
-            let new_supply = self.data().total_supply.get_or_default() + 1;
-            self.data().total_supply.set(&new_supply);
+            self.data().total_supply = self.data().total_supply + 1;
         }
     }
 
@@ -270,13 +268,12 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
             .insert(owner, &(from_balance.checked_sub(1).unwrap()));
 
         if decrease_supply {
-            let new_supply = self.data().total_supply.get_or_default() - 1;
-            self.data().total_supply.set(&new_supply);
+            self.data().total_supply = self.data().total_supply - 1;
         }
     }
 
     fn _total_supply(&self) -> u128 {
-        self.data().total_supply.get_or_default()
+        self.data().total_supply
     }
 
     fn _owner_of(&self, id: &Id) -> Option<AccountId> {

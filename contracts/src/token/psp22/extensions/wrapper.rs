@@ -32,7 +32,6 @@ pub use wrapper::Internal as _;
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
-    #[lazy]
     pub underlying: Option<AccountId>,
 }
 
@@ -117,10 +116,10 @@ pub trait InternalImpl: Storage<Data> + Internal + psp22::Internal + PSP22 {
     }
 
     fn _init(&mut self, underlying: AccountId) {
-        self.data().underlying.set(&Some(underlying));
+        self.data().underlying = Some(underlying);
     }
 
     fn _underlying(&mut self) -> Option<AccountId> {
-        self.data().underlying.get_or_default()
+        self.data().underlying
     }
 }

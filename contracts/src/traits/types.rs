@@ -42,4 +42,4 @@ impl Default for Id {
     }
 }
 
-pub type SignatureType = [u8; 65];
+pub use openbrush::utils::crypto::Signature;

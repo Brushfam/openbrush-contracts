@@ -33,7 +33,7 @@ use crate::{
         },
     },
     traits::{
-        errors::governance::GovernanceError,
+        errors::GovernanceError,
         governance::{
             CancelationStatus,
             ExecutionStatus,
@@ -46,7 +46,6 @@ use crate::{
             ALL_PROPOSAL_STATES,
         },
     },
-    utils::crypto,
 };
 use ink::{
     env::{
@@ -65,12 +64,15 @@ use ink::{
         vec::Vec,
     },
 };
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    DefaultEnv,
-    Storage,
-    String,
+use openbrush::{
+    traits::{
+        AccountId,
+        Balance,
+        DefaultEnv,
+        Storage,
+        String,
+    },
+    utils::crypto,
 };
 use scale::Encode;
 
@@ -85,7 +87,7 @@ pub trait GovernorInternal:
     ) -> Result<HashType, GovernanceError> {
         let message = (transactions, description_hash).encode();
 
-        crypto::hash_message(message.as_slice()).map_err(|err| err.into())
+        Ok(crypto::hash_blake2b256(message.as_slice()))
     }
 
     /// Current state of a proposal, following Compound's convention
@@ -326,7 +328,7 @@ pub trait GovernorInternal:
 
     /// Return the hash of the description.
     fn _hash_description(&self, description: String) -> Result<HashType, GovernanceError> {
-        Ok(crypto::hash_message(description.as_bytes())?)
+        Ok(crypto::hash_blake2b256(description.as_bytes()))
     }
 }
 

@@ -68,8 +68,10 @@ timelock_controller = ["openbrush_contracts/timelock_controller"]
 proxy = ["openbrush_contracts/proxy"]
 diamond = ["openbrush_contracts/diamond"]
 upgradeable = ["openbrush_contracts/upgradeable"]
-governance = ["openbrush_contracts/governance"]
-utils = ["openbrush_contracts/utils"]
+governance = ["openbrush_contracts/governance", "openbrush_contracts/checkpoints"]
+crypto = ["openbrush_contracts/crypto"]
+nonces = ["openbrush_contracts/nonces"]
+checkpoints = ["openbrush_contracts/checkpoints"]
 psp61 = ["openbrush_contracts/psp61"]
 
 test-all = [
@@ -86,7 +88,9 @@ test-all = [
     "proxy",
     "diamond",
     "governance",
-    "utils",
+    "crypto",
+    "nonces",
+    "checkpoints"
 ]
 
 [profile.release]

@@ -110,6 +110,11 @@ impl From<PSP22Error> for FlashLenderError {
             PSP22Error::ZeroRecipientAddress => FlashLenderError::Custom(String::from("PSP22: Zero Recipient Address")),
             PSP22Error::ZeroSenderAddress => FlashLenderError::Custom(String::from("PSP22: Zero Sender Address")),
             PSP22Error::SafeTransferCheckFailed(message) => FlashLenderError::Custom(message),
+            PSP22Error::PermitInvalidSignature => {
+                FlashLenderError::Custom(String::from("PSP22: Permit Invalid Signature"))
+            }
+            PSP22Error::PermitExpired => FlashLenderError::Custom(String::from("PSP22: Permit Expired")),
+            PSP22Error::NoncesError(_) => FlashLenderError::Custom(String::from("PSP22: Nonces Error")),
         }
     }
 }

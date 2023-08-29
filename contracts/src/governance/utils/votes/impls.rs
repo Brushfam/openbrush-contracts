@@ -21,15 +21,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    governance::utils::votes::{
-        Data,
-        VotesEvents,
-        VotesInternal,
-    },
-    utils::{
-        crypto,
-        nonces::NoncesImpl,
-    },
+    governance::utils::votes::*,
+    nonces,
 };
 pub use crate::{
     governance::{
@@ -39,9 +32,8 @@ pub use crate::{
     traits::{
         errors::GovernanceError,
         governance::utils::votes::*,
-        types::SignatureType,
+        types::Signature,
     },
-    utils::checkpoint::*,
 };
 use openbrush::traits::{
     AccountId,
@@ -52,7 +44,7 @@ use openbrush::traits::{
 use scale::Encode;
 
 /// Common interface for `PSP22Votes`, and other `Votes`-enabled contracts.
-pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + TimestampProvider {
+pub trait VotesImpl: Storage<Data> + VotesInternal + nonces::NoncesImpl + VotesEvents + TimestampProvider {
     /// The amount of votes owned by `account`.
     fn get_votes(&self, account: AccountId) -> Balance {
         self.data::<Data>()
@@ -110,16 +102,17 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + NoncesImpl + VotesEvents + 
         &mut self,
         signer: AccountId,
         delegatee: AccountId,
-        nonce: u128,
+        nonce: u64,
         expiry: Timestamp,
-        signature: SignatureType,
+        signature: Signature,
     ) -> Result<(), GovernanceError> {
         if TimestampProvider::block_timestamp(self) > expiry {
             return Err(GovernanceError::ExpiredSignature(expiry))
         }
-        let message_hash = crypto::hash_message(Encode::encode(&(&delegatee, &nonce, &expiry)).as_slice())?;
-        let verify_result = crypto::verify_signature(&message_hash, &signer, &signature)?;
-        if !verify_result {
+
+        let message = (&delegatee, &nonce, &expiry).encode();
+
+        if !signature.verify(&message, &signer) {
             return Err(GovernanceError::InvalidSignature(signer))
         } else {
             self._use_checked_nonce(&signer, nonce)?;

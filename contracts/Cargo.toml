@@ -73,6 +73,7 @@ test-all = [
     "psp22",
     "psp34",
     "psp37",
+    "psp61",
     "access_control",
     "ownable",
     "payment_splitter",

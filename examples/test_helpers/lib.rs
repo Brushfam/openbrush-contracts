@@ -173,6 +173,22 @@ macro_rules! method_call {
             .expect("method_call failed")
             .return_value()
     }};
+    ($client:ident, $address:ident, $method:ident($($args:expr),*)) => {{
+        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.$method($($args),*));
+        $client
+            .call(&ink_e2e::alice(), _msg, 0, None)
+            .await
+            .expect("method_call failed")
+            .return_value()
+    }};
+    ($client:ident, $address:ident, $signer:ident, $method:ident($($args:expr),*)) => {{
+        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.$method($($args),*));
+        $client
+            .call(&ink_e2e::$signer(), _msg, 0, None)
+            .await
+            .expect("method_call failed")
+            .return_value()
+    }};
 }
 
 #[macro_export]

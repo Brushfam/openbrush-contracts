@@ -20,9 +20,5 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#[cfg(feature = "utils")]
-pub mod checkpoint;
-#[cfg(feature = "utils")]
-pub mod crypto;
-#[cfg(feature = "utils")]
+#[cfg(feature = "nonces")]
 pub mod nonces;

@@ -26,10 +26,10 @@ use crate::{
     psp22,
     psp22::PSP22Error,
     traits::errors::GovernanceError,
-    utils::checkpoint::Checkpoint,
 };
 use ink::prelude::vec;
 use openbrush::traits::AccountId;
+pub use openbrush::utils::checkpoints::Checkpoint;
 
 /// Extension of ERC20 to support Compound-like voting and delegation.
 ///

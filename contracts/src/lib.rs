@@ -61,5 +61,5 @@ pub use upgradeability::diamond;
 pub use upgradeability::proxy;
 #[cfg(feature = "upgradeable")]
 pub use upgradeability::upgradeable;
-#[cfg(feature = "utils")]
-pub use utils::*;
+#[cfg(feature = "nonces")]
+pub use utils::nonces;

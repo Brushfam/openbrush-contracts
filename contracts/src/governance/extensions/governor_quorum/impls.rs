@@ -59,7 +59,10 @@ pub trait QuorumImpl:
 
     /// Returns the current quorum numerator
     fn quorum_numerator(&self) -> u128 {
-        let history = self.data::<Data>().quorum_numerator_history.get_or_default();
+        let history = self
+            .data::<governor_quorum::Data>()
+            .quorum_numerator_history
+            .get_or_default();
 
         let (exist, _, last_value) = history.latest_checkpoint();
 

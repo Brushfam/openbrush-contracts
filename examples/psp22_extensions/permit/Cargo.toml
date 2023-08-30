@@ -1,24 +1,30 @@
 [package]
-name = "nonces"
-version= "4.0.0-beta.1"
-authors = ["Brushfam <varex.silver@727.ventures>"]
+name = "my_psp22_permit"
+version = "4.0.0-beta.1"
+authors = ["Brushfam <artem.lech@brushfam.io>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.2.1", default-features = false}
-
+ink = { version = "4.3.0", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 # These dependencies
-openbrush = { path = "../../..", default-features = false, features = ["nonces"] }
+openbrush = { path = "../../..", default-features = false, features = ["psp22"] }
+ecdsa = { version = "0.16.7", default-features = false, optional = true }
 
 [dev-dependencies]
-ink_e2e = "4.2.1"
+ink_e2e = "4.3.0"
+ink_env = "4.3.0"
 test_helpers = { path = "../../test_helpers", default-features = false }
+secp256k1 = { version = "0.27.0", default-features = false }
+subxt-signer = "0.31.0"
+
 
 [lib]
+name = "my_psp22_permit"
 path = "lib.rs"
+
 
 [features]
 default = ["std"]
@@ -30,7 +36,9 @@ std = [
     "openbrush/std",
 ]
 ink-as-dependency = []
-e2e-tests = []
+e2e-tests = [
+    "ecdsa"
+]
 
 [profile.dev]
 codegen-units = 16

@@ -19,32 +19,29 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+use crate::governance::{
+    extensions::{
+        governor_settings::{
+            GovernorSettingsImpl,
+            GovernorSettingsInternal,
+        },
+        governor_votes::GovernorVotesInternal,
+    },
+    governor::{
+        Data,
+        GovernorEvents,
+        GovernorInternal,
+        GovernorStorageGetters,
+        TimestampProvider,
+    },
+};
 pub use crate::{
     governance::governor,
     traits::{
-        errors::governance::GovernanceError,
+        errors::GovernanceError,
         governance::*,
-        types::SignatureType,
+        types::Signature,
     },
-};
-use crate::{
-    governance::{
-        extensions::{
-            governor_settings::{
-                GovernorSettingsImpl,
-                GovernorSettingsInternal,
-            },
-            governor_votes::GovernorVotesInternal,
-        },
-        governor::{
-            Data,
-            GovernorEvents,
-            GovernorInternal,
-            GovernorStorageGetters,
-            TimestampProvider,
-        },
-    },
-    utils::crypto,
 };
 use ink::{
     env::{
@@ -326,22 +323,15 @@ pub trait GovernorImpl:
         proposal_id: ProposalId,
         support: VoteType,
         reason: String,
-        signature: SignatureType,
+        signature: Signature,
     ) -> Result<Balance, GovernanceError> {
-        let message = crypto::hash_message(
-            (proposal_id.clone(), support.clone(), reason.clone(), Vec::<u8>::new())
-                .encode()
-                .as_slice(),
-        )?;
+        let message = (proposal_id.clone(), support.clone(), reason.clone(), Vec::<u8>::new()).encode();
 
-        let voter = Self::env().caller();
-        let valid = crypto::verify_signature(&message, &voter.clone(), &signature)?;
-
-        if !valid {
-            return Err(GovernanceError::InvalidSignature(voter.clone()))
+        if !signature.verify(&message, &Self::env().caller()) {
+            return Err(GovernanceError::InvalidSignature(Self::env().caller()))
         }
 
-        self._cast_vote(proposal_id, voter, support, reason)
+        self._cast_vote(proposal_id, Self::env().caller(), support, reason)
     }
 
     /// Casts a vote with signature and parameters for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
@@ -350,23 +340,16 @@ pub trait GovernorImpl:
         proposal_id: ProposalId,
         support: VoteType,
         reason: String,
-        signature: SignatureType,
+        signature: Signature,
         params: Vec<u8>,
     ) -> Result<Balance, GovernanceError> {
-        let message = crypto::hash_message(
-            (proposal_id.clone(), support.clone(), reason.clone(), params.clone())
-                .encode()
-                .as_slice(),
-        )?;
+        let message = (proposal_id.clone(), support.clone(), reason.clone(), params.clone()).encode();
 
-        let voter = Self::env().caller();
-        let valid = crypto::verify_signature(&message, &voter.clone(), &signature)?;
-
-        if !valid {
-            return Err(GovernanceError::InvalidSignature(voter.clone()))
+        if !signature.verify(&message, &Self::env().caller()) {
+            return Err(GovernanceError::InvalidSignature(Self::env().caller()))
         }
 
-        self._cast_vote_with_params(proposal_id, voter, support, reason, params)
+        self._cast_vote_with_params(proposal_id, Self::env().caller(), support, reason, params)
     }
 
     /// Relays a transaction or function call to an arbitrary target. In cases where the governance executor

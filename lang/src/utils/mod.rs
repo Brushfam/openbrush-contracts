@@ -1,3 +1,4 @@
+// Copyright (c) 2023 Brushfam
 // Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -19,18 +20,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use const_format;
-pub use xxhash_rust;
-
-use xxhash_rust::const_xxh32::xxh32;
-
-/// The value 0 is a valid seed.
-const XXH32_SEED: u32 = 0;
-
-pub struct ConstHasher;
-
-impl ConstHasher {
-    pub const fn hash(str: &str) -> u32 {
-        xxh32(str.as_bytes(), XXH32_SEED)
-    }
-}
+#[cfg(feature = "checkpoints")]
+pub mod checkpoints;
+#[cfg(feature = "crypto")]
+pub mod crypto;

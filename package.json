@@ -1,6 +1,6 @@
 {
   "name": "openbrush-contracts",
-  "version": "4.0.0-beta",
+  "version": "4.0.0-beta.1",
   "private": true,
   "dependencies": {
     "@727-ventures/typechain-compiler": "^1.1.4",

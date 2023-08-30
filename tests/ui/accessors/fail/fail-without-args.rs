@@ -1,4 +1,5 @@
-#[openbrush::storage_item]
+#[cfg_attr(feature = "non-upgradeable-lazy", openbrush::storage_item(lazy = false))]
+#[cfg_attr(not(feature = "non-upgradeable-lazy"), openbrush::storage_item)]
 #[openbrush::accessors]
 #[derive(Default, Debug)]
 pub struct AccessData {

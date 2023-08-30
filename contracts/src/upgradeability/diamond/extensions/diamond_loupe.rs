@@ -51,7 +51,8 @@ pub use ownable::{
 };
 
 #[derive(Default, Debug)]
-#[openbrush::storage_item]
+#[cfg_attr(feature = "non-upgradeable-lazy", openbrush::storage_item(lazy = false))]
+#[cfg_attr(not(feature = "non-upgradeable-lazy"), openbrush::storage_item)]
 pub struct Data {
     // number of registered code hashes
     #[lazy]

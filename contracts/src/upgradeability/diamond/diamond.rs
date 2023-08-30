@@ -54,7 +54,8 @@ pub use ownable::Internal as _;
 
 // TODO: Add support of Erc165
 #[derive(Default, Debug)]
-#[openbrush::storage_item]
+#[cfg_attr(feature = "non-upgradeable-lazy", openbrush::storage_item(lazy = false))]
+#[cfg_attr(not(feature = "non-upgradeable-lazy"), openbrush::storage_item)]
 pub struct Data {
     pub selector_to_hash: Mapping<Selector, Hash>,
     // Facet mapped to all functions it supports

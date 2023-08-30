@@ -34,7 +34,8 @@ use openbrush::{
 pub use ownable::Internal as _;
 
 #[derive(Default, Debug)]
-#[openbrush::storage_item]
+#[cfg_attr(feature = "non-upgradeable-lazy", openbrush::storage_item(lazy = false))]
+#[cfg_attr(not(feature = "non-upgradeable-lazy"), openbrush::storage_item)]
 pub struct Data {
     #[lazy]
     pub owner: Option<AccountId>,

@@ -37,5 +37,3 @@ default = ["std"]
 std = [
     "openbrush_lang_codegen/std",
 ]
-non-upgradeable-lazy = [
-    "openbrush_lang_codegen/non-upgradeable-lazy"]

@@ -15,7 +15,8 @@ use openbrush::{
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 #[derive(Debug)]
-#[openbrush::storage_item]
+#[cfg_attr(feature = "non-upgradeable-lazy", openbrush::storage_item(lazy = false))]
+#[cfg_attr(not(feature = "non-upgradeable-lazy"), openbrush::storage_item)]
 /// define the struct with the data that our smart contract will be using
 /// this will isolate the logic of our smart contract from its storage
 pub struct Data {

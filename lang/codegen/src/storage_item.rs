@@ -19,7 +19,11 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::internal::is_attr;
+use crate::internal::{
+    is_attr,
+    Attribute,
+};
+use ink_ir::format_err_spanned;
 use proc_macro2::TokenStream;
 use quote::{
     format_ident,
@@ -28,6 +32,7 @@ use quote::{
     ToTokens,
 };
 use syn::{
+    parse2,
     spanned::Spanned,
     Data,
     DataEnum,
@@ -37,8 +42,11 @@ use syn::{
     Fields,
 };
 
-#[cfg(not(feature = "non-upgradeable-lazy"))]
-fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>, Vec<Option<TokenStream>>) {
+fn wrap_upgradeable_fields(
+    structure_name: &str,
+    fields: Fields,
+    use_lazy: bool,
+) -> (Vec<Field>, Vec<Option<TokenStream>>) {
     fields
         .iter()
         .map(|field| {
@@ -48,27 +56,45 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>,
                 let span = field.ty.span();
                 let field_name = field.ident.as_ref().unwrap().to_string();
 
-                let key_name = format_ident!(
-                    "STORAGE_KEY_{}_{}",
-                    structure_name.to_uppercase(),
-                    field_name.to_uppercase()
-                );
+                // if use_lazy is true, we use Lazy for storage
+                if use_lazy {
+                    let key_name = format_ident!(
+                        "STORAGE_KEY_{}_{}",
+                        structure_name.to_uppercase(),
+                        field_name.to_uppercase()
+                    );
 
-                new_field.ty = syn::Type::Verbatim(quote_spanned!(span =>
-                    ::ink::storage::Lazy<#ty, ::ink::storage::traits::ManualKey<#key_name>>
-                ));
-                new_field.attrs = field
-                    .attrs
-                    .iter()
-                    .filter(|attr| !attr.path.is_ident("lazy"))
-                    .cloned()
-                    .collect();
+                    new_field.ty = syn::Type::Verbatim(quote_spanned!(span =>
+                        ::ink::storage::Lazy<#ty, ::ink::storage::traits::ManualKey<#key_name>>
+                    ));
+                    new_field.attrs = field
+                        .attrs
+                        .iter()
+                        .filter(|attr| !attr.path.is_ident("lazy"))
+                        .cloned()
+                        .collect();
 
-                let storage_key = quote! {
-                    pub const #key_name: u32 = ::openbrush::storage_unique_key!(#structure_name, #field_name);
-                };
+                    let storage_key = quote! {
+                        pub const #key_name: u32 = ::openbrush::storage_unique_key!(#structure_name, #field_name);
+                    };
 
-                (new_field, Some(storage_key))
+                    (new_field, Some(storage_key))
+                } else {
+                    // if use_lazy is false, we use MockLazy for storage
+                    let mut new_field = field.clone();
+                    let ty = field.ty.clone().to_token_stream();
+                    let span = field.ty.span();
+                    new_field.ty = syn::Type::Verbatim(quote_spanned!(span =>
+                        ::openbrush::traits::MockLazy<#ty>
+                    ));
+                    new_field.attrs = field
+                        .attrs
+                        .iter()
+                        .filter(|attr| !attr.path.is_ident("lazy"))
+                        .cloned()
+                        .collect();
+                    (new_field, None)
+                }
             } else {
                 let mut new_field = field.clone();
                 let span = field.ty.span();
@@ -120,84 +146,18 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>,
         .unzip()
 }
 
-#[cfg(feature = "non-upgradeable-lazy")]
-fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>, Vec<Option<TokenStream>>) {
-    fields
-        .iter()
-        .map(|field| {
-            if is_attr(&field.attrs, "lazy") {
-                let mut new_field = field.clone();
-                let ty = field.ty.clone().to_token_stream();
-                let span = field.ty.span();
-                new_field.ty = syn::Type::Verbatim(quote_spanned!(span =>
-                    ::openbrush::traits::MockLazy<#ty>
-                ));
-                new_field.attrs = field
-                    .attrs
-                    .iter()
-                    .filter(|attr| !attr.path.is_ident("lazy"))
-                    .cloned()
-                    .collect();
-                (new_field, None)
-            } else {
-                let mut new_field = field.clone();
-                let span = field.ty.span();
-                let field_name = field.ident.as_ref().unwrap().to_string();
-
-                let key_name = format_ident!(
-                    "STORAGE_KEY_{}_{}",
-                    structure_name.to_uppercase(),
-                    field_name.to_uppercase()
-                );
-
-                let is_mapping = if let syn::Type::Path(path) = &field.ty {
-                    if let Some(segment) = path.path.segments.last() {
-                        segment.ident == "Mapping" || segment.ident == "MultiMapping"
-                    } else {
-                        false
-                    }
-                } else {
-                    false
-                };
-
-                if let syn::Type::Path(path) = &mut new_field.ty {
-                    if let Some(segment) = path.path.segments.last_mut() {
-                        if segment.ident == "Mapping" || segment.ident == "MultiMapping" {
-                            let mut args = segment.arguments.clone();
-                            if let syn::PathArguments::AngleBracketed(args) = &mut args {
-                                if let Some(syn::GenericArgument::Type(ty)) = args.args.iter_mut().nth(1) {
-                                    *ty = syn::Type::Verbatim(quote_spanned!(span =>
-                                        #ty, ::ink::storage::traits::ManualKey<#key_name>
-                                    ));
-                                }
-                            }
-                            segment.arguments = args;
-                        }
-                    }
-                }
-
-                let storage_key = if is_mapping {
-                    Some(quote! {
-                        pub const #key_name: u32 = ::openbrush::storage_unique_key!(#structure_name, #field_name);
-                    })
-                } else {
-                    None
-                };
-
-                (new_field, storage_key)
-            }
-        })
-        .unzip()
-}
-
-fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct) -> TokenStream {
+fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct, config: LazyConfig) -> TokenStream {
     let struct_ident = s.ast().ident.clone();
     let vis = s.ast().vis.clone();
     let types = s.ast().generics.clone();
     let attrs = s.ast().attrs.clone();
     let (_, _, where_closure) = s.ast().generics.split_for_impl();
 
-    let (fields, storage_keys) = wrap_upgradeable_fields(struct_ident.to_string().as_str(), struct_item.fields.clone());
+    let (fields, storage_keys) = wrap_upgradeable_fields(
+        struct_ident.to_string().as_str(),
+        struct_item.fields.clone(),
+        config.lazy,
+    );
 
     match struct_item.fields {
         Fields::Unnamed(_) => {
@@ -223,7 +183,7 @@ fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct) -> Toke
     }
 }
 
-fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum) -> TokenStream {
+fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum, config: LazyConfig) -> TokenStream {
     let enum_ident = s.ast().ident.clone();
     let vis = s.ast().vis.clone();
     let attrs = s.ast().attrs.clone();
@@ -243,6 +203,7 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum) -> TokenStrea
         let (fields, storage_keys) = wrap_upgradeable_fields(
             format!("{}_{}", enum_ident, variant_ident).as_str(),
             variant.fields.clone(),
+            config.lazy,
         );
 
         let fields = match variant.fields {
@@ -269,7 +230,7 @@ fn generate_enum(s: &synstructure::Structure, enum_item: DataEnum) -> TokenStrea
     }
 }
 
-fn generate_union(s: &synstructure::Structure, union_item: DataUnion) -> TokenStream {
+fn generate_union(s: &synstructure::Structure, union_item: DataUnion, _config: LazyConfig) -> TokenStream {
     let union_ident = s.ast().ident.clone();
     let vis = s.ast().vis.clone();
     let attrs = s.ast().attrs.clone();
@@ -286,15 +247,53 @@ fn generate_union(s: &synstructure::Structure, union_item: DataUnion) -> TokenSt
     }
 }
 
-pub fn storage_item(_attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
+pub fn storage_item(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
+    let config = LazyConfig::try_from(parse2::<Attribute>(attrs).expect("argument passed incorrectly"))
+        .expect("argument passed incorrectly");
+
     let item = match s.ast().data.clone() {
-        Data::Struct(struct_item) => generate_struct(&s, struct_item),
-        Data::Enum(enum_item) => generate_enum(&s, enum_item),
-        Data::Union(union_item) => generate_union(&s, union_item),
+        Data::Struct(struct_item) => generate_struct(&s, struct_item, config),
+        Data::Enum(enum_item) => generate_enum(&s, enum_item, config),
+        Data::Union(union_item) => generate_union(&s, union_item, config),
     };
 
     quote! {
         #[::ink::storage_item]
         #item
+    }
+}
+
+struct LazyConfig {
+    pub lazy: bool,
+}
+
+impl TryFrom<Attribute> for LazyConfig {
+    type Error = syn::Error;
+
+    fn try_from(args: Attribute) -> Result<Self, Self::Error> {
+        let mut lazy: Option<syn::LitBool> = None;
+        for arg in args.into_iter() {
+            if arg.path.is_ident("lazy") {
+                if let Some(_) = lazy {
+                    panic!("duplicate config");
+                }
+                if let syn::Lit::Bool(lit_bool) = arg.lit {
+                    lazy = Some(lit_bool.clone())
+                } else {
+                    return Err(format_err_spanned!(
+                        arg,
+                        "expected a bool literal for `lazy` OpenBrush storage item configuration argument",
+                    ))
+                }
+            } else {
+                return Err(format_err_spanned!(
+                    arg,
+                    "encountered unknown or unsupported OpenBrush storage item configuration argument",
+                ))
+            }
+        }
+        Ok(LazyConfig {
+            lazy: lazy.map(|lit_bool| lit_bool.value).unwrap_or(true),
+        })
     }
 }

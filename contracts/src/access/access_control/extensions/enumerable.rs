@@ -45,7 +45,8 @@ use openbrush::{
 };
 
 #[derive(Default, Debug)]
-#[openbrush::storage_item]
+#[cfg_attr(feature = "non-upgradeable-lazy", openbrush::storage_item(lazy = false))]
+#[cfg_attr(not(feature = "non-upgradeable-lazy"), openbrush::storage_item)]
 pub struct Data {
     pub admin_roles: Mapping<RoleType, RoleType, ValueGuard<RoleType>>,
     pub role_members: MultiMapping<RoleType, Option<AccountId>, ValueGuard<RoleType>>,

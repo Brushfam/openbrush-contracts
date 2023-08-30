@@ -40,4 +40,3 @@ std = [
 ]
 checkpoints = []
 crypto = []
-non-upgradeable-lazy = ["openbrush_lang_macro/non-upgradeable-lazy"]

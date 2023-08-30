@@ -23,7 +23,8 @@
 pub use openbrush::traits::AccountId;
 
 #[derive(Debug, Default)]
-#[openbrush::storage_item]
+#[cfg_attr(feature = "non-upgradeable-lazy", openbrush::storage_item(lazy = false))]
+#[cfg_attr(not(feature = "non-upgradeable-lazy"), openbrush::storage_item)]
 pub struct Data {
     /// Stores the token of the `PSP22Votes` contract
     #[lazy]

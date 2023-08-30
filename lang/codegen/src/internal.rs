@@ -36,9 +36,11 @@ use syn::{
         Parse,
         ParseStream,
     },
+    punctuated::Punctuated,
     ItemImpl,
+    MetaNameValue,
+    Token,
 };
-
 pub(crate) const BRUSH_PREFIX: &str = "__openbrush";
 
 pub(crate) struct MetaList {
@@ -149,6 +151,28 @@ impl Parse for Attributes {
 impl Attributes {
     pub(crate) fn attr(&self) -> &Vec<syn::Attribute> {
         &self.0
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct Attribute {
+    args: Punctuated<MetaNameValue, Token![,]>,
+}
+
+impl IntoIterator for Attribute {
+    type Item = MetaNameValue;
+    type IntoIter = syn::punctuated::IntoIter<MetaNameValue>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.args.into_iter()
+    }
+}
+
+impl Parse for Attribute {
+    fn parse(input: ParseStream) -> Result<Self, syn::Error> {
+        Ok(Self {
+            args: Punctuated::parse_terminated(input)?,
+        })
     }
 }
 

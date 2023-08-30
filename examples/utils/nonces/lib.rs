@@ -2,7 +2,7 @@
 
 #[openbrush::implementation(Nonces)]
 #[openbrush::contract]
-pub mod my_nonces {
+pub mod nonces {
     use openbrush::traits::Storage;
 
     #[ink(storage)]
@@ -19,12 +19,12 @@ pub mod my_nonces {
         }
 
         #[ink(message)]
-        pub fn use_nonce(&mut self, account: AccountId) -> Result<u128, NoncesError> {
+        pub fn use_nonce(&mut self, account: AccountId) -> Result<u64, NoncesError> {
             NoncesImpl::_use_nonce(self, &account)
         }
 
         #[ink(message)]
-        pub fn use_checked_nonce(&mut self, account: AccountId, nonce: u128) -> Result<u128, NoncesError> {
+        pub fn use_checked_nonce(&mut self, account: AccountId, nonce: u64) -> Result<u64, NoncesError> {
             NoncesImpl::_use_checked_nonce(self, &account, nonce)
         }
     }

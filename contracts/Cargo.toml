@@ -20,7 +20,7 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 
-openbrush = { version = "~4.0.0-beta.1", package = "openbrush_lang", path = "../lang", default-features = false, features = ["crypto", "checkpoints"] }
+openbrush = { version = "~4.0.0-beta.1", package = "openbrush_lang", path = "../lang", default-features = false, features = ["crypto", "checkpoints", "non-upgradeable-lazy"] }
 
 pallet-assets-chain-extension = { git = "https://github.com/Brushfam/pallet-assets-chain-extension", branch = "polkadot-v0.9.37", default-features = false, features = ["ink-lang"]  }
 
@@ -68,6 +68,7 @@ upgradeable = ["ownable"]
 crypto = ["openbrush/crypto"]
 nonces = []
 checkpoints = ["openbrush/checkpoints"]
+non-upgradeable-lazy = ["openbrush/non-upgradeable-lazy"]
 test-all = [
     "psp22",
     "psp34",

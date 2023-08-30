@@ -136,3 +136,25 @@ impl ConstHasher {
         xxh32(str.as_bytes(), XXH32_SEED)
     }
 }
+
+#[derive(scale::Decode, scale::Encode, Default, Debug)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
+pub struct MockLazy<T: Storable + Clone> {
+    value: Option<T>,
+}
+
+impl<T: Storable + Clone> MockLazy<T> {
+    pub fn get(&self) -> Option<T> {
+        self.value.clone()
+    }
+
+    pub fn set(&mut self, value: &T) {
+        self.value = Some(value.clone());
+    }
+}
+
+impl<T: Storable + Clone + Default> MockLazy<T> {
+    pub fn get_or_default(&self) -> T {
+        self.value.clone().unwrap_or_default()
+    }
+}

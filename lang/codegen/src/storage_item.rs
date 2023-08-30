@@ -37,6 +37,7 @@ use syn::{
     Fields,
 };
 
+#[cfg(not(feature = "non-upgradeable-lazy"))]
 fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>, Vec<Option<TokenStream>>) {
     fields
         .iter()
@@ -68,6 +69,76 @@ fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>,
                 };
 
                 (new_field, Some(storage_key))
+            } else {
+                let mut new_field = field.clone();
+                let span = field.ty.span();
+                let field_name = field.ident.as_ref().unwrap().to_string();
+
+                let key_name = format_ident!(
+                    "STORAGE_KEY_{}_{}",
+                    structure_name.to_uppercase(),
+                    field_name.to_uppercase()
+                );
+
+                let is_mapping = if let syn::Type::Path(path) = &field.ty {
+                    if let Some(segment) = path.path.segments.last() {
+                        segment.ident == "Mapping" || segment.ident == "MultiMapping"
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                };
+
+                if let syn::Type::Path(path) = &mut new_field.ty {
+                    if let Some(segment) = path.path.segments.last_mut() {
+                        if segment.ident == "Mapping" || segment.ident == "MultiMapping" {
+                            let mut args = segment.arguments.clone();
+                            if let syn::PathArguments::AngleBracketed(args) = &mut args {
+                                if let Some(syn::GenericArgument::Type(ty)) = args.args.iter_mut().nth(1) {
+                                    *ty = syn::Type::Verbatim(quote_spanned!(span =>
+                                        #ty, ::ink::storage::traits::ManualKey<#key_name>
+                                    ));
+                                }
+                            }
+                            segment.arguments = args;
+                        }
+                    }
+                }
+
+                let storage_key = if is_mapping {
+                    Some(quote! {
+                        pub const #key_name: u32 = ::openbrush::storage_unique_key!(#structure_name, #field_name);
+                    })
+                } else {
+                    None
+                };
+
+                (new_field, storage_key)
+            }
+        })
+        .unzip()
+}
+
+#[cfg(feature = "non-upgradeable-lazy")]
+fn wrap_upgradeable_fields(structure_name: &str, fields: Fields) -> (Vec<Field>, Vec<Option<TokenStream>>) {
+    fields
+        .iter()
+        .map(|field| {
+            if is_attr(&field.attrs, "lazy") {
+                let mut new_field = field.clone();
+                let ty = field.ty.clone().to_token_stream();
+                let span = field.ty.span();
+                new_field.ty = syn::Type::Verbatim(quote_spanned!(span =>
+                    ::openbrush::traits::MockLazy<#ty>
+                ));
+                new_field.attrs = field
+                    .attrs
+                    .iter()
+                    .filter(|attr| !attr.path.is_ident("lazy"))
+                    .cloned()
+                    .collect();
+                (new_field, None)
             } else {
                 let mut new_field = field.clone();
                 let span = field.ty.span();

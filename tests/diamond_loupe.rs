@@ -23,8 +23,14 @@
 #[openbrush::implementation(Ownable, Diamond, DiamondLoupe)]
 #[openbrush::contract]
 mod diamond {
-    use ink::env::{test::DefaultAccounts, DefaultEnvironment};
-    use openbrush::{test_utils::accounts, traits::Storage};
+    use ink::env::{
+        test::DefaultAccounts,
+        DefaultEnvironment,
+    };
+    use openbrush::{
+        test_utils::accounts,
+        traits::Storage,
+    };
 
     #[ink(storage)]
     #[derive(Default, Storage)]

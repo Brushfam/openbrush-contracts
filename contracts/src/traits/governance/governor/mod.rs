@@ -22,11 +22,22 @@
 
 pub use crate::traits::{
     errors::GovernanceError,
-    governance::{HashType, ProposalId, ProposalState, Transaction, VoteType},
+    governance::{
+        HashType,
+        ProposalId,
+        ProposalState,
+        Transaction,
+        VoteType,
+    },
     types::SignatureType,
 };
 use ink::prelude::vec::Vec;
-use openbrush::traits::{AccountId, Balance, String, Timestamp};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    String,
+    Timestamp,
+};
 
 /// Core of the governance system, designed to be extended though various modules.
 ///

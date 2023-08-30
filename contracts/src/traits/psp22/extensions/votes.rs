@@ -22,7 +22,10 @@
 
 use crate::{
     checkpoint::Checkpoint,
-    traits::{errors::GovernanceError, governance::utils::votes::*},
+    traits::{
+        errors::GovernanceError,
+        governance::utils::votes::*,
+    },
 };
 use openbrush::traits::AccountId;
 

@@ -25,11 +25,17 @@
 mod timelock_controller {
     use ::ink::env::DefaultEnvironment;
     use ink::{
-        codegen::{EmitEvent, Env},
+        codegen::{
+            EmitEvent,
+            Env,
+        },
         env::test::DefaultAccounts,
     };
     use openbrush::{
-        test_utils::{accounts, change_caller},
+        test_utils::{
+            accounts,
+            change_caller,
+        },
         traits::Storage,
     };
     /// Emitted when a call is scheduled as part of operation `id`.

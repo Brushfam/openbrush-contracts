@@ -24,10 +24,16 @@
 #[openbrush::contract]
 mod payment_splitter {
     use ink::{
-        codegen::{EmitEvent, Env},
+        codegen::{
+            EmitEvent,
+            Env,
+        },
         storage::traits::StorageKey,
     };
-    use openbrush::{test_utils::accounts, traits::Storage};
+    use openbrush::{
+        test_utils::accounts,
+        traits::Storage,
+    };
 
     #[ink(event)]
     pub struct PayeeAdded {

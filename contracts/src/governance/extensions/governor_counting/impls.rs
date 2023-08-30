@@ -20,15 +20,27 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{governance::extensions::governor_counting, traits::governance::extensions::governor_counting::*};
+pub use crate::{
+    governance::extensions::governor_counting,
+    traits::governance::extensions::governor_counting::*,
+};
 use crate::{
-    governance::extensions::governor_counting::{CountingInternal, Data},
+    governance::extensions::governor_counting::{
+        CountingInternal,
+        Data,
+    },
     traits::{
         errors::GovernanceError,
-        governance::{ProposalId, ProposalVote},
+        governance::{
+            ProposalId,
+            ProposalVote,
+        },
     },
 };
-use openbrush::traits::{AccountId, Storage};
+use openbrush::traits::{
+    AccountId,
+    Storage,
+};
 
 /// Extension of `Governor` for simple, 3 options, vote counting.
 pub trait GovernorCountingImpl: Storage<Data> + CountingInternal {

@@ -25,7 +25,10 @@
 mod access_control_enumerable {
     use ::ink::env::DefaultEnvironment;
     use ink::env::test::DefaultAccounts;
-    use openbrush::{test_utils::accounts, traits::Storage};
+    use openbrush::{
+        test_utils::accounts,
+        traits::Storage,
+    };
 
     // You can manually set the number for the role.
     // But better to use a hash of the variable name.

@@ -26,7 +26,10 @@ mod psp34_mintable {
     use openbrush::{
         contracts::psp34::Id,
         test_utils::accounts,
-        traits::{Storage, String},
+        traits::{
+            Storage,
+            String,
+        },
     };
 
     #[derive(Default, Storage)]
@@ -48,7 +51,7 @@ mod psp34_mintable {
         _id: &Id,
     ) -> Result<(), PSP34Error> {
         if self.return_err_on_before {
-            return Err(PSP34Error::Custom(String::from("Error on _before_token_transfer")));
+            return Err(PSP34Error::Custom(String::from("Error on _before_token_transfer")))
         }
         Ok(())
     }
@@ -61,7 +64,7 @@ mod psp34_mintable {
         _id: &Id,
     ) -> Result<(), PSP34Error> {
         if self.return_err_on_after {
-            return Err(PSP34Error::Custom(String::from("Error on _after_token_transfer")));
+            return Err(PSP34Error::Custom(String::from("Error on _after_token_transfer")))
         }
         Ok(())
     }

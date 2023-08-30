@@ -21,12 +21,18 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::{
-    traits::{errors::NoncesError, utils::nonces::*},
+    traits::{
+        errors::NoncesError,
+        utils::nonces::*,
+    },
     utils::nonces,
 };
 use openbrush::{
     storage::Mapping,
-    traits::{AccountId, Storage},
+    traits::{
+        AccountId,
+        Storage,
+    },
 };
 
 #[derive(Default, Debug)]
@@ -55,7 +61,7 @@ pub trait NoncesImpl: Storage<Data> {
     fn _use_checked_nonce(&mut self, account: &AccountId, nonce: u128) -> Result<u128, NoncesError> {
         let current_nonce = self.nonces(&account);
         if nonce != current_nonce {
-            return Err(NoncesError::InvalidAccountNonce);
+            return Err(NoncesError::InvalidAccountNonce)
         }
         self.data()
             .nonces

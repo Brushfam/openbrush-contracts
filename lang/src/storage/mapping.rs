@@ -19,15 +19,29 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use super::{RawMapping, TypeGuard, ValueGuard};
+use super::{
+    RawMapping,
+    TypeGuard,
+    ValueGuard,
+};
 use core::marker::PhantomData;
 
 use crate::storage::RefGuard;
 use ink::{
     primitives::Key,
-    storage::traits::{AutoKey, Packed, Storable, StorableHint, StorageKey},
+    storage::traits::{
+        AutoKey,
+        Packed,
+        Storable,
+        StorableHint,
+        StorageKey,
+    },
 };
-use scale::{Error, Input, Output};
+use scale::{
+    Error,
+    Input,
+    Output,
+};
 
 /// It is a more restricted version of the `Mapping` from ink!. That mapping can be used to unify
 /// the API calls to the `Mapping` to avoid monomorphization to reduce the size of contracts.
@@ -172,10 +186,20 @@ where
 #[cfg(feature = "std")]
 const _: () = {
     use ink::{
-        metadata::layout::{Layout, LayoutKey, RootLayout},
+        metadata::layout::{
+            Layout,
+            LayoutKey,
+            RootLayout,
+        },
         storage::traits::StorageLayout,
     };
-    use scale_info::{build::Fields, type_params, Path, Type, TypeInfo};
+    use scale_info::{
+        build::Fields,
+        type_params,
+        Path,
+        Type,
+        TypeInfo,
+    };
 
     impl<K, V, KeyType, TGK, TGV> TypeInfo for Mapping<K, V, KeyType, TGK, TGV>
     where

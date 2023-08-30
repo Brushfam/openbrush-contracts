@@ -19,9 +19,17 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::traits::{access_control::*, errors::TimelockControllerError};
+pub use crate::traits::{
+    access_control::*,
+    errors::TimelockControllerError,
+};
 use ink::prelude::vec::Vec;
-use openbrush::traits::{AccountId, Balance, Hash, Timestamp};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Hash,
+    Timestamp,
+};
 
 pub type OperationId = Hash;
 

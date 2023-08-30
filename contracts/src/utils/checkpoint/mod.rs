@@ -149,7 +149,7 @@ impl Checkpoints {
             let last = self.checkpoints[pos - 1].clone();
 
             if last.key > key {
-                return Err(CheckpointsError::UnorderedInsertion);
+                return Err(CheckpointsError::UnorderedInsertion)
             }
 
             if last.key == key {

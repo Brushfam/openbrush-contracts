@@ -23,19 +23,32 @@
 // Therefore the proxy and diamond contracts will be disabled within OpenBrush until this is reimplemented in ink! 4.
 
 pub use crate::{
-    diamond, ownable,
-    traits::{diamond::*, ownable::*},
+    diamond,
+    ownable,
+    traits::{
+        diamond::*,
+        ownable::*,
+    },
 };
-pub use diamond::{Internal as _, InternalImpl as _};
+pub use diamond::{
+    Internal as _,
+    InternalImpl as _,
+};
 use ink::{
-    env::call::{ExecutionInput, Selector as InkSelector},
+    env::call::{
+        ExecutionInput,
+        Selector as InkSelector,
+    },
     prelude::vec::Vec,
     primitives::Clear,
 };
 use openbrush::{
     modifiers,
     storage::Mapping,
-    traits::{Hash, Storage},
+    traits::{
+        Hash,
+        Storage,
+    },
 };
 pub use ownable::Internal as _;
 
@@ -91,7 +104,7 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
     fn _diamond_cut_facet(&mut self, facet_cut: &FacetCut) -> Result<(), DiamondError> {
         let code_hash = facet_cut.hash;
         if code_hash.is_clear() {
-            return Err(DiamondError::EmptyCodeHash);
+            return Err(DiamondError::EmptyCodeHash)
         }
         if facet_cut.selectors.is_empty() {
             // means that we want to remove this facet
@@ -102,10 +115,10 @@ pub trait InternalImpl: Internal + Storage<Data> + DiamondCut {
 
                 if selector_hash.map(|hash| hash == code_hash).unwrap_or(false) {
                     // selector already registered to this hash -> no action
-                    continue;
+                    continue
                 } else if selector_hash.is_some() {
                     // selector already registered to another hash -> error
-                    return Err(DiamondError::ReplaceExisting(selector_hash.unwrap()));
+                    return Err(DiamondError::ReplaceExisting(selector_hash.unwrap()))
                 } else {
                     // map selector to its facet
                     self.data().selector_to_hash.insert(selector, &code_hash);

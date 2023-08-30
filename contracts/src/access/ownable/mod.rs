@@ -19,10 +19,17 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{ownable, traits::ownable::*};
+pub use crate::{
+    ownable,
+    traits::ownable::*,
+};
 use openbrush::{
-    modifier_definition, modifiers,
-    traits::{AccountId, Storage},
+    modifier_definition,
+    modifiers,
+    traits::{
+        AccountId,
+        Storage,
+    },
 };
 pub use ownable::Internal as _;
 
@@ -41,7 +48,7 @@ where
     E: From<OwnableError>,
 {
     if instance.data().owner != Some(T::env().caller()) {
-        return Err(From::from(OwnableError::CallerIsNotOwner));
+        return Err(From::from(OwnableError::CallerIsNotOwner))
     }
     body(instance)
 }

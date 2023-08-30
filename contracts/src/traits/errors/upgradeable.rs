@@ -1,4 +1,7 @@
-use super::{AccessControlError, OwnableError};
+use super::{
+    AccessControlError,
+    OwnableError,
+};
 use openbrush::traits::String;
 
 /// The PSP34 error type. Contract will throw one of this errors.

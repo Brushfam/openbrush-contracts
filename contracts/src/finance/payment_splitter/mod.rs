@@ -19,11 +19,18 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{payment_splitter, traits::payment_splitter::*};
+pub use crate::{
+    payment_splitter,
+    traits::payment_splitter::*,
+};
 use ink::prelude::vec::Vec;
 use openbrush::{
     storage::Mapping,
-    traits::{AccountId, Balance, Storage},
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
 };
 pub use payment_splitter::Internal as _;
 
@@ -101,7 +108,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
     fn _init(&mut self, payees_and_shares: Vec<(AccountId, Balance)>) -> Result<(), PaymentSplitterError> {
         if payees_and_shares.is_empty() {
-            return Err(PaymentSplitterError::NoPayees);
+            return Err(PaymentSplitterError::NoPayees)
         }
 
         for (payee, share) in payees_and_shares.into_iter() {
@@ -112,10 +119,10 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
     fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError> {
         if share == 0 {
-            return Err(PaymentSplitterError::SharesAreZero);
+            return Err(PaymentSplitterError::SharesAreZero)
         }
         if self.data().shares.get(&payee).is_some() {
-            return Err(PaymentSplitterError::AlreadyHasShares);
+            return Err(PaymentSplitterError::AlreadyHasShares)
         }
 
         let mut payees = self.data().payees.push(payee);
@@ -141,7 +148,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
         if self.data().shares.get(&account).is_none() {
-            return Err(PaymentSplitterError::AccountHasNoShares);
+            return Err(PaymentSplitterError::AccountHasNoShares)
         }
 
         let balance = Self::env().balance();
@@ -154,7 +161,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
         let payment = total_received * shares / total_shares - released;
 
         if payment == 0 {
-            return Err(PaymentSplitterError::AccountIsNotDuePayment);
+            return Err(PaymentSplitterError::AccountIsNotDuePayment)
         }
 
         self.data().released.insert(&account, &(released + payment));
@@ -162,7 +169,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
         let transfer_result = Self::env().transfer(account, payment);
         if transfer_result.is_err() {
-            return Err(PaymentSplitterError::TransferFailed);
+            return Err(PaymentSplitterError::TransferFailed)
         }
         Internal::_emit_payment_released_event(self, account, payment);
         Ok(())

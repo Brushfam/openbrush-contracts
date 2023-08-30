@@ -35,7 +35,8 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
         let self_ = self.data();
         let name = self_
             .pallet_assets
-            .metadata_name(self_.asset_id);
+            .get_or_default()
+            .metadata_name(self_.asset_id.get_or_default());
 
         if name.is_empty() {
             None
@@ -48,7 +49,8 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
         let self_ = self.data();
         let symbol = self_
             .pallet_assets
-            .metadata_symbol(self_.asset_id);
+            .get_or_default()
+            .metadata_symbol(self_.asset_id.get_or_default());
 
         if symbol.is_empty() {
             None
@@ -61,6 +63,7 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
         let self_ = self.data();
         self_
             .pallet_assets
-            .metadata_decimals(self_.asset_id)
+            .get_or_default()
+            .metadata_decimals(self_.asset_id.get_or_default())
     }
 }

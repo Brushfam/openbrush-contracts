@@ -31,6 +31,7 @@ pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
+    #[lazy]
     pub cap: Balance,
 }
 
@@ -54,7 +55,7 @@ pub trait InternalImpl: Storage<Data> + Internal + PSP22 {
         if cap == 0 {
             return Err(PSP22Error::Custom(String::from("Cap must be above 0")));
         }
-        self.data().cap = cap;
+        self.data().cap.set(&cap);
         Ok(())
     }
 
@@ -66,6 +67,6 @@ pub trait InternalImpl: Storage<Data> + Internal + PSP22 {
     }
 
     fn _cap(&self) -> Balance {
-        self.data().cap
+        self.data().cap.get_or_default()
     }
 }

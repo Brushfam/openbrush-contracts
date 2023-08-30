@@ -22,8 +22,8 @@ pub mod my_psp22_pallet_burnable {
 
             psp22_pallet::Internal::_create(&mut instance, asset_id, Self::env().account_id(), min_balance)
                 .expect("Should create an asset");
-            instance.pallet.asset_id = asset_id;
-            instance.pallet.origin = Origin::Caller;
+            instance.pallet.asset_id.set(&asset_id);
+            instance.pallet.origin.set(&Origin::Caller);
             psp22_pallet::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply).expect("Should mint");
 
             instance
@@ -41,18 +41,14 @@ pub mod my_psp22_pallet_burnable {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
         use openbrush::contracts::psp22_pallet::{
-            extensions::burnable::psp22burnable_external::PSP22Burnable,
-            psp22_external::PSP22,
+            extensions::burnable::psp22burnable_external::PSP22Burnable, psp22_external::PSP22,
         };
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{
-            address_of,
-            balance_of,
-        };
+        use test_helpers::{address_of, balance_of};
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

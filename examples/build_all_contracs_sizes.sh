@@ -22,14 +22,15 @@ do
    MX_MN=$(cat contract_size.txt)
    MAX_SIZE=$(echo $MX_MN | cut -d' ' -f1)
    MIN_SIZE=$(echo $MX_MN | cut -d' ' -f2)
+   BUILDED=$(echo $MX_MN | cut -d' ' -f3)
    
-   if [ $MIN_SIZE -eq "100000" ] || [ $MAX_SIZE -eq "0" ]
-   then
-   	echo "Needs to build"
+#   if [ $MIN_SIZE -eq "100000" ] || [ $MAX_SIZE -eq "0" ]
+#   then
+#   	echo "Needs to build"
    	echo "Now bilding in $path"   	
         bash contract_size.sh
         rm -r target
-   fi
+#  fi
    echo "$(( $(( $(( $(($i+1))*100 )) / $len )) ))% progress"
    cd $INIT_PATH
 done

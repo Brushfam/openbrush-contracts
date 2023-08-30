@@ -3,10 +3,7 @@
 #[openbrush::implementation(Ownable, PSP22, PSP22Metadata)]
 #[openbrush::contract]
 pub mod my_psp22 {
-    use openbrush::{
-        modifiers,
-        traits::Storage,
-    };
+    use openbrush::{modifiers, traits::Storage};
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -39,9 +36,9 @@ pub mod my_psp22 {
             symbol: Option<String>,
             decimal: u8,
         ) -> Result<(), PSP22Error> {
-            self.metadata.name = name;
-            self.metadata.symbol = symbol;
-            self.metadata.decimals = decimal;
+            self.metadata.name.set(&name);
+            self.metadata.symbol.set(&symbol);
+            self.metadata.decimals.set(&decimal);
             if let Some(owner) = Ownable::owner(self) {
                 psp22::Internal::_mint_to(self, owner, total_supply)
             } else {

@@ -33,8 +33,11 @@ pub use token_timelock::{Internal as _, InternalImpl as _, PSP22TokenTimelockImp
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
+    #[lazy]
     token: Option<AccountId>,
+    #[lazy]
     beneficiary: Option<AccountId>,
+    #[lazy]
     release_time: Timestamp,
 }
 
@@ -51,12 +54,12 @@ pub trait PSP22TokenTimelockImpl: Storage<Data> + Internal {
 
     /// Returns the timestamp when the tokens are released
     fn release_time(&self) -> Timestamp {
-        self.data().release_time
+        self.data().release_time.get_or_default()
     }
 
     /// Transfers the tokens held by timelock to the beneficairy
     fn release(&mut self) -> Result<(), PSP22TokenTimelockError> {
-        if Self::env().block_timestamp() < self.data().release_time {
+        if Self::env().block_timestamp() < self.data().release_time.get_or_default() {
             return Err(PSP22TokenTimelockError::CurrentTimeIsBeforeReleaseTime);
         }
         let amount = self._contract_balance();
@@ -122,17 +125,17 @@ pub trait InternalImpl: Storage<Data> + Internal {
         if release_time <= Self::env().block_timestamp() {
             return Err(PSP22TokenTimelockError::ReleaseTimeIsBeforeCurrentTime);
         }
-        self.data().token = Some(token);
-        self.data().beneficiary = Some(beneficiary);
-        self.data().release_time = release_time;
+        self.data().token.set(&Some(token));
+        self.data().beneficiary.set(&Some(beneficiary));
+        self.data().release_time.set(&release_time);
         Ok(())
     }
 
     fn _token(&self) -> Option<AccountId> {
-        self.data().token
+        self.data().token.get_or_default()
     }
 
     fn _beneficiary(&self) -> Option<AccountId> {
-        self.data().beneficiary
+        self.data().beneficiary.get_or_default()
     }
 }

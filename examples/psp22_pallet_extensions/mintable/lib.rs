@@ -23,8 +23,8 @@ pub mod my_psp22_pallet_mintable {
 
             psp22_pallet::Internal::_create(&mut instance, asset_id, Self::env().account_id(), min_balance)
                 .expect("Should create an asset");
-            instance.pallet.asset_id = asset_id;
-            instance.pallet.origin = Origin::Caller;
+            instance.pallet.asset_id.set(&asset_id);
+            instance.pallet.origin.set(&Origin::Caller);
             psp22_pallet::Internal::_mint_to(&mut instance, caller, total_supply).expect("Should mint_to");
 
             instance
@@ -34,8 +34,7 @@ pub mod my_psp22_pallet_mintable {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
         use openbrush::contracts::psp22_pallet::{
-            extensions::mintable::psp22mintable_external::PSP22Mintable,
-            psp22_external::PSP22,
+            extensions::mintable::psp22mintable_external::PSP22Mintable, psp22_external::PSP22,
         };
 
         #[rustfmt::skip]
@@ -43,10 +42,7 @@ pub mod my_psp22_pallet_mintable {
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{
-            address_of,
-            balance_of,
-        };
+        use test_helpers::{address_of, balance_of};
 
         fn random_num() -> u32 {
             use rand::Rng;

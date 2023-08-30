@@ -31,21 +31,24 @@ pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
+    #[lazy]
     pub name: Option<String>,
+    #[lazy]
     pub symbol: Option<String>,
+    #[lazy]
     pub decimals: u8,
 }
 
 pub trait PSP22MetadataImpl: Storage<Data> {
     fn token_name(&self) -> Option<String> {
-        self.data().name.clone()
+        self.data().name.get_or_default()
     }
 
     fn token_symbol(&self) -> Option<String> {
-        self.data().symbol.clone()
+        self.data().symbol.get_or_default()
     }
 
     fn token_decimals(&self) -> u8 {
-        self.data().decimals
+        self.data().decimals.get_or_default()
     }
 }

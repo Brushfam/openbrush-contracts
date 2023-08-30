@@ -26,6 +26,7 @@ use openbrush::{modifier_definition, traits::Storage};
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
+    #[lazy]
     pub status: u8,
 }
 
@@ -47,14 +48,14 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<ReentrancyGuardError>,
 {
-    if instance.data().status == ENTERED {
+    if instance.data().status.get_or_default() == ENTERED {
         return Err(From::from(ReentrancyGuardError::ReentrantCall));
     }
     // Any calls to nonReentrant after this point will fail
-    instance.data().status = ENTERED;
+    instance.data().status.set(&ENTERED);
 
     let result = body(instance);
-    instance.data().status = NOT_ENTERED;
+    instance.data().status.set(&NOT_ENTERED);
 
     result
 }

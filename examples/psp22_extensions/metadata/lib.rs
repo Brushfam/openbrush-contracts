@@ -20,9 +20,9 @@ pub mod my_psp22 {
             let mut instance = Self::default();
             let caller = instance.env().caller();
 
-            instance.metadata.name = name;
-            instance.metadata.symbol = symbol;
-            instance.metadata.decimals = decimal;
+            instance.metadata.name.set(&name);
+            instance.metadata.symbol.set(&symbol);
+            instance.metadata.decimals.set(&decimal);
 
             psp22::Internal::_mint_to(&mut instance, caller, total_supply).expect("Should mint total_supply");
 

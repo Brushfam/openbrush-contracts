@@ -29,6 +29,7 @@ pub use pausable::{Internal as _, InternalImpl as _, PausableImpl as _};
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
 pub struct Data {
+    #[lazy]
     pub paused: bool,
 }
 
@@ -40,7 +41,7 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<PausableError>,
 {
-    if !instance.data().paused {
+    if !instance.data().paused.get_or_default() {
         return Err(From::from(PausableError::NotPaused));
     }
     body(instance)
@@ -54,7 +55,7 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<PausableError>,
 {
-    if instance.data().paused {
+    if instance.data().paused.get_or_default() {
         return Err(From::from(PausableError::Paused));
     }
     body(instance)
@@ -94,19 +95,19 @@ pub trait InternalImpl: Storage<Data> + Internal {
     fn _emit_unpaused_event(&self, _account: AccountId) {}
 
     fn _paused(&self) -> bool {
-        self.data().paused
+        self.data().paused.get_or_default()
     }
 
     #[modifiers(when_not_paused)]
     fn _pause(&mut self) -> Result<(), PausableError> {
-        self.data().paused = true;
+        self.data().paused.set(&true);
         Internal::_emit_paused_event(self, Self::env().caller());
         Ok(())
     }
 
     #[modifiers(when_paused)]
     fn _unpause(&mut self) -> Result<(), PausableError> {
-        self.data().paused = false;
+        self.data().paused.set(&false);
         Internal::_emit_unpaused_event(self, Self::env().caller());
         Ok(())
     }

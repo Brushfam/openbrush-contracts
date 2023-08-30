@@ -3,7 +3,10 @@
 #[openbrush::implementation(PSP61, Ownable, AccessControl, Pausable, Upgradeable)]
 #[openbrush::contract]
 pub mod my_psp61 {
-    use ink::prelude::vec;
+    use ink::prelude::{
+        vec,
+        vec::Vec,
+    };
     use openbrush::{
         contracts::supported_interfaces,
         traits::{

@@ -23,7 +23,9 @@ do
    MAX_SIZE=$(echo $MX_MN | cut -d' ' -f1)
    MIN_SIZE=$(echo $MX_MN | cut -d' ' -f2)
    
-   echo $path "=> SIZE = $MIN_SIZE"
+   CUR_SIZE=$(echo $MX_MN | cut -d' ' -f3)
+   
+   echo $path "=> SIZE = $CUR_SIZE"
    
    cd $INIT_PATH
 done

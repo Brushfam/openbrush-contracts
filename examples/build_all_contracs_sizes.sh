@@ -12,6 +12,8 @@ done
 
 len=${#paths[@]}
 
+start_time=$(date +%s)
+
 echo $INIT_PATH
 
 for (( i=0; i<$len; i++ ))
@@ -32,5 +34,8 @@ do
         rm -r target
 #  fi
    echo "$(( $(( $(( $(($i+1))*100 )) / $len )) ))% progress"
+   time=$(date +%s)
+   echo "Time passed: $(($time - $start_time))"
    cd $INIT_PATH
 done
+

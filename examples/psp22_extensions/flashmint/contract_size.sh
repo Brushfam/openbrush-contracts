@@ -12,6 +12,7 @@ MX_MN=$(cat contract_size.txt)
 
 MAX_SIZE=$(echo $MX_MN | cut -d' ' -f1)
 MIN_SIZE=$(echo $MX_MN | cut -d' ' -f2)
+LAST_SIZE=$(echo $MX_MN | cut -d' ' -f3)
 
 if [[ $NEW_SIZE -gt $MAX_SIZE ]]; then
     MAX_SIZE=$NEW_SIZE
@@ -23,7 +24,7 @@ if [[ $NEW_SIZE -lt $MIN_SIZE ]]; then
       MIN_SIZE=$NEW_SIZE
 fi
 
-Info=($MAX_SIZE $MIN_SIZE)
+Info=($MAX_SIZE $MIN_SIZE $NEW_SIZE)
 
 # shellcheck disable=SC2068
 echo ${Info[@]} > contract_size.txt

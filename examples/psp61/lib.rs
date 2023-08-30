@@ -83,7 +83,6 @@ pub mod my_psp61 {
             pausable,
             psp61,
             psp61::PSP61,
-            timelock_controller,
             upgradeable,
         };
 
@@ -97,10 +96,6 @@ pub mod my_psp61 {
                 access_control::accesscontrol_external::TRAIT_ID
             );
             assert_eq!(contract.pausable_id(), pausable::pausable_external::TRAIT_ID);
-            assert_eq!(
-                contract.timelock_controller_id(),
-                timelock_controller::timelockcontroller_external::TRAIT_ID
-            );
             assert_eq!(contract.upgradeable_id(), upgradeable::upgradeable_external::TRAIT_ID);
             assert_eq!(contract.psp61_id(), psp61::psp61_external::TRAIT_ID);
         }
@@ -115,10 +110,6 @@ pub mod my_psp61 {
                 true
             );
             assert_eq!(contract.supports_interface(pausable::pausable_external::TRAIT_ID), true);
-            assert_eq!(
-                contract.supports_interface(timelock_controller::timelockcontroller_external::TRAIT_ID),
-                true
-            );
             assert_eq!(
                 contract.supports_interface(upgradeable::upgradeable_external::TRAIT_ID),
                 true

@@ -73,7 +73,7 @@ crypto = ["openbrush_contracts/crypto"]
 nonces = ["openbrush_contracts/nonces"]
 checkpoints = ["openbrush_contracts/checkpoints"]
 non-upgradeable-lazy = ["openbrush_contracts/non-upgradeable-lazy"]
-psp61 = ["openbrush_contracts/psp61"
+psp61 = ["openbrush_contracts/psp61"]
 
 test-all = [
     "psp22",

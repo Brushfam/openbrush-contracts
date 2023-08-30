@@ -38,11 +38,7 @@ pub mod my_payment_splitter {
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{
-            address_of,
-            get_shares,
-            method_call,
-        };
+        use test_helpers::{address_of, get_shares, method_call};
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

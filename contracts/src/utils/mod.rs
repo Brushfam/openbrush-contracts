@@ -22,3 +22,6 @@
 
 #[cfg(feature = "nonces")]
 pub mod nonces;
+
+#[cfg(feature = "psp61")]
+pub mod psp61;

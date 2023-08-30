@@ -63,3 +63,5 @@ pub use upgradeability::proxy;
 pub use upgradeability::upgradeable;
 #[cfg(feature = "nonces")]
 pub use utils::nonces;
+#[cfg(feature = "psp61")]
+pub use utils::psp61;

@@ -2810,6 +2810,71 @@ pub(crate) fn impl_upgradeable(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(upgradeable_impl));
 }
 
+pub(crate) fn impl_psp61(impl_args: &mut ImplArgs, impls: Vec<String>) {
+    let storage_struct_name = impl_args.contract_name();
+    let psp61_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP61Impl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let psp61 = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP61 for #storage_struct_name {
+            #[ink(message)]
+            fn supports_interface(&self, interface_id: u32) -> bool {
+                PSP61Impl::supports_interface(self, interface_id)
+            }
+
+            #[ink(message)]
+            fn supported_interfaces(&self) -> ::ink::prelude::vec::Vec<u32> {
+                PSP61Impl::supported_interfaces(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let traits_implemented: Vec<_> = impls
+        .into_iter()
+        .map(|args| {
+            let mut trait_name_lower = args.to_lowercase();
+
+            trait_name_lower = match trait_name_lower.clone().as_str() {
+                "flashmint" => String::from("flashlender"),
+                _ => trait_name_lower,
+            };
+
+            let trait_name = format!("{}_external", trait_name_lower);
+
+            let ident = format_ident!("{}", trait_name);
+
+            let tokens = quote!(#ident::TRAIT_ID);
+
+            tokens
+        })
+        .collect();
+
+    let psp61_internal_ob = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP61InternalOB for #storage_struct_name {
+            fn _interfaces_ob(&self) -> ::ink::prelude::vec::Vec<u32> {
+                ::ink::prelude::vec![
+                    #(#traits_implemented),*
+                ]
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp61::*;
+    ))
+    .expect("Should parse");
+
+    impl_args.imports.insert("PSP61", import);
+
+    impl_args.items.push(syn::Item::Impl(psp61));
+    impl_args.items.push(syn::Item::Impl(psp61_impl));
+    impl_args.items.push(syn::Item::Impl(psp61_internal_ob));
+}
+
 pub(crate) fn impl_governor_settings(impl_args: &mut ImplArgs) {
     let storage_struct_name = impl_args.contract_name();
     let governor_settings_events = syn::parse2::<syn::ItemImpl>(quote!(

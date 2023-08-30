@@ -22,7 +22,10 @@
 
 pub use crate::traits::{
     errors::GovernanceError,
-    governance::{ProposalId, ProposalVote},
+    governance::{
+        ProposalId,
+        ProposalVote,
+    },
 };
 use openbrush::traits::AccountId;
 

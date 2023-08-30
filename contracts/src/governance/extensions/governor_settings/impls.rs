@@ -20,15 +20,24 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{governance::extensions::governor_settings, traits::governance::extensions::governor_settings::*};
-use crate::{
-    governance::{
-        extensions::governor_settings::{Data, GovernorSettingsInternal},
-        governor::{only_governance, GovernorInternal},
+use crate::governance::{
+    extensions::governor_settings::{
+        Data,
+        GovernorSettingsInternal,
     },
-    traits::errors::GovernanceError,
+    governor::{
+        only_governance,
+        GovernorInternal,
+    },
 };
-use openbrush::{modifiers, traits::Storage};
+pub use crate::{
+    governance::extensions::governor_settings,
+    traits::governance::extensions::governor_settings::*,
+};
+use openbrush::{
+    modifiers,
+    traits::Storage,
+};
 
 /// Extension of `Governor` for settings updatable through governance.
 pub trait GovernorSettingsImpl: Storage<Data> + GovernorSettingsInternal + GovernorInternal {

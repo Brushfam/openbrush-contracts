@@ -22,11 +22,14 @@
 
 pub use crate::traits::psp22::extensions::votes::*;
 use crate::{
-    governance::utils::votes::VotesInternal, psp22, psp22::PSP22Error, traits::errors::GovernanceError,
-    utils::checkpoint::Checkpoint,
+    governance::utils::votes::VotesInternal,
+    psp22,
+    psp22::PSP22Error,
+    traits::errors::GovernanceError,
 };
 use ink::prelude::vec;
 use openbrush::traits::AccountId;
+pub use openbrush::utils::checkpoints::Checkpoint;
 
 /// Extension of ERC20 to support Compound-like voting and delegation.
 ///
@@ -38,7 +41,7 @@ use openbrush::traits::AccountId;
 /// requires users to delegate to themselves in order to activate checkpoints and have their voting power tracked.
 pub trait PSP22VotesImpl: VotesInternal {
     /// Get number of checkpoints for `account`.
-    fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError> {
+    fn num_checkpoints(&self, account: AccountId) -> u32 {
         VotesInternal::_num_checkpoints(self, &account)
     }
 

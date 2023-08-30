@@ -24,7 +24,10 @@
 #[openbrush::contract]
 mod psp22_flashmint {
     use ink::codegen::Env;
-    use openbrush::{test_utils::accounts, traits::Storage};
+    use openbrush::{
+        test_utils::accounts,
+        traits::Storage,
+    };
 
     #[ink(storage)]
     #[derive(Default, Storage)]

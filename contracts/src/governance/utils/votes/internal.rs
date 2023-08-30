@@ -23,12 +23,25 @@
 use crate::{
     governance::{
         governor::TimestampProvider,
-        utils::votes::{Data, VotesEvents},
+        utils::votes::{
+            Data,
+            VotesEvents,
+        },
     },
-    traits::errors::{CheckpointsError, GovernanceError},
-    utils::checkpoint::{Checkpoint, Checkpoints},
+    traits::errors::GovernanceError,
 };
-use openbrush::traits::{AccountId, Balance, Storage};
+use openbrush::{
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
+    utils::checkpoints::{
+        Checkpoint,
+        Checkpoints,
+        CheckpointsError,
+    },
+};
 
 pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
     /// Returns the total number of votes.
@@ -87,9 +100,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
         amount: Balance,
     ) -> Result<(), GovernanceError> {
         if from != to && amount > 0 {
-            if from.is_some() {
-                let from_addr = from.unwrap();
-
+            if let Some(from_addr) = from {
                 let mut store = self
                     .data::<Data>()
                     .delegate_checkpoints
@@ -100,9 +111,7 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
                 self.data::<Data>().delegate_checkpoints.insert(&from_addr, &store);
                 self.emit_delegate_votes_changed_event(&from_addr, old_value, new_value);
             }
-            if to.is_some() {
-                let to_addr = to.unwrap();
-
+            if let Some(to_addr) = to {
                 let mut store = self
                     .data::<Data>()
                     .delegate_checkpoints
@@ -118,23 +127,20 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
     }
 
     /// Returns number of checkpoints for `account`.
-    fn _num_checkpoints(&self, account: &AccountId) -> Result<u32, GovernanceError> {
-        Ok(self
-            .data::<Data>()
+    fn _num_checkpoints(&self, account: &AccountId) -> u32 {
+        self.data::<Data>()
             .delegate_checkpoints
             .get(&account)
             .unwrap_or_default()
-            .len() as u32)
+            .len() as u32
     }
 
     /// Returns the checkpoint for `account` at the given `pos`.
     fn _checkpoints(&self, account: &AccountId, pos: u32) -> Result<Checkpoint, GovernanceError> {
-        let checkpoints = self
-            .data::<Data>()
+        self.data::<Data>()
             .delegate_checkpoints
             .get(&account)
-            .unwrap_or_default();
-        checkpoints
+            .unwrap_or_default()
             .at(pos as usize)
             .ok_or(GovernanceError::IndexOutOfRange)
             .cloned()

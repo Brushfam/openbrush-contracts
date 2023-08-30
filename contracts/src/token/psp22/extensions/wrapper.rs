@@ -22,11 +22,26 @@
 pub use crate::{
     psp22,
     psp22::extensions::wrapper,
-    traits::psp22::{extensions::wrapper::*, *},
+    traits::psp22::{
+        extensions::wrapper::*,
+        *,
+    },
 };
-use ink::{env::CallFlags, prelude::vec::Vec};
-use openbrush::traits::{AccountId, Balance, Storage, String};
-pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
+use ink::{
+    env::CallFlags,
+    prelude::vec::Vec,
+};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Storage,
+    String,
+};
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22Impl,
+};
 pub use wrapper::Internal as _;
 
 #[derive(Default, Debug)]

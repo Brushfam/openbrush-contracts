@@ -20,15 +20,22 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::traits::{errors::GovernanceError, types::SignatureType};
-use openbrush::traits::{AccountId, Balance, Timestamp};
+pub use crate::traits::{
+    errors::GovernanceError,
+    types::Signature,
+};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Timestamp,
+};
 
 /// Common interface for `PSP22Votes`, and other `Votes`-enabled contracts.
 #[openbrush::trait_definition]
 pub trait Votes {
     /// The amount of votes owned by `account`.
     #[ink(message)]
-    fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError>;
+    fn get_votes(&self, account: AccountId) -> Balance;
 
     /// The amount of votes delegated to `account` at the time `timestamp`.
     #[ink(message)]
@@ -52,9 +59,9 @@ pub trait Votes {
         &mut self,
         signer: AccountId,
         delegatee: AccountId,
-        nonce: u128,
+        nonce: u64,
         expiry: Timestamp,
-        signature: SignatureType,
+        signature: Signature,
     ) -> Result<(), GovernanceError>;
 }
 

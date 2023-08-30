@@ -19,10 +19,26 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::internal::{AttributeArgs, NestedMeta, BRUSH_PREFIX};
-use proc_macro2::{TokenStream, TokenTree};
-use quote::{format_ident, quote, quote_spanned, ToTokens};
-use syn::{parse2, spanned::Spanned, ImplItemMethod};
+use crate::internal::{
+    AttributeArgs,
+    NestedMeta,
+    BRUSH_PREFIX,
+};
+use proc_macro2::{
+    TokenStream,
+    TokenTree,
+};
+use quote::{
+    format_ident,
+    quote,
+    quote_spanned,
+    ToTokens,
+};
+use syn::{
+    parse2,
+    spanned::Spanned,
+    ImplItemMethod,
+};
 
 const INSTANCE: &str = "__openbrush_instance_modifier";
 
@@ -35,7 +51,7 @@ pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
         return quote_spanned! {
             impl_item.sig.inputs.span() =>
                 compile_error!("Modifiers can only be applied to methods, which have `self` as their first argument. ");
-        };
+        }
     }
 
     let receiver;
@@ -45,14 +61,14 @@ pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
         return quote_spanned! {
             impl_item.sig.inputs.first().expect("Expect at least one argument").span() =>
                 compile_error!("First argument in method must be `self`.");
-        };
+        }
     }
 
     // We skip every function without body(it means that it contains only `{ ; }`)
     if impl_item.block.to_token_stream().to_string() == "{ ; }" {
         return quote! {
             #impl_item
-        };
+        }
     }
 
     let mut block = impl_item.block.clone();
@@ -122,20 +138,23 @@ fn replace_self(block: syn::Block) -> syn::Block {
 fn recursive_replace_self(token_stream: TokenStream) -> TokenStream {
     token_stream
         .into_iter()
-        .map(|token| match &token {
-            TokenTree::Ident(ident) => {
-                if *ident == "self" {
-                    TokenTree::Ident(syn::Ident::new(INSTANCE, ident.span()))
-                } else {
-                    token
+        .map(|token| {
+            match &token {
+                TokenTree::Ident(ident) => {
+                    if *ident == "self" {
+                        TokenTree::Ident(syn::Ident::new(INSTANCE, ident.span()))
+                    } else {
+                        token
+                    }
                 }
+                TokenTree::Group(group) => {
+                    let mut new_group =
+                        proc_macro2::Group::new(group.delimiter(), recursive_replace_self(group.stream()));
+                    new_group.set_span(group.span());
+                    TokenTree::Group(new_group)
+                }
+                _ => token,
             }
-            TokenTree::Group(group) => {
-                let mut new_group = proc_macro2::Group::new(group.delimiter(), recursive_replace_self(group.stream()));
-                new_group.set_span(group.span());
-                TokenTree::Group(new_group)
-            }
-            _ => token,
         })
         .collect()
 }

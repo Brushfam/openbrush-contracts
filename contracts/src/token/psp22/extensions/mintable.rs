@@ -21,10 +21,20 @@
 
 pub use crate::{
     psp22,
-    traits::psp22::{extensions::mintable::*, *},
+    traits::psp22::{
+        extensions::mintable::*,
+        *,
+    },
 };
-use openbrush::traits::{AccountId, Balance};
-pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+};
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22Impl,
+};
 
 pub trait PSP22MintableImpl: psp22::Internal {
     fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {

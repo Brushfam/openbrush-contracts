@@ -96,9 +96,9 @@ describe('Governor', function () {
     await expect((await contractGovernance.query.quorum(0)).value.ok!.ok!.rawNumber.toNumber()).to.equals(0)
     await expect((await contractGovernance.query.quorumNumerator()).value.ok!.rawNumber.toNumber()).to.equals(NUMRATOR)
 
-    expect((await contractVotes.query.getVotes(alice.address)).value.ok!.ok!.toNumber()).to.be.eq(10)
-    expect((await contractVotes.query.getVotes(bob.address)).value.ok!.ok!.toNumber()).to.be.eq(10)
-    expect((await contractVotes.query.getVotes(deployer.address)).value.ok!.ok!.toNumber()).to.be.eq(99980)
+    expect((await contractVotes.query.getVotes(alice.address)).value.ok!.toNumber()).to.be.eq(10)
+    expect((await contractVotes.query.getVotes(bob.address)).value.ok!.toNumber()).to.be.eq(10)
+    expect((await contractVotes.query.getVotes(deployer.address)).value.ok!.toNumber()).to.be.eq(99980)
 
     await api.disconnect()
   })

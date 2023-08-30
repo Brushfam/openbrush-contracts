@@ -20,11 +20,12 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::{
-    checkpoint::Checkpoint,
-    traits::{errors::GovernanceError, governance::utils::votes::*},
+use crate::traits::{
+    errors::GovernanceError,
+    governance::utils::votes::*,
 };
 use openbrush::traits::AccountId;
+pub use openbrush::utils::checkpoints::Checkpoint;
 
 /// Extension of ERC20 to support Compound-like voting and delegation.
 ///
@@ -38,7 +39,7 @@ use openbrush::traits::AccountId;
 pub trait PSP22Votes {
     /// Get number of checkpoints for `account`.
     #[ink(message)]
-    fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError>;
+    fn num_checkpoints(&self, account: AccountId) -> u32;
 
     /// Get the `pos`-th checkpoint for `account`.
     #[ink(message)]

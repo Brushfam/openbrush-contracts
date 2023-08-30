@@ -22,12 +22,19 @@
 
 pub use crate::traits::{
     errors::GovernanceError,
-    governance::{ProposalCore, ProposalId, Transaction},
+    governance::{
+        ProposalCore,
+        ProposalId,
+        Transaction,
+    },
 };
 pub use ink::prelude::collections::VecDeque;
 pub use openbrush::{
     storage::Mapping,
-    traits::{Storage, Timestamp},
+    traits::{
+        Storage,
+        Timestamp,
+    },
 };
 
 #[derive(Default, Debug)]

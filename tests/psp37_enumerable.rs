@@ -25,7 +25,10 @@
 mod psp37_enumerable {
     use openbrush::{
         contracts::psp37::Id,
-        test_utils::{accounts, change_caller},
+        test_utils::{
+            accounts,
+            change_caller,
+        },
         traits::Storage,
     };
 

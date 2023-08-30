@@ -23,7 +23,10 @@
 #[openbrush::implementation(PSP22, PSP22Wrapper)]
 #[openbrush::contract]
 mod psp22_wrapper {
-    use openbrush::{test_utils::accounts, traits::Storage};
+    use openbrush::{
+        test_utils::accounts,
+        traits::Storage,
+    };
 
     #[ink(storage)]
     #[derive(Default, Storage)]

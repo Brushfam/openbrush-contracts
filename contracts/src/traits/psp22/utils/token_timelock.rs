@@ -20,7 +20,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::traits::errors::PSP22TokenTimelockError;
-use openbrush::traits::{AccountId, Timestamp};
+use openbrush::traits::{
+    AccountId,
+    Timestamp,
+};
 
 #[openbrush::wrapper]
 pub type PSP22TokenTimelockRef = dyn PSP22TokenTimelock;

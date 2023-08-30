@@ -20,7 +20,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::traits::errors::PaymentSplitterError;
-use openbrush::traits::{AccountId, Balance};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+};
 
 #[openbrush::wrapper]
 pub type PaymentSplitterRef = dyn PaymentSplitter;

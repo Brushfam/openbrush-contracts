@@ -23,15 +23,32 @@ pub use crate::{
     diamond,
     diamond::extensions::diamond_loupe,
     ownable,
-    traits::{diamond::extensions::diamond_loupe::*, ownable::*},
+    traits::{
+        diamond::extensions::diamond_loupe::*,
+        ownable::*,
+    },
 };
-pub use diamond::{DiamondImpl, Internal as _, InternalImpl as _};
+pub use diamond::{
+    DiamondImpl,
+    Internal as _,
+    InternalImpl as _,
+};
 use ink::prelude::vec::Vec;
 use openbrush::{
-    storage::{Mapping, ValueGuard},
-    traits::{Hash, Storage},
+    storage::{
+        Mapping,
+        ValueGuard,
+    },
+    traits::{
+        Hash,
+        Storage,
+    },
 };
-pub use ownable::{Internal as _, InternalImpl as _, OwnableImpl};
+pub use ownable::{
+    Internal as _,
+    InternalImpl as _,
+    OwnableImpl,
+};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]

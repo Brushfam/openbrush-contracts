@@ -24,8 +24,14 @@
 #[openbrush::contract]
 mod proxy {
     use core::convert::TryFrom;
-    use ink::codegen::{EmitEvent, Env};
-    use openbrush::{test_utils::change_caller, traits::Storage};
+    use ink::codegen::{
+        EmitEvent,
+        Env,
+    };
+    use openbrush::{
+        test_utils::change_caller,
+        traits::Storage,
+    };
 
     #[ink(event)]
     pub struct CodeHashChanged {

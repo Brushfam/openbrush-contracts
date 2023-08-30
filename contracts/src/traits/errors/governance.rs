@@ -21,10 +21,23 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::traits::{
-    errors::{CheckpointsError, CryptoError, NoncesError},
-    governance::{ProposalId, ProposalState, Transaction},
+    errors::NoncesError,
+    governance::{
+        ProposalId,
+        ProposalState,
+        Transaction,
+    },
 };
-use openbrush::traits::{AccountId, Timestamp};
+use openbrush::{
+    traits::{
+        AccountId,
+        Timestamp,
+    },
+    utils::{
+        checkpoints::CheckpointsError,
+        crypto::CryptoError,
+    },
+};
 
 /// The Governor error type. Contract will throw one of this errors.
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]

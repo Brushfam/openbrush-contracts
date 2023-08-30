@@ -19,10 +19,18 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use ::ink::env::{DefaultEnvironment, Environment};
+use ::ink::env::{
+    DefaultEnvironment,
+    Environment,
+};
+pub use const_format;
 use core::mem::ManuallyDrop;
-use ink::storage::traits::{Storable, StorageKey};
+use ink::storage::traits::{
+    Storable,
+    StorageKey,
+};
 pub use openbrush_lang_macro::Storage;
+pub use xxhash_rust::const_xxh32::xxh32;
 
 /// Aliases for types of the default environment
 pub type AccountId = <DefaultEnvironment as Environment>::AccountId;
@@ -117,3 +125,14 @@ pub trait Flush: Storable + Sized + StorageKey {
 }
 
 impl<T: Storable + Sized + StorageKey> Flush for T {}
+
+/// The value 0 is a valid seed.
+const XXH32_SEED: u32 = 0;
+
+pub struct ConstHasher;
+
+impl ConstHasher {
+    pub const fn hash(str: &str) -> u32 {
+        xxh32(str.as_bytes(), XXH32_SEED)
+    }
+}

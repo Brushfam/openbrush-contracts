@@ -19,15 +19,25 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::{implementations::*, internal, internal::*};
+use crate::{
+    implementations::*,
+    internal,
+    internal::*,
+};
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{
+    quote,
+    ToTokens,
+};
 use std::collections::HashMap;
-use syn::{Item, Path};
+use syn::{
+    Item,
+    Path,
+};
 
 pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     if internal::skip() {
-        return quote! {};
+        return quote! {}
     }
     let input: TokenStream = ink_module;
 
@@ -35,9 +45,11 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     let args = syn::parse2::<AttributeArgs>(attrs)
         .expect("No default contracts to implement provided")
         .iter()
-        .map(|arg| match arg {
-            NestedMeta::Path(method) => method.to_token_stream().to_string().replace(' ', ""),
-            _ => panic!("Expected names of OpenBrush traits to implement in the contract!"),
+        .map(|arg| {
+            match arg {
+                NestedMeta::Path(method) => method.to_token_stream().to_string().replace(' ', ""),
+                _ => panic!("Expected names of OpenBrush traits to implement in the contract!"),
+            }
         })
         .collect::<Vec<String>>();
 
@@ -69,6 +81,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "PSP22" => impl_psp22(&mut impl_args),
             "PSP22Mintable" => impl_psp22_mintable(&mut impl_args),
             "PSP22Burnable" => impl_psp22_burnable(&mut impl_args),
+            "PSP22Permit" => impl_psp22_permit(&mut impl_args),
             "PSP22Metadata" => impl_psp22_metadata(&mut impl_args),
             "PSP22Capped" => impl_psp22_capped(&mut impl_args),
             "PSP22Wrapper" => impl_psp22_wrapper(&mut impl_args),
@@ -137,6 +150,7 @@ fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
         "PSP22Capped",
         "PSP22Metadata",
         "PSP22Wrapper",
+        "PSP22Permit",
         "Flashmint",
     ];
     check_and_remove_import("PSP22", psp22_impls, imports);
@@ -226,7 +240,7 @@ fn extract_storage_struct_name(items: &[syn::Item]) -> String {
 
                 if let Some(ink_attr) = ink_attr_maybe {
                     if let Ok(path) = ink_attr.parse_args::<Path>() {
-                        return path.to_token_stream().to_string() == "storage";
+                        return path.to_token_stream().to_string() == "storage"
                     }
                 }
                 false

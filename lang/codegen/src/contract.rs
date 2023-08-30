@@ -19,14 +19,22 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::{internal, internal::*, metadata::LockedTrait, trait_definition};
+use crate::{
+    internal,
+    internal::*,
+    metadata::LockedTrait,
+    trait_definition,
+};
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{
+    quote,
+    ToTokens,
+};
 use syn::Item;
 
 pub fn generate(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     if internal::skip() {
-        return quote! {};
+        return quote! {}
     }
     let input: TokenStream = ink_module;
     let attrs: TokenStream = _attrs;
@@ -94,7 +102,7 @@ fn generate_impls(mut items: Vec<syn::Item>) -> Vec<syn::Item> {
                     let mut generated_impls =
                         internal::impl_external_trait(item_impl.clone(), &trait_path, trait_definition);
                     generated_items.append(&mut generated_impls);
-                    return;
+                    return
                 }
             }
 

@@ -19,9 +19,15 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::traits::errors::{FlashBorrowerError, FlashLenderError};
+pub use crate::traits::errors::{
+    FlashBorrowerError,
+    FlashLenderError,
+};
 use ink::prelude::vec::Vec;
-use openbrush::traits::{AccountId, Balance};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+};
 
 #[openbrush::wrapper]
 pub type FlashLenderRef = dyn FlashLender;

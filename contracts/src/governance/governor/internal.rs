@@ -22,26 +22,58 @@
 
 use crate::{
     governance::{
-        extensions::{governor_counting::CountingInternal, governor_votes::GovernorVotesInternal},
-        governor::{CallInput, Data, GovernorEvents},
-    },
-    traits::{
-        errors::governance::GovernanceError,
-        governance::{
-            CancelationStatus, ExecutionStatus, HashType, ProposalCore, ProposalId, ProposalState, Transaction,
-            VoteType, ALL_PROPOSAL_STATES,
+        extensions::{
+            governor_counting::CountingInternal,
+            governor_votes::GovernorVotesInternal,
+        },
+        governor::{
+            CallInput,
+            Data,
+            GovernorEvents,
         },
     },
-    utils::crypto,
+    traits::{
+        errors::GovernanceError,
+        governance::{
+            CancelationStatus,
+            ExecutionStatus,
+            HashType,
+            ProposalCore,
+            ProposalId,
+            ProposalState,
+            Transaction,
+            VoteType,
+            ALL_PROPOSAL_STATES,
+        },
+    },
 };
 use ink::{
     env::{
-        call::{build_call, Call, ExecutionInput, Selector},
-        CallFlags, DefaultEnvironment,
+        call::{
+            build_call,
+            Call,
+            ExecutionInput,
+            Selector,
+        },
+        CallFlags,
+        DefaultEnvironment,
     },
-    prelude::{borrow::ToOwned, collections::VecDeque, vec::Vec},
+    prelude::{
+        borrow::ToOwned,
+        collections::VecDeque,
+        vec::Vec,
+    },
 };
-use openbrush::traits::{AccountId, Balance, DefaultEnv, Storage, String};
+use openbrush::{
+    traits::{
+        AccountId,
+        Balance,
+        DefaultEnv,
+        Storage,
+        String,
+    },
+    utils::crypto,
+};
 use scale::Encode;
 
 pub trait GovernorInternal:
@@ -55,7 +87,7 @@ pub trait GovernorInternal:
     ) -> Result<HashType, GovernanceError> {
         let message = (transactions, description_hash).encode();
 
-        crypto::hash_message(message.as_slice()).map_err(|err| err.into())
+        Ok(crypto::hash_blake2b256(message.as_slice()))
     }
 
     /// Current state of a proposal, following Compound's convention
@@ -69,23 +101,23 @@ pub trait GovernorInternal:
             .ok_or(GovernanceError::NonexistentProposal)?;
 
         if proposal.executed == ExecutionStatus::Executed {
-            return Ok(ProposalState::Executed);
+            return Ok(ProposalState::Executed)
         }
 
         if proposal.canceled == CancelationStatus::Canceled {
-            return Ok(ProposalState::Canceled);
+            return Ok(ProposalState::Canceled)
         }
 
         let snapshot = proposal.vote_start;
 
         if snapshot > current_time {
-            return Ok(ProposalState::Pending);
+            return Ok(ProposalState::Pending)
         }
 
         let deadline = proposal.deadline()?;
 
         if deadline >= current_time {
-            return Ok(ProposalState::Active);
+            return Ok(ProposalState::Active)
         }
 
         if self._vote_succeeded(proposal_id.clone()) && self._quorum_reached(proposal_id.clone())? {
@@ -98,18 +130,22 @@ pub trait GovernorInternal:
     /// Executes a proposal if it is in the `Succeeded` state.
     fn _execute(&mut self, transactions: Vec<Transaction>, _description_hash: HashType) -> Result<(), GovernanceError> {
         for tx in transactions.iter() {
-            build_call::<DefaultEnvironment>()
-                .call_type(
-                    Call::new(tx.callee.clone())
-                        .gas_limit(1000000000)
-                        .transferred_value(tx.transferred_value.clone()),
-                )
-                .exec_input(ExecutionInput::new(Selector::new(tx.selector.clone())).push_arg(CallInput(&tx.input)))
-                .call_flags(CallFlags::default().set_allow_reentry(true))
-                .returns::<()>()
-                .try_invoke()
-                .map_err(|_| GovernanceError::ExecutionFailed)?
-                .map_err(|_| GovernanceError::ExecutionFailed)?;
+            if let Some(callee) = tx.callee {
+                build_call::<DefaultEnvironment>()
+                    .call_type(
+                        Call::new(callee)
+                            .gas_limit(1000000000)
+                            .transferred_value(tx.transferred_value.clone()),
+                    )
+                    .exec_input(ExecutionInput::new(Selector::new(tx.selector.clone())).push_arg(CallInput(&tx.input)))
+                    .call_flags(CallFlags::default().set_allow_reentry(true))
+                    .returns::<()>()
+                    .try_invoke()
+                    .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?
+                    .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?;
+            } else {
+                return Err(GovernanceError::ExecutionFailed(tx.clone()))
+            }
         }
 
         Ok(())
@@ -123,9 +159,11 @@ pub trait GovernorInternal:
     ) -> Result<(), GovernanceError> {
         let self_address = Self::env().account_id();
         let executor = self._executor();
+
         if executor != self_address {
             for tx in transactions.iter() {
-                if tx.callee == self_address {
+                let callee = tx.callee.clone().ok_or(GovernanceError::InvalidDestination)?;
+                if callee == self_address {
                     let mut governance_call = self.data::<Data>().governance_call.get_or_default();
                     governance_call.push_back(tx.clone());
                     self.data::<Data>().governance_call.set(&governance_call);
@@ -163,7 +201,7 @@ pub trait GovernorInternal:
             ProposalState::Canceled.u128() | ProposalState::Executed.u128() | ProposalState::Expired.u128();
 
         if forbidden_states.clone() & current_state.clone().u128() != 0 {
-            return Err(GovernanceError::UnexpectedProposalState);
+            return Err(GovernanceError::UnexpectedProposalState)
         }
 
         let proposal = self
@@ -207,7 +245,7 @@ pub trait GovernorInternal:
         let current_state = self._state(proposal_id.clone())?;
 
         if current_state != ProposalState::Active {
-            return Err(GovernanceError::UnexpectedProposalState);
+            return Err(GovernanceError::UnexpectedProposalState)
         }
 
         let snapshot = self._proposal_snapshot(proposal_id.clone())?;
@@ -243,14 +281,14 @@ pub trait GovernorInternal:
         description: String,
     ) -> Result<bool, GovernanceError> {
         if !description.contains("#proposer=0x") {
-            return Ok(true);
+            return Ok(true)
         }
 
         let pos = description.find("proposer=0x").unwrap() + 11usize;
         let address = &description[pos..];
 
         if hex::decode(address).is_err() {
-            return Ok(true);
+            return Ok(true)
         }
 
         let proposer_str = hex::encode(proposer);
@@ -266,7 +304,7 @@ pub trait GovernorInternal:
 
     /// Return the hash of the description.
     fn _hash_description(&self, description: String) -> Result<HashType, GovernanceError> {
-        Ok(crypto::hash_message(description.as_bytes())?)
+        Ok(crypto::hash_blake2b256(description.as_bytes()))
     }
 }
 

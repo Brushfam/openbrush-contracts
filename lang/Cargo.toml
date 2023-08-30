@@ -38,3 +38,5 @@ std = [
     "scale/std",
     "scale-info/std",
 ]
+checkpoints = []
+crypto = []

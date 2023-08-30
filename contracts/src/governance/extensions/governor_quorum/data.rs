@@ -20,7 +20,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::utils::checkpoint::Checkpoints;
+pub use openbrush::utils::checkpoints::Checkpoints;
 
 #[derive(Debug, Default)]
 #[openbrush::storage_item]

@@ -20,7 +20,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::traits::errors::CheckpointsError;
 use ink::prelude::vec::Vec;
 
 /// Struct, for checkpointing values as they change at different points in
@@ -41,6 +40,13 @@ pub struct Checkpoint {
     pub value: u128,
 }
 
+#[derive(scale::Decode, scale::Encode, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
+pub enum CheckpointsError {
+    UnorderedInsertion,
+}
+
+/// Counting sqrt using Newton's method.
 fn sqrt(x: u64) -> u64 {
     let mut z = (x + 1) / 2;
     let mut y = x;

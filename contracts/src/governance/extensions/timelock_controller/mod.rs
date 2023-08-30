@@ -429,8 +429,8 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
     }
 
     fn _call(&mut self, id: OperationId, i: u8, transaction: Transaction) -> Result<(), TimelockControllerError> {
-        let result = if let Some(callee) = transaction.callee {
-            build_call::<DefaultEnvironment>()
+        if let Some(callee) = transaction.callee {
+            let result = build_call::<DefaultEnvironment>()
                 .call_type(
                     Call::new(callee)
                         .gas_limit(transaction.gas_limit)
@@ -440,14 +440,13 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
                 .returns::<()>()
                 .call_flags(CallFlags::default().set_allow_reentry(true))
                 .try_invoke()
-                .map_err(|_| TimelockControllerError::UnderlyingTransactionReverted)
-        } else {
-            Err(TimelockControllerError::CalleeZeroAddress)
-        };
+                .map_err(|_| TimelockControllerError::UnderlyingTransactionReverted);
 
-        result?.unwrap();
-        Internal::_emit_call_executed_event(self, id, i, transaction);
-        Ok(())
+            result?.unwrap();
+            Internal::_emit_call_executed_event(self, id, i, transaction);
+            return Ok(())
+        }
+        Err(TimelockControllerError::CalleeMustExist)
     }
 
     fn _timelock_admin_role() -> RoleType {

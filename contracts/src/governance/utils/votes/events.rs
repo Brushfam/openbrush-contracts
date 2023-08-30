@@ -36,7 +36,5 @@ pub trait VotesEvents {
     }
 
     /// Emitted when a voter's votes are delegated to another account
-    fn emit_delegate_votes_changed_event(&self, _delegate: &AccountId, _previous_votes: Balance, _new_votes: Balance) {
-        ()
-    }
+    fn emit_delegate_votes_changed_event(&self, _delegate: &AccountId, _previous_votes: Balance, _new_votes: Balance) {}
 }

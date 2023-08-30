@@ -40,10 +40,7 @@ use crate::{
             TimestampProvider,
         },
     },
-    traits::{
-        errors::GovernanceError,
-        governance::utils::votes::*,
-    },
+    traits::governance::utils::votes::*,
 };
 use openbrush::traits::{
     Storage,
@@ -62,14 +59,17 @@ pub trait QuorumImpl:
 
     /// Returns the current quorum numerator
     fn quorum_numerator(&self) -> u128 {
-        let history = self.data::<Data>().quorum_numerator_history.get_or_default();
+        let history = self
+            .data::<governor_quorum::Data>()
+            .quorum_numerator_history
+            .get_or_default();
 
         let (exist, _, last_value) = history.latest_checkpoint();
 
-        if !exist {
-            0
-        } else {
+        if exist {
             last_value
+        } else {
+            0
         }
     }
 

@@ -44,6 +44,14 @@ impl<'a> ImplArgs<'a> {
         .expect("Should parse");
         self.imports.insert("vec", vec_import);
     }
+
+    fn signature_import(&mut self) {
+        let sig_import = syn::parse2::<syn::ItemUse>(quote!(
+            use openbrush::utils::crypto::Signature;
+        ))
+        .expect("Should parse");
+        self.imports.insert("Signature", sig_import);
+    }
 }
 
 pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
@@ -253,6 +261,78 @@ pub(crate) fn impl_psp22_burnable(impl_args: &mut ImplArgs) {
 
     impl_args.items.push(syn::Item::Impl(burnable_impl));
     impl_args.items.push(syn::Item::Impl(burnable));
+}
+
+pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let permit_internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::InternalImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let permit_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::Internal for #storage_struct_name {
+            fn _permit(
+                &mut self,
+                owner: AccountId,
+                spender: AccountId,
+                amount: Balance,
+                deadline: u64,
+                signature: Signature,
+            ) -> Result<(), PSP22Error> {
+                permit::InternalImpl::_permit(self, owner, spender, amount, deadline, signature)
+            }
+            fn _domain_separator(&mut self) -> [u8; 32] {
+                permit::InternalImpl::_domain_separator(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let permit_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::PSP22PermitImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let permit = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::PSP22Permit for #storage_struct_name {
+            #[ink(message)]
+            fn permit(
+                &mut self,
+                owner: AccountId,
+                spender: AccountId,
+                value: Balance,
+                deadline: u64,
+                signature: Signature,
+            ) -> Result<(), PSP22Error> {
+                permit::PSP22PermitImpl::permit(self, owner, spender, value, deadline, signature)
+            }
+
+            #[ink(message)]
+            fn domain_separator(&mut self) -> [u8; 32] {
+                permit::PSP22PermitImpl::domain_separator(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp22::extensions::permit::*;
+    ))
+    .expect("Should parse");
+
+    impl_args.imports.insert("PSP22Permit", import);
+    impl_args.signature_import();
+    impl_args.vec_import();
+
+    // TODO
+    // override_functions("PSP22Permit", &mut burnable, impl_args.map);
+
+    impl_args.items.push(syn::Item::Impl(permit_internal_impl));
+    impl_args.items.push(syn::Item::Impl(permit_internal));
+
+    impl_args.items.push(syn::Item::Impl(permit_impl));
+    impl_args.items.push(syn::Item::Impl(permit));
 }
 
 pub(crate) fn impl_psp22_metadata(impl_args: &mut ImplArgs) {
@@ -602,7 +682,7 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
     let votes = syn::parse2::<syn::ItemImpl>(quote!(
         impl Votes for Contract {
             #[ink(message)]
-            fn get_votes(&self, account: AccountId) -> Result<Balance, GovernanceError> {
+            fn get_votes(&self, account: AccountId) -> Balance {
                 VotesImpl::get_votes(self, account)
             }
 
@@ -631,9 +711,9 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
                 &mut self,
                 signer: AccountId,
                 delegatee: AccountId,
-                nonce: u128,
+                nonce: u64,
                 expiry: Timestamp,
-                signature: SignatureType,
+                signature: Signature,
             ) -> Result<(), GovernanceError> {
                 VotesImpl::delegate_by_signature(self, signer, delegatee, nonce, expiry, signature)
             }
@@ -654,7 +734,7 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
     let psp22_votes = syn::parse2::<syn::ItemImpl>(quote!(
         impl PSP22Votes for Contract {
             #[ink(message)]
-            fn num_checkpoints(&self, account: AccountId) -> Result<u32, GovernanceError> {
+            fn num_checkpoints(&self, account: AccountId) -> u32 {
                 PSP22VotesImpl::num_checkpoints(self, account)
             }
 
@@ -3002,10 +3082,21 @@ pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
                 proposal_id: ProposalId,
                 support: VoteType,
                 reason: String,
-                signature: SignatureType,
-                params: Option<Vec<u8>>
+                signature: Signature,
             ) -> Result<Balance, GovernanceError> {
                 GovernorImpl::cast_vote_with_signature(self, proposal_id, support, reason, signature, params)
+            }
+
+            #[ink(message)]
+            fn cast_vote_with_signature_and_params(
+                &mut self,
+                proposal_id: ProposalId,
+                support: VoteType,
+                reason: String,
+                signature: Signature,
+                params: Vec<u8>,
+            ) -> Result<Balance, GovernanceError> {
+                GovernorImpl::cast_vote_with_signature_and_params(self, proposal_id, support, reason, signature, params)
             }
 
             #[ink(message)]
@@ -3040,7 +3131,7 @@ pub(crate) fn impl_nonces(impl_args: &mut ImplArgs) {
     let nonces = syn::parse2::<syn::ItemImpl>(quote!(
         impl Nonces for #storage_struct_name {
             #[ink(message)]
-            fn nonces(&self, account: AccountId) -> u128 {
+            fn nonces(&self, account: AccountId) -> u64 {
                 NoncesImpl::nonces(self, &account)
             }
         }
@@ -3048,7 +3139,7 @@ pub(crate) fn impl_nonces(impl_args: &mut ImplArgs) {
     .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::utils::nonces::*;
+        use openbrush::contracts::nonces::*;
     ))
     .expect("Should parse");
     impl_args.imports.insert("Nonces", import);

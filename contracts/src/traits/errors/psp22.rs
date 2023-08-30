@@ -21,6 +21,7 @@
 
 use super::{
     AccessControlError,
+    NoncesError,
     OwnableError,
     PausableError,
     ReentrancyGuardError,
@@ -43,6 +44,12 @@ pub enum PSP22Error {
     ZeroSenderAddress,
     /// Returned if safe transfer check fails
     SafeTransferCheckFailed(String),
+    /// Returned if permit signature is invalid
+    PermitInvalidSignature,
+    /// Returned if permit deadline is expired
+    PermitExpired,
+    /// Returned if permit nonce is invalid
+    NoncesError(NoncesError),
 }
 
 impl From<OwnableError> for PSP22Error {
@@ -113,16 +120,7 @@ pub enum PSP22TokenTimelockError {
 
 impl From<PSP22Error> for PSP22TokenTimelockError {
     fn from(error: PSP22Error) -> Self {
-        match error {
-            PSP22Error::Custom(message) => PSP22TokenTimelockError::PSP22Error(PSP22Error::Custom(message)),
-            PSP22Error::InsufficientBalance => PSP22TokenTimelockError::PSP22Error(PSP22Error::InsufficientBalance),
-            PSP22Error::InsufficientAllowance => PSP22TokenTimelockError::PSP22Error(PSP22Error::InsufficientAllowance),
-            PSP22Error::ZeroRecipientAddress => PSP22TokenTimelockError::PSP22Error(PSP22Error::ZeroRecipientAddress),
-            PSP22Error::ZeroSenderAddress => PSP22TokenTimelockError::PSP22Error(PSP22Error::ZeroSenderAddress),
-            PSP22Error::SafeTransferCheckFailed(message) => {
-                PSP22TokenTimelockError::PSP22Error(PSP22Error::SafeTransferCheckFailed(message))
-            }
-        }
+        PSP22TokenTimelockError::PSP22Error(error)
     }
 }
 
@@ -147,5 +145,11 @@ impl From<PausableError> for PSP22TokenTimelockError {
 impl From<ReentrancyGuardError> for PSP22TokenTimelockError {
     fn from(guard: ReentrancyGuardError) -> Self {
         PSP22TokenTimelockError::PSP22Error(guard.into())
+    }
+}
+
+impl From<NoncesError> for PSP22Error {
+    fn from(error: NoncesError) -> Self {
+        PSP22Error::NoncesError(error)
     }
 }

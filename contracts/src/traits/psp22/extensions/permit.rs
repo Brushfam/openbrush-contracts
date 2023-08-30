@@ -1,5 +1,4 @@
-// Copyright (c) 2023 Brushfam
-// Copyright (c) 2012-2022 Supercolony
+// Copyright (c) 2012-2023 727-ventures
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the"Software"),
@@ -20,12 +19,33 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use openbrush::traits::String;
+/// Extension of [`PSP22`] that allows create `amount` tokens
+/// and assigns them to `account`, increasing the total supply
+pub use crate::traits::errors::PSP22Error;
+use openbrush::traits::{
+    AccountId,
+    Balance,
+};
+pub use openbrush::utils::crypto::Signature;
 
-#[derive(scale::Decode, scale::Encode, Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
-pub enum CryptoError {
-    EcdsaRecoverFailed,
-    EcdsaToEthAddressFailed,
-    Other(String),
+#[openbrush::wrapper]
+pub type PSP22PermitRef = dyn PSP22Permit;
+
+#[openbrush::trait_definition]
+pub trait PSP22Permit {
+    /// Permit allows `spender` to spend `value` tokens on behalf of `owner` with a signature
+    ///
+    /// See [`PSP22::_approve`].
+    #[ink(message)]
+    fn permit(
+        &mut self,
+        owner: AccountId,
+        spender: AccountId,
+        value: Balance,
+        deadline: u64,
+        signature: Signature,
+    ) -> Result<(), PSP22Error>;
+
+    #[ink(message)]
+    fn domain_separator(&mut self) -> [u8; 32];
 }

@@ -21,11 +21,10 @@ pub mod my_psp22_facet_v2 {
 
     #[overrider(PSP22)]
     fn transfer(&mut self, to: AccountId, value: Balance, data: Vec<u8>) -> Result<(), PSP22Error> {
-        let from = self.env().caller();
         // we will burn 10% of transfer to and from non-zero accounts
         let burned = value / 10;
-        psp22::Internal::_burn_from(self, from, burned)?;
-        psp22::Internal::_transfer_from_to(self, from, to, value - burned, data)?;
+        psp22::Internal::_burn_from(self, self.env().caller(), burned)?;
+        psp22::Internal::_transfer_from_to(self, self.env().caller(), to, value - burned, data)?;
         Ok(())
     }
 

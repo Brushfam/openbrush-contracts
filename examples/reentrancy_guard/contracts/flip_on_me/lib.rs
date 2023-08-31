@@ -1,11 +1,13 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-pub use openbrush::examples::contracts::reentrancy_guard::flip_on_me::*;
+pub use self::flip_on_me::*;
 
 #[openbrush::contract]
 pub mod flip_on_me {
-    use flipper::traits::flipper::*;
-    use flipper::traits::flip_on_me::*;
+    use flipper::traits::{
+        flip_on_me::*,
+        flipper::*,
+    };
     use ink::env::CallFlags;
     use openbrush::traits::DefaultEnv;
 

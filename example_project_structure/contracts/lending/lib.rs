@@ -40,13 +40,11 @@ pub mod my_lending {
     use ink::ToAccountId;
     use lending_project::impls::lending::*;
     use loan_contract::loan::LoanContractRef;
-    use openbrush::{
-        traits::{
-            DefaultEnv,
-            Storage,
-            String,
-        },
-        utils::xxhash_rust::const_xxh32::xxh32,
+    use openbrush::traits::{
+        xxh32,
+        DefaultEnv,
+        Storage,
+        String,
     };
     use scale::Encode;
     use shares_contract::shares::SharesContractRef;

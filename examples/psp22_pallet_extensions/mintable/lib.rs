@@ -34,8 +34,7 @@ pub mod my_psp22_pallet_mintable {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
         use openbrush::contracts::psp22_pallet::{
-            extensions::mintable::psp22mintable_external::PSP22Mintable,
-            psp22_external::PSP22,
+            extensions::mintable::psp22mintable_external::PSP22Mintable, psp22_external::PSP22,
         };
 
         #[rustfmt::skip]
@@ -43,10 +42,7 @@ pub mod my_psp22_pallet_mintable {
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{
-            address_of,
-            balance_of,
-        };
+        use test_helpers::{address_of, balance_of};
 
         fn random_num() -> u32 {
             use rand::Rng;
@@ -70,7 +66,7 @@ pub mod my_psp22_pallet_mintable {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert!(matches!(balance_of!(client, address, alice), 1000));
+            assert!(matches!(balance_of!(client, address, Alice), 1000));
 
             Ok(())
         }
@@ -91,13 +87,13 @@ pub mod my_psp22_pallet_mintable {
                 .account_id;
 
             assert!(
-                matches!(balance_of!(client, address, bob), 0),
+                matches!(balance_of!(client, address, Bob), 0),
                 "Bob's balance should be 0"
             );
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), 1000));
+                    .call(|contract| contract.mint(address_of!(Bob), 1000));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -107,7 +103,7 @@ pub mod my_psp22_pallet_mintable {
             assert!(matches!(mint_tx.return_value(), Ok(())), "Minting should be successful");
 
             assert!(
-                matches!(balance_of!(client, address, bob), 1000),
+                matches!(balance_of!(client, address, Bob), 1000),
                 "Bob's balance should be 1000"
             );
 
@@ -139,7 +135,7 @@ pub mod my_psp22_pallet_mintable {
 
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(bob), 1000));
+                    .call(|contract| contract.mint(address_of!(Bob), 1000));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await

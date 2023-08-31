@@ -1,3 +1,4 @@
+// Copyright (c) 2023 Brushfam
 // Copyright (c) 2012-2022 Supercolony
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -19,18 +20,21 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use const_format;
-pub use xxhash_rust;
+use openbrush::traits::{
+    AccountId,
+    Balance,
+};
 
-use xxhash_rust::const_xxh32::xxh32;
-
-/// The value 0 is a valid seed.
-const XXH32_SEED: u32 = 0;
-
-pub struct ConstHasher;
-
-impl ConstHasher {
-    pub const fn hash(str: &str) -> u32 {
-        xxh32(str.as_bytes(), XXH32_SEED)
+pub trait VotesEvents {
+    /// Emitted when a voter delegates their votes to another account
+    fn emit_delegate_changed_event(
+        &self,
+        _delegator: &Option<AccountId>,
+        _from_delegate: &Option<AccountId>,
+        _to_delegate: &Option<AccountId>,
+    ) {
     }
+
+    /// Emitted when a voter's votes are delegated to another account
+    fn emit_delegate_votes_changed_event(&self, _delegate: &AccountId, _previous_votes: Balance, _new_votes: Balance) {}
 }

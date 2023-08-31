@@ -44,6 +44,14 @@ impl<'a> ImplArgs<'a> {
         .expect("Should parse");
         self.imports.insert("vec", vec_import);
     }
+
+    fn signature_import(&mut self) {
+        let sig_import = syn::parse2::<syn::ItemUse>(quote!(
+            use openbrush::utils::crypto::Signature;
+        ))
+        .expect("Should parse");
+        self.imports.insert("Signature", sig_import);
+    }
 }
 
 pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
@@ -253,6 +261,78 @@ pub(crate) fn impl_psp22_burnable(impl_args: &mut ImplArgs) {
 
     impl_args.items.push(syn::Item::Impl(burnable_impl));
     impl_args.items.push(syn::Item::Impl(burnable));
+}
+
+pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let permit_internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::InternalImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let permit_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::Internal for #storage_struct_name {
+            fn _permit(
+                &mut self,
+                owner: AccountId,
+                spender: AccountId,
+                amount: Balance,
+                deadline: u64,
+                signature: Signature,
+            ) -> Result<(), PSP22Error> {
+                permit::InternalImpl::_permit(self, owner, spender, amount, deadline, signature)
+            }
+            fn _domain_separator(&mut self) -> [u8; 32] {
+                permit::InternalImpl::_domain_separator(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let permit_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::PSP22PermitImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let permit = syn::parse2::<syn::ItemImpl>(quote!(
+        impl permit::PSP22Permit for #storage_struct_name {
+            #[ink(message)]
+            fn permit(
+                &mut self,
+                owner: AccountId,
+                spender: AccountId,
+                value: Balance,
+                deadline: u64,
+                signature: Signature,
+            ) -> Result<(), PSP22Error> {
+                permit::PSP22PermitImpl::permit(self, owner, spender, value, deadline, signature)
+            }
+
+            #[ink(message)]
+            fn domain_separator(&mut self) -> [u8; 32] {
+                permit::PSP22PermitImpl::domain_separator(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp22::extensions::permit::*;
+    ))
+    .expect("Should parse");
+
+    impl_args.imports.insert("PSP22Permit", import);
+    impl_args.signature_import();
+    impl_args.vec_import();
+
+    // TODO
+    // override_functions("PSP22Permit", &mut burnable, impl_args.map);
+
+    impl_args.items.push(syn::Item::Impl(permit_internal_impl));
+    impl_args.items.push(syn::Item::Impl(permit_internal));
+
+    impl_args.items.push(syn::Item::Impl(permit_impl));
+    impl_args.items.push(syn::Item::Impl(permit));
 }
 
 pub(crate) fn impl_psp22_metadata(impl_args: &mut ImplArgs) {
@@ -578,6 +658,111 @@ pub(crate) fn impl_token_timelock(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(timelock));
 }
 
+pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
+    let _storage_struct_name = impl_args.contract_name();
+    let votes_events = syn::parse2::<syn::ItemImpl>(quote!(
+        impl VotesEvents for Contract {}
+    ))
+    .expect("Should parse");
+
+    let votes_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl VotesInternal for Contract {
+            fn _get_voting_units(&self, account: &AccountId) -> Balance {
+                PSP22VotesInternal::_get_voting_units(self, account)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let votes_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl VotesImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let votes = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Votes for Contract {
+            #[ink(message)]
+            fn get_votes(&self, account: AccountId) -> Balance {
+                VotesImpl::get_votes(self, account)
+            }
+
+            #[ink(message)]
+            fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
+                VotesImpl::get_past_votes(self, account, timestamp)
+            }
+
+            #[ink(message)]
+            fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
+                VotesImpl::get_past_total_supply(self, timestamp)
+            }
+
+            #[ink(message)]
+            fn delegates(&mut self, delegator: AccountId) -> Option<AccountId> {
+                VotesImpl::delegates(self, delegator)
+            }
+
+            #[ink(message)]
+            fn delegate(&mut self, delegatee: AccountId) -> Result<(), GovernanceError> {
+                VotesImpl::delegate(self, delegatee)
+            }
+
+            #[ink(message)]
+            fn delegate_by_signature(
+                &mut self,
+                signer: AccountId,
+                delegatee: AccountId,
+                nonce: u64,
+                expiry: Timestamp,
+                signature: Signature,
+            ) -> Result<(), GovernanceError> {
+                VotesImpl::delegate_by_signature(self, signer, delegatee, nonce, expiry, signature)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let psp22_votes_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP22VotesImpl for Contract {}
+    ))
+    .expect("Should parse");
+
+    let psp22_votes_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP22VotesInternal for Contract {}
+    ))
+    .expect("Should parse");
+
+    let psp22_votes = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP22Votes for Contract {
+            #[ink(message)]
+            fn num_checkpoints(&self, account: AccountId) -> u32 {
+                PSP22VotesImpl::num_checkpoints(self, account)
+            }
+
+            #[ink(message)]
+            fn checkpoints(&self, account: AccountId, pos: u32) -> Result<Checkpoint, GovernanceError> {
+                PSP22VotesImpl::checkpoints(self, account, pos)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::{
+            governance::utils::votes::*,
+            psp22::extensions::votes::*,
+        };
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("PSP22Votes", import);
+
+    impl_args.items.push(syn::Item::Impl(votes_events));
+    impl_args.items.push(syn::Item::Impl(votes_internal));
+    impl_args.items.push(syn::Item::Impl(votes_impl));
+    impl_args.items.push(syn::Item::Impl(votes));
+    impl_args.items.push(syn::Item::Impl(psp22_votes_impl));
+    impl_args.items.push(syn::Item::Impl(psp22_votes_internal));
+    impl_args.items.push(syn::Item::Impl(psp22_votes));
+}
 pub(crate) fn impl_psp22_pallet(impl_args: &mut ImplArgs) {
     let storage_struct_name = impl_args.contract_name();
     let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
@@ -2366,7 +2551,7 @@ pub(crate) fn impl_timelock_controller(impl_args: &mut ImplArgs) {
         .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::timelock_controller::*;
+        use openbrush::contracts::governance::extensions::timelock_controller::*;
     ))
     .expect("Should parse");
     impl_args.imports.insert("TimelockController", import);
@@ -2625,6 +2810,408 @@ pub(crate) fn impl_upgradeable(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(upgradeable_impl));
 }
 
+pub(crate) fn impl_psp61(impl_args: &mut ImplArgs, impls: Vec<String>) {
+    let storage_struct_name = impl_args.contract_name();
+    let psp61_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP61Impl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let psp61 = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP61 for #storage_struct_name {
+            #[ink(message)]
+            fn supports_interface(&self, interface_id: u32) -> bool {
+                PSP61Impl::supports_interface(self, interface_id)
+            }
+
+            #[ink(message)]
+            fn supported_interfaces(&self) -> ::ink::prelude::vec::Vec<u32> {
+                PSP61Impl::supported_interfaces(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let traits_implemented: Vec<_> = impls
+        .into_iter()
+        .map(|args| {
+            let mut trait_name_lower = args.to_lowercase();
+
+            trait_name_lower = match trait_name_lower.clone().as_str() {
+                "flashmint" => String::from("flashlender"),
+                _ => trait_name_lower,
+            };
+
+            let trait_name = format!("{}_external", trait_name_lower);
+
+            let ident = format_ident!("{}", trait_name);
+
+            let tokens = quote!(#ident::TRAIT_ID);
+
+            tokens
+        })
+        .collect();
+
+    let psp61_internal_ob = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP61InternalOB for #storage_struct_name {
+            fn _interfaces_ob(&self) -> ::ink::prelude::vec::Vec<u32> {
+                ::ink::prelude::vec![
+                    #(#traits_implemented),*
+                ]
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::psp61::*;
+    ))
+    .expect("Should parse");
+
+    impl_args.imports.insert("PSP61", import);
+
+    impl_args.items.push(syn::Item::Impl(psp61));
+    impl_args.items.push(syn::Item::Impl(psp61_impl));
+    impl_args.items.push(syn::Item::Impl(psp61_internal_ob));
+}
+
+pub(crate) fn impl_governor_settings(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let governor_settings_events = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorSettingsEvents for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+    let governor_settings_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorSettingsInternal for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+    let governor_settings_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorSettingsImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+    let governor_settings = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorSettings for #storage_struct_name {
+            #[ink(message)]
+            fn set_voting_delay(&mut self, new_voting_delay: u64) -> Result<(), GovernanceError> {
+                GovernorSettingsImpl::set_voting_delay(self, new_voting_delay)
+            }
+
+            #[ink(message)]
+            fn set_voting_period(&mut self, new_voting_period: u64) -> Result<(), GovernanceError> {
+                GovernorSettingsImpl::set_voting_period(self, new_voting_period)
+            }
+
+            #[ink(message)]
+            fn set_proposal_threshold(&mut self, new_proposal_threshold: u128) -> Result<(), GovernanceError> {
+                GovernorSettingsImpl::set_proposal_threshold(self, new_proposal_threshold)
+            }
+
+            #[ink(message)]
+            fn voting_delay(&self) -> u64 {
+                GovernorSettingsImpl::voting_delay(self)
+            }
+
+            #[ink(message)]
+            fn voting_period(&self) -> u64 {
+                GovernorSettingsImpl::voting_period(self)
+            }
+
+            #[ink(message)]
+            fn proposal_threshold(&self) -> u128 {
+                GovernorSettingsImpl::proposal_threshold(self)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::governance::extensions::governor_settings::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("GovernorSettings", import);
+
+    impl_args.items.push(syn::Item::Impl(governor_settings_events));
+    impl_args.items.push(syn::Item::Impl(governor_settings_internal));
+    impl_args.items.push(syn::Item::Impl(governor_settings_impl));
+    impl_args.items.push(syn::Item::Impl(governor_settings));
+}
+
+pub(crate) fn impl_governor_votes(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let governor_votes_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorVotesInternal for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::governance::extensions::governor_votes::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("GovernorVotes", import);
+
+    impl_args.items.push(syn::Item::Impl(governor_votes_internal));
+}
+
+pub(crate) fn impl_governor_quorum(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let quorum_events = syn::parse2::<syn::ItemImpl>(quote!(
+        impl QuorumEvents for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let quorum_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl QuorumImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let mut quorum = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Quorum for #storage_struct_name {
+            #[ink(message)]
+            fn quorum_numerator(&self) -> u128 {
+                QuorumImpl::quorum_numerator(self)
+            }
+
+            #[ink(message)]
+            fn quorum_numerator_at(&self, time_point: Timestamp) -> u128 {
+                QuorumImpl::quorum_numerator_at(self, time_point)
+            }
+
+            #[ink(message)]
+            fn quorum_denominator(&self) -> u128 {
+                QuorumImpl::quorum_denominator(self)
+            }
+
+            #[ink(message)]
+            fn quorum(&self, time_point: Timestamp) -> Result<u128, GovernanceError> {
+                QuorumImpl::quorum(self, time_point)
+            }
+
+            #[ink(message)]
+            fn update_quorum_numerator(&mut self, numerator: u128) -> Result<(), GovernanceError> {
+                QuorumImpl::update_quorum_numerator(self, numerator)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::governance::extensions::governor_quorum::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("GovernorQuorum", import);
+
+    override_functions("Quorum", &mut quorum, impl_args.map);
+
+    impl_args.items.push(syn::Item::Impl(quorum_events));
+    impl_args.items.push(syn::Item::Impl(quorum_impl));
+    impl_args.items.push(syn::Item::Impl(quorum));
+}
+
+pub(crate) fn impl_governor_counting(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+
+    let governor_counting_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorCountingImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let counting_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl CountingInternal for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let governor_counting = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorCounting for #storage_struct_name {
+            #[ink(message)]
+            fn has_voted(&self, proposal_id: ProposalId, account: AccountId) -> bool {
+                GovernorCountingImpl::has_voted(self, proposal_id, account)
+            }
+
+            #[ink(message)]
+            fn proposal_votes(&self, proposal_id: ProposalId) -> Result<ProposalVote, GovernanceError> {
+                GovernorCountingImpl::proposal_votes(self, proposal_id)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::governance::extensions::governor_counting::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("GovernorCounting", import);
+
+    impl_args.items.push(syn::Item::Impl(governor_counting_impl));
+    impl_args.items.push(syn::Item::Impl(counting_internal));
+    impl_args.items.push(syn::Item::Impl(governor_counting));
+}
+pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+
+    let governor_storage_getters = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorStorageGetters for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let governor_internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorInternal for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let governor_events = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorEvents for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let governor_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl GovernorImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let governor = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Governor for Contract {
+            #[ink(message)]
+            fn hash_proposal(
+                &self,
+                transactions: Vec<Transaction>,
+                description_hash: HashType,
+            ) -> Result<HashType, GovernanceError> {
+                GovernorImpl::hash_proposal(self, transactions, description_hash)
+            }
+
+            #[ink(message)]
+            fn state(&self, proposal_id: ProposalId) -> Result<ProposalState, GovernanceError> {
+                GovernorImpl::state(self, proposal_id)
+            }
+
+            #[ink(message)]
+            fn proposal_snapshot(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
+                GovernorImpl::proposal_snapshot(self, proposal_id)
+            }
+
+            #[ink(message)]
+            fn proposal_deadline(&self, proposal_id: ProposalId) -> Result<Timestamp, GovernanceError> {
+                GovernorImpl::proposal_deadline(self, proposal_id)
+            }
+
+            #[ink(message)]
+            fn proposal_proposer(&self, proposal_id: ProposalId) -> Result<AccountId, GovernanceError> {
+                GovernorImpl::proposal_proposer(self, proposal_id)
+            }
+
+            #[ink(message)]
+            fn get_votes_with_params(
+                &mut self,
+                account: AccountId,
+                time_point: Timestamp,
+                params: Vec<u8>,
+            ) -> Result<u128, GovernanceError> {
+                GovernorImpl::get_votes_with_params(self, account, time_point, params)
+            }
+
+            #[ink(message)]
+            fn propose(
+                &mut self,
+                transactions: Vec<Transaction>,
+                description: String,
+            ) -> Result<ProposalId, GovernanceError> {
+                GovernorImpl::propose(self, transactions, description)
+            }
+
+            #[ink(message)]
+            fn execute(
+                &mut self,
+                transactions: Vec<Transaction>,
+                description_hash: HashType,
+            ) -> Result<ProposalId, GovernanceError> {
+                GovernorImpl::execute(self, transactions, description_hash)
+            }
+
+            #[ink(message)]
+            fn cancel(
+                &mut self,
+                transactions: Vec<Transaction>,
+                description_hash: HashType,
+            ) -> Result<ProposalId, GovernanceError> {
+                GovernorImpl::cancel(self, transactions, description_hash)
+            }
+
+            #[ink(message)]
+            fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType, reason: Option<String>, params: Option<Vec<u8>>) -> Result<Balance, GovernanceError> {
+                GovernorImpl::cast_vote(self, proposal_id, support, reason, params)
+            }
+
+            #[ink(message)]
+            fn cast_vote_with_signature(
+                &mut self,
+                proposal_id: ProposalId,
+                support: VoteType,
+                reason: String,
+                signature: Signature,
+            ) -> Result<Balance, GovernanceError> {
+                GovernorImpl::cast_vote_with_signature(self, proposal_id, support, reason, signature)
+            }
+
+            #[ink(message)]
+            fn cast_vote_with_signature_and_params(
+                &mut self,
+                proposal_id: ProposalId,
+                support: VoteType,
+                reason: String,
+                signature: Signature,
+                params: Vec<u8>,
+            ) -> Result<Balance, GovernanceError> {
+                GovernorImpl::cast_vote_with_signature_and_params(self, proposal_id, support, reason, signature, params)
+            }
+
+            #[ink(message)]
+            fn relay(&mut self, target: AccountId, transaction: Transaction) -> Result<(), GovernanceError> {
+                GovernorImpl::relay(self, target, transaction)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::governance::governor::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("Governor", import);
+
+    impl_args.items.push(syn::Item::Impl(governor_storage_getters));
+    impl_args.items.push(syn::Item::Impl(governor_internal));
+    impl_args.items.push(syn::Item::Impl(governor_events));
+    impl_args.items.push(syn::Item::Impl(governor_impl));
+    impl_args.items.push(syn::Item::Impl(governor));
+}
+
+pub(crate) fn impl_nonces(impl_args: &mut ImplArgs) {
+    let storage_struct_name = &impl_args.contract_name();
+
+    let nonces_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl NoncesImpl for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let nonces = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Nonces for #storage_struct_name {
+            #[ink(message)]
+            fn nonces(&self, account: AccountId) -> u64 {
+                NoncesImpl::nonces(self, &account)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::nonces::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("Nonces", import);
+
+    impl_args.items.push(syn::Item::Impl(nonces_impl));
+    impl_args.items.push(syn::Item::Impl(nonces));
+}
 fn override_functions(trait_name: &str, implementation: &mut syn::ItemImpl, map: &OverridenFnMap) {
     if let Some(overrides) = map.get(trait_name) {
         // we will find which fns we wanna override

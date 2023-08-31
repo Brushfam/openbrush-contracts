@@ -76,14 +76,16 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 
     let mut impl_args = ImplArgs::new(&map, &mut items, &mut imports, &mut overriden_traits, ident);
 
-    for to_implement in args {
+    for to_implement in &args {
         match to_implement.as_str() {
             "PSP22" => impl_psp22(&mut impl_args),
             "PSP22Mintable" => impl_psp22_mintable(&mut impl_args),
             "PSP22Burnable" => impl_psp22_burnable(&mut impl_args),
+            "PSP22Permit" => impl_psp22_permit(&mut impl_args),
             "PSP22Metadata" => impl_psp22_metadata(&mut impl_args),
             "PSP22Capped" => impl_psp22_capped(&mut impl_args),
             "PSP22Wrapper" => impl_psp22_wrapper(&mut impl_args),
+            "PSP22Votes" => impl_psp22_votes(&mut impl_args),
             "Flashmint" => impl_flashmint(&mut impl_args),
             "PSP22TokenTimelock" => impl_token_timelock(&mut impl_args),
             "PSP22Pallet" => impl_psp22_pallet(&mut impl_args),
@@ -111,6 +113,13 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "Diamond" => impl_diamond(&mut impl_args),
             "DiamondLoupe" => impl_diamond_loupe(&mut impl_args),
             "Upgradeable" => impl_upgradeable(&mut impl_args),
+            "Governor" => impl_governor(&mut impl_args),
+            "GovernorSettings" => impl_governor_settings(&mut impl_args),
+            "GovernorVotes" => impl_governor_votes(&mut impl_args),
+            "GovernorQuorum" => impl_governor_quorum(&mut impl_args),
+            "GovernorCounting" => impl_governor_counting(&mut impl_args),
+            "Nonces" => impl_nonces(&mut impl_args),
+            "PSP61" => impl_psp61(&mut impl_args, args.clone()),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }
@@ -142,6 +151,7 @@ fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
         "PSP22Capped",
         "PSP22Metadata",
         "PSP22Wrapper",
+        "PSP22Permit",
         "Flashmint",
     ];
     check_and_remove_import("PSP22", psp22_impls, imports);

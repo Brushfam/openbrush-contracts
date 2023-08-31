@@ -62,7 +62,7 @@ pub mod my_psp37 {
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
                     contract.mint_to(
-                        address_of!(alice),
+                        address_of!(Alice),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2.clone())],
                     )
                 });
@@ -78,8 +78,8 @@ pub mod my_psp37 {
             let transfer_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
                     contract.transfer_from(
-                        address_of!(alice),
-                        address_of!(bob),
+                        address_of!(Alice),
+                        address_of!(Bob),
                         token_1.clone(),
                         amount_1.clone(),
                         vec![],
@@ -94,11 +94,11 @@ pub mod my_psp37 {
 
             assert_eq!(transfer_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, alice, None), 1);
-            assert_eq!(balance_of_37!(client, address, bob, None), 1);
+            assert_eq!(balance_of_37!(client, address, Alice, None), 1);
+            assert_eq!(balance_of_37!(client, address, Bob, None), 1);
 
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_1.clone())), amount_1);
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), amount_1);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), amount_2);
 
             let total_supply = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply(None));
@@ -110,7 +110,7 @@ pub mod my_psp37 {
 
             let burn_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(alice), vec![(token_2.clone(), amount_2.clone())]));
+                    .call(|contract| contract.burn(address_of!(Alice), vec![(token_2.clone(), amount_2.clone())]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -120,8 +120,8 @@ pub mod my_psp37 {
 
             assert_eq!(burn_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, alice, None), 0);
-            assert_eq!(balance_of_37!(client, address, bob, None), 1);
+            assert_eq!(balance_of_37!(client, address, Alice, None), 0);
+            assert_eq!(balance_of_37!(client, address, Bob, None), 1);
 
             let total_supply = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply(None));
@@ -151,7 +151,7 @@ pub mod my_psp37 {
 
             let burn_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(bob), vec![(token_1.clone(), amount_1.clone())]));
+                    .call(|contract| contract.burn(address_of!(Bob), vec![(token_1.clone(), amount_1.clone())]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -161,8 +161,8 @@ pub mod my_psp37 {
 
             assert_eq!(burn_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, alice, None), 0);
-            assert_eq!(balance_of_37!(client, address, bob, None), 0);
+            assert_eq!(balance_of_37!(client, address, Alice, None), 0);
+            assert_eq!(balance_of_37!(client, address, Bob, None), 0);
 
             let total_supply = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply(None));
@@ -211,7 +211,7 @@ pub mod my_psp37 {
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
                     contract.mint_to(
-                        address_of!(alice),
+                        address_of!(Alice),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), 20)],
                     )
                 });
@@ -227,8 +227,8 @@ pub mod my_psp37 {
             let transfer_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
                     contract.transfer_from(
-                        address_of!(alice),
-                        address_of!(bob),
+                        address_of!(Alice),
+                        address_of!(Bob),
                         token_2.clone(),
                         amount_2.clone(),
                         vec![],
@@ -243,15 +243,15 @@ pub mod my_psp37 {
 
             assert_eq!(transfer_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_1.clone())), amount_1);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_2.clone())), amount_2);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_1.clone())), amount_1);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_2.clone())), amount_2);
 
             let burn_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
                     contract.burn(
-                        address_of!(alice),
+                        address_of!(Alice),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2.clone())],
                     )
                 });
@@ -267,7 +267,7 @@ pub mod my_psp37 {
             let burn_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
                     contract.burn(
-                        address_of!(bob),
+                        address_of!(Bob),
                         vec![(token_1.clone(), 0), (token_2.clone(), amount_2.clone())],
                     )
                 });
@@ -280,10 +280,10 @@ pub mod my_psp37 {
 
             assert_eq!(burn_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_2.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_2.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_2.clone())), 0);
 
             Ok(())
         }
@@ -306,7 +306,7 @@ pub mod my_psp37 {
             let mint_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
                     contract.mint_to(
-                        address_of!(alice),
+                        address_of!(Alice),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2)],
                     )
                 });
@@ -319,15 +319,15 @@ pub mod my_psp37 {
 
             assert_eq!(mint_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_1.clone())), amount_1);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_2.clone())), amount_2);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_2.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_1.clone())), amount_1);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_2.clone())), 0);
 
             let burn_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
                     contract.burn(
-                        address_of!(alice),
+                        address_of!(Alice),
                         vec![(token_1.clone(), amount_1 + 1), (token_2.clone(), amount_2.clone())],
                     )
                 });
@@ -339,7 +339,7 @@ pub mod my_psp37 {
 
             let burn_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(alice), vec![(token_1.clone(), amount_1 + 1)]));
+                    .call(|contract| contract.burn(address_of!(Alice), vec![(token_1.clone(), amount_1 + 1)]));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -349,7 +349,7 @@ pub mod my_psp37 {
             let burn_tx = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
                     contract.burn(
-                        address_of!(bob),
+                        address_of!(Bob),
                         vec![(token_1.clone(), amount_1 + 1), (token_2.clone(), amount_2.clone())],
                     )
                 });
@@ -361,17 +361,17 @@ pub mod my_psp37 {
 
             let burn_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(bob), vec![(token_1.clone(), amount_1 + 1)]));
+                    .call(|contract| contract.burn(address_of!(Bob), vec![(token_1.clone(), amount_1 + 1)]));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             assert!(matches!(burn_tx, Err(_)));
 
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_1.clone())), amount_1);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, alice, Some(token_2.clone())), amount_2);
-            assert_eq!(balance_of_37!(client, address, bob, Some(token_2.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_1.clone())), amount_1);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, address, Bob, Some(token_2.clone())), 0);
 
             Ok(())
         }

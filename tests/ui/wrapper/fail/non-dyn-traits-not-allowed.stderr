@@ -6,14 +6,6 @@ error: Macro accepts only form of `type Trait1and2Ref = dyn Trait1 + Trait2`
   |
   = note: this error originates in the attribute macro `openbrush::wrapper` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0782]: trait objects must include the `dyn` keyword
-  --> tests/ui/wrapper/fail/non-dyn-traits-not-allowed.rs:18:1
-   |
-18 | #[openbrush::wrapper]
-   | ^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in the attribute macro `openbrush::wrapper` (in Nightly builds, run with -Z macro-backtrace for more info)
-
 error[E0433]: failed to resolve: use of undeclared type `Trait1Ref`
   --> tests/ui/wrapper/fail/non-dyn-traits-not-allowed.rs:14:9
    |
@@ -22,3 +14,11 @@ error[E0433]: failed to resolve: use of undeclared type `Trait1Ref`
    |         |
    |         use of undeclared type `Trait1Ref`
    |         help: a trait with a similar name exists: `Trait1`
+
+error[E0782]: trait objects must include the `dyn` keyword
+  --> tests/ui/wrapper/fail/non-dyn-traits-not-allowed.rs:18:1
+   |
+18 | #[openbrush::wrapper]
+   | ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `openbrush::wrapper` (in Nightly builds, run with -Z macro-backtrace for more info)

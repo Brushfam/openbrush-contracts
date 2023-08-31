@@ -44,10 +44,7 @@ pub mod my_psp22_pallet {
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{
-            address_of,
-            balance_of,
-        };
+        use test_helpers::{address_of, balance_of};
 
         fn random_num() -> u32 {
             use rand::Rng;
@@ -73,7 +70,7 @@ pub mod my_psp22_pallet {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.balance_of(address_of!(alice)));
+                    .call(|contract| contract.balance_of(address_of!(Alice)));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             };
 
@@ -99,7 +96,7 @@ pub mod my_psp22_pallet {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), 50, vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), 50, vec![]));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -108,9 +105,9 @@ pub mod my_psp22_pallet {
 
             assert!(matches!(result.return_value(), Ok(())));
 
-            let balance_of_alice = balance_of!(client, address, alice);
+            let balance_of_alice = balance_of!(client, address, Alice);
 
-            let balance_of_bob = balance_of!(client, address, bob);
+            let balance_of_bob = balance_of!(client, address, Bob);
 
             assert_eq!(balance_of_bob, 50, "Bob should have 50 tokens");
             assert_eq!(balance_of_alice, 50, "Alice should have 50 tokens");
@@ -135,7 +132,7 @@ pub mod my_psp22_pallet {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(bob), 101, vec![]));
+                    .call(|contract| contract.transfer(address_of!(Bob), 101, vec![]));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             };
 

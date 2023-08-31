@@ -50,7 +50,7 @@ pub mod my_timelock_controller {
 
         #[ink_e2e::test]
         async fn can_schedule(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
+            let constructor = ContractRef::new(0, vec![address_of!(Bob)], vec![address_of!(Bob)]);
             let address = client
                 .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -127,7 +127,7 @@ pub mod my_timelock_controller {
 
         #[ink_e2e::test]
         async fn schedule_and_execute_without_input_data(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
+            let constructor = ContractRef::new(0, vec![address_of!(Bob)], vec![address_of!(Bob)]);
             let address = client
                 .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -200,7 +200,7 @@ pub mod my_timelock_controller {
         async fn schedule_and_execute_by_passing_value_into_update_delay_and_update(
             client: ink_e2e::Client<C, E>,
         ) -> E2EResult<()> {
-            let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
+            let constructor = ContractRef::new(0, vec![address_of!(Bob)], vec![address_of!(Bob)]);
             let address = client
                 .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -264,7 +264,7 @@ pub mod my_timelock_controller {
 
         #[ink_e2e::test]
         async fn fails_schedule_because_signer_is_not_proposal(clientclient: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
+            let constructor = ContractRef::new(0, vec![address_of!(Bob)], vec![address_of!(Bob)]);
             let address = client
                 .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -295,7 +295,7 @@ pub mod my_timelock_controller {
 
         #[ink_e2e::test]
         async fn fails_execute_because_signer_is_not_executor(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
+            let constructor = ContractRef::new(0, vec![address_of!(Bob)], vec![address_of!(Bob)]);
             let address = client
                 .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -338,7 +338,7 @@ pub mod my_timelock_controller {
 
         #[ink_e2e::test]
         async fn fails_update_delay(client: Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new(0, vec![address_of!(bob)], vec![address_of!(bob)]);
+            let constructor = ContractRef::new(0, vec![address_of!(Bob)], vec![address_of!(Bob)]);
             let address = client
                 .instantiate("my_timelock_controller", &ink_e2e::alice(), constructor, 0, None)
                 .await

@@ -7,11 +7,12 @@ members = [
 exclude = [
     "examples",
     "example_project_structure",
+    "mocks"
 ]
 
 [package]
 name = "openbrush"
-version= "4.0.0-beta"
+version= "4.0.0-beta.1"
 authors = ["Brushfam <green@727.ventures>"]
 edition = "2018"
 
@@ -26,12 +27,12 @@ categories = ["no-std", "embedded"]
 include = ["Cargo.toml", "src/**/*.rs"]
 
 [dependencies]
-ink = { version = "4.2.1", default-features = false }
+ink = { version = "4.3.0", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"] }
 
-openbrush_contracts = { version = "~4.0.0-beta", path = "contracts", default-features = false }
-openbrush_lang = { version = "~4.0.0-beta", path = "lang", default-features = false }
+openbrush_contracts = { version = "~4.0.0-beta.1", path = "contracts", default-features = false }
+openbrush_lang = { version = "~4.0.0-beta.1", path = "lang", default-features = false }
 
 [lib]
 name = "openbrush"
@@ -41,9 +42,9 @@ crate-type = [
 ]
 
 [dev-dependencies]
-ink_env = "4.2.1"
+ink_env = "4.3.0"
 trybuild = "1.0.80"
-ink_e2e = "4.2.1"
+ink_e2e = "4.3.0"
 
 [features]
 default = ["std"]
@@ -67,6 +68,11 @@ timelock_controller = ["openbrush_contracts/timelock_controller"]
 proxy = ["openbrush_contracts/proxy"]
 diamond = ["openbrush_contracts/diamond"]
 upgradeable = ["openbrush_contracts/upgradeable"]
+governance = ["openbrush_contracts/governance", "openbrush_contracts/checkpoints"]
+crypto = ["openbrush_contracts/crypto"]
+nonces = ["openbrush_contracts/nonces"]
+checkpoints = ["openbrush_contracts/checkpoints"]
+psp61 = ["openbrush_contracts/psp61"]
 
 test-all = [
     "psp22",
@@ -81,6 +87,10 @@ test-all = [
     "timelock_controller",
     "proxy",
     "diamond",
+    "governance",
+    "crypto",
+    "nonces",
+    "checkpoints"
 ]
 
 [profile.release]
@@ -88,7 +98,6 @@ panic = "abort"
 lto = false
 
 [profile.dev]
-
 panic = "abort"
 lto = false
 overflow-checks = false

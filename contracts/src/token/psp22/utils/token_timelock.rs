@@ -23,12 +23,31 @@
 pub use crate::{
     psp22,
     psp22::utils::token_timelock,
-    traits::psp22::{utils::token_timelock::*, *},
+    traits::psp22::{
+        utils::token_timelock::*,
+        *,
+    },
 };
-use ink::{env::CallFlags, prelude::vec::Vec};
-use openbrush::traits::{AccountId, Balance, Storage, Timestamp};
-pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
-pub use token_timelock::{Internal as _, InternalImpl as _, PSP22TokenTimelockImpl as _};
+use ink::{
+    env::CallFlags,
+    prelude::vec::Vec,
+};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Storage,
+    Timestamp,
+};
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22Impl,
+};
+pub use token_timelock::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22TokenTimelockImpl as _,
+};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -60,11 +79,11 @@ pub trait PSP22TokenTimelockImpl: Storage<Data> + Internal {
     /// Transfers the tokens held by timelock to the beneficairy
     fn release(&mut self) -> Result<(), PSP22TokenTimelockError> {
         if Self::env().block_timestamp() < self.data().release_time.get_or_default() {
-            return Err(PSP22TokenTimelockError::CurrentTimeIsBeforeReleaseTime);
+            return Err(PSP22TokenTimelockError::CurrentTimeIsBeforeReleaseTime)
         }
         let amount = self._contract_balance();
         if amount == 0 {
-            return Err(PSP22TokenTimelockError::NoTokensToRelease);
+            return Err(PSP22TokenTimelockError::NoTokensToRelease)
         }
         self._withdraw(amount)
     }
@@ -123,7 +142,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
         release_time: Timestamp,
     ) -> Result<(), PSP22TokenTimelockError> {
         if release_time <= Self::env().block_timestamp() {
-            return Err(PSP22TokenTimelockError::ReleaseTimeIsBeforeCurrentTime);
+            return Err(PSP22TokenTimelockError::ReleaseTimeIsBeforeCurrentTime)
         }
         self.data().token.set(&Some(token));
         self.data().beneficiary.set(&Some(beneficiary));

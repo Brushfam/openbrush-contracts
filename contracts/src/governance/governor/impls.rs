@@ -87,8 +87,6 @@ where
         return Err(GovernanceError::OnlyExecutor.into())
     }
 
-    // todo: add check if executor is not this contract
-
     body(instance)
 }
 

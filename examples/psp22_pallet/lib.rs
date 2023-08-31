@@ -44,10 +44,7 @@ pub mod my_psp22_pallet {
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{
-            address_of,
-            balance_of,
-        };
+        use test_helpers::{address_of, balance_of};
 
         fn random_num() -> u32 {
             use rand::Rng;

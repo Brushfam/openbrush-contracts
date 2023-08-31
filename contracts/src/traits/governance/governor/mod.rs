@@ -107,27 +107,12 @@ pub trait Governor {
     /// Casts a vote for a proposal from a message sender.
     /// Returns the number of votes already casted for the proposal by the sender
     #[ink(message)]
-    fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType) -> Result<Balance, GovernanceError>;
-
-    /// Casts a vote with reason for a proposal from a message sender.
-    /// Returns the number of votes already casted for the proposal by the sender
-    #[ink(message)]
-    fn cast_vote_with_reason(
+    fn cast_vote(
         &mut self,
         proposal_id: ProposalId,
         support: VoteType,
-        reason: String,
-    ) -> Result<Balance, GovernanceError>;
-
-    /// Casts a vote with reason and parameters for a proposal from a message sender.
-    /// Returns the number of votes already casted for the proposal by the sender
-    #[ink(message)]
-    fn cast_vote_with_reason_and_params(
-        &mut self,
-        proposal_id: ProposalId,
-        support: VoteType,
-        reason: String,
-        params: Vec<u8>,
+        reason: Option<String>,
+        params: Option<Vec<u8>>,
     ) -> Result<Balance, GovernanceError>;
 
     /// Casts a vote with signature for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender

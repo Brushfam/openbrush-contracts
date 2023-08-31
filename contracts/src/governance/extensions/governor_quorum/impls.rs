@@ -123,10 +123,7 @@ pub trait QuorumImpl:
         let denominator = self.quorum_denominator();
 
         if new_quorum_numerator > denominator {
-            return Err(GovernanceError::InvalidQuorumFraction(
-                new_quorum_numerator,
-                denominator,
-            ))
+            return Err(GovernanceError::InvalidQuorumFraction)
         }
 
         let old_quorum_numerator = self.quorum_numerator();

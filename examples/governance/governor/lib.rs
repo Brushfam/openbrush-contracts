@@ -4,10 +4,7 @@
 #[openbrush::contract]
 pub mod my_governor {
     use ink::prelude::vec::Vec;
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::{Storage, String};
 
     #[ink(storage)]
     #[derive(Default, Storage)]

@@ -3137,29 +3137,8 @@ pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
             }
 
             #[ink(message)]
-            fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType) -> Result<Balance, GovernanceError> {
-                GovernorImpl::cast_vote(self, proposal_id, support)
-            }
-
-            #[ink(message)]
-            fn cast_vote_with_reason(
-                &mut self,
-                proposal_id: ProposalId,
-                support: VoteType,
-                reason: String,
-            ) -> Result<Balance, GovernanceError> {
-                GovernorImpl::cast_vote_with_reason(self, proposal_id, support, reason)
-            }
-
-            #[ink(message)]
-            fn cast_vote_with_reason_and_params(
-                &mut self,
-                proposal_id: ProposalId,
-                support: VoteType,
-                reason: String,
-                params: Vec<u8>,
-            ) -> Result<Balance, GovernanceError> {
-                GovernorImpl::cast_vote_with_reason_and_params(self, proposal_id, support, reason, params)
+            fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType, reason: Option<String>, params: Option<Vec<u8>>) -> Result<Balance, GovernanceError> {
+                GovernorImpl::cast_vote(self, proposal_id, support, reason, params)
             }
 
             #[ink(message)]

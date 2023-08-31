@@ -51,7 +51,10 @@ use ink::{
         },
         DefaultEnvironment,
     },
-    prelude::vec::Vec,
+    prelude::{
+        vec,
+        vec::Vec,
+    },
 };
 use openbrush::{
     modifiers,
@@ -81,7 +84,7 @@ where
     E: From<GovernanceError>,
 {
     if T::env().caller() != T::env().account_id() {
-        return Err(GovernanceError::OnlyExecutor(T::env().caller()).into())
+        return Err(GovernanceError::OnlyExecutor.into())
     }
 
     // todo: add check if executor is not this contract
@@ -151,28 +154,22 @@ pub trait GovernorImpl:
     /// Makes a proposal for a list of transactions to be executed.
     /// Returns the id of the proposal
     fn propose(&mut self, transactions: Vec<Transaction>, description: String) -> Result<ProposalId, GovernanceError> {
-        let proposer = Self::env().caller();
-
         if transactions.is_empty() {
             return Err(GovernanceError::ZeroProposalLength)
         }
 
-        if !self._is_valid_description_for_proposer(proposer, description.clone())? {
-            return Err(GovernanceError::ProposerRestricted(proposer))
+        if !self._is_valid_description_for_proposer(Self::env().caller(), description.clone())? {
+            return Err(GovernanceError::ProposerRestricted)
         }
 
         let current_timestamp = TimestampProvider::block_timestamp(self);
 
-        let proposer_votes = self.get_votes_with_params(proposer, current_timestamp.clone(), Vec::new())?;
+        let proposer_votes = self.get_votes_with_params(Self::env().caller(), current_timestamp.clone(), Vec::new())?;
 
         let votes_threshold = self.proposal_threshold();
 
         if proposer_votes < votes_threshold {
-            return Err(GovernanceError::InsufficientProposerVotes(
-                proposer,
-                proposer_votes,
-                votes_threshold,
-            ))
+            return Err(GovernanceError::InsufficientProposerVotes)
         }
 
         let description_hash = self._hash_description(description.clone())?;
@@ -189,23 +186,23 @@ pub trait GovernorImpl:
         self.data::<Data>().proposals.insert(
             &proposal_id,
             &ProposalCore {
-                proposer: proposer.clone(),
-                vote_start: snapshot.clone(),
-                vote_duration: duration.clone(),
+                proposer: Self::env().caller(),
+                vote_start: snapshot,
+                vote_duration: duration,
                 executed: ExecutionStatus::NotExecuted,
                 canceled: CancelationStatus::NotCanceled,
             },
         );
 
         self.emit_proposal_created(
-            proposal_id.clone(),
-            proposer,
+            proposal_id,
+            Self::env().caller(),
             transactions,
             snapshot,
             snapshot
                 .checked_add(duration)
                 .ok_or(GovernanceError::DeadlineOverflow)?,
-            description.clone(),
+            description,
         );
 
         Ok(proposal_id)
@@ -223,11 +220,7 @@ pub trait GovernorImpl:
         let current_state = self.state(proposal_id.clone())?;
 
         if current_state != ProposalState::Succeeded && current_state != ProposalState::Queued {
-            return Err(GovernanceError::UnexpectedProposalState(
-                proposal_id.clone(),
-                current_state,
-                ProposalState::Succeeded.u128() | ProposalState::Queued.u128(),
-            ))
+            return Err(GovernanceError::UnexpectedProposalState)
         }
 
         let proposal = self
@@ -266,18 +259,12 @@ pub trait GovernorImpl:
 
         let current_state = self.state(proposal_id.clone())?;
 
-        let caller = Self::env().caller();
-
         if current_state != ProposalState::Pending {
-            return Err(GovernanceError::UnexpectedProposalState(
-                proposal_id.clone(),
-                current_state,
-                ProposalState::Pending.u128(),
-            ))
+            return Err(GovernanceError::UnexpectedProposalState)
         }
 
-        if caller != self.proposal_proposer(proposal_id.clone())? {
-            return Err(GovernanceError::OnlyProposer(caller))
+        if Self::env().caller() != self.proposal_proposer(proposal_id.clone())? {
+            return Err(GovernanceError::OnlyProposer)
         }
 
         self._cancel(transactions, description_hash)
@@ -285,38 +272,21 @@ pub trait GovernorImpl:
 
     /// Casts a vote for a proposal from a message sender.
     /// Returns the number of votes already casted for the proposal by the sender
-    fn cast_vote(&mut self, proposal_id: ProposalId, support: VoteType) -> Result<Balance, GovernanceError> {
-        let voter = Self::env().caller();
-
-        self._cast_vote(proposal_id, voter, support, String::new())
-    }
-
-    /// Casts a vote with reason for a proposal from a message sender.
-    /// Returns the number of votes already casted for the proposal by the sender
-    fn cast_vote_with_reason(
+    fn cast_vote(
         &mut self,
         proposal_id: ProposalId,
         support: VoteType,
-        reason: String,
+        reason: Option<String>,
+        params: Option<Vec<u8>>,
     ) -> Result<Balance, GovernanceError> {
-        let voter = Self::env().caller();
-
-        self._cast_vote_with_params(proposal_id, voter, support, reason, Vec::new())
+        self._cast_vote_with_params(
+            proposal_id,
+            Self::env().caller(),
+            support,
+            reason.unwrap_or_default(),
+            params.unwrap_or_default(),
+        )
     }
-    /// Casts a vote with reason and parameters for a proposal from a message sender.
-    /// Returns the number of votes already casted for the proposal by the sender
-    fn cast_vote_with_reason_and_params(
-        &mut self,
-        proposal_id: ProposalId,
-        support: VoteType,
-        reason: String,
-        params: Vec<u8>,
-    ) -> Result<Balance, GovernanceError> {
-        let voter = Self::env().caller();
-
-        self._cast_vote_with_params(proposal_id, voter, support, reason, params)
-    }
-
     /// Casts a vote with signature for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
     fn cast_vote_with_signature(
         &mut self,
@@ -328,10 +298,10 @@ pub trait GovernorImpl:
         let message = (proposal_id.clone(), support.clone(), reason.clone(), Vec::<u8>::new()).encode();
 
         if !signature.verify(&message, &Self::env().caller()) {
-            return Err(GovernanceError::InvalidSignature(Self::env().caller()))
+            return Err(GovernanceError::InvalidSignature)
         }
 
-        self._cast_vote(proposal_id, Self::env().caller(), support, reason)
+        self._cast_vote_with_params(proposal_id, Self::env().caller(), support, reason, vec![])
     }
 
     /// Casts a vote with signature and parameters for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
@@ -346,7 +316,7 @@ pub trait GovernorImpl:
         let message = (proposal_id.clone(), support.clone(), reason.clone(), params.clone()).encode();
 
         if !signature.verify(&message, &Self::env().caller()) {
-            return Err(GovernanceError::InvalidSignature(Self::env().caller()))
+            return Err(GovernanceError::InvalidSignature)
         }
 
         self._cast_vote_with_params(proposal_id, Self::env().caller(), support, reason, params)
@@ -363,8 +333,8 @@ pub trait GovernorImpl:
             .exec_input(ExecutionInput::new(transaction.selector.into()).push_arg(transaction.clone().input))
             .returns::<()>()
             .try_invoke()
-            .map_err(|_| GovernanceError::ExecutionFailed(transaction.clone()))?
-            .map_err(|_| GovernanceError::ExecutionFailed(transaction.clone()))?;
+            .map_err(|_| GovernanceError::ExecutionFailed)?
+            .map_err(|_| GovernanceError::ExecutionFailed)?;
 
         Ok(())
     }

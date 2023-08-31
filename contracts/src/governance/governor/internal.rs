@@ -43,7 +43,6 @@ use crate::{
             ProposalState,
             Transaction,
             VoteType,
-            ALL_PROPOSAL_STATES,
         },
     },
 };
@@ -98,7 +97,7 @@ pub trait GovernorInternal:
             .data::<Data>()
             .proposals
             .get(&proposal_id)
-            .ok_or(GovernanceError::NonexistentProposal(proposal_id))?;
+            .ok_or(GovernanceError::NonexistentProposal)?;
 
         if proposal.executed == ExecutionStatus::Executed {
             return Ok(ProposalState::Executed)
@@ -127,11 +126,6 @@ pub trait GovernorInternal:
         }
     }
 
-    /// Returns default parameters for the proposal
-    fn _default_params(&self) -> Vec<u8> {
-        Vec::new()
-    }
-
     /// Executes a proposal if it is in the `Succeeded` state.
     fn _execute(&mut self, transactions: Vec<Transaction>, _description_hash: HashType) -> Result<(), GovernanceError> {
         for tx in transactions.iter() {
@@ -146,10 +140,10 @@ pub trait GovernorInternal:
                     .call_flags(CallFlags::default().set_allow_reentry(true))
                     .returns::<()>()
                     .try_invoke()
-                    .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?
-                    .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?;
+                    .map_err(|_| GovernanceError::ExecutionFailed)?
+                    .map_err(|_| GovernanceError::ExecutionFailed)?;
             } else {
-                return Err(GovernanceError::ExecutionFailed(tx.clone()))
+                return Err(GovernanceError::ExecutionFailed)
             }
         }
 
@@ -206,11 +200,7 @@ pub trait GovernorInternal:
             ProposalState::Canceled.u128() | ProposalState::Executed.u128() | ProposalState::Expired.u128();
 
         if forbidden_states.clone() & current_state.clone().u128() != 0 {
-            return Err(GovernanceError::UnexpectedProposalState(
-                proposal_id.clone(),
-                current_state,
-                ALL_PROPOSAL_STATES ^ forbidden_states,
-            ))
+            return Err(GovernanceError::UnexpectedProposalState)
         }
 
         let proposal = self
@@ -230,17 +220,6 @@ pub trait GovernorInternal:
         self.emit_proposal_canceled(proposal_id.clone());
 
         Ok(proposal_id)
-    }
-
-    /// Casts a vote on a proposal with `proposal_id`, `support`(for/against/abstain) and `reason`.
-    fn _cast_vote(
-        &mut self,
-        proposal_id: ProposalId,
-        account: AccountId,
-        support: VoteType,
-        reason: String,
-    ) -> Result<Balance, GovernanceError> {
-        self._cast_vote_with_params(proposal_id, account, support, reason, self._default_params())
     }
 
     /// Returns the AccountId of the proposer of a proposal
@@ -265,11 +244,7 @@ pub trait GovernorInternal:
         let current_state = self._state(proposal_id.clone())?;
 
         if current_state != ProposalState::Active {
-            return Err(GovernanceError::UnexpectedProposalState(
-                proposal_id.clone(),
-                current_state,
-                ProposalState::Active.u128(),
-            ))
+            return Err(GovernanceError::UnexpectedProposalState)
         }
 
         let snapshot = self._proposal_snapshot(proposal_id.clone())?;

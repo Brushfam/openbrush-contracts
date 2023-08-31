@@ -75,7 +75,7 @@ pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters 
         let mut proposal_vote = self.data::<Data>().proposal_votes.get(&proposal_id).unwrap_or_default();
 
         if self.data::<Data>().has_votes.get(&(proposal_id, account)).is_some() {
-            return Err(GovernanceError::AlreadyCastVote(account))?
+            return Err(GovernanceError::AlreadyCastVote)?
         }
 
         self.data::<Data>().has_votes.insert(&(proposal_id, account), &());

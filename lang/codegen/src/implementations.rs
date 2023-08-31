@@ -3149,7 +3149,7 @@ pub(crate) fn impl_governor(impl_args: &mut ImplArgs) {
                 reason: String,
                 signature: Signature,
             ) -> Result<Balance, GovernanceError> {
-                GovernorImpl::cast_vote_with_signature(self, proposal_id, support, reason, signature, params)
+                GovernorImpl::cast_vote_with_signature(self, proposal_id, support, reason, signature)
             }
 
             #[ink(message)]

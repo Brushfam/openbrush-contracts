@@ -43,7 +43,6 @@ use crate::{
             ProposalState,
             Transaction,
             VoteType,
-            ALL_PROPOSAL_STATES,
         },
     },
 };
@@ -141,10 +140,10 @@ pub trait GovernorInternal:
                     .call_flags(CallFlags::default().set_allow_reentry(true))
                     .returns::<()>()
                     .try_invoke()
-                    .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?
-                    .map_err(|_| GovernanceError::ExecutionFailed(tx.clone()))?;
+                    .map_err(|_| GovernanceError::ExecutionFailed)?
+                    .map_err(|_| GovernanceError::ExecutionFailed)?;
             } else {
-                return Err(GovernanceError::ExecutionFailed(tx.clone()))
+                return Err(GovernanceError::ExecutionFailed)
             }
         }
 

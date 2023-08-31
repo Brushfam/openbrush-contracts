@@ -51,7 +51,10 @@ use ink::{
         },
         DefaultEnvironment,
     },
-    prelude::vec::Vec,
+    prelude::{
+        vec,
+        vec::Vec,
+    },
 };
 use openbrush::{
     modifiers,
@@ -295,10 +298,10 @@ pub trait GovernorImpl:
         let message = (proposal_id.clone(), support.clone(), reason.clone(), Vec::<u8>::new()).encode();
 
         if !signature.verify(&message, &Self::env().caller()) {
-            return Err(GovernanceError::InvalidSignature(Self::env().caller()))
+            return Err(GovernanceError::InvalidSignature)
         }
 
-        self._cast_vote(proposal_id, Self::env().caller(), support, reason)
+        self._cast_vote_with_params(proposal_id, Self::env().caller(), support, reason, vec![])
     }
 
     /// Casts a vote with signature and parameters for a proposal from a message sender. Returns the number of votes already casted for the proposal by the sender
@@ -313,7 +316,7 @@ pub trait GovernorImpl:
         let message = (proposal_id.clone(), support.clone(), reason.clone(), params.clone()).encode();
 
         if !signature.verify(&message, &Self::env().caller()) {
-            return Err(GovernanceError::InvalidSignature(Self::env().caller()))
+            return Err(GovernanceError::InvalidSignature)
         }
 
         self._cast_vote_with_params(proposal_id, Self::env().caller(), support, reason, params)

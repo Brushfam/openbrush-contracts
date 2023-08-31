@@ -112,7 +112,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + nonces::NoncesImpl + VotesE
         let message = (&delegatee, &nonce, &expiry).encode();
 
         if !signature.verify(&message, &signer) {
-            return Err(GovernanceError::InvalidSignature(signer))
+            return Err(GovernanceError::InvalidSignature)
         } else {
             self._use_checked_nonce(&signer, nonce)?;
             self._delegate(&Some(signer), &Some(delegatee))

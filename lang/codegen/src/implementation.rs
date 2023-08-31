@@ -76,7 +76,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 
     let mut impl_args = ImplArgs::new(&map, &mut items, &mut imports, &mut overriden_traits, ident);
 
-    for to_implement in args {
+    for to_implement in &args {
         match to_implement.as_str() {
             "PSP22" => impl_psp22(&mut impl_args),
             "PSP22Mintable" => impl_psp22_mintable(&mut impl_args),
@@ -119,6 +119,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "GovernorQuorum" => impl_governor_quorum(&mut impl_args),
             "GovernorCounting" => impl_governor_counting(&mut impl_args),
             "Nonces" => impl_nonces(&mut impl_args),
+            "PSP61" => impl_psp61(&mut impl_args, args.clone()),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
     }

@@ -171,6 +171,8 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
     let trait_wrapper_ident = format_ident!("{}Wrapper", ink_trait.ident);
     let mut def_messages = vec![];
     let mut impl_messages = vec![];
+    let mut message_selectors = vec![];
+
     ink_trait
         .items
         .into_iter()
@@ -190,7 +192,7 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
             };
 
             let selector_string = format!("{}::{}", trait_ident, message_ident);
-            let selector_bytes = ::ink_ir::Selector::compute(&selector_string.into_bytes()).hex_lits();
+            let selector_bytes = ::ink_ir::Selector::compute(&selector_string.clone().into_bytes()).hex_lits();
             let input_bindings = method
                 .sig
                 .inputs
@@ -284,9 +286,16 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
                         .returns::<#output_ty>()
                 }
             });
+
+            message_selectors.push(selector_string);
         });
+
     let impl_messages = impl_messages.iter();
     let def_messages = def_messages.iter();
+
+    message_selectors.sort_unstable();
+
+    let trait_id = ::ink_ir::Selector::compute(&message_selectors.join("").into_bytes()).into_be_u32();
 
     quote! {
         pub trait #trait_wrapper_ident {
@@ -296,6 +305,8 @@ fn generate_wrapper(ink_trait: ItemTrait) -> proc_macro2::TokenStream {
         impl #trait_wrapper_ident for ::openbrush::traits::AccountId {
             #( #impl_messages )*
         }
+
+        pub const TRAIT_ID: u32 = #trait_id;
     }
 }
 

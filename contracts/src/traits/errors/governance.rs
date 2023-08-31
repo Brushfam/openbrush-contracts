@@ -20,23 +20,10 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::traits::{
-    errors::NoncesError,
-    governance::{
-        ProposalId,
-        ProposalState,
-        Transaction,
-    },
-};
-use openbrush::{
-    traits::{
-        AccountId,
-        Timestamp,
-    },
-    utils::{
-        checkpoints::CheckpointsError,
-        crypto::CryptoError,
-    },
+use crate::traits::errors::NoncesError;
+use openbrush::utils::{
+    checkpoints::CheckpointsError,
+    crypto::CryptoError,
 };
 
 /// The Governor error type. Contract will throw one of this errors.

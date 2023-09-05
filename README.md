@@ -12,7 +12,6 @@
 <br/>
 So, in other words,  <a href="https://patron.works/">Patron</a> is an all-in-one contracts platform, which allows you to build and verify ink! smart contracts inside of an isolated environment, explore contract verification details.
 
-## Important!
 ![OpenBrush](https://user-images.githubusercontent.com/88630083/218825486-accc2d8c-bc5c-4b92-a278-a5b9009fd6f5.png)
 
 [![Docs](https://img.shields.io/badge/docs-%F0%9F%93%84-blue)](https://Brushfam.github.io/openbrush-contracts)

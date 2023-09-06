@@ -71,8 +71,8 @@ pub struct Data {
 }
 
 /// Modifier to make a function callable only by a certain role. In
-/// addition to checking the sender's role, None account's role is also
-/// considered. Granting a role to None account is equivalent to enabling
+/// addition to checking the sender's role, if account is set to None, then role is also
+/// considered. Granting a role to None is equivalent to enabling
 /// this role for everyone.
 #[modifier_definition]
 pub fn only_role_or_open_role<T, F, R, E>(instance: &mut T, body: F, role: RoleType) -> Result<R, E>

@@ -19,6 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::traits::errors::MathError;
 pub use crate::{
     psp22,
     traits::psp22::*,
@@ -83,37 +84,43 @@ pub trait PSP22Impl: Storage<Data> + Internal {
         data: Vec<u8>,
     ) -> Result<(), PSP22Error> {
         let caller = Self::env().caller();
-        let allowance = self._allowance(&from, &caller);
 
-        if allowance < value {
-            return Err(PSP22Error::InsufficientAllowance)
-        }
+        self._decrease_allowance(from, caller, value)?;
 
-        self._approve_from_to(from, caller, allowance - value)?;
         self._transfer_from_to(from, to, value, data)?;
         Ok(())
     }
 
     fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
         let owner = Self::env().caller();
-        self._approve_from_to(owner, spender, value)?;
+
+        let allowance = self._allowance(&owner, &spender);
+
+        if value > allowance {
+            self._increase_allowance(
+                owner,
+                spender,
+                value.checked_sub(allowance).ok_or(MathError::Underflow)?,
+            )?;
+        } else {
+            self._decrease_allowance(
+                owner,
+                spender,
+                allowance.checked_sub(value).ok_or(MathError::Underflow)?,
+            )?;
+        }
+
         Ok(())
     }
 
     fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         let owner = Self::env().caller();
-        self._approve_from_to(owner, spender, self._allowance(&owner, &spender) + delta_value)
+        self._increase_allowance(owner, spender, delta_value)
     }
 
     fn decrease_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         let owner = Self::env().caller();
-        let allowance = self._allowance(&owner, &spender);
-
-        if allowance < delta_value {
-            return Err(PSP22Error::InsufficientAllowance)
-        }
-
-        self._approve_from_to(owner, spender, allowance - delta_value)
+        self._decrease_allowance(owner, spender, delta_value)
     }
 }
 
@@ -137,7 +144,9 @@ pub trait Internal {
         data: Vec<u8>,
     ) -> Result<(), PSP22Error>;
 
-    fn _approve_from_to(&mut self, owner: AccountId, spender: AccountId, amount: Balance) -> Result<(), PSP22Error>;
+    fn _increase_allowance(&mut self, from: AccountId, to: AccountId, value: Balance) -> Result<(), PSP22Error>;
+
+    fn _decrease_allowance(&mut self, from: AccountId, to: AccountId, value: Balance) -> Result<(), PSP22Error>;
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error>;
 
@@ -201,9 +210,23 @@ pub trait InternalImpl: Storage<Data> + Internal {
         Ok(())
     }
 
-    fn _approve_from_to(&mut self, owner: AccountId, spender: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        self.data().allowances.insert(&(&owner, &spender), &amount);
-        Internal::_emit_approval_event(self, owner, spender, amount);
+    fn _increase_allowance(&mut self, from: AccountId, to: AccountId, value: Balance) -> Result<(), PSP22Error> {
+        let allowance = Internal::_allowance(self, &from, &to);
+
+        let new_allowance = allowance.checked_add(value).ok_or(MathError::Overflow)?;
+
+        self.data().allowances.insert(&(&from, &to), &new_allowance);
+
+        Ok(())
+    }
+
+    fn _decrease_allowance(&mut self, from: AccountId, to: AccountId, value: Balance) -> Result<(), PSP22Error> {
+        let allowance = Internal::_allowance(self, &from, &to);
+
+        let new_allowance = allowance.checked_sub(value).ok_or(MathError::Overflow)?;
+
+        self.data().allowances.insert(&(&from, &to), &new_allowance);
+
         Ok(())
     }
 

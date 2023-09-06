@@ -85,13 +85,12 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
                 psp22::InternalImpl::_transfer_from_to(self, from, to, amount, data)
             }
 
-            fn _approve_from_to(
-                &mut self,
-                owner: AccountId,
-                spender: AccountId,
-                amount: Balance,
-            ) -> Result<(), PSP22Error> {
-                psp22::InternalImpl::_approve_from_to(self, owner, spender, amount)
+            fn _increase_allowance(&mut self, from: AccountId, to: AccountId, value: Balance) -> Result<(), PSP22Error> {
+                psp22::InternalImpl::_increase_allowance(self, from, to, value)
+            }
+
+            fn _decrease_allowance(&mut self, from: AccountId, to: AccountId, value: Balance) -> Result<(), PSP22Error> {
+                psp22::InternalImpl::_decrease_allowance(self, from, to, value)
             }
 
             fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {

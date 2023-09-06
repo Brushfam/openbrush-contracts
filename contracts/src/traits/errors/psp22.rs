@@ -21,6 +21,7 @@
 
 use super::{
     AccessControlError,
+    MathError,
     OwnableError,
     PausableError,
     ReentrancyGuardError,
@@ -43,6 +44,16 @@ pub enum PSP22Error {
     ZeroSenderAddress,
     /// Returned if safe transfer check fails
     SafeTransferCheckFailed(String),
+}
+
+impl From<MathError> for PSP22Error {
+    fn from(math: MathError) -> Self {
+        match math {
+            MathError::Overflow => PSP22Error::Custom(String::from("Math::Overflow")),
+            MathError::Underflow => PSP22Error::Custom(String::from("Math::Underflow")),
+            MathError::DivisionError => PSP22Error::Custom(String::from("Math::DivisionError")),
+        }
+    }
 }
 
 impl From<OwnableError> for PSP22Error {

@@ -71,11 +71,9 @@ pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Inte
         self._mint_to(receiver_account, amount)?;
         Internal::_on_flashloan(self, receiver_account, token, fee, amount, data)?;
         let this = Self::env().account_id();
-        let current_allowance = self.allowance(receiver_account, this);
-        if current_allowance < amount + fee {
-            return Err(FlashLenderError::AllowanceDoesNotAllowRefund)
-        }
-        psp22::Internal::_approve_from_to(self, receiver_account, this, current_allowance - amount - fee)?;
+
+        psp22::Internal::_decrease_allowance(self, receiver_account, this, amount + fee)?;
+
         psp22::Internal::_burn_from(self, receiver_account, amount + fee)?;
         Ok(())
     }

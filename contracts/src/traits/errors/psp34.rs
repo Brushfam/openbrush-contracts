@@ -49,7 +49,7 @@ impl From<OwnableError> for PSP34Error {
     fn from(ownable: OwnableError) -> Self {
         match ownable {
             OwnableError::CallerIsNotOwner => PSP34Error::Custom(String::from("O::CallerIsNotOwner")),
-            OwnableError::NewOwnerIsZero => PSP34Error::Custom(String::from("O::NewOwnerIsZero")),
+            OwnableError::NewOwnerIsNotSet => PSP34Error::Custom(String::from("O::NewOwnerIsNotSet")),
         }
     }
 }

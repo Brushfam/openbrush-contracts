@@ -37,10 +37,10 @@ pub enum PSP22Error {
     InsufficientBalance,
     /// Returned if not enough allowance to fulfill a request is available.
     InsufficientAllowance,
-    /// Returned if recipient's address is zero.
-    ZeroRecipientAddress,
-    /// Returned if sender's address is zero.
-    ZeroSenderAddress,
+    /// Returned if recipient's address is not set.
+    RecipientIsNotSet,
+    /// Returned if sender's address is not set.
+    SenderIsNotSet,
     /// Returned if safe transfer check fails
     SafeTransferCheckFailed(String),
 }
@@ -49,7 +49,7 @@ impl From<OwnableError> for PSP22Error {
     fn from(ownable: OwnableError) -> Self {
         match ownable {
             OwnableError::CallerIsNotOwner => PSP22Error::Custom(String::from("O::CallerIsNotOwner")),
-            OwnableError::NewOwnerIsZero => PSP22Error::Custom(String::from("O::NewOwnerIsZero")),
+            OwnableError::NewOwnerIsNotSet => PSP22Error::Custom(String::from("O::NewOwnerIsNotSet")),
         }
     }
 }
@@ -106,9 +106,9 @@ pub enum PSP22TokenTimelockError {
     /// Returned if the timestamp provided is before the current time
     ReleaseTimeIsBeforeCurrentTime,
     /// Returned if the token is not initialized
-    TokenZeroAddress,
+    TokenIsNotSet,
     /// Returned if the beneficiary is not initialized
-    BeneficiaryZeroAddress,
+    BeneficiaryIsNotSet,
 }
 
 impl From<PSP22Error> for PSP22TokenTimelockError {
@@ -117,8 +117,8 @@ impl From<PSP22Error> for PSP22TokenTimelockError {
             PSP22Error::Custom(message) => PSP22TokenTimelockError::PSP22Error(PSP22Error::Custom(message)),
             PSP22Error::InsufficientBalance => PSP22TokenTimelockError::PSP22Error(PSP22Error::InsufficientBalance),
             PSP22Error::InsufficientAllowance => PSP22TokenTimelockError::PSP22Error(PSP22Error::InsufficientAllowance),
-            PSP22Error::ZeroRecipientAddress => PSP22TokenTimelockError::PSP22Error(PSP22Error::ZeroRecipientAddress),
-            PSP22Error::ZeroSenderAddress => PSP22TokenTimelockError::PSP22Error(PSP22Error::ZeroSenderAddress),
+            PSP22Error::RecipientIsNotSet => PSP22TokenTimelockError::PSP22Error(PSP22Error::RecipientAddressIsNotSet),
+            PSP22Error::SenderIsNotSet => PSP22TokenTimelockError::PSP22Error(PSP22Error::SenderAddressIsNotSet),
             PSP22Error::SafeTransferCheckFailed(message) => {
                 PSP22TokenTimelockError::PSP22Error(PSP22Error::SafeTransferCheckFailed(message))
             }

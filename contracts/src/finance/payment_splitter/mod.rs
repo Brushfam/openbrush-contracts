@@ -88,7 +88,7 @@ pub trait Internal {
     /// Inits an instance of `PaymentSplitter` where each account in `payees` is assigned the number of shares at
     /// the matching position in the `shares` array.
     ///
-    /// All addresses in `payees` must be non-zero. Both arrays must have the same non-zero length, and there must be no
+    /// All addresses in `payees` must be set. Both arrays must have the same non-zero length, and there must be no
     /// duplicates in `payees`.
     ///
     /// Emits `PayeeAdded` on each account.

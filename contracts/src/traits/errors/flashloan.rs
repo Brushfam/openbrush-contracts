@@ -107,8 +107,8 @@ impl From<PSP22Error> for FlashLenderError {
             PSP22Error::InsufficientAllowance => {
                 FlashLenderError::Custom(String::from("PSP22: Insufficient Allowance"))
             }
-            PSP22Error::RecipientAddressIsNotSet => FlashLenderError::Custom(String::from("PSP22: Recipient Address is not set")),
-            PSP22Error::SenderAddressIsNotSet => FlashLenderError::Custom(String::from("PSP22: Sender Address in not set")),
+            PSP22Error::RecipientIsNotSet => FlashLenderError::Custom(String::from("PSP22: Recipient Address is not set")),
+            PSP22Error::SenderIsNotSet => FlashLenderError::Custom(String::from("PSP22: Sender Address in not set")),
             PSP22Error::SafeTransferCheckFailed(message) => FlashLenderError::Custom(message),
         }
     }

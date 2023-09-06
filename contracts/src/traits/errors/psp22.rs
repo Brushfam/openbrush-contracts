@@ -117,8 +117,8 @@ impl From<PSP22Error> for PSP22TokenTimelockError {
             PSP22Error::Custom(message) => PSP22TokenTimelockError::PSP22Error(PSP22Error::Custom(message)),
             PSP22Error::InsufficientBalance => PSP22TokenTimelockError::PSP22Error(PSP22Error::InsufficientBalance),
             PSP22Error::InsufficientAllowance => PSP22TokenTimelockError::PSP22Error(PSP22Error::InsufficientAllowance),
-            PSP22Error::RecipientIsNotSet => PSP22TokenTimelockError::PSP22Error(PSP22Error::RecipientAddressIsNotSet),
-            PSP22Error::SenderIsNotSet => PSP22TokenTimelockError::PSP22Error(PSP22Error::SenderAddressIsNotSet),
+            PSP22Error::RecipientIsNotSet => PSP22TokenTimelockError::PSP22Error(PSP22Error::RecipientIsNotSet),
+            PSP22Error::SenderIsNotSet => PSP22TokenTimelockError::PSP22Error(PSP22Error::SenderIsNotSet),
             PSP22Error::SafeTransferCheckFailed(message) => {
                 PSP22TokenTimelockError::PSP22Error(PSP22Error::SafeTransferCheckFailed(message))
             }

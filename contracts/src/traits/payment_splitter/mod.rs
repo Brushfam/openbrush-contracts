@@ -66,7 +66,7 @@ pub trait PaymentSplitter {
     /// without triggering this function. This only affects the reliability of the events
     /// and not the actual splitting of the native token.
     ///
-    /// On success a `PayeeAdded` event is emitted.
+    /// On success a `PaymentReceived` event is emitted.
     #[ink(message, payable)]
     fn receive(&mut self);
 

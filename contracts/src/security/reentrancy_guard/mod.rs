@@ -42,7 +42,7 @@ pub struct Data {
 /// by making the `non_reentrant` function external, and make it call a
 /// `private` function that does the actual work.
 ///
-/// This modifier flushes the struct into storage with `ENTERED`
+/// This modifier flushes the struct into storage with `true`
 /// status before calling the original method.
 #[modifier_definition]
 pub fn non_reentrant<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>

@@ -33,11 +33,11 @@ use openbrush::{
 #[openbrush::storage_item]
 pub struct Data {
     #[lazy]
-    pub status: u8,
+    pub status: bool,
 }
 
-const NOT_ENTERED: u8 = 0;
-const ENTERED: u8 = 1;
+const NOT_ENTERED: bool = false;
+const ENTERED: bool = true;
 
 /// Prevents a contract from calling itself, directly or indirectly.
 /// Calling a `non_reentrant` function from another `non_reentrant`

@@ -1,7 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-pub use openbrush::examples::contracts::reentrancy_guard::flip_on_me::*;
-
 #[openbrush::contract]
 pub mod flip_on_me {
     use flipper::traits::flipper::*;

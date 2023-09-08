@@ -76,9 +76,11 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 
     let mut impl_args = ImplArgs::new(&map, &mut items, &mut imports, &mut overriden_traits, ident);
 
+    let is_capped = args.contains(&"PSP22Capped".to_string());
+
     for to_implement in args {
         match to_implement.as_str() {
-            "PSP22" => impl_psp22(&mut impl_args),
+            "PSP22" => impl_psp22(&mut impl_args, is_capped),
             "PSP22Mintable" => impl_psp22_mintable(&mut impl_args),
             "PSP22Burnable" => impl_psp22_burnable(&mut impl_args),
             "PSP22Metadata" => impl_psp22_metadata(&mut impl_args),

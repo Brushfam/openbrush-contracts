@@ -46,12 +46,23 @@ impl<'a> ImplArgs<'a> {
     }
 }
 
-pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
+pub(crate) fn impl_psp22(impl_args: &mut ImplArgs, capped: bool) {
     let storage_struct_name = impl_args.contract_name();
-    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp22::InternalImpl for #storage_struct_name {}
-    ))
-    .expect("Should parse");
+    let internal_impl = if capped {
+        syn::parse2::<syn::ItemImpl>(quote!(
+            impl psp22::InternalImpl for #storage_struct_name {
+                fn _max_supply(&self) -> Balance {
+                    capped::Internal::_cap(&self)
+                }
+            }
+        ))
+        .expect("Should parse")
+    } else {
+        syn::parse2::<syn::ItemImpl>(quote!(
+            impl psp22::InternalImpl for #storage_struct_name {}
+        ))
+        .expect("Should parse")
+    };
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl psp22::Internal for #storage_struct_name {
@@ -65,6 +76,10 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
 
             fn _total_supply(&self) -> Balance {
                 psp22::InternalImpl::_total_supply(self)
+            }
+
+            fn _max_supply(&self) -> Balance {
+                psp22::InternalImpl::_max_supply(self)
             }
 
             fn _balance_of(&self, owner: &AccountId) -> Balance {

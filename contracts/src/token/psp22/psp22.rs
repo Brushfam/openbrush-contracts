@@ -125,6 +125,8 @@ pub trait Internal {
 
     fn _total_supply(&self) -> Balance;
 
+    fn _max_supply(&self) -> Balance;
+
     fn _balance_of(&self, owner: &AccountId) -> Balance;
 
     fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance;
@@ -165,6 +167,10 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
     fn _total_supply(&self) -> Balance {
         self.data().supply.get_or_default()
+    }
+
+    fn _max_supply(&self) -> Balance {
+        Balance::MAX
     }
 
     fn _balance_of(&self, owner: &AccountId) -> Balance {

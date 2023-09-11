@@ -49,6 +49,10 @@ pub trait PaymentSplitter {
     #[ink(message)]
     fn total_released(&self) -> Balance;
 
+    /// Getter for the amount of tokens that can be released for account
+    #[ink(message)]
+    fn releasable(&self, account: AccountId) -> Balance;
+
     /// Getter for the amount of shares held by an account.
     #[ink(message)]
     fn shares(&self, account: AccountId) -> Balance;

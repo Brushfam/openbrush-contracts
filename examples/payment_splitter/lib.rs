@@ -19,14 +19,6 @@ pub mod my_payment_splitter {
             payment_splitter::Internal::_init(&mut instance, payees_and_shares).expect("Should init");
             instance
         }
-
-        /// Payout all payees at once.
-        /// Delete this method if you don't want this functionality in your version of the payment splitter.
-        #[ink(message)]
-        pub fn release_all(&mut self) -> Result<(), PaymentSplitterError> {
-            // `_release_all()` is an internal method defined by the `payment_splitter::Internal` trait
-            payment_splitter::Internal::_release_all(self)
-        }
     }
 
     #[cfg(all(test, feature = "e2e-tests"))]

@@ -252,7 +252,6 @@ mod payment_splitter {
         add_funds(instance.env().account_id(), amount);
 
         assert_eq!(100 + 200, PaymentSplitter::total_shares(&mut instance,));
-        assert!(payment_splitter::Internal::_release_all(&mut instance,).is_ok());
         assert_eq!(999999, PaymentSplitter::total_released(&mut instance,));
         assert_eq!(333333, PaymentSplitter::released(&mut instance, accounts.charlie));
         assert_eq!(

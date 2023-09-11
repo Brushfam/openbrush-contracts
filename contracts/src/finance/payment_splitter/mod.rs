@@ -96,9 +96,6 @@ pub trait Internal {
 
     fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError>;
 
-    /// Calls the `release` method for each `AccountId` in the `payees` vec.
-    fn _release_all(&mut self) -> Result<(), PaymentSplitterError>;
-
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError>;
 }
 
@@ -138,17 +135,6 @@ pub trait InternalImpl: Storage<Data> + Internal {
         self.data().total_shares.set(&new_shares);
 
         Internal::_emit_payee_added_event(self, payee, share);
-        Ok(())
-    }
-
-    fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
-        let payees = self.data().payees.get_or_default();
-        let len = payees.len();
-
-        for account in payees.iter().take(len) {
-            Internal::_release(self, *account)?;
-        }
-
         Ok(())
     }
 

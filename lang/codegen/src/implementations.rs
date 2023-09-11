@@ -1783,10 +1783,6 @@ pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {
                 payment_splitter::InternalImpl::_add_payee(self, payee, share)
             }
 
-            fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
-                payment_splitter::InternalImpl::_release_all(self)
-            }
-
             fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
                 payment_splitter::InternalImpl::_release(self, account)
             }

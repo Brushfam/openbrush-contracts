@@ -728,7 +728,12 @@ pub(crate) fn impl_psp22_pallet_metadata(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
 
-    let mut burnable = syn::parse2::<syn::ItemImpl>(quote!(
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP22PalletMetadataInternal for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let mut metadata = syn::parse2::<syn::ItemImpl>(quote!(
         impl PSP22Metadata for #storage_struct_name {
             #[ink(message)]
             fn token_name(&self) -> Option<String> {
@@ -755,10 +760,11 @@ pub(crate) fn impl_psp22_pallet_metadata(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22PalletMetadata", import);
     impl_args.vec_import();
 
-    override_functions("PSP22Metadata", &mut burnable, impl_args.map);
+    override_functions("PSP22Metadata", &mut metadata, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(metadata_impl));
-    impl_args.items.push(syn::Item::Impl(burnable));
+    impl_args.items.push(syn::Item::Impl(metadata));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
 }
 
 pub(crate) fn impl_psp22_pallet_mintable(impl_args: &mut ImplArgs) {

@@ -42,10 +42,10 @@ use syn::{
 
 const INSTANCE: &str = "__openbrush_instance_modifier";
 
-pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
-    let modifiers: AttributeArgs = parse2(_attrs).unwrap();
+pub fn generate(attrs: TokenStream, input: TokenStream) -> TokenStream {
+    let modifiers: AttributeArgs = parse2(attrs).unwrap();
     let mut impl_item =
-        syn::parse2::<ImplItemMethod>(_input).expect("Can't parse input of `modifiers` macro like a method.");
+        syn::parse2::<ImplItemMethod>(input).expect("Can't parse input of `modifiers` macro like a method.");
 
     if impl_item.sig.inputs.is_empty() {
         return quote_spanned! {

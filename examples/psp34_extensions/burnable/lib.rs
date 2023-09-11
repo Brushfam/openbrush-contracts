@@ -49,7 +49,7 @@ pub mod my_psp34_burnable {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn burn_wokrs(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn burn_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34_burnable", &ink_e2e::alice(), constructor, 0, None)

@@ -21,14 +21,11 @@
 
 use crate::{
     internal,
-    internal::*,
     metadata::LockedTrait,
-    trait_definition,
 };
 use proc_macro2::TokenStream;
 use quote::{
     quote,
-    ToTokens,
 };
 use syn::Item;
 
@@ -65,27 +62,8 @@ pub fn generate(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 
 fn consume_traits(items: Vec<syn::Item>) -> Vec<syn::Item> {
     let mut result: Vec<syn::Item> = vec![];
-    items.into_iter().for_each(|mut item| {
-        if let Item::Trait(item_trait) = &mut item {
-            if is_attr(&item_trait.attrs, "trait_definition") {
-                item_trait.attrs = remove_attr(&item_trait.attrs, "trait_definition");
-
-                let stream: TokenStream = trait_definition::generate(TokenStream::new(), item_trait.to_token_stream());
-                let mod_item = syn::parse2::<syn::ItemMod>(quote! {
-                    mod jora {
-                        #stream
-                    }
-                })
-                .expect("Can't parse generated trait definitions");
-
-                let (_, mut generated_items) = mod_item.content.unwrap();
-                result.append(&mut generated_items);
-            } else {
-                result.push(item);
-            }
-        } else {
+    items.into_iter().for_each(|item| {
             result.push(item);
-        }
     });
 
     result

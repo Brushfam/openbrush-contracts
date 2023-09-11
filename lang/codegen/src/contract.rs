@@ -32,12 +32,10 @@ use quote::{
 };
 use syn::Item;
 
-pub fn generate(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
+pub fn generate(attrs: TokenStream, input: TokenStream) -> TokenStream {
     if internal::skip() {
         return quote! {}
     }
-    let input: TokenStream = ink_module;
-    let attrs: TokenStream = _attrs;
     let mut module = syn::parse2::<syn::ItemMod>(input).expect("Can't parse contract module");
     let (braces, mut items) = match module.content {
         Some((brace, items)) => (brace, items),

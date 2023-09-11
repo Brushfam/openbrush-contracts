@@ -35,12 +35,10 @@ use syn::{
     Path,
 };
 
-pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
+pub fn generate(attrs: TokenStream, input: TokenStream) -> TokenStream {
     if internal::skip() {
         return quote! {}
     }
-    let input: TokenStream = ink_module;
-
     // map attribute args to default contract names
     let args = syn::parse2::<AttributeArgs>(attrs)
         .expect("No default contracts to implement provided")

@@ -48,7 +48,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
         .map(|arg| {
             match arg {
                 NestedMeta::Path(method) => method.to_token_stream().to_string().replace(' ', ""),
-                _ => panic!("Expected names of OpenBrush traits to implement in the contract!"),
+                _ => panic!("Can't parse naming of default contract to implement"),
             }
         })
         .collect::<Vec<String>>();

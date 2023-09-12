@@ -31,6 +31,13 @@ use openbrush::{
     },
 };
 use scale::Encode;
+use secp256k1::{
+    ecdsa::RecoverableSignature,
+    Message,
+    PublicKey,
+    SecretKey,
+    SECP256K1,
+};
 use test_helpers::{
     address_of,
     balance_of,
@@ -50,7 +57,7 @@ use subxt_signer::{
 type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 #[ink_e2e::test]
-async fn assigns_initial_balance(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+async fn assigns_initial_balance<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
     let constructor = ContractRef::new(1000);
     let address = client
         .instantiate("my_psp22_permit", &ink_e2e::alice(), constructor, 0, None)
@@ -64,7 +71,7 @@ async fn assigns_initial_balance(mut client: ink_e2e::Client<C, E>) -> E2EResult
 }
 
 #[ink_e2e::test]
-async fn nonce_should_be_equal_zero(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+async fn nonce_should_be_equal_zero<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
     let constructor = ContractRef::new(1000);
     let address = client
         .instantiate("my_psp22_permit", &ink_e2e::alice(), constructor, 0, None)
@@ -80,7 +87,7 @@ async fn nonce_should_be_equal_zero(mut client: ink_e2e::Client<C, E>) -> E2ERes
 }
 
 #[ink_e2e::test]
-async fn check_domain_separator(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+async fn check_domain_separator<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
     let constructor = ContractRef::new(1000);
     let address = &client
         .instantiate("my_psp22_permit", &ink_e2e::alice(), constructor, 0, None)
@@ -98,7 +105,7 @@ async fn check_domain_separator(mut client: ink_e2e::Client<C, E>) -> E2EResult<
 }
 
 #[ink_e2e::test]
-async fn permit_accepts_owner_ecdsa_signature(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+async fn permit_accepts_owner_signature<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
     let constructor = ContractRef::new(1000);
     let address = client
         .instantiate("my_psp22_permit", &ink_e2e::alice(), constructor, 0, None)
@@ -158,7 +165,7 @@ async fn permit_accepts_owner_sr25519_signature(mut client: ink_e2e::Client<C, E
 }
 
 #[ink_e2e::test]
-async fn permit_rejects_reused_signature(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+async fn permit_rejects_reused_signature<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
     let constructor = ContractRef::new(1000);
     let address = client
         .instantiate("my_psp22_permit", &ink_e2e::alice(), constructor, 0, None)
@@ -207,7 +214,7 @@ async fn permit_rejects_reused_signature(mut client: ink_e2e::Client<C, E>) -> E
 }
 
 #[ink_e2e::test]
-async fn permit_rejects_other_signature(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+async fn permit_rejects_other_signature<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
     let constructor = ContractRef::new(1000);
     let address = client
         .instantiate("my_psp22_permit", &ink_e2e::alice(), constructor, 0, None)
@@ -275,7 +282,7 @@ async fn permit_rejects_other_signature(mut client: ink_e2e::Client<C, E>) -> E2
 }
 
 #[ink_e2e::test]
-async fn permit_rejects_expired_permit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+async fn permit_rejects_expired_permit<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
     let constructor = ContractRef::new(1000);
     let address = client
         .instantiate("my_psp22_permit", &ink_e2e::alice(), constructor, 0, None)

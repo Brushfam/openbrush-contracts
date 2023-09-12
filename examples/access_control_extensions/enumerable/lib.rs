@@ -57,7 +57,7 @@ pub mod my_access_control {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn should_have_not_member(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_have_not_member<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
@@ -71,7 +71,7 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_get_role_member(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_get_role_member<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
@@ -85,7 +85,7 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_grant_roles_and_get_role_members(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_grant_roles_and_get_role_members<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
@@ -103,7 +103,7 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_revoker_and_count_roles(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_revoker_and_count_roles<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)

@@ -23,6 +23,7 @@ pub mod proxy {
 
             instance
         }
+
         #[ink(message, payable, selector = _)]
         pub fn forward(&self) {
             proxy::Internal::_fallback(self)

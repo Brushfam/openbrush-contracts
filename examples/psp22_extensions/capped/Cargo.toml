@@ -19,7 +19,7 @@ path = "lib.rs"
 
 
 [dev-dependencies]
-ink_e2e = "4.3.0"
+ink_e2e = "5.0.0-alpha"
 test_helpers = { path = "../../test_helpers", default-features = false }
 
 [features]

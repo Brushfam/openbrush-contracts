@@ -15,7 +15,7 @@ openbrush = { path = "../../../..", default-features = false, features = ["timel
 
 [dev-dependencies]
 test_helpers = { path = "../../../test_helpers", default-features = false }
-ink_e2e = "4.3.0"
+ink_e2e = "5.0.0-alpha"
 
 [lib]
 name = "my_timelock_controller"

@@ -77,7 +77,7 @@ pub mod my_access_control {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn only_minter_role_is_allowed_to_mint(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn only_minter_role_is_allowed_to_mint<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
@@ -107,7 +107,7 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_grant_initial_roles_to_default_signer(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_grant_initial_roles_to_default_signer<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
@@ -122,7 +122,9 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_not_grant_initial_roles_for_random_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_not_grant_initial_roles_for_random_role<Client: E2EBackend>(
+            mut client: Client,
+        ) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
@@ -137,7 +139,7 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_grant_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_grant_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
@@ -155,7 +157,7 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_not_change_old_roles_after_grant_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_not_change_old_roles_after_grant_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
@@ -179,7 +181,7 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_revoke_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_revoke_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
@@ -211,7 +213,7 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_renounce_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_renounce_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
@@ -273,7 +275,7 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_reject_when_renounce_not_self_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_reject_when_renounce_not_self_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
@@ -297,7 +299,7 @@ pub mod my_access_control {
         }
 
         #[ink_e2e::test]
-        async fn should_reject_burn_if_no_minter_role(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_reject_burn_if_no_minter_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)

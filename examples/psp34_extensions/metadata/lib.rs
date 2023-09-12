@@ -43,7 +43,7 @@ pub mod my_psp34_metadata {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn metadata_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn metadata_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let id = Id::U8(0);
             let name = String::from("My PSP34");
             let symbol = String::from("MPS34");

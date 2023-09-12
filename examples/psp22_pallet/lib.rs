@@ -44,7 +44,10 @@ pub mod my_psp22_pallet {
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{address_of, balance_of};
+        use test_helpers::{
+            address_of,
+            balance_of,
+        };
 
         fn random_num() -> u32 {
             use rand::Rng;
@@ -54,7 +57,7 @@ pub mod my_psp22_pallet {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn assigns_initial_balance(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn assigns_initial_balance<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 100);
             let address = client
                 .instantiate(
@@ -80,7 +83,7 @@ pub mod my_psp22_pallet {
         }
 
         #[ink_e2e::test]
-        async fn transfer_adds_amount_to_destination_account(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn transfer_adds_amount_to_destination_account<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 100);
             let address = client
                 .instantiate(
@@ -116,7 +119,7 @@ pub mod my_psp22_pallet {
         }
 
         #[ink_e2e::test]
-        async fn cannot_transfer_above_the_amount(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn cannot_transfer_above_the_amount<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 100);
             let address = client
                 .instantiate(

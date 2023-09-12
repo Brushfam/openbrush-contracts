@@ -40,7 +40,7 @@ pub mod my_psp34_mintable {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn mint_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn mint_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34_mintable", &ink_e2e::alice(), constructor, 0, None)
@@ -85,7 +85,7 @@ pub mod my_psp34_mintable {
         }
 
         #[ink_e2e::test]
-        async fn mint_existing_should_fail(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn mint_existing_should_fail<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34_mintable", &ink_e2e::alice(), constructor, 0, None)

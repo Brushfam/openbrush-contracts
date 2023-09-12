@@ -38,12 +38,16 @@ pub mod my_payment_splitter {
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{address_of, get_shares, method_call};
+        use test_helpers::{
+            address_of,
+            get_shares,
+            method_call,
+        };
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn init_values(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn init_values<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(vec![(address_of!(Bob), 40), (address_of!(Alice), 60)]);
             let address = client
                 .instantiate("my_payment_splitter", &ink_e2e::alice(), constructor, 0, None)
@@ -87,7 +91,7 @@ pub mod my_payment_splitter {
         }
 
         #[ink_e2e::test]
-        async fn release_native_token(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn release_native_token<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(vec![(address_of!(Bob), 40), (address_of!(Alice), 60)]);
             let address = client
                 .instantiate("my_payment_splitter", &ink_e2e::alice(), constructor, 0, None)
@@ -164,7 +168,7 @@ pub mod my_payment_splitter {
         }
 
         #[ink_e2e::test]
-        async fn release_native_token_using_release_all(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn release_native_token_using_release_all<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(vec![(address_of!(Bob), 40), (address_of!(Alice), 60)]);
             let address = client
                 .instantiate("my_payment_splitter", &ink_e2e::alice(), constructor, 0, None)

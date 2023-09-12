@@ -14,7 +14,7 @@ scale-info = { version = "2.6", default-features = false, features = ["derive"],
 openbrush = { path = "../..", default-features = false, features = ["ownable", "psp37"] }
 
 [dev-dependencies]
-ink_e2e = "4.3.0"
+ink_e2e = "5.0.0-alpha"
 test_helpers = { path = "../test_helpers", default-features = false }
 
 [lib]

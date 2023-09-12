@@ -50,7 +50,7 @@ pub mod my_psp22_burnable {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn assigns_initial_balance(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn assigns_initial_balance<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(100);
             let address = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
@@ -66,7 +66,7 @@ pub mod my_psp22_burnable {
         }
 
         #[ink_e2e::test]
-        async fn can_burn(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn can_burn<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(100);
             let address = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
@@ -93,7 +93,7 @@ pub mod my_psp22_burnable {
         }
 
         #[ink_e2e::test]
-        async fn can_burn_without_allowance(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn can_burn_without_allowance<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(100);
             let address = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
@@ -120,7 +120,7 @@ pub mod my_psp22_burnable {
         }
 
         #[ink_e2e::test]
-        async fn decreases_total_supply_after_burning(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn decreases_total_supply_after_burning<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(100);
             let address = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
@@ -157,7 +157,7 @@ pub mod my_psp22_burnable {
         }
 
         #[ink_e2e::test]
-        async fn can_burn_from(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn can_burn_from<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(100);
             let address = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
@@ -199,7 +199,7 @@ pub mod my_psp22_burnable {
         }
 
         #[ink_e2e::test]
-        async fn can_burn_from_many(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn can_burn_from_many<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(100);
             let address = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)

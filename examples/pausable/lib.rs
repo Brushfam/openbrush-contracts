@@ -57,7 +57,7 @@ pub mod my_pausable {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn success_flip_when_not_paused(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn success_flip_when_not_paused<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
@@ -71,7 +71,7 @@ pub mod my_pausable {
         }
 
         #[ink_e2e::test]
-        async fn success_pause_when_not_paused(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn success_pause_when_not_paused<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
@@ -85,7 +85,7 @@ pub mod my_pausable {
         }
 
         #[ink_e2e::test]
-        async fn success_change_state(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn success_change_state<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
@@ -99,7 +99,7 @@ pub mod my_pausable {
         }
 
         #[ink_e2e::test]
-        async fn failed_double_pause(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn failed_double_pause<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
@@ -114,7 +114,7 @@ pub mod my_pausable {
         }
 
         #[ink_e2e::test]
-        async fn success_pause_and_unpause(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn success_pause_and_unpause<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
@@ -129,7 +129,7 @@ pub mod my_pausable {
         }
 
         #[ink_e2e::test]
-        async fn failed_unpause(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn failed_unpause<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)
@@ -143,7 +143,7 @@ pub mod my_pausable {
         }
 
         #[ink_e2e::test]
-        async fn failed_flip_when_paused(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn failed_flip_when_paused<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_pausable", &ink_e2e::alice(), constructor, 0, None)

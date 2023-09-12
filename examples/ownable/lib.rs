@@ -54,7 +54,7 @@ pub mod ownable {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn owner_is_by_default_contract_deployer(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn owner_is_by_default_contract_deployer<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_ownable", &ink_e2e::alice(), constructor, 0, None)
@@ -74,7 +74,7 @@ pub mod ownable {
         }
 
         #[ink_e2e::test]
-        async fn only_owner_is_allowed_to_mint(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn only_owner_is_allowed_to_mint<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_ownable", &ink_e2e::alice(), constructor, 0, None)
@@ -106,7 +106,7 @@ pub mod ownable {
         }
 
         #[ink_e2e::test]
-        async fn transfer_ownership_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn transfer_ownership_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_ownable", &ink_e2e::alice(), constructor, 0, None)
@@ -185,7 +185,7 @@ pub mod ownable {
         }
 
         #[ink_e2e::test]
-        async fn renounce_ownership_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn renounce_ownership_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_ownable", &ink_e2e::alice(), constructor, 0, None)
@@ -224,7 +224,7 @@ pub mod ownable {
         }
 
         #[ink_e2e::test]
-        async fn cannot_renounce_ownership_if_not_owner(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn cannot_renounce_ownership_if_not_owner<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_ownable", &ink_e2e::alice(), constructor, 0, None)
@@ -260,7 +260,7 @@ pub mod ownable {
         }
 
         #[ink_e2e::test]
-        async fn cannot_transfer_ownership_if_not_owner(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn cannot_transfer_ownership_if_not_owner<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_ownable", &ink_e2e::alice(), constructor, 0, None)

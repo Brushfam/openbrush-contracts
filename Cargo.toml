@@ -44,7 +44,7 @@ crate-type = [
 [dev-dependencies]
 ink_env = "4.3.0"
 trybuild = "1.0.80"
-ink_e2e = "4.3.0"
+ink_e2e = "5.0.0-alpha"
 
 [features]
 default = ["std"]

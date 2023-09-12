@@ -49,7 +49,7 @@ pub mod my_psp34 {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn return_collection_id_of_account(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn return_collection_id_of_account<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
@@ -72,7 +72,7 @@ pub mod my_psp34 {
         }
 
         #[ink_e2e::test]
-        async fn returns_total_supply(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn returns_total_supply<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
@@ -110,7 +110,7 @@ pub mod my_psp34 {
         }
 
         #[ink_e2e::test]
-        async fn transfer_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn transfer_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
@@ -154,7 +154,7 @@ pub mod my_psp34 {
         }
 
         #[ink_e2e::test]
-        async fn approved_transfer_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn approved_transfer_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
@@ -210,7 +210,7 @@ pub mod my_psp34 {
         }
 
         #[ink_e2e::test]
-        async fn approved_operator_transfer_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn approved_operator_transfer_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
@@ -266,7 +266,7 @@ pub mod my_psp34 {
         }
 
         #[ink_e2e::test]
-        async fn psp34_transfer_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn psp34_transfer_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
@@ -305,7 +305,7 @@ pub mod my_psp34 {
         }
 
         #[ink_e2e::test]
-        async fn can_nextot_transfer_non_existing_token(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn can_nextot_transfer_non_existing_token<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
@@ -329,7 +329,7 @@ pub mod my_psp34 {
         }
 
         #[ink_e2e::test]
-        async fn cannot_transfer_without_allowance(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn cannot_transfer_without_allowance<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
@@ -363,7 +363,7 @@ pub mod my_psp34 {
         }
 
         #[ink_e2e::test]
-        async fn can_mint_any_id(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn can_mint_any_id<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)

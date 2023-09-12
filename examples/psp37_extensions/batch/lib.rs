@@ -44,7 +44,7 @@ pub mod my_psp37 {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn batch_transfer_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn batch_transfer_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp37_batch", &ink_e2e::alice(), constructor, 0, None)
@@ -100,7 +100,7 @@ pub mod my_psp37 {
         }
 
         #[ink_e2e::test]
-        async fn batch_transfer_from_should_work(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn batch_transfer_from_should_work<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp37_batch", &ink_e2e::alice(), constructor, 0, None)
@@ -162,7 +162,9 @@ pub mod my_psp37 {
         }
 
         #[ink_e2e::test]
-        async fn batch_transfer_from_with_no_approve_should_fail(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn batch_transfer_from_with_no_approve_should_fail<Client: E2EBackend>(
+            mut client: Client,
+        ) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp37_batch", &ink_e2e::alice(), constructor, 0, None)
@@ -211,7 +213,7 @@ pub mod my_psp37 {
         }
 
         #[ink_e2e::test]
-        async fn batch_transfer_from_with_approve_should_work(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn batch_transfer_from_with_approve_should_work<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp37_batch", &ink_e2e::alice(), constructor, 0, None)

@@ -41,14 +41,18 @@ pub mod my_psp22_pallet_burnable {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod tests {
         use openbrush::contracts::psp22_pallet::{
-            extensions::burnable::psp22burnable_external::PSP22Burnable, psp22_external::PSP22,
+            extensions::burnable::psp22burnable_external::PSP22Burnable,
+            psp22_external::PSP22,
         };
         #[rustfmt::skip]
         use super::*;
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{address_of, balance_of};
+        use test_helpers::{
+            address_of,
+            balance_of,
+        };
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -58,7 +62,7 @@ pub mod my_psp22_pallet_burnable {
         }
 
         #[ink_e2e::test]
-        async fn assigns_initial_balance(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn assigns_initial_balance<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 1000);
             let address = client
                 .instantiate(
@@ -80,7 +84,7 @@ pub mod my_psp22_pallet_burnable {
         }
 
         #[ink_e2e::test]
-        async fn can_burn(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn can_burn<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 1000);
             let address = client
                 .instantiate(
@@ -113,7 +117,7 @@ pub mod my_psp22_pallet_burnable {
         }
 
         #[ink_e2e::test]
-        async fn can_burn_without_allowance(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn can_burn_without_allowance<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 1000);
             let address = client
                 .instantiate(
@@ -146,7 +150,7 @@ pub mod my_psp22_pallet_burnable {
         }
 
         #[ink_e2e::test]
-        async fn decreases_total_supply_after_burning(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn decreases_total_supply_after_burning<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 1000);
             let address = client
                 .instantiate(
@@ -189,7 +193,7 @@ pub mod my_psp22_pallet_burnable {
         }
 
         #[ink_e2e::test]
-        async fn can_burn_from(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn can_burn_from<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 1000);
             let address = client
                 .instantiate(
@@ -237,7 +241,7 @@ pub mod my_psp22_pallet_burnable {
         }
 
         #[ink_e2e::test]
-        async fn can_burn_from_many(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn can_burn_from_many<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new(random_num(), 1, 1000);
             let address = client
                 .instantiate(

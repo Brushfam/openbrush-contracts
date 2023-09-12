@@ -14,7 +14,7 @@ openbrush = { path = "../../..", default-features = false, features = ["psp22"] 
 ecdsa = { version = "0.16.7", default-features = false, optional = true }
 
 [dev-dependencies]
-ink_e2e = "4.3.0"
+ink_e2e = "5.0.0-alpha"
 ink_env = "4.3.0"
 test_helpers = { path = "../../test_helpers", default-features = false }
 secp256k1 = { version = "0.27.0", default-features = false }

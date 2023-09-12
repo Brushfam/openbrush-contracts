@@ -42,7 +42,7 @@ pub mod my_psp37_enumerable {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn enumerable_should_fail(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn enumerable_should_fail<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
@@ -72,7 +72,7 @@ pub mod my_psp37_enumerable {
         }
 
         #[ink_e2e::test]
-        async fn enumerable_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn enumerable_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
@@ -158,7 +158,7 @@ pub mod my_psp37_enumerable {
         }
 
         #[ink_e2e::test]
-        async fn enumerable_works_after_burn(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn enumerable_works_after_burn<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
@@ -256,7 +256,7 @@ pub mod my_psp37_enumerable {
         }
 
         #[ink_e2e::test]
-        async fn enumerable_transfer_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn enumerable_transfer_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
             let address = client
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)

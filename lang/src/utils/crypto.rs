@@ -50,10 +50,12 @@ pub fn pub_key_to_eth_address(pub_key: &[u8; 33]) -> Result<[u8; 20], CryptoErro
 /// # Support of signatures
 ///
 /// - `ECDSA` - ECDSA signature with 65 bytes
+/// - `SR25519` - SR25519 signature with 64 bytes
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum Signature {
     ECDSA([u8; 65]),
+    SR25519([u8; 64]),
 }
 
 impl Signature {
@@ -72,6 +74,7 @@ impl Signature {
     /// # Supported signatures
     ///
     /// - `ECDSA`
+    /// - `SR25519`
     #[allow(unreachable_patterns)]
     pub fn verify(&self, message: &[u8], address: &AccountId) -> bool {
         match self {
@@ -84,6 +87,8 @@ impl Signature {
 
                 return result.is_ok() && pub_key_to_ss58(&output) == address.clone()
             }
+            // Verifies SR25519 signature
+            Signature::SR25519(sig) => ink::env::sr25519_verify(sig, message, address.as_ref()).is_ok(),
             _ => false,
         }
     }

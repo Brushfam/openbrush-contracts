@@ -2,10 +2,14 @@
 
 extern crate my_psp22_permit;
 
-use ink::env::hash::{
-    Blake2x256,
-    HashOutput,
+use ink::{
+    env::hash::{
+        Blake2x256,
+        HashOutput,
+    },
+    primitives::AccountId,
 };
+use std::str::FromStr;
 #[rustfmt::skip]
 use ink_e2e::build_message;
 use openbrush::contracts::{
@@ -20,28 +24,27 @@ use crate::my_psp22_permit::*;
 // use openbrush::contracts::psp22::extensions::permit::PERMIT_TYPE_HASH;
 use openbrush::{
     contracts::psp22::extensions::permit::PermitMessage,
-    traits::{
-        AccountId,
-        Balance,
-    },
+    traits::Balance,
     utils::crypto::{
         hash_blake2b256,
         Signature,
     },
 };
 use scale::Encode;
-use secp256k1::{
-    ecdsa::RecoverableSignature,
-    Message,
-    PublicKey,
-    SecretKey,
-    SECP256K1,
-};
 use test_helpers::{
     address_of,
     balance_of,
     method_call,
     method_call_dry_run,
+};
+
+use subxt_signer::{
+    ecdsa::{
+        Keypair as EcdsaKeypair,
+        Keypair,
+    },
+    sr25519::Keypair as Sr25519Keypair,
+    SecretUri,
 };
 
 type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
@@ -95,7 +98,7 @@ async fn check_domain_separator(mut client: ink_e2e::Client<C, E>) -> E2EResult<
 }
 
 #[ink_e2e::test]
-async fn permit_accepts_owner_signature(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+async fn permit_accepts_owner_ecdsa_signature(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
     let constructor = ContractRef::new(1000);
     let address = client
         .instantiate("my_psp22_permit", &ink_e2e::alice(), constructor, 0, None)
@@ -109,53 +112,44 @@ async fn permit_accepts_owner_signature(mut client: ink_e2e::Client<C, E>) -> E2
 
     let domain_separator: [u8; 32] = method_call_dry_run!(client, address, domain_separator());
 
-    let seckey = [
-        59, 148, 11, 85, 134, 130, 61, 253, 2, 174, 59, 70, 27, 180, 51, 107, 94, 203, 174, 253, 102, 39, 170, 146, 46,
-        252, 4, 143, 236, 12, 136, 28,
-    ];
-    let pubkey = PublicKey::from_secret_key(
-        &SECP256K1,
-        &SecretKey::from_slice(&seckey).expect("seckey creation failed"),
-    );
+    let signer = EcdsaKeypair::from_uri(&SecretUri::from_str("//Alice").unwrap()).unwrap();
 
-    let owner = AccountId::from(hash_blake2b256(&pubkey.serialize().to_vec()));
+    let owner = AccountId::from(signer.public_key().to_account_id().0);
     let spender = address_of!(Bob);
 
-    let permit_message = PermitMessage {
-        domain_separator,
-        owner,
-        spender,
-        amount,
-        deadline,
-        nonce,
-    };
+    let signature = get_ecdsa_signature(ecdsa_signer, domain_separator, spender, amount, deadline, nonce);
 
-    let message = &scale::Encode::encode(&permit_message);
+    let permit_signature = method_call_dry_run!(client, address, permit(owner, spender, amount, deadline, signature));
 
-    let msg_hash = hash_blake2b256(message);
+    println!("permit_signature: {:?}", permit_signature);
+    assert!(matches!(permit_signature, Ok(_)));
 
-    let msg = Message::from_slice(&msg_hash).expect("message creation failed");
-    let seckey = SecretKey::from_slice(&seckey).expect("secret key creation failed");
-    let recoverable_signature: RecoverableSignature = SECP256K1.sign_ecdsa_recoverable(&msg, &seckey);
+    Ok(())
+}
 
-    let recovery_id = recoverable_signature.serialize_compact().0.to_i32() as u8;
-    let mut signature = recoverable_signature.serialize_compact().1.to_vec();
-    signature.push(recovery_id);
-    let signature_with_recovery_id: [u8; 65] = signature
-        .try_into()
-        .expect("unable to create signature with recovery id");
+#[ink_e2e::test]
+async fn permit_accepts_owner_sr25519_signature(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    let constructor = ContractRef::new(1000);
+    let address = client
+        .instantiate("my_psp22_permit", &ink_e2e::alice(), constructor, 0, None)
+        .await
+        .expect("instantiate failed")
+        .account_id;
 
-    let permit_signature = method_call_dry_run!(
-        client,
-        address,
-        permit(
-            owner,
-            spender,
-            amount,
-            deadline,
-            Signature::ECDSA(signature_with_recovery_id)
-        )
-    );
+    let nonce: u64 = method_call_dry_run!(client, address, nonces(address_of!(Alice)));
+    let deadline: u64 = 30_000_000_000_000;
+    let amount: Balance = 1000;
+
+    let domain_separator: [u8; 32] = method_call_dry_run!(client, address, domain_separator());
+
+    let signer = ink_e2e::alice();
+    let owner = address_of!(Alice);
+
+    let spender = address_of!(Bob);
+
+    let signature = get_sr25519_signature(signer, domain_separator, spender, amount, deadline, nonce);
+
+    let permit_signature = method_call_dry_run!(client, address, permit(owner, spender, amount, deadline, signature));
 
     println!("permit_signature: {:?}", permit_signature);
     assert!(matches!(permit_signature, Ok(_)));
@@ -178,63 +172,23 @@ async fn permit_rejects_reused_signature(mut client: ink_e2e::Client<C, E>) -> E
 
     let domain_separator: [u8; 32] = method_call_dry_run!(client, address, domain_separator());
 
-    let seckey = [
-        59, 148, 11, 85, 134, 130, 61, 253, 2, 174, 59, 70, 27, 180, 51, 107, 94, 203, 174, 253, 102, 39, 170, 146, 46,
-        252, 4, 143, 236, 12, 136, 28,
-    ];
-    let pubkey = PublicKey::from_secret_key(
-        &SECP256K1,
-        &SecretKey::from_slice(&seckey).expect("seckey creation failed"),
-    );
+    let ecdsa_signer = EcdsaKeypair::from_uri(&SecretUri::from_str("//Alice").unwrap()).unwrap();
 
-    let owner = AccountId::from(hash_blake2b256(&pubkey.serialize().to_vec()));
+    let ecdsa_address = AccountId::from(ecdsa_signer.public_key().to_account_id().0);
     let spender = address_of!(Bob);
 
-    let permit_message = PermitMessage {
-        domain_separator,
-        owner,
-        spender,
-        amount,
-        deadline,
-        nonce,
-    };
-
-    let message = &scale::Encode::encode(&permit_message);
-
-    let msg_hash = hash_blake2b256(message);
-
-    let msg = Message::from_slice(&msg_hash).expect("message creation failed");
-    let seckey = SecretKey::from_slice(&seckey).expect("secret key creation failed");
-    let recoverable_signature: RecoverableSignature = SECP256K1.sign_ecdsa_recoverable(&msg, &seckey);
-
-    let recovery_id = recoverable_signature.serialize_compact().0.to_i32() as u8;
-    let mut signature = recoverable_signature.serialize_compact().1.to_vec();
-    signature.push(recovery_id);
-    let signature_with_recovery_id: [u8; 65] = signature
-        .try_into()
-        .expect("unable to create signature with recovery id");
+    let ecdsa_signature = get_ecdsa_signature(ecdsa_signer, domain_separator, spender, amount, deadline, nonce);
 
     let first_permit_result = method_call_dry_run!(
         client,
         address,
-        permit(
-            owner,
-            spender,
-            amount,
-            deadline,
-            Signature::ECDSA(signature_with_recovery_id)
-        )
+        permit(ecdsa_address, spender, amount, deadline, ecdsa_signature)
     );
+
     let _call_permit = method_call!(
         client,
         address,
-        permit(
-            owner,
-            spender,
-            amount,
-            deadline,
-            Signature::ECDSA(signature_with_recovery_id)
-        )
+        permit(ecdsa_address, spender, amount, deadline, ecdsa_signature)
     );
 
     assert!(matches!(first_permit_result, Ok(_)));
@@ -242,13 +196,7 @@ async fn permit_rejects_reused_signature(mut client: ink_e2e::Client<C, E>) -> E
     let second_permit_result = method_call_dry_run!(
         client,
         address,
-        permit(
-            owner,
-            spender,
-            amount,
-            deadline,
-            Signature::ECDSA(signature_with_recovery_id)
-        )
+        permit(ecdsa_address, spender, amount, deadline, ecdsa_signature)
     );
 
     println!("second_permit_result: {:?}", second_permit_result);
@@ -392,4 +340,52 @@ async fn permit_rejects_expired_permit(mut client: ink_e2e::Client<C, E>) -> E2E
     assert!(matches!(permit_signature, Err(_)));
 
     Ok(())
+}
+
+fn get_ecdsa_signature(
+    signer: EcdsaKeypair,
+    domain_separator: [u8; 32],
+    spender: AccountId,
+    amount: Balance,
+    deadline: u64,
+    nonce: u64,
+) -> Signature {
+    let permit_message = PermitMessage {
+        domain_separator,
+        owner: AccountId::from(signer.public_key().to_account_id().0),
+        spender,
+        amount,
+        deadline,
+        nonce,
+    };
+
+    let message = &scale::Encode::encode(&permit_message);
+
+    let signature = signer.sign(message).0;
+
+    Signature::ECDSA(signature)
+}
+
+fn get_sr25519_signature(
+    signer: Sr25519Keypair,
+    domain_separator: [u8; 32],
+    spender: AccountId,
+    amount: Balance,
+    deadline: u64,
+    nonce: u64,
+) -> Signature {
+    let permit_message = PermitMessage {
+        domain_separator,
+        owner: AccountId::from(signer.public_key().to_account_id().0),
+        spender,
+        amount,
+        deadline,
+        nonce,
+    };
+
+    let message = &scale::Encode::encode(&permit_message);
+
+    let signature = signer.sign(message).0;
+
+    Signature::SR25519(signature)
 }

@@ -15,7 +15,6 @@ ecdsa = { version = "0.16.7", default-features = false, optional = true }
 
 [dev-dependencies]
 ink_e2e = "5.0.0-alpha"
-ink_env = "4.3.0"
 test_helpers = { path = "../../test_helpers", default-features = false }
 subxt-signer = {version = "0.31.0", default-features = false, features = ["ecdsa"]}
 
@@ -34,9 +33,7 @@ std = [
     "openbrush/std",
 ]
 ink-as-dependency = []
-e2e-tests = [
-    "ecdsa"
-]
+e2e-tests = []
 
 [profile.dev]
 codegen-units = 16

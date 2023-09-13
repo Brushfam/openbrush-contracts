@@ -51,7 +51,7 @@ pub fn pub_key_to_eth_address(pub_key: &[u8; 33]) -> Result<[u8; 20], CryptoErro
 ///
 /// - `ECDSA` - ECDSA signature with 65 bytes
 /// - `SR25519` - SR25519 signature with 64 bytes
-#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+#[derive(Debug, PartialEq, Clone, Copy, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum Signature {
     ECDSA([u8; 65]),

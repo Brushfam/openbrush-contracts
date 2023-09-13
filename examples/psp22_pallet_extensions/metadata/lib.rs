@@ -65,7 +65,7 @@ pub mod my_psp22_pallet_metadata {
             let _symbol = String::from("TKN");
 
             let constructor = ContractRef::new(random_num(), 1, 1000, _name, _symbol, 18);
-            let address = client
+            let contract = client
                 .instantiate(
                     "my_psp22_pallet_metadata",
                     &ink_e2e::alice(),
@@ -74,23 +74,23 @@ pub mod my_psp22_pallet_metadata {
                     None,
                 )
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let call = contract.call::<Contract>();
 
             let token_name = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_name());
+                let _msg = call.token_name();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             let token_symbol = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_symbol());
+                let _msg = call.token_symbol();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             let token_decimals = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_decimals());
+                let _msg = call.token_decimals();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();

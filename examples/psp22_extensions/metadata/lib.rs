@@ -50,23 +50,23 @@ pub mod my_psp22 {
             let address = client
                 .instantiate("my_psp22_metadata", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = address.call::<Contract>();
 
             let token_name = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_name());
+                let _msg = call.token_name();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             let token_symbol = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_symbol());
+                let _msg = call.token_symbol();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             let token_decimals = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_decimals());
+                let _msg = call.token_decimals();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();

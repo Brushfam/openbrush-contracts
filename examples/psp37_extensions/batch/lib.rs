@@ -46,11 +46,11 @@ pub mod my_psp37 {
         #[ink_e2e::test]
         async fn batch_transfer_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp37_batch", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let call = contract.call::<Contract>();
 
             let token_1 = Id::U8(0);
             let token_2 = Id::U8(1);
@@ -59,14 +59,12 @@ pub mod my_psp37 {
             let amount_2 = 20;
 
             let mint_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.mint(
+                let _msg = call.mint(
                         address_of!(Alice),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2.clone())],
-                    )
-                });
+                    );
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -75,15 +73,13 @@ pub mod my_psp37 {
             assert_eq!(mint_tx, Ok(()));
 
             let batch_transfer_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.batch_transfer(
+                let _msg = call.batch_transfer(
                         address_of!(Bob),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2.clone())],
                         vec![],
-                    )
-                });
+                    );
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -91,10 +87,10 @@ pub mod my_psp37 {
 
             assert_eq!(batch_transfer_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), amount_1);
-            assert_eq!(balance_of_37!(client, address, Bob, Some(token_2.clone())), amount_2);
-            assert_eq!(balance_of_37!(client, address, Alice, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), 0);
+            assert_eq!(balance_of_37!(client, call, Bob, Some(token_1.clone())), amount_1);
+            assert_eq!(balance_of_37!(client, call, Bob, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, call, Alice, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, call, Alice, Some(token_2.clone())), 0);
 
             Ok(())
         }
@@ -102,11 +98,11 @@ pub mod my_psp37 {
         #[ink_e2e::test]
         async fn batch_transfer_from_should_work<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp37_batch", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let call = contract.call::<Contract>();
 
             let token_1 = Id::U8(0);
             let token_2 = Id::U8(1);
@@ -115,14 +111,12 @@ pub mod my_psp37 {
             let amount_2 = 20;
 
             let mint_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.mint(
+                let _msg = call.mint(
                         address_of!(Alice),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2.clone())],
-                    )
-                });
+                    );
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -130,22 +124,20 @@ pub mod my_psp37 {
 
             assert_eq!(mint_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, Alice, Some(token_1.clone())), amount_1);
-            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), amount_2);
-            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, Bob, Some(token_2.clone())), 0);
+            assert_eq!(balance_of_37!(client, call, Alice, Some(token_1.clone())), amount_1);
+            assert_eq!(balance_of_37!(client, call, Alice, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, call, Bob, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, call, Bob, Some(token_2.clone())), 0);
 
             let batch_transfer_from_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.batch_transfer_from(
+                let _msg = call.batch_transfer_from(
                         address_of!(Alice),
                         address_of!(Bob),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2.clone())],
                         vec![],
-                    )
-                });
+                    );
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -153,10 +145,10 @@ pub mod my_psp37 {
 
             assert_eq!(batch_transfer_from_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), amount_1);
-            assert_eq!(balance_of_37!(client, address, Bob, Some(token_2.clone())), amount_2);
-            assert_eq!(balance_of_37!(client, address, Alice, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), 0);
+            assert_eq!(balance_of_37!(client, call, Bob, Some(token_1.clone())), amount_1);
+            assert_eq!(balance_of_37!(client, call, Bob, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, call, Alice, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, call, Alice, Some(token_2.clone())), 0);
 
             Ok(())
         }
@@ -166,11 +158,11 @@ pub mod my_psp37 {
             mut client: Client,
         ) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp37_batch", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let call = contract.call::<Contract>();
 
             let token_1 = Id::U8(0);
             let token_2 = Id::U8(1);
@@ -179,14 +171,12 @@ pub mod my_psp37 {
             let amount_2 = 20;
 
             let mint_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.mint(
+                let _msg = call.mint(
                         address_of!(Alice),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2.clone())],
-                    )
-                });
+                    );
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -195,14 +185,12 @@ pub mod my_psp37 {
             assert_eq!(mint_tx, Ok(()));
 
             let batch_transfer_from_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.batch_transfer_from(
+                let _msg = call.batch_transfer_from(
                         address_of!(Bob),
                         address_of!(Alice),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2.clone())],
                         vec![],
-                    )
-                });
+                    );
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -215,11 +203,11 @@ pub mod my_psp37 {
         #[ink_e2e::test]
         async fn batch_transfer_from_with_approve_should_work<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp37_batch", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let call = contract.call::<Contract>();
 
             let token_1 = Id::U8(0);
             let token_2 = Id::U8(1);
@@ -228,14 +216,12 @@ pub mod my_psp37 {
             let amount_2 = 20;
 
             let mint_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.mint(
+                let _msg = call.mint(
                         address_of!(Alice),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2.clone())],
-                    )
-                });
+                    );
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -244,10 +230,9 @@ pub mod my_psp37 {
             assert_eq!(mint_tx, Ok(()));
 
             let approve_tx = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.approve(address_of!(Bob), None, 1));
+                let _msg = call.approve(address_of!(Bob), None, 1);
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("approve failed")
             }
@@ -256,16 +241,14 @@ pub mod my_psp37 {
             assert_eq!(approve_tx, Ok(()));
 
             let batch_transfer_from_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.batch_transfer_from(
+                let _msg = call.batch_transfer_from(
                         address_of!(Alice),
                         address_of!(Bob),
                         vec![(token_1.clone(), amount_1.clone()), (token_2.clone(), amount_2.clone())],
                         vec![],
-                    )
-                });
+                    );
                 client
-                    .call(&ink_e2e::bob(), _msg, 0, None)
+                    .call(&ink_e2e::bob(), &_msg, 0, None)
                     .await
                     .expect("transfer failed")
             }
@@ -273,10 +256,10 @@ pub mod my_psp37 {
 
             assert_eq!(batch_transfer_from_tx, Ok(()));
 
-            assert_eq!(balance_of_37!(client, address, Bob, Some(token_1.clone())), amount_1);
-            assert_eq!(balance_of_37!(client, address, Bob, Some(token_2.clone())), amount_2);
-            assert_eq!(balance_of_37!(client, address, Alice, Some(token_1.clone())), 0);
-            assert_eq!(balance_of_37!(client, address, Alice, Some(token_2.clone())), 0);
+            assert_eq!(balance_of_37!(client, call, Bob, Some(token_1.clone())), amount_1);
+            assert_eq!(balance_of_37!(client, call, Bob, Some(token_2.clone())), amount_2);
+            assert_eq!(balance_of_37!(client, call, Alice, Some(token_1.clone())), 0);
+            assert_eq!(balance_of_37!(client, call, Alice, Some(token_2.clone())), 0);
 
             Ok(())
         }

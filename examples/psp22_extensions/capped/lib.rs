@@ -79,7 +79,7 @@ pub mod my_psp22_capped {
             assert!(matches!(balance_of!(client, address, Alice), 1000));
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -109,7 +109,7 @@ pub mod my_psp22_capped {
             assert!(matches!(balance_of!(client, address, Alice), 1000));
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -117,10 +117,9 @@ pub mod my_psp22_capped {
             assert!(matches!(total_supply, 1000));
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Alice), 1000));
+                let _msg = call.mint(address_of!(Alice), 1000);
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -130,7 +129,7 @@ pub mod my_psp22_capped {
             assert!(matches!(balance_of!(client, address, Alice), 2000));
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -152,7 +151,7 @@ pub mod my_psp22_capped {
             assert!(matches!(balance_of!(client, address, Alice), 1000));
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -160,8 +159,7 @@ pub mod my_psp22_capped {
             assert!(matches!(total_supply, 1000));
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Alice), 1001));
+                let _msg = call.mint(address_of!(Alice), 1001);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -170,7 +168,7 @@ pub mod my_psp22_capped {
             assert!(matches!(balance_of!(client, address, Alice), 1000));
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();

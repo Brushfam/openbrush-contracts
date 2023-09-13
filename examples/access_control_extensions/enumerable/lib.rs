@@ -60,7 +60,7 @@ pub mod my_access_control {
         async fn should_have_not_member<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
            let constructor = ContractRef::new(100);
             let contract = client
-                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
             let mut call = contract.call::<Contract>();
@@ -74,7 +74,7 @@ pub mod my_access_control {
         async fn should_get_role_member<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
            let constructor = ContractRef::new(100);
             let contract = client
-                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
             let mut call = contract.call::<Contract>();
@@ -88,7 +88,7 @@ pub mod my_access_control {
         async fn should_grant_roles_and_get_role_members<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
            let constructor = ContractRef::new(100);
             let contract = client
-                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
             let mut call = contract.call::<Contract>();
@@ -106,7 +106,7 @@ pub mod my_access_control {
         async fn should_revoker_and_count_roles<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
            let constructor = ContractRef::new(100);
             let contract = client
-                .instantiate("my_psp22", &ink_e2e::alice(), constructor, 0, None)
+                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
             let mut call = contract.call::<Contract>();

@@ -23,14 +23,8 @@
 #[openbrush::implementation(PSP37, PSP37Metadata)]
 #[openbrush::contract]
 mod psp37_metadata {
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use ink::codegen::{EmitEvent, Env};
+    use openbrush::traits::{Storage, String};
 
     #[ink(event)]
     pub struct AttributeSet {

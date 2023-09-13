@@ -23,24 +23,13 @@
 use crate::{
     governance::{
         governor::TimestampProvider,
-        utils::votes::{
-            Data,
-            VotesEvents,
-        },
+        utils::votes::{Data, VotesEvents},
     },
     traits::errors::GovernanceError,
 };
 use openbrush::{
-    traits::{
-        AccountId,
-        Balance,
-        Storage,
-    },
-    utils::checkpoints::{
-        Checkpoint,
-        Checkpoints,
-        CheckpointsError,
-    },
+    traits::{AccountId, Balance, Storage},
+    utils::checkpoints::{Checkpoint, Checkpoints, CheckpointsError},
 };
 
 pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {

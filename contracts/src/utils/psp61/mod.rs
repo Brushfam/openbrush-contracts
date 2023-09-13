@@ -19,14 +19,8 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    psp61,
-    traits::psp61::*,
-};
-use ink::prelude::{
-    vec,
-    vec::Vec,
-};
+pub use crate::{psp61, traits::psp61::*};
+use ink::prelude::{vec, vec::Vec};
 
 pub trait PSP61Internal {
     fn _interfaces(&self) -> Vec<u32> {

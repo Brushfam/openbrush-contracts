@@ -60,8 +60,6 @@ pub mod my_access_control {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message};
 
         use openbrush::contracts::access_control::DEFAULT_ADMIN_ROLE;
 
@@ -70,38 +68,35 @@ pub mod my_access_control {
             grant_role,
             has_role,
             mint,
-            mint_dry_run,
             revoke_role,
+            method_call_dry_run,
+            method_call,
         };
+        use ink_e2e::ContractsBackend;
+
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
         async fn only_minter_role_is_allowed_to_mint<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+
+            let contract = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
+            assert_eq!(has_role!(client, call, MINTER, Bob), false);
+            assert_eq!(has_role!(client, call, DEFAULT_ADMIN_ROLE, Bob), false);
+            assert_eq!(has_role!(client, call, DEFAULT_ADMIN_ROLE, Alice), true);
+            assert_eq!(has_role!(client, call, MINTER, Alice), true);
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), false);
+            assert_eq!(grant_role!(client, call, MINTER, Bob), Ok(()));
 
-            assert!(matches!(mint_dry_run!(client, address, bob, Bob, Id::U8(0)), Err(_)));
-
-            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
-
-            assert_eq!(has_role!(client, address, MINTER, Bob), true);
-
-            assert_eq!(mint!(client, address, bob, Bob, Id::U8(0)), Ok(()));
-
-            let owner_of = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.owner_of(Id::U8(0)));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
-            }
-            .return_value();
-
-            assert_eq!(owner_of, Some(address_of!(Bob)));
+            assert_eq!(has_role!(client, call, MINTER, Bob), true);
+            assert_eq!(has_role!(client, call, DEFAULT_ADMIN_ROLE, Bob), false);
+            assert_eq!(has_role!(client, call, DEFAULT_ADMIN_ROLE, Alice), true);
+            assert_eq!(has_role!(client, call, MINTER, Alice), true);
 
             Ok(())
         }
@@ -109,14 +104,15 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_grant_initial_roles_to_default_signer<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+
+            let contract = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let  call = contract.call::<Contract>();
 
-            assert_eq!(has_role!(client, address, MINTER, Alice), true);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Alice), true);
+            assert_eq!(has_role!(client, call, MINTER, Alice), true);
+            assert_eq!(has_role!(client, call, DEFAULT_ADMIN_ROLE, Alice), true);
 
             Ok(())
         }
@@ -126,14 +122,15 @@ pub mod my_access_control {
             mut client: Client,
         ) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+
+            let contract = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let call = contract.call::<Contract>();
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), false);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Bob), false);
+            assert_eq!(has_role!(client, call, MINTER, Bob), false);
+            assert_eq!(has_role!(client, call, DEFAULT_ADMIN_ROLE, Bob), false);
 
             Ok(())
         }
@@ -141,17 +138,18 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_grant_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+
+            let contract = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), false);
+            assert_eq!(has_role!(client, call, MINTER, Bob), false);
 
-            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
+            assert_eq!(grant_role!(client, call, MINTER, Bob), Ok(()));
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), true);
+            assert_eq!(has_role!(client, call, MINTER, Bob), true);
 
             Ok(())
         }
@@ -159,23 +157,24 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_not_change_old_roles_after_grant_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+
+            let contract = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), false);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Bob), false);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Alice), true);
-            assert_eq!(has_role!(client, address, MINTER, Alice), true);
+            assert_eq!(has_role!(client, call, MINTER, Bob), false);
+            assert_eq!(has_role!(client, call, DEFAULT_ADMIN_ROLE, Bob), false);
+            assert_eq!(has_role!(client, call, DEFAULT_ADMIN_ROLE, Alice), true);
+            assert_eq!(has_role!(client, call, MINTER, Alice), true);
 
-            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
+            assert_eq!(grant_role!(client, call, MINTER, Bob), Ok(()));
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), true);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Bob), false);
-            assert_eq!(has_role!(client, address, DEFAULT_ADMIN_ROLE, Alice), true);
-            assert_eq!(has_role!(client, address, MINTER, Alice), true);
+            assert_eq!(has_role!(client, call, MINTER, Bob), true);
+            assert_eq!(has_role!(client, call, DEFAULT_ADMIN_ROLE, Bob), false);
+            assert_eq!(has_role!(client, call, DEFAULT_ADMIN_ROLE, Alice), true);
+            assert_eq!(has_role!(client, call, MINTER, Alice), true);
 
             Ok(())
         }
@@ -183,31 +182,24 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_revoke_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+
+            let contract = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), false);
+            assert_eq!(has_role!(client, call, MINTER, Bob), false);
 
-            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
+            assert_eq!(grant_role!(client, call, MINTER, Bob), Ok(()));
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), true);
+            assert_eq!(has_role!(client, call, MINTER, Bob), true);
 
-            let revoke_role = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.revoke_role(MINTER, Some(address_of!(Bob))));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("call failed")
-            }
-            .return_value();
+            let revoke_role = method_call!(client, call, revoke_role(MINTER, Some(address_of!(Bob))));
 
             assert_eq!(revoke_role, Ok(()));
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), false);
+            assert_eq!(has_role!(client, call, MINTER, Bob), false);
 
             Ok(())
         }
@@ -215,27 +207,18 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_renounce_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+
+            let contract = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(has_role!(client, address, MINTER, Alice), true);
+            assert_eq!(has_role!(client, call, MINTER, Alice), true);
 
-            let renounce_role = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.renounce_role(MINTER, Some(address_of!(Alice))));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("call failed")
-            }
-            .return_value();
+            let _revoke_role = method_call!(client, call, renounce_role(MINTER, Some(address_of!(Alice))));
 
-            assert_eq!(renounce_role, Ok(()));
-
-            assert_eq!(has_role!(client, address, MINTER, Alice), false);
+            assert_eq!(has_role!(client, call, MINTER, Alice), false);
 
             Ok(())
         }
@@ -245,29 +228,20 @@ pub mod my_access_control {
             mut client: ink_e2e::Client<C, E>,
         ) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+
+            let contract = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
+            assert_eq!(grant_role!(client, call, MINTER, Bob), Ok(()));
 
-            let grant_role = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.grant_role(MINTER, Some(address_of!(Charlie))));
-                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
-            }
-            .return_value();
+            let grant_role = method_call_dry_run!(client, call, bob, grant_role(MINTER, Some(address_of!(Charlie))));
 
             assert!(matches!(grant_role, Err(_)));
 
-            let revoke_role = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.revoke_role(MINTER, Some(address_of!(Charlie))));
-                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
-            }
-            .return_value();
+            let revoke_role = method_call_dry_run!(client, call, bob, revoke_role(MINTER, Some(address_of!(Charlie))));
 
             assert!(matches!(revoke_role, Err(_)));
 
@@ -277,21 +251,17 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_reject_when_renounce_not_self_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+
+            let contract = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
-            assert_eq!(has_role!(client, address, MINTER, Bob), true);
+            assert_eq!(grant_role!(client, call, MINTER, Bob), Ok(()));
+            assert_eq!(has_role!(client, call, MINTER, Bob), true);
 
-            let renounce_role = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.renounce_role(MINTER, Some(address_of!(Bob))));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
-            }
-            .return_value();
+            let renounce_role = method_call_dry_run!(client, call, renounce_role(MINTER, Some(address_of!(Bob))));
 
             assert!(matches!(renounce_role, Err(_)));
 
@@ -301,34 +271,26 @@ pub mod my_access_control {
         #[ink_e2e::test]
         async fn should_reject_burn_if_no_minter_role<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+
+            let contract = client
                 .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
-            assert_eq!(has_role!(client, address, MINTER, Bob), true);
+            assert_eq!(grant_role!(client, call, MINTER, Bob), Ok(()));
+            assert_eq!(has_role!(client, call, MINTER, Bob), true);
 
-            assert_eq!(mint!(client, address, bob, Bob, Id::U8(0)), Ok(()));
+            assert_eq!(mint!(client, call, bob, Bob, Id::U8(0)), Ok(()));
 
-            let owner_of = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.owner_of(Id::U8(0)));
-                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
-            }
-            .return_value();
+            let owner_of =  method_call_dry_run!(client, call, bob, owner_of(Id::U8(0)));
 
             assert_eq!(owner_of, Some(address_of!(Bob)));
 
-            assert_eq!(revoke_role!(client, address, MINTER, Bob), Ok(()));
-            assert_eq!(has_role!(client, address, MINTER, Bob), false);
+            assert_eq!(revoke_role!(client, call, MINTER, Bob), Ok(()));
+            assert_eq!(has_role!(client, call, MINTER, Bob), false);
 
-            let burn = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(Bob), Id::U8(0)));
-                client.call_dry_run(&ink_e2e::bob(), &_msg, 0, None).await
-            }
-            .return_value();
+            let burn = method_call_dry_run!(client, call, bob, burn(address_of!(Bob), Id::U8(0)));
 
             assert!(matches!(burn, Err(_)));
 

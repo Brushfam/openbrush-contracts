@@ -20,10 +20,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use openbrush::traits::{AccountId, Balance};
 
 pub trait VotesEvents {
     /// Emitted when a voter delegates their votes to another account

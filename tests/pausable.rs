@@ -25,16 +25,10 @@
 mod pausable {
     use ::ink::env::DefaultEnvironment;
     use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
+        codegen::{EmitEvent, Env},
         env::test::DefaultAccounts,
     };
-    use openbrush::{
-        test_utils::accounts,
-        traits::Storage,
-    };
+    use openbrush::{test_utils::accounts, traits::Storage};
 
     /// Emitted when the pause is triggered by `account`.
     #[ink(event)]

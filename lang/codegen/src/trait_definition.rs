@@ -20,32 +20,18 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    internal::{
-        extract_attr,
-        is_attr,
-        remove_attr,
-    },
-    metadata::{
-        LockedTrait,
-        TraitDefinition,
-    },
+    internal::{extract_attr, is_attr, remove_attr},
+    metadata::{LockedTrait, TraitDefinition},
 };
 use heck::CamelCase as _;
 use proc_macro2::TokenStream;
-use quote::{
-    format_ident,
-    quote,
-    ToTokens,
-};
+use quote::{format_ident, quote, ToTokens};
 use std::collections::HashMap;
-use syn::{
-    parse2,
-    ItemTrait,
-};
+use syn::{parse2, ItemTrait};
 
 pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
     if crate::internal::skip() {
-        return quote! {}
+        return quote! {};
     }
     let attrs: proc_macro2::TokenStream = _attrs;
     let mut trait_item: ItemTrait = parse2(_input).unwrap();

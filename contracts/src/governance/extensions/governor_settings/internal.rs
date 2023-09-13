@@ -21,10 +21,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::{
-    governance::extensions::governor_settings::{
-        Data,
-        GovernorSettingsEvents,
-    },
+    governance::extensions::governor_settings::{Data, GovernorSettingsEvents},
     traits::errors::GovernanceError,
 };
 use openbrush::traits::Storage;
@@ -41,7 +38,7 @@ pub trait GovernorSettingsInternal: Storage<Data> + GovernorSettingsEvents {
     /// Sets the voting period
     fn _set_voting_period(&mut self, new_voting_period: u64) -> Result<(), GovernanceError> {
         if new_voting_period == 0 {
-            return Err(GovernanceError::InvalidVotingPeriod)
+            return Err(GovernanceError::InvalidVotingPeriod);
         }
 
         let old_voting_period = self.data().voting_period.get();

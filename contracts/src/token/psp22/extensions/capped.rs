@@ -22,22 +22,11 @@
 pub use crate::{
     psp22,
     psp22::extensions::capped,
-    traits::psp22::{
-        extensions::capped::*,
-        *,
-    },
+    traits::psp22::{extensions::capped::*, *},
 };
 pub use capped::Internal as _;
-use openbrush::traits::{
-    Balance,
-    Storage,
-    String,
-};
-pub use psp22::{
-    Internal as _,
-    InternalImpl as _,
-    PSP22Impl,
-};
+use openbrush::traits::{Balance, Storage, String};
+pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -64,7 +53,7 @@ pub trait Internal {
 pub trait InternalImpl: Storage<Data> + Internal + PSP22 {
     fn _init_cap(&mut self, cap: Balance) -> Result<(), PSP22Error> {
         if cap == 0 {
-            return Err(PSP22Error::Custom(String::from("Cap must be above 0")))
+            return Err(PSP22Error::Custom(String::from("Cap must be above 0")));
         }
         self.data().cap.set(&cap);
         Ok(())
@@ -72,7 +61,7 @@ pub trait InternalImpl: Storage<Data> + Internal + PSP22 {
 
     fn _is_cap_exceeded(&self, amount: &Balance) -> bool {
         if self.total_supply() + amount > Internal::_cap(self) {
-            return true
+            return true;
         }
         false
     }

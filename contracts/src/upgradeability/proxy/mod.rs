@@ -23,28 +23,15 @@
 // Therefore the proxy and diamond contracts will be disabled within OpenBrush until this is reimplemented in ink! 4.
 
 pub use crate::{
-    ownable,
-    proxy,
-    traits::{
-        ownable::*,
-        proxy::*,
-    },
+    ownable, proxy,
+    traits::{ownable::*, proxy::*},
 };
 use openbrush::{
     modifiers,
-    traits::{
-        Hash,
-        Storage,
-    },
+    traits::{Hash, Storage},
 };
-pub use ownable::{
-    Internal as _,
-    InternalImpl as _,
-};
-pub use proxy::{
-    Internal as _,
-    InternalImpl as _,
-};
+pub use ownable::{Internal as _, InternalImpl as _};
+pub use proxy::{Internal as _, InternalImpl as _};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]

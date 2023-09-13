@@ -26,22 +26,11 @@ use quote::ToTokens;
 use serde_json;
 use std::{
     env,
-    fs::{
-        create_dir_all,
-        File,
-        OpenOptions,
-    },
-    io::{
-        BufReader,
-        Seek,
-        SeekFrom,
-    },
+    fs::{create_dir_all, File, OpenOptions},
+    io::{BufReader, Seek, SeekFrom},
     str::FromStr,
 };
-use syn::{
-    ItemTrait,
-    TraitItem,
-};
+use syn::{ItemTrait, TraitItem};
 
 const TEMP_FOLDER: &str = "__openbrush_metadata_folder";
 

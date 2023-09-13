@@ -22,25 +22,12 @@
 pub use crate::{
     psp37,
     psp37::extensions::batch,
-    traits::psp37::{
-        extensions::batch::*,
-        *,
-    },
+    traits::psp37::{extensions::batch::*, *},
 };
 pub use batch::Internal as _;
 use ink::prelude::vec::Vec;
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Storage,
-};
-pub use psp37::{
-    BalancesManager as _,
-    BalancesManagerImpl as _,
-    Internal as _,
-    InternalImpl as _,
-    PSP37Impl,
-};
+use openbrush::traits::{AccountId, Balance, Storage};
+pub use psp37::{BalancesManager as _, BalancesManagerImpl as _, Internal as _, InternalImpl as _, PSP37Impl};
 
 pub trait PSP37BatchImpl: Internal + Storage<psp37::Data> {
     fn batch_transfer(
@@ -85,7 +72,7 @@ pub trait InternalImpl: Internal + psp37::Internal + Storage<psp37::Data> + psp3
 
         for (id, value) in &ids_amounts {
             if from != operator && &self._get_allowance(&from, &operator, &Some(id)) < value {
-                return Err(PSP37Error::NotAllowed)
+                return Err(PSP37Error::NotAllowed);
             }
         }
 

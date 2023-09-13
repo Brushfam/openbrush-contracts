@@ -1,7 +1,4 @@
-use quote::{
-    format_ident,
-    quote,
-};
+use quote::{format_ident, quote};
 use std::collections::HashMap;
 use syn::Block;
 
@@ -747,10 +744,7 @@ pub(crate) fn impl_psp22_votes(impl_args: &mut ImplArgs) {
     .expect("Should parse");
 
     let import = syn::parse2::<syn::ItemUse>(quote!(
-        use openbrush::contracts::{
-            governance::utils::votes::*,
-            psp22::extensions::votes::*,
-        };
+        use openbrush::contracts::{governance::utils::votes::*, psp22::extensions::votes::*};
     ))
     .expect("Should parse");
     impl_args.imports.insert("PSP22Votes", import);

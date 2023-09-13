@@ -23,16 +23,10 @@
 #[openbrush::implementation(PSP22)]
 #[openbrush::contract]
 mod psp22_test {
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
+    use ink::codegen::{EmitEvent, Env};
     use openbrush::{
         test_utils::*,
-        traits::{
-            Storage,
-            String,
-        },
+        traits::{Storage, String},
     };
     use std::panic;
 
@@ -97,7 +91,7 @@ mod psp22_test {
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
         if self.return_err_on_before {
-            return Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")))
+            return Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")));
         }
         Ok(())
     }
@@ -110,7 +104,7 @@ mod psp22_test {
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
         if self.return_err_on_after {
-            return Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")))
+            return Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")));
         }
         Ok(())
     }

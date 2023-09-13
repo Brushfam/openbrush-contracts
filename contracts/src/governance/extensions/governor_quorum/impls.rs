@@ -20,32 +20,20 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    governance::extensions::governor_quorum,
-    traits::governance::extensions::governor_quorum::*,
-};
+pub use crate::{governance::extensions::governor_quorum, traits::governance::extensions::governor_quorum::*};
 
 use crate::{
     governance::{
         extensions::{
-            governor_quorum::{
-                Data,
-                QuorumEvents,
-            },
+            governor_quorum::{Data, QuorumEvents},
             governor_votes,
         },
         governor,
-        governor::{
-            only_governance,
-            TimestampProvider,
-        },
+        governor::{only_governance, TimestampProvider},
     },
     traits::governance::utils::votes::*,
 };
-use openbrush::traits::{
-    Storage,
-    Timestamp,
-};
+use openbrush::traits::{Storage, Timestamp};
 
 /// Extension of `Governor` for voting weight extraction from an `PSP22Votes` token and a quorum expressed as a
 /// fraction of the total supply.
@@ -80,11 +68,11 @@ pub trait QuorumImpl:
         let (exist, timestamp, value) = history.latest_checkpoint();
 
         if !exist {
-            return self.quorum_numerator()
+            return self.quorum_numerator();
         }
 
         if timestamp <= time_point {
-            return value
+            return value;
         }
 
         history.upper_lookup_recent(time_point).unwrap_or(0)
@@ -123,7 +111,7 @@ pub trait QuorumImpl:
         let denominator = self.quorum_denominator();
 
         if new_quorum_numerator > denominator {
-            return Err(GovernanceError::InvalidQuorumFraction)
+            return Err(GovernanceError::InvalidQuorumFraction);
         }
 
         let old_quorum_numerator = self.quorum_numerator();

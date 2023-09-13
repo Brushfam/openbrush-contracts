@@ -22,29 +22,14 @@
 pub use crate::{
     psp37,
     psp37::extensions::metadata,
-    traits::psp37::{
-        extensions::metadata::*,
-        *,
-    },
+    traits::psp37::{extensions::metadata::*, *},
 };
 pub use metadata::Internal as _;
 use openbrush::{
-    storage::{
-        Mapping,
-        TypeGuard,
-    },
-    traits::{
-        Storage,
-        String,
-    },
+    storage::{Mapping, TypeGuard},
+    traits::{Storage, String},
 };
-pub use psp37::{
-    BalancesManager as _,
-    BalancesManagerImpl as _,
-    Internal as _,
-    InternalImpl as _,
-    PSP37Impl,
-};
+pub use psp37::{BalancesManager as _, BalancesManagerImpl as _, Internal as _, InternalImpl as _, PSP37Impl};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]

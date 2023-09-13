@@ -23,17 +23,11 @@
 #[openbrush::implementation(PSP22, PSP22Burnable)]
 #[openbrush::contract]
 mod psp22_burnable {
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
+    use ink::codegen::{EmitEvent, Env};
     use openbrush::{
         contracts::psp22::extensions::burnable::*,
         test_utils::*,
-        traits::{
-            Storage,
-            String,
-        },
+        traits::{Storage, String},
     };
 
     /// Event emitted when a token transfer occurs.
@@ -77,7 +71,7 @@ mod psp22_burnable {
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
         if self.return_err_on_before {
-            return Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")))
+            return Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")));
         }
         Ok(())
     }
@@ -90,7 +84,7 @@ mod psp22_burnable {
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
         if self.return_err_on_after {
-            return Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")))
+            return Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")));
         }
         Ok(())
     }

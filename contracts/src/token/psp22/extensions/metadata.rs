@@ -22,18 +22,11 @@
 pub use crate::{
     psp22,
     psp22::extensions::metadata,
-    traits::psp22::{
-        extensions::metadata::*,
-        *,
-    },
+    traits::psp22::{extensions::metadata::*, *},
 };
 use openbrush::traits::Storage;
 pub use openbrush::traits::String;
-pub use psp22::{
-    Internal as _,
-    InternalImpl as _,
-    PSP22Impl,
-};
+pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]

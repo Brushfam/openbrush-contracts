@@ -23,16 +23,10 @@
 pub use crate::traits::{
     access_control::*,
     errors::TimelockControllerError,
-    governance::{
-        OperationId,
-        Transaction,
-    },
+    governance::{OperationId, Transaction},
 };
 use ink::prelude::vec::Vec;
-use openbrush::traits::{
-    Hash,
-    Timestamp,
-};
+use openbrush::traits::{Hash, Timestamp};
 
 /// TimelockController is AccessControl itself, so creating wrapper for both traits
 #[openbrush::wrapper]

@@ -19,15 +19,9 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    reentrancy_guard,
-    traits::errors::ReentrancyGuardError,
-};
+pub use crate::{reentrancy_guard, traits::errors::ReentrancyGuardError};
 use ink::storage::traits::Storable;
-use openbrush::{
-    modifier_definition,
-    traits::Storage,
-};
+use openbrush::{modifier_definition, traits::Storage};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -55,7 +49,7 @@ where
     E: From<ReentrancyGuardError>,
 {
     if instance.data().status.get_or_default() == ENTERED {
-        return Err(From::from(ReentrancyGuardError::ReentrantCall))
+        return Err(From::from(ReentrancyGuardError::ReentrantCall));
     }
     // Any calls to nonReentrant after this point will fail
     instance.data().status.set(&ENTERED);

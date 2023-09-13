@@ -21,10 +21,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use crate::traits::errors::NoncesError;
-use openbrush::utils::{
-    checkpoints::CheckpointsError,
-    crypto::CryptoError,
-};
+use openbrush::utils::{checkpoints::CheckpointsError, crypto::CryptoError};
 
 /// The Governor error type. Contract will throw one of this errors.
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]

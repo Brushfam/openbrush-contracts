@@ -19,14 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use super::{
-    AccessControlError,
-    OwnableError,
-    PSP22Error,
-    PSP22ReceiverError,
-    PausableError,
-    ReentrancyGuardError,
-};
+use super::{AccessControlError, OwnableError, PSP22Error, PSP22ReceiverError, PausableError, ReentrancyGuardError};
 use openbrush::traits::String;
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]

@@ -27,17 +27,11 @@ mod access_control {
     use ink::env::test::DefaultAccounts;
     use openbrush::{
         contracts::access_control::*,
-        test_utils::{
-            accounts,
-            change_caller,
-        },
+        test_utils::{accounts, change_caller},
         traits::Storage,
     };
 
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
+    use ink::codegen::{EmitEvent, Env};
 
     #[ink(event)]
     pub struct RoleAdminChanged {

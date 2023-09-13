@@ -19,27 +19,13 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{
-    psp22,
-    traits::psp22::*,
-};
+pub use crate::{psp22, traits::psp22::*};
 use ink::prelude::vec::Vec;
 use openbrush::{
-    storage::{
-        Mapping,
-        TypeGuard,
-    },
-    traits::{
-        AccountId,
-        Balance,
-        Storage,
-    },
+    storage::{Mapping, TypeGuard},
+    traits::{AccountId, Balance, Storage},
 };
-pub use psp22::{
-    Internal as _,
-    InternalImpl as _,
-    PSP22Impl as _,
-};
+pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl as _};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -86,7 +72,7 @@ pub trait PSP22Impl: Storage<Data> + Internal {
         let allowance = self._allowance(&from, &caller);
 
         if allowance < value {
-            return Err(PSP22Error::InsufficientAllowance)
+            return Err(PSP22Error::InsufficientAllowance);
         }
 
         self._approve_from_to(from, caller, allowance - value)?;
@@ -110,7 +96,7 @@ pub trait PSP22Impl: Storage<Data> + Internal {
         let allowance = self._allowance(&owner, &spender);
 
         if allowance < delta_value {
-            return Err(PSP22Error::InsufficientAllowance)
+            return Err(PSP22Error::InsufficientAllowance);
         }
 
         self._approve_from_to(owner, spender, allowance - delta_value)
@@ -185,7 +171,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
         let from_balance = Internal::_balance_of(self, &from);
 
         if from_balance < amount {
-            return Err(PSP22Error::InsufficientBalance)
+            return Err(PSP22Error::InsufficientBalance);
         }
 
         Internal::_before_token_transfer(self, Some(&from), Some(&to), &amount)?;
@@ -226,7 +212,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
         let mut from_balance = Internal::_balance_of(self, &account);
 
         if from_balance < amount {
-            return Err(PSP22Error::InsufficientBalance)
+            return Err(PSP22Error::InsufficientBalance);
         }
 
         Internal::_before_token_transfer(self, Some(&account), None, &amount)?;

@@ -23,16 +23,27 @@ pub use crate::{
     nonces::*,
     psp22,
     psp22::extensions::permit,
-    traits::psp22::{extensions::permit::*, *},
+    traits::psp22::{
+        extensions::permit::*,
+        *,
+    },
 };
 use openbrush::{
-    traits::{AccountId, Balance, Storage},
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
     utils::crypto::hash_blake2b256,
 };
 
 pub use openbrush::utils::crypto::Signature;
 
-pub use psp22::{Internal as _, InternalImpl as _, PSP22Impl};
+pub use psp22::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22Impl,
+};
 use scale::Encode;
 
 #[derive(Default, Debug)]
@@ -93,7 +104,7 @@ pub trait InternalImpl: Storage<Data> + psp22::Internal + NoncesImpl {
     ) -> Result<(), PSP22Error> {
         let block_time = Self::env().block_timestamp();
         if deadline < block_time {
-            return Err(PSP22Error::PermitExpired);
+            return Err(PSP22Error::PermitExpired)
         }
 
         let nonce = self._use_nonce(&owner)?;

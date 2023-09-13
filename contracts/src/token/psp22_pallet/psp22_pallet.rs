@@ -19,11 +19,29 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{psp22_pallet, traits::psp22::*};
-pub use ink::{env::DefaultEnvironment, prelude::vec::Vec};
-use openbrush::traits::{AccountId, Balance, Storage, String};
-pub use pallet_assets_chain_extension::{ink::*, traits::*};
-pub use psp22_pallet::{Internal as _, InternalImpl as _, PSP22PalletImpl as _};
+pub use crate::{
+    psp22_pallet,
+    traits::psp22::*,
+};
+pub use ink::{
+    env::DefaultEnvironment,
+    prelude::vec::Vec,
+};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Storage,
+    String,
+};
+pub use pallet_assets_chain_extension::{
+    ink::*,
+    traits::*,
+};
+pub use psp22_pallet::{
+    Internal as _,
+    InternalImpl as _,
+    PSP22PalletImpl as _,
+};
 
 #[derive(Default, Debug)]
 #[openbrush::storage_item]
@@ -66,7 +84,7 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
 
     fn transfer(&mut self, to: AccountId, value: Balance, _data: Vec<u8>) -> Result<(), PSP22Error> {
         if value == 0 {
-            return Ok(());
+            return Ok(())
         }
 
         let self_ = self.data();
@@ -88,7 +106,7 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
         _data: Vec<u8>,
     ) -> Result<(), PSP22Error> {
         if value == 0 {
-            return Ok(());
+            return Ok(())
         }
 
         let self_ = self.data();
@@ -105,7 +123,7 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
 
     fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
         if value == 0 {
-            return Ok(());
+            return Ok(())
         }
 
         let caller = self._sender();
@@ -133,7 +151,7 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
 
     fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         if delta_value == 0 {
-            return Ok(());
+            return Ok(())
         }
 
         let caller = self._sender();
@@ -153,7 +171,7 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
 
     fn decrease_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         if delta_value == 0 {
-            return Ok(());
+            return Ok(())
         }
 
         let caller = self._sender();
@@ -161,7 +179,7 @@ pub trait PSP22PalletImpl: Storage<Data> + Internal {
         let mut allowance = self.allowance(caller.clone(), spender.clone());
 
         if allowance < delta_value {
-            return Err(PSP22Error::InsufficientAllowance);
+            return Err(PSP22Error::InsufficientAllowance)
         }
         allowance -= delta_value;
 

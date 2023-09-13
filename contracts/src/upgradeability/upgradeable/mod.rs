@@ -1,7 +1,14 @@
-pub use crate::{ownable::*, traits::upgradeable::*, upgradeable};
+pub use crate::{
+    ownable::*,
+    traits::upgradeable::*,
+    upgradeable,
+};
 use openbrush::{
     modifiers,
-    traits::{Hash, Storage},
+    traits::{
+        Hash,
+        Storage,
+    },
 };
 pub use upgradeable::UpgradeableImpl as _;
 

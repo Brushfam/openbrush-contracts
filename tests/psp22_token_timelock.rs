@@ -23,7 +23,10 @@
 #[openbrush::implementation(PSP22TokenTimelock)]
 #[openbrush::contract]
 mod psp22_timelock {
-    use openbrush::{test_utils::accounts, traits::Storage};
+    use openbrush::{
+        test_utils::accounts,
+        traits::Storage,
+    };
 
     #[ink(storage)]
     #[derive(Default, Storage)]

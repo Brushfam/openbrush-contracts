@@ -82,7 +82,7 @@ impl Signature {
 
                 let result = ink::env::ecdsa_recover(sig, &message_hash, &mut output);
 
-                return result.is_ok() && pub_key_to_ss58(&output) == address.clone();
+                return result.is_ok() && pub_key_to_ss58(&output) == address.clone()
             }
             _ => false,
         }

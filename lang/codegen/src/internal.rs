@@ -24,12 +24,18 @@ extern crate proc_macro;
 use crate::metadata::TraitDefinition;
 use heck::CamelCase as _;
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
+use quote::{
+    format_ident,
+    quote,
+};
 use std::collections::HashMap;
 use syn::{
     ext::IdentExt,
     parenthesized,
-    parse::{Parse, ParseStream},
+    parse::{
+        Parse,
+        ParseStream,
+    },
     ItemImpl,
 };
 
@@ -51,15 +57,15 @@ fn parse_meta_path(input: ParseStream) -> syn::Result<syn::Path> {
                 let ident = syn::Ident::parse_any(input)?;
                 segments.push_value(syn::PathSegment::from(ident));
                 if !input.peek(syn::Token![::]) {
-                    break;
+                    break
                 }
                 let punct = input.parse()?;
                 segments.push_punct(punct);
             }
             if segments.is_empty() {
-                return Err(input.error("expected path"));
+                return Err(input.error("expected path"))
             } else if segments.trailing_punct() {
-                return Err(input.error("expected path segment"));
+                return Err(input.error("expected path segment"))
             }
             segments
         },
@@ -110,7 +116,7 @@ impl Parse for AttributeArgs {
         while input.peek(syn::Ident::peek_any) {
             attrs.push(input.parse()?);
             if input.is_empty() {
-                break;
+                break
             }
             let _: syn::token::Comma = input.parse()?;
         }
@@ -215,7 +221,7 @@ pub(crate) fn impl_external_trait(
     });
 
     if ink_methods.is_empty() {
-        return vec![syn::Item::from(impl_item)];
+        return vec![syn::Item::from(impl_item)]
     }
 
     // Move ink! attrs from internal trait to external
@@ -263,7 +269,7 @@ pub(crate) fn is_attr(attrs: &[syn::Attribute], ident: &str) -> bool {
 pub(crate) fn get_attr(attrs: &[syn::Attribute], ident: &str) -> Option<syn::Attribute> {
     for attr in attrs.iter() {
         if is_attr(&[attr.clone()], ident) {
-            return Some(attr.clone());
+            return Some(attr.clone())
         }
     }
     None

@@ -21,7 +21,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use ink::prelude::vec::Vec;
-use openbrush::traits::{AccountId, Balance, Hash, Timestamp};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Hash,
+    Timestamp,
+};
 
 pub mod governor;
 

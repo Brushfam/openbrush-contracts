@@ -25,7 +25,10 @@
 mod psp22_capped {
     use openbrush::{
         test_utils::accounts,
-        traits::{Storage, String},
+        traits::{
+            Storage,
+            String,
+        },
     };
 
     #[ink(storage)]
@@ -46,7 +49,7 @@ mod psp22_capped {
     ) -> Result<(), PSP22Error> {
         // `is_none` means that it is minting
         if from.is_none() && capped::Internal::_is_cap_exceeded(self, amount) {
-            return Err(PSP22Error::Custom(String::from("Cap exceeded")));
+            return Err(PSP22Error::Custom(String::from("Cap exceeded")))
         }
         Ok(())
     }

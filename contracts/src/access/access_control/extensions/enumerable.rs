@@ -22,12 +22,26 @@
 pub use crate::{
     access_control,
     access_control::extensions::enumerable,
-    traits::access_control::{extensions::enumerable::*, *},
+    traits::access_control::{
+        extensions::enumerable::*,
+        *,
+    },
 };
-pub use access_control::{AccessControlImpl, Internal as _, InternalImpl as _};
+pub use access_control::{
+    AccessControlImpl,
+    Internal as _,
+    InternalImpl as _,
+};
 use openbrush::{
-    storage::{Mapping, MultiMapping, ValueGuard},
-    traits::{AccountId, Storage},
+    storage::{
+        Mapping,
+        MultiMapping,
+        ValueGuard,
+    },
+    traits::{
+        AccountId,
+        Storage,
+    },
 };
 
 #[derive(Default, Debug)]

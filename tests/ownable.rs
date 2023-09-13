@@ -23,8 +23,14 @@
 #[openbrush::implementation(Ownable)]
 #[openbrush::contract]
 mod ownable {
-    use ink::codegen::{EmitEvent, Env};
-    use openbrush::{test_utils::change_caller, traits::Storage};
+    use ink::codegen::{
+        EmitEvent,
+        Env,
+    };
+    use openbrush::{
+        test_utils::change_caller,
+        traits::Storage,
+    };
 
     #[ink(event)]
     pub struct OwnershipTransferred {

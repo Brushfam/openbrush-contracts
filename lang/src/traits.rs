@@ -19,10 +19,16 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use ::ink::env::{DefaultEnvironment, Environment};
+use ::ink::env::{
+    DefaultEnvironment,
+    Environment,
+};
 pub use const_format;
 use core::mem::ManuallyDrop;
-use ink::storage::traits::{Storable, StorageKey};
+use ink::storage::traits::{
+    Storable,
+    StorageKey,
+};
 pub use openbrush_lang_macro::Storage;
 pub use xxhash_rust::const_xxh32::xxh32;
 

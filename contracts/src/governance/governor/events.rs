@@ -20,9 +20,18 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::traits::governance::{ProposalId, Transaction, VoteType};
+pub use crate::traits::governance::{
+    ProposalId,
+    Transaction,
+    VoteType,
+};
 pub use ink::prelude::vec::Vec;
-pub use openbrush::traits::{AccountId, Balance, String, Timestamp};
+pub use openbrush::traits::{
+    AccountId,
+    Balance,
+    String,
+    Timestamp,
+};
 
 pub trait GovernorEvents {
     /// Emitted when a proposal is created

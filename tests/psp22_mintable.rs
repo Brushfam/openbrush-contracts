@@ -23,10 +23,16 @@
 #[openbrush::implementation(PSP22, PSP22Mintable)]
 #[openbrush::contract]
 mod psp22_mintable {
-    use ink::codegen::{EmitEvent, Env};
+    use ink::codegen::{
+        EmitEvent,
+        Env,
+    };
     use openbrush::{
         test_utils::*,
-        traits::{Storage, String},
+        traits::{
+            Storage,
+            String,
+        },
     };
 
     /// Event emitted when a token transfer occurs.
@@ -70,7 +76,7 @@ mod psp22_mintable {
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
         if self.return_err_on_before {
-            return Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")));
+            return Err(PSP22Error::Custom(String::from("Error on _before_token_transfer")))
         }
         Ok(())
     }
@@ -83,7 +89,7 @@ mod psp22_mintable {
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
         if self.return_err_on_after {
-            return Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")));
+            return Err(PSP22Error::Custom(String::from("Error on _after_token_transfer")))
         }
         Ok(())
     }

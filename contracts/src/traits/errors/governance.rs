@@ -20,10 +20,16 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::traits::errors::NoncesError;
-use openbrush::utils::{
-    checkpoints::CheckpointsError,
-    crypto::CryptoError,
+use crate::traits::errors::{
+    MathError,
+    NoncesError,
+};
+use openbrush::{
+    traits::String,
+    utils::{
+        checkpoints::CheckpointsError,
+        crypto::CryptoError,
+    },
 };
 
 /// The Governor error type. Contract will throw one of this errors.
@@ -59,7 +65,17 @@ pub enum GovernanceError {
     ExecutionFailed,
     CheckpointsError(CheckpointsError),
     IndexOutOfRange,
-    Overflow,
+    Custom(String),
+}
+
+impl From<MathError> for GovernanceError {
+    fn from(err: MathError) -> Self {
+        match err {
+            MathError::Underflow => GovernanceError::Custom(String::from("Math::Underflow")),
+            MathError::Overflow => GovernanceError::Custom(String::from("Math::Overflow")),
+            MathError::DivByZero => GovernanceError::Custom(String::from("Math::DivByZero")),
+        }
+    }
 }
 
 impl From<CryptoError> for GovernanceError {

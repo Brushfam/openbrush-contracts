@@ -19,6 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::traits::errors::MathError;
 pub use crate::{
     psp22,
     traits::psp22::*,
@@ -85,11 +86,11 @@ pub trait PSP22Impl: Storage<Data> + Internal {
         let caller = Self::env().caller();
         let allowance = self._allowance(&from, &caller);
 
-        if allowance < value {
-            return Err(PSP22Error::InsufficientAllowance)
-        }
-
-        self._approve_from_to(from, caller, allowance - value)?;
+        self._approve_from_to(
+            from,
+            caller,
+            allowance.checked_sub(value).ok_or(PSP22Error::InsufficientAllowance)?,
+        )?;
         self._transfer_from_to(from, to, value, data)?;
         Ok(())
     }
@@ -102,18 +103,26 @@ pub trait PSP22Impl: Storage<Data> + Internal {
 
     fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         let owner = Self::env().caller();
-        self._approve_from_to(owner, spender, self._allowance(&owner, &spender) + delta_value)
+
+        let new_allowance = self
+            ._allowance(&owner, &spender)
+            .checked_add(delta_value)
+            .ok_or(MathError::Overflow)?;
+
+        self._approve_from_to(owner, spender, new_allowance)
     }
 
     fn decrease_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         let owner = Self::env().caller();
         let allowance = self._allowance(&owner, &spender);
 
-        if allowance < delta_value {
-            return Err(PSP22Error::InsufficientAllowance)
-        }
-
-        self._approve_from_to(owner, spender, allowance - delta_value)
+        self._approve_from_to(
+            owner,
+            spender,
+            allowance
+                .checked_sub(delta_value)
+                .ok_or(PSP22Error::InsufficientAllowance)?,
+        )
     }
 }
 
@@ -182,18 +191,18 @@ pub trait InternalImpl: Storage<Data> + Internal {
         amount: Balance,
         _data: Vec<u8>,
     ) -> Result<(), PSP22Error> {
-        let from_balance = Internal::_balance_of(self, &from);
-
-        if from_balance < amount {
-            return Err(PSP22Error::InsufficientBalance)
-        }
+        let from_balance = Internal::_balance_of(self, &from)
+            .checked_sub(amount)
+            .ok_or(PSP22Error::InsufficientBalance)?;
 
         Internal::_before_token_transfer(self, Some(&from), Some(&to), &amount)?;
 
-        self.data().balances.insert(&from, &(from_balance - amount));
+        self.data().balances.insert(&from, &from_balance);
 
         let to_balance = Internal::_balance_of(self, &to);
-        self.data().balances.insert(&to, &(to_balance + amount));
+        self.data()
+            .balances
+            .insert(&to, &(to_balance.checked_add(amount).ok_or(MathError::Overflow)?));
 
         Internal::_after_token_transfer(self, Some(&from), Some(&to), &amount)?;
         Internal::_emit_transfer_event(self, Some(from), Some(to), amount);
@@ -209,11 +218,19 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         Internal::_before_token_transfer(self, None, Some(&account), &amount)?;
-        let mut new_balance = Internal::_balance_of(self, &account);
-        new_balance += amount;
+        let new_balance = Internal::_balance_of(self, &account)
+            .checked_add(amount)
+            .ok_or(MathError::Overflow)?; // balance + amount
+
         self.data().balances.insert(&account, &new_balance);
 
-        let new_supply = self.data().supply.get_or_default() + amount;
+        let new_supply = self
+            .data()
+            .supply
+            .get_or_default()
+            .checked_add(amount)
+            .ok_or(MathError::Overflow)?; // supply + amount
+
         self.data().supply.set(&new_supply);
 
         Internal::_after_token_transfer(self, None, Some(&account), &amount)?;
@@ -225,16 +242,21 @@ pub trait InternalImpl: Storage<Data> + Internal {
     fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         let mut from_balance = Internal::_balance_of(self, &account);
 
-        if from_balance < amount {
-            return Err(PSP22Error::InsufficientBalance)
-        }
+        from_balance = from_balance
+            .checked_sub(amount)
+            .ok_or(PSP22Error::InsufficientBalance)?; // balance - amount
 
         Internal::_before_token_transfer(self, Some(&account), None, &amount)?;
 
-        from_balance -= amount;
         self.data().balances.insert(&account, &from_balance);
 
-        let new_supply = self.data().supply.get_or_default() - amount;
+        let new_supply = self
+            .data()
+            .supply
+            .get_or_default()
+            .checked_sub(amount)
+            .ok_or(MathError::Underflow)?; // supply - amount
+
         self.data().supply.set(&new_supply);
 
         Internal::_after_token_transfer(self, Some(&account), None, &amount)?;

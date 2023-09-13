@@ -28,7 +28,10 @@ use crate::{
             VotesEvents,
         },
     },
-    traits::errors::GovernanceError,
+    traits::errors::{
+        GovernanceError,
+        MathError,
+    },
 };
 use openbrush::{
     traits::{
@@ -160,11 +163,11 @@ pub trait VotesInternal: Storage<Data> + VotesEvents + TimestampProvider {
     }
 
     fn _add(a: u128, b: u128) -> Result<u128, GovernanceError> {
-        Ok(a.checked_add(b).ok_or(GovernanceError::Overflow)?)
+        Ok(a.checked_add(b).ok_or(MathError::Overflow)?)
     }
 
     fn _sub(a: u128, b: u128) -> Result<u128, GovernanceError> {
-        Ok(a.checked_sub(b).ok_or(GovernanceError::Overflow)?)
+        Ok(a.checked_sub(b).ok_or(MathError::Overflow)?)
     }
 
     /// Returns the number of voting units owned by `account`.

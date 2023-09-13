@@ -25,6 +25,7 @@ use super::{
     PausableError,
     ReentrancyGuardError,
 };
+use crate::traits::errors::MathError;
 use openbrush::traits::String;
 
 /// The PSP34 error type. Contract will throw one of this errors.
@@ -43,6 +44,16 @@ pub enum PSP34Error {
     TokenNotExists,
     /// Returned if safe transfer check fails
     SafeTransferCheckFailed(String),
+}
+
+impl From<MathError> for PSP34Error {
+    fn from(math: MathError) -> Self {
+        match math {
+            MathError::Overflow => PSP34Error::Custom(String::from("Math::Overflow")),
+            MathError::Underflow => PSP34Error::Custom(String::from("Math::Underflow")),
+            MathError::DivByZero => PSP34Error::Custom(String::from("Math::DivByZero")),
+        }
+    }
 }
 
 impl From<OwnableError> for PSP34Error {

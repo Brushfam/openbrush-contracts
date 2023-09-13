@@ -19,6 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::traits::errors::MathError;
 pub use crate::{
     payment_splitter,
     traits::payment_splitter::*,
@@ -160,18 +161,25 @@ pub trait InternalImpl: Storage<Data> + Internal {
         let balance = Self::env().balance();
         let current_balance = balance.checked_sub(Self::env().minimum_balance()).unwrap_or_default();
         let total_released = self.data().total_released.get_or_default();
-        let total_received = current_balance + total_released;
+        let total_received = current_balance.checked_add(total_released).ok_or(MathError::Overflow)?;
         let shares = self.data().shares.get(&account).unwrap();
         let total_shares = self.data().total_shares.get_or_default();
         let released = self.data().released.get(&account).unwrap_or_default();
-        let payment = total_received * shares / total_shares - released;
+        let payment = total_received
+            .checked_mul(shares).ok_or(MathError::Overflow)? // total_received * shares
+            .checked_div(total_shares).ok_or(MathError::DivByZero)? // (total_received * shares) / total_shares
+            .checked_sub(released).ok_or(MathError::Underflow)?; // (total_received * shares) / total_shares - released
 
         if payment == 0 {
             return Err(PaymentSplitterError::AccountIsNotDuePayment)
         }
 
-        self.data().released.insert(&account, &(released + payment));
-        self.data().total_released.set(&(total_released + payment));
+        self.data()
+            .released
+            .insert(&account, &(released.checked_add(payment).ok_or(MathError::Overflow)?)); // released + payment
+        self.data()
+            .total_released
+            .set(&(total_released.checked_add(payment).ok_or(MathError::Overflow)?)); // total_released + payment
 
         let transfer_result = Self::env().transfer(account, payment);
         if transfer_result.is_err() {

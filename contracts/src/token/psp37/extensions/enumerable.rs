@@ -19,10 +19,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::psp37::{
-    ApprovalsKey,
-    BalancesManager,
-};
 pub use crate::{
     psp37,
     psp37::extensions::enumerable,
@@ -30,6 +26,13 @@ pub use crate::{
         extensions::enumerable::*,
         *,
     },
+};
+use crate::{
+    psp37::{
+        ApprovalsKey,
+        BalancesManager,
+    },
+    traits::errors::MathError,
 };
 use openbrush::{
     storage::{
@@ -101,9 +104,10 @@ pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
         }
 
         let balance_before = BalancesManager::_balance_of(self, owner, &Some(id));
-        self.data()
-            .balances
-            .insert(&(owner, id), &(balance_before.checked_add(amount).unwrap()));
+        self.data().balances.insert(
+            &(owner, id),
+            &(balance_before.checked_add(amount).ok_or(MathError::Overflow)?),
+        );
 
         if balance_before == 0 {
             self.data().enumerable.insert(&Some(owner), id);
@@ -114,7 +118,7 @@ pub trait BalancesManagerImpl: Storage<Data> + psp37::BalancesManager {
 
             self.data()
                 .supply
-                .insert(id, &(supply_before.checked_add(amount).unwrap()));
+                .insert(id, &(supply_before.checked_add(amount).ok_or(MathError::Overflow)?));
 
             if supply_before == 0 {
                 self.data().enumerable.insert(&None, id);

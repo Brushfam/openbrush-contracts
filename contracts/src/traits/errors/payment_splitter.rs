@@ -21,6 +21,7 @@
 
 use super::{
     AccessControlError,
+    MathError,
     OwnableError,
     PausableError,
     ReentrancyGuardError,
@@ -39,6 +40,16 @@ pub enum PaymentSplitterError {
     SharesAreZero,
     AlreadyHasShares,
     TransferFailed,
+}
+
+impl From<MathError> for PaymentSplitterError {
+    fn from(math: MathError) -> Self {
+        match math {
+            MathError::Underflow => PaymentSplitterError::Custom(String::from("Math::Underflow")),
+            MathError::Overflow => PaymentSplitterError::Custom(String::from("Math::Overflow")),
+            MathError::DivByZero => PaymentSplitterError::Custom(String::from("Math::DivByZero")),
+        }
+    }
 }
 
 impl From<AccessControlError> for PaymentSplitterError {

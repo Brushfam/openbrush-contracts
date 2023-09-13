@@ -19,6 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::traits::errors::MathError;
 pub use crate::{
     psp37,
     traits::psp37::*,
@@ -214,7 +215,7 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
         Internal::_after_token_transfer(self, None, Some(&to), &ids_amounts)?;
 
         if ids_amounts.len() == 1 {
-            let (id, amount) = unsafe { ids_amounts.pop().unwrap_unchecked() };
+            let (id, amount) = ids_amounts.pop().expect("ids_amounts is not empty");
             Internal::_emit_transfer_event(self, None, Some(to), id, amount);
         } else {
             Internal::_emit_transfer_batch_event(self, None, Some(to), ids_amounts);
@@ -237,7 +238,7 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
         Internal::_after_token_transfer(self, Some(&from), None, &ids_amounts)?;
 
         if ids_amounts.len() == 1 {
-            let (id, amount) = unsafe { ids_amounts.pop().unwrap_unchecked() };
+            let (id, amount) = ids_amounts.pop().expect("ids_amounts is not empty");
             Internal::_emit_transfer_event(self, Some(from), None, id, amount);
         } else {
             Internal::_emit_transfer_batch_event(self, Some(from), None, ids_amounts);
@@ -317,11 +318,11 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
             return Ok(())
         }
 
-        if initial_allowance < value {
-            return Err(PSP37Error::InsufficientBalance)
-        }
+        let new_allowance = initial_allowance
+            .checked_sub(value)
+            .ok_or(PSP37Error::InsufficientBalance)?; // initial_allowance - value
 
-        self._insert_operator_approvals(owner, operator, &Some(id), &(initial_allowance - value));
+        self._insert_operator_approvals(owner, operator, &Some(id), &new_allowance);
 
         Ok(())
     }
@@ -408,22 +409,27 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         let balance_before = BalancesManager::_balance_of(self, owner, id);
 
         if balance_before == 0 {
-            let amount = &BalancesManager::_balance_of(self, owner, &None).checked_add(1).unwrap();
+            let amount = &BalancesManager::_balance_of(self, owner, &None)
+                .checked_add(1)
+                .ok_or(MathError::Overflow)?;
             self.data().balances.insert(&(owner, &None), amount);
         }
 
-        self.data()
-            .balances
-            .insert(&(owner, id), &balance_before.checked_add(amount).unwrap());
+        self.data().balances.insert(
+            &(owner, id),
+            &balance_before.checked_add(amount).ok_or(MathError::Overflow)?,
+        );
 
         if mint {
             let supply_before = BalancesManager::_total_supply(self, id);
             self.data()
                 .supply
-                .insert(id, &supply_before.checked_add(amount).unwrap());
+                .insert(id, &(supply_before.checked_add(amount).ok_or(MathError::Overflow)?));
 
             if supply_before == 0 {
-                let amount = &BalancesManager::_total_supply(self, &None).checked_add(1).unwrap();
+                let amount = &BalancesManager::_total_supply(self, &None)
+                    .checked_add(1)
+                    .ok_or(MathError::Overflow)?;
                 self.data().supply.insert(&None, amount);
             }
         }

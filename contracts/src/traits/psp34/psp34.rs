@@ -20,11 +20,17 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::traits::{
-    errors::{PSP34Error, PSP34ReceiverError},
+    errors::{
+        PSP34Error,
+        PSP34ReceiverError,
+    },
     types::Id,
 };
 use ink::prelude::vec::Vec;
-use openbrush::traits::{AccountId, Balance};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+};
 
 #[openbrush::wrapper]
 pub type PSP34Ref = dyn PSP34;

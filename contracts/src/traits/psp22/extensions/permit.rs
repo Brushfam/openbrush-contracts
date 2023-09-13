@@ -22,7 +22,10 @@
 /// Extension of [`PSP22`] that allows create `amount` tokens
 /// and assigns them to `account`, increasing the total supply
 pub use crate::traits::errors::PSP22Error;
-use openbrush::traits::{AccountId, Balance};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+};
 pub use openbrush::utils::crypto::Signature;
 
 #[openbrush::wrapper]

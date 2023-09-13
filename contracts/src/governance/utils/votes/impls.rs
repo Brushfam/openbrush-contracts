@@ -20,12 +20,27 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::{governance::utils::votes::*, nonces};
-pub use crate::{
-    governance::{governor::TimestampProvider, utils::votes},
-    traits::{errors::GovernanceError, governance::utils::votes::*, types::Signature},
+use crate::{
+    governance::utils::votes::*,
+    nonces,
 };
-use openbrush::traits::{AccountId, Balance, Storage, Timestamp};
+pub use crate::{
+    governance::{
+        governor::TimestampProvider,
+        utils::votes,
+    },
+    traits::{
+        errors::GovernanceError,
+        governance::utils::votes::*,
+        types::Signature,
+    },
+};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Storage,
+    Timestamp,
+};
 use scale::Encode;
 
 /// Common interface for `PSP22Votes`, and other `Votes`-enabled contracts.
@@ -43,7 +58,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + nonces::NoncesImpl + VotesE
     fn get_past_votes(&self, account: AccountId, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
         let current_block_timestamp = TimestampProvider::block_timestamp(self);
         if timestamp > current_block_timestamp {
-            return Err(GovernanceError::FutureLookup);
+            return Err(GovernanceError::FutureLookup)
         }
         match self
             .data::<Data>()
@@ -61,7 +76,7 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + nonces::NoncesImpl + VotesE
     fn get_past_total_supply(&self, timestamp: Timestamp) -> Result<Balance, GovernanceError> {
         let current_block_timestamp = TimestampProvider::block_timestamp(self);
         if timestamp > current_block_timestamp {
-            return Err(GovernanceError::FutureLookup);
+            return Err(GovernanceError::FutureLookup)
         }
 
         let checkpoints = &self.data::<Data>().total_checkpoints.get_or_default();
@@ -91,13 +106,13 @@ pub trait VotesImpl: Storage<Data> + VotesInternal + nonces::NoncesImpl + VotesE
         signature: Signature,
     ) -> Result<(), GovernanceError> {
         if TimestampProvider::block_timestamp(self) > expiry {
-            return Err(GovernanceError::ExpiredSignature);
+            return Err(GovernanceError::ExpiredSignature)
         }
 
         let message = (&delegatee, &nonce, &expiry).encode();
 
         if !signature.verify(&message, &signer) {
-            return Err(GovernanceError::InvalidSignature);
+            return Err(GovernanceError::InvalidSignature)
         } else {
             self._use_checked_nonce(&signer, nonce)?;
             self._delegate(&Some(signer), &Some(delegatee))

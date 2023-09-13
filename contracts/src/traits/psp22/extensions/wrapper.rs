@@ -23,7 +23,10 @@
 pub use crate::traits::errors::PSP22Error;
 pub use crate::traits::psp22::*;
 
-use openbrush::traits::{AccountId, Balance};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+};
 
 /// The idea of PSP22Wrapper is that it is PSP22 by itself.
 /// Wrapper only adds 2 additional methods for depositing and withdrawing.

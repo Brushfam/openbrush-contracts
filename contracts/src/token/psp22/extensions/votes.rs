@@ -21,7 +21,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 pub use crate::traits::psp22::extensions::votes::*;
-use crate::{governance::utils::votes::VotesInternal, psp22, psp22::PSP22Error, traits::errors::GovernanceError};
+use crate::{
+    governance::utils::votes::VotesInternal,
+    psp22,
+    psp22::PSP22Error,
+    traits::errors::GovernanceError,
+};
 use ink::prelude::vec;
 use openbrush::traits::AccountId;
 pub use openbrush::utils::checkpoints::Checkpoint;

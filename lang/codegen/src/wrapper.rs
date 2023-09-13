@@ -20,12 +20,15 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
+use quote::{
+    format_ident,
+    quote,
+};
 use syn::parse2;
 
 pub fn generate(_: TokenStream, input: TokenStream) -> TokenStream {
     if crate::internal::skip() {
-        return quote! {};
+        return quote! {}
     }
     let mut type_item: syn::ItemType = parse2(input).unwrap();
     if let syn::Type::TraitObject(traits) = &mut *type_item.ty {

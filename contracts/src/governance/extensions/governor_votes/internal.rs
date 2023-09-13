@@ -20,12 +20,22 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pub use crate::{governance::extensions::governor_votes, traits::governance::utils::votes::*};
+pub use crate::{
+    governance::extensions::governor_votes,
+    traits::governance::utils::votes::*,
+};
 
 use crate::governance::extensions::governor_votes::Data;
 
-use ink::{prelude::vec::Vec, primitives::AccountId};
-use openbrush::traits::{Balance, Storage, Timestamp};
+use ink::{
+    prelude::vec::Vec,
+    primitives::AccountId,
+};
+use openbrush::traits::{
+    Balance,
+    Storage,
+    Timestamp,
+};
 
 /// Extension of `Governor` for voting weight extraction from an `PSP22Votes` token
 pub trait GovernorVotesInternal: Storage<Data> {

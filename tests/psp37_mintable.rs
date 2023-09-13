@@ -25,7 +25,10 @@
 mod psp37_mintable {
     use openbrush::{
         test_utils::accounts,
-        traits::{Storage, String},
+        traits::{
+            Storage,
+            String,
+        },
     };
 
     #[derive(Default, Storage)]
@@ -47,7 +50,7 @@ mod psp37_mintable {
         _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error> {
         if self.return_err_on_before {
-            return Err(PSP37Error::Custom(String::from("Error on _before_token_transfer")));
+            return Err(PSP37Error::Custom(String::from("Error on _before_token_transfer")))
         }
         Ok(())
     }
@@ -60,7 +63,7 @@ mod psp37_mintable {
         _ids: &[(Id, Balance)],
     ) -> Result<(), PSP37Error> {
         if self.return_err_on_after {
-            return Err(PSP37Error::Custom(String::from("Error on _after_token_transfer")));
+            return Err(PSP37Error::Custom(String::from("Error on _after_token_transfer")))
         }
         Ok(())
     }

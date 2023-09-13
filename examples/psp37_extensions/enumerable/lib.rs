@@ -34,10 +34,9 @@ pub mod my_psp37_enumerable {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::address_of;
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -48,7 +47,7 @@ pub mod my_psp37_enumerable {
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let owners_token_by_index = {
                 let _msg = call.owners_token_by_index(address_of!(Alice), 0);
@@ -76,7 +75,7 @@ pub mod my_psp37_enumerable {
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let owners_token_by_index = {
                 let _msg = call.owners_token_by_index(address_of!(Alice), 0);
@@ -156,7 +155,7 @@ pub mod my_psp37_enumerable {
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let owners_token_by_index = {
                 let _msg = call.owners_token_by_index(address_of!(Alice), 0);
@@ -247,7 +246,7 @@ pub mod my_psp37_enumerable {
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let owners_token_by_index = {
                 let _msg = call.owners_token_by_index(address_of!(Alice), 0);

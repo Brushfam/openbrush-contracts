@@ -19,7 +19,7 @@ macro_rules! balance_of {
 #[macro_export]
 macro_rules! owner_of {
     ($client:ident, $call:ident, $id:expr) => {{
-        let _msg = $call.contract.owner_of($id);
+        let _msg = $call.owner_of($id);
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await

@@ -36,8 +36,8 @@ pub mod my_psp22 {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::build_message;
+        use ink_e2e::ContractsBackend;
+
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -47,11 +47,11 @@ pub mod my_psp22 {
             let _symbol = String::from("TKN");
 
             let constructor = ContractRef::new(1000, Some(_name), Some(_symbol), 18);
-            let address = client
+            let contract = client
                 .instantiate("my_psp22_metadata", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let mut call = address.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let token_name = {
                 let _msg = call.token_name();

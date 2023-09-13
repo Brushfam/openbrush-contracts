@@ -46,13 +46,13 @@ pub mod my_psp37 {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
             balance_of_37,
         };
+
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -63,7 +63,7 @@ pub mod my_psp37 {
                 .instantiate("my_psp37", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let token_1 = Id::U8(0);
             let token_2 = Id::U8(1);
@@ -109,7 +109,7 @@ pub mod my_psp37 {
                 .instantiate("my_psp37", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let token_1 = Id::U8(0);
             let token_2 = Id::U8(1);
@@ -189,7 +189,7 @@ pub mod my_psp37 {
                 .instantiate("my_psp37", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let token = Id::U8(0);
 
@@ -230,7 +230,7 @@ pub mod my_psp37 {
                 .instantiate("my_psp37", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let token_1 = Id::U8(0);
             let token_2 = Id::U8(1);
@@ -303,7 +303,7 @@ pub mod my_psp37 {
 
             let transfer_tx = {
                 let _msg = call.transfer(address_of!(Alice), token_2.clone(), amount_1, vec![]);
-                client.call(&ink_e2e::bob(), _msg, 0, None).await.expect("call failed")
+                client.call(&ink_e2e::bob(), &_msg, 0, None).await.expect("call failed")
             }
             .return_value();
 
@@ -329,7 +329,7 @@ pub mod my_psp37 {
                 .instantiate("my_psp37", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let token_1 = Id::U8(0);
             let token_2 = Id::U8(1);
@@ -425,7 +425,7 @@ pub mod my_psp37 {
                 .instantiate("my_psp37", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let token = Id::U8(0);
             let amount = 1;
@@ -471,7 +471,7 @@ pub mod my_psp37 {
                 .instantiate("my_psp37", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let token = Id::U8(0);
             let amount = 1;

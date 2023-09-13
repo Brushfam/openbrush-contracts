@@ -29,13 +29,12 @@ pub mod my_psp34_mintable {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
             balance_of,
         };
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -46,7 +45,7 @@ pub mod my_psp34_mintable {
                 .instantiate("my_psp34_mintable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             assert_eq!(balance_of!(client, call, Alice), 0);
             assert_eq!(balance_of!(client, call, Bob), 0);
@@ -89,7 +88,7 @@ pub mod my_psp34_mintable {
                 .instantiate("my_psp34_mintable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             assert_eq!(balance_of!(client, call, Alice), 0);
             assert_eq!(balance_of!(client, call, Bob), 0);

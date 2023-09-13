@@ -41,13 +41,12 @@ pub mod my_psp22_pallet {
         use openbrush::contracts::psp22_pallet::psp22_external::PSP22;
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
             balance_of,
         };
+        use ink_e2e::ContractsBackend;
 
         fn random_num() -> u32 {
             use rand::Rng;
@@ -69,7 +68,7 @@ pub mod my_psp22_pallet {
                 )
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let result = {
                 let _msg = call.balance_of(address_of!(Alice));
@@ -94,7 +93,7 @@ pub mod my_psp22_pallet {
                 )
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let result = {
                 let _msg = call.transfer(address_of!(Bob), 50, vec![]);
@@ -129,7 +128,7 @@ pub mod my_psp22_pallet {
                 )
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let result = {
                 let _msg = call.transfer(address_of!(Bob), 101, vec![]);

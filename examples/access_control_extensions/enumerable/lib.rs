@@ -42,8 +42,6 @@ pub mod my_access_control {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
@@ -54,13 +52,16 @@ pub mod my_access_control {
             revoke_role,
         };
 
+        use ink_e2e::ContractsBackend;
+
+
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
         async fn should_have_not_member<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-           let constructor = ContractRef::new(100);
+            let constructor = ContractRef::new();
             let contract = client
-                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+                .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
             let mut call = contract.call::<Contract>();
@@ -72,9 +73,9 @@ pub mod my_access_control {
 
         #[ink_e2e::test]
         async fn should_get_role_member<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-           let constructor = ContractRef::new(100);
+            let constructor = ContractRef::new();
             let contract = client
-                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+                .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
             let mut call = contract.call::<Contract>();
@@ -86,9 +87,9 @@ pub mod my_access_control {
 
         #[ink_e2e::test]
         async fn should_grant_roles_and_get_role_members<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-           let constructor = ContractRef::new(100);
+            let constructor = ContractRef::new();
             let contract = client
-                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+                .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
             let mut call = contract.call::<Contract>();
@@ -104,9 +105,8 @@ pub mod my_access_control {
 
         #[ink_e2e::test]
         async fn should_revoker_and_count_roles<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-           let constructor = ContractRef::new(100);
-            let contract = client
-                .instantiate("my_access_control", &ink_e2e::alice(), constructor, 0, None)
+           let constructor = ContractRef::new();            let contract = client
+                .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
             let mut call = contract.call::<Contract>();

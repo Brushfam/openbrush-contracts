@@ -37,14 +37,13 @@ pub mod my_psp34 {
         use openbrush::contracts::psp34::psp34_external::PSP34;
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
             balance_of,
             owner_of,
         };
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -55,7 +54,7 @@ pub mod my_psp34 {
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let account_id = ink::primitives::AccountId::from(contract.account_id);
 
@@ -78,7 +77,7 @@ pub mod my_psp34 {
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let expected_total_supply = 0;
             let actual_total_supply = {
@@ -116,10 +115,10 @@ pub mod my_psp34 {
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let mint_result = {
-                let _msg = call.int_token();
+                let _msg = call.mint_token();
                 client
                     .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
@@ -159,10 +158,10 @@ pub mod my_psp34 {
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let mint_result = {
-                let _msg = call.int_token();
+                let _msg = call.mint_token();
                 client
                     .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
@@ -179,7 +178,7 @@ pub mod my_psp34 {
             assert_eq!(0, balance_of!(client, call, Bob));
 
             let approve_result = {
-                let _msg = call.approve(call_of!(Bob), Some(Id::U8(0)), true);
+                let _msg = call.approve(address_of!(Bob), Some(Id::U8(0)), true);
                 client
                     .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
@@ -200,8 +199,8 @@ pub mod my_psp34 {
 
             assert_eq!(transfer_result, Ok(()));
 
-            assert_eq!(0, balance_of!(client, calls, Alice));
-            assert_eq!(1, balance_of!(client, calls, Bob));
+            assert_eq!(0, balance_of!(client, call, Alice));
+            assert_eq!(1, balance_of!(client, call, Bob));
 
             Ok(())
         }
@@ -213,10 +212,10 @@ pub mod my_psp34 {
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let mint_result = {
-                let _msg = call.int_token();
+                let _msg = call.mint_token();
                 client
                     .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
@@ -227,15 +226,15 @@ pub mod my_psp34 {
             assert_eq!(mint_result, Ok(()));
 
             let expected_balance = 1;
-            let actual_balance = balance_of!(client, calls, Alice);
+            let actual_balance = balance_of!(client, call, Alice);
 
             assert_eq!(expected_balance, actual_balance);
-            assert_eq!(0, balance_of!(client, calls, Bob));
+            assert_eq!(0, balance_of!(client, call, Bob));
 
             let approve_result = {
                 let _msg = call.approve(address_of!(Bob), None, true);
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("approve failed")
             }
@@ -254,8 +253,8 @@ pub mod my_psp34 {
 
             assert_eq!(transfer_result, Ok(()));
 
-            assert_eq!(0, balance_of!(client, calls, Alice));
-            assert_eq!(1, balance_of!(client, calls, Bob));
+            assert_eq!(0, balance_of!(client, call, Alice));
+            assert_eq!(1, balance_of!(client, call, Bob));
 
             Ok(())
         }
@@ -267,10 +266,10 @@ pub mod my_psp34 {
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let mint_result = {
-                let _msg = call.int_token();
+                let _msg = call.mint_token();
                 client
                     .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
@@ -280,7 +279,7 @@ pub mod my_psp34 {
 
             assert_eq!(mint_result, Ok(()));
 
-            assert_eq!(owner_of!(client, calls, Id::U8(0)), Some(address_of!(Alice)));
+            assert_eq!(owner_of!(client, call, Id::U8(0)), Some(address_of!(Alice)));
 
             let transfer_result = {
                 let _msg = call.transfer(address_of!(Bob), Id::U8(0), vec![]);
@@ -293,7 +292,7 @@ pub mod my_psp34 {
 
             assert_eq!(transfer_result, Ok(()));
 
-            assert_eq!(owner_of!(client, calls, Id::U8(0)), Some(address_of!(Bob)));
+            assert_eq!(owner_of!(client, call, Id::U8(0)), Some(address_of!(Bob)));
 
             Ok(())
         }
@@ -305,9 +304,9 @@ pub mod my_psp34 {
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(balance_of!(client, calls, Alice), 0);
+            assert_eq!(balance_of!(client, call, Alice), 0);
 
             let transfer_result = {
                 let _msg = call.transfer(address_of!(Bob), Id::U8(0), vec![]);
@@ -316,7 +315,7 @@ pub mod my_psp34 {
             .return_value();
 
             assert!(matches!(transfer_result, Err(PSP34Error::TokenNotExists)));
-            assert_eq!(balance_of!(client, calls, Alice), 0);
+            assert_eq!(balance_of!(client, call, Alice), 0);
 
             Ok(())
         }
@@ -328,10 +327,10 @@ pub mod my_psp34 {
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let mint_result = {
-                let _msg = call.int_token();
+                let _msg = call.mint_token();
                 client
                     .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
@@ -348,8 +347,8 @@ pub mod my_psp34 {
             .return_value();
 
             assert!(matches!(transfer_result, Err(PSP34Error::NotApproved)));
-            assert_eq!(balance_of!(client, calls, Alice), 1);
-            assert_eq!(balance_of!(client, calls, Bob), 0);
+            assert_eq!(balance_of!(client, call, Alice), 1);
+            assert_eq!(balance_of!(client, call, Bob), 0);
 
             Ok(())
         }
@@ -361,9 +360,9 @@ pub mod my_psp34 {
                 .instantiate("my_psp34", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(balance_of!(client, calls, Alice), 0);
+            assert_eq!(balance_of!(client, call, Alice), 0);
 
             let ids = vec![
                 Id::U8(0),

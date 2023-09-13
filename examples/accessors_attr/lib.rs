@@ -53,11 +53,11 @@ pub mod accessors_attr {
     pub mod tests {
         use super::*;
         use crate::accessdataaccessors_external::AccessDataAccessors;
-        use ink_e2e::build_message;
         use test_helpers::{
             method_call_dry_run,
             method_call,
         };
+        use ink_e2e::ContractsBackend;
 
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;

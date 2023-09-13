@@ -36,8 +36,7 @@ pub mod my_psp37 {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message};
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -48,7 +47,7 @@ pub mod my_psp37 {
                 .instantiate("my_psp37_metadata", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let id = Id::U8(0);
             let attr = String::from("https://www.727.ventures/");

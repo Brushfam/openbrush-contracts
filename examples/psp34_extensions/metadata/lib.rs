@@ -35,10 +35,9 @@ pub mod my_psp34_metadata {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::build_message;
 
         use openbrush::traits::String;
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -53,7 +52,7 @@ pub mod my_psp34_metadata {
                 .instantiate("my_psp34_metadata", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let result_name = {
                 let _msg = call.get_attribute(id.clone(), String::from("name"));

@@ -39,10 +39,10 @@ pub mod my_psp22_pallet_mintable {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{address_of, balance_of};
+
+        use ink_e2e::ContractsBackend;
 
         fn random_num() -> u32 {
             use rand::Rng;
@@ -64,7 +64,7 @@ pub mod my_psp22_pallet_mintable {
                 )
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             assert!(matches!(balance_of!(client, address, Alice), 1000));
 
@@ -84,7 +84,7 @@ pub mod my_psp22_pallet_mintable {
                 )
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             assert!(
                 matches!(balance_of!(client, address, Bob), 0),
@@ -122,7 +122,7 @@ pub mod my_psp22_pallet_mintable {
                 )
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let total_supply = {
                 let _msg = call.total_supply();

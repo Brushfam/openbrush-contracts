@@ -46,14 +46,14 @@ pub mod ownable {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
             method_call_dry_run,
             method_call,
         };
+        use ink_e2e::ContractsBackend;
+
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -82,9 +82,10 @@ pub mod ownable {
 
             assert_eq!(method_call_dry_run!(client, call, owner()), Some(address_of!(Alice)));
 
-            let mint_tx = method_call!(client, call, mint(address_of!(Bob), vec![(Id::U8(0), 1)]));
 
+            let mint_tx =             method_call_dry_run!(client, call, mint(address_of!(Bob), vec![(Id::U8(0), 1)]));
             assert_eq!(mint_tx, Ok(()));
+            method_call!(client, call, mint(address_of!(Bob), vec![(Id::U8(0), 1)]));
 
             Ok(())
         }
@@ -103,21 +104,20 @@ pub mod ownable {
 
             assert_eq!(method_call_dry_run!(client, call, owner()), Some(address_of!(Alice)));
 
-            let mint_tx = method_call!(client, call, bob, mint(address_of!(Bob), vec![(Id::U8(0), 1)]));
-
+            let mint_tx = method_call_dry_run!(client, call, bob, mint(address_of!(Bob), vec![(Id::U8(0), 1)]));
             assert!(matches!(mint_tx, Err(_)));
 
             assert_eq!(method_call_dry_run!(client, call, balance_of(address_of!(Bob), Some(token.clone()))), 0);
 
-            let transfer_owerhip_tx = method_call!(client, call, transfer_ownership(address_of!(Bob)));
-
-            assert_eq!(transfer_ownership_tx, Ok(()));
+            let transfer_ownership_tx = method_call_dry_run!(client, call, transfer_ownership(address_of!(Bob)));
+            assert_eq!(transfer_ownership_tx    , Ok(()));
+            method_call!(client, call, transfer_ownership(address_of!(Bob)));
 
             assert_eq!(method_call_dry_run!(client, call, owner()), Some(address_of!(Bob)));
 
-            let mint_tx = method_call!(client, call, bob, mint(address_of!(Bob), ids_amounts.clone()));
-
+            let mint_tx = method_call_dry_run!(client, call, bob, mint(address_of!(Bob), ids_amounts.clone()));
             assert_eq!(mint_tx, Ok(()));
+            method_call!(client, call, bob, mint(address_of!(Bob), ids_amounts.clone()));
 
             assert_eq!(method_call_dry_run!(client, call, balance_of(address_of!(Bob), Some(token.clone()))), 123);
 
@@ -135,9 +135,9 @@ pub mod ownable {
 
             assert_eq!(method_call_dry_run!(client, call, owner()), Some(address_of!(Alice)));
 
-            let renounce_ownership_tx = method_call!(client, call, renounce_ownership());
-
+            let renounce_ownership_tx = method_call_dry_run!(client, call, renounce_ownership());
             assert_eq!(renounce_ownership_tx, Ok(()));
+            method_call!(client, call, renounce_ownership());
 
             assert_eq!(method_call_dry_run!(client, call, owner()), None);
 
@@ -155,8 +155,7 @@ pub mod ownable {
 
             assert_eq!(method_call_dry_run!(client, call, owner()), Some(address_of!(Alice)));
 
-            let renounce_ownership_tx = method_call!(client, call, bob, renounce_ownership());
-
+            let renounce_ownership_tx = method_call_dry_run!(client, call, bob, renounce_ownership());
             assert!(matches!(renounce_ownership_tx, Err(_)));
 
             assert_eq!(method_call_dry_run!(client, call, owner()), Some(address_of!(Alice)));
@@ -175,9 +174,8 @@ pub mod ownable {
 
             assert_eq!(method_call_dry_run!(client, call, owner()), Some(address_of!(Alice)));
 
-            let transfer_ownership_tx = method_call!(client, call, bob, transfer_ownership(address_of!(Charlie)));
-
-            assert!(matches!(renounce_ownership_tx, Err(_)));
+            let transfer_ownership_tx = method_call_dry_run!(client, call, bob, transfer_ownership(address_of!(Charlie)));
+            assert!(matches!(transfer_ownership_tx, Err(_)));
 
             assert_eq!(method_call_dry_run!(client, call, owner()), Some(address_of!(Alice)));
 

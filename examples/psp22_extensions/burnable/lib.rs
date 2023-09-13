@@ -39,19 +39,18 @@ pub mod my_psp22_burnable {
         };
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
             balance_of,
         };
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
         async fn assigns_initial_balance<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(100);
             let contract = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -67,7 +66,7 @@ pub mod my_psp22_burnable {
 
         #[ink_e2e::test]
         async fn can_burn<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(100);
             let contract = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -93,7 +92,7 @@ pub mod my_psp22_burnable {
 
         #[ink_e2e::test]
         async fn can_burn_without_allowance<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(100);
             let contract = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -119,7 +118,7 @@ pub mod my_psp22_burnable {
 
         #[ink_e2e::test]
         async fn decreases_total_supply_after_burning<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(100);
             let contract = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -155,7 +154,7 @@ pub mod my_psp22_burnable {
 
         #[ink_e2e::test]
         async fn can_burn_from<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(100);
             let contract = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -163,7 +162,7 @@ pub mod my_psp22_burnable {
             let mut call = contract.call::<Contract>();
 
             let result = {
-                let _msg = call.transfer(address_of!(Bob), 10, vec![]));
+                let _msg = call.transfer(address_of!(Bob), 10, vec![]);
                 client
                     .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
@@ -195,7 +194,7 @@ pub mod my_psp22_burnable {
 
         #[ink_e2e::test]
         async fn can_burn_from_many<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(100);
             let contract = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -251,7 +250,7 @@ pub mod my_psp22_burnable {
         async fn fails_if_one_of_the_accounts_balance_exceeds_amount_to_burn(
             mut client: ink_e2e::Client<C, E>,
         ) -> E2EResult<()> {
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(100);
             let contract = client
                 .instantiate("my_psp22_burnable", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -271,7 +270,7 @@ pub mod my_psp22_burnable {
             let result = {
                 let _msg = call.transfer(address_of!(Charlie), 5, vec![]);
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("call failed")
             };

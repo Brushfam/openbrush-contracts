@@ -49,8 +49,7 @@ pub mod my_psp22_pallet_metadata {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message};
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -75,7 +74,7 @@ pub mod my_psp22_pallet_metadata {
                 )
                 .await
                 .expect("instantiate failed");
-            let call = contract.call::<Contract>();
+            let mut call = contract.call::<Contract>();
 
             let token_name = {
                 let _msg = call.token_name();

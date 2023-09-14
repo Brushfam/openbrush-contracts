@@ -15,8 +15,10 @@ IGNORED_DIRS=("./examples/reentrancy_guard"
   "./examples/psp22_extensions/flashmint/" 
   "./examples/psp22_extensions/wrapper/"
   "./examples/psp22_utils/token_timelock/"
-  "./examples/psp22_pallet"
-  "./examples/psp22_pallet_extensions"
+  "./examples/psp22_pallet/"
+  "./examples/psp22_pallet_extensions/burnable/"
+  "./examples/psp22_pallet_extensions/mintable/"
+  "./examples/psp22_pallet_extensions/metadata/")
 
 ignore_dir() {
   local element

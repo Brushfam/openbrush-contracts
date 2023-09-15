@@ -24,13 +24,17 @@ use crate::{
     internal::*,
     metadata::LockedTrait,
     trait_definition,
+    trait_implementation,
 };
 use proc_macro2::TokenStream;
 use quote::{
     quote,
     ToTokens,
 };
-use syn::Item;
+use syn::{
+    parse2,
+    Item,
+};
 
 pub fn generate(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     if internal::skip() {
@@ -77,6 +81,24 @@ fn consume_traits(items: Vec<syn::Item>) -> Vec<syn::Item> {
                     }
                 })
                 .expect("Can't parse generated trait definitions");
+
+                let (_, mut generated_items) = mod_item.content.unwrap();
+                result.append(&mut generated_items);
+            } else if is_attr(&item_trait.attrs, "trait_implementation") {
+                item_trait.attrs = remove_attr(&item_trait.attrs, "trait_implementation");
+
+                let ident = parse2::<syn::Ident>(quote! {TestTrait})
+                    .expect("Can't parse trait ident")
+                    .to_token_stream();
+
+                let stream: TokenStream = trait_implementation::generate(ident, item_trait.to_token_stream());
+
+                let mod_item = syn::parse2::<syn::ItemMod>(quote! {
+                    mod macro_impl {
+                        #stream
+                    }
+                })
+                .expect("Can't parse generated trait implementations");
 
                 let (_, mut generated_items) = mod_item.content.unwrap();
                 result.append(&mut generated_items);

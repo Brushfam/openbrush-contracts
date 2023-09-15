@@ -30,4 +30,5 @@ pub mod modifiers;
 pub mod storage_derive;
 pub mod storage_item;
 pub mod trait_definition;
+pub mod trait_implementation;
 pub mod wrapper;

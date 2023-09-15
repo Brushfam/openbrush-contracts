@@ -32,6 +32,7 @@ use openbrush_lang_codegen::{
     storage_derive,
     storage_item,
     trait_definition,
+    trait_implementation,
     wrapper,
 };
 
@@ -560,3 +561,8 @@ synstructure::decl_attribute!(
     ///
     storage_item::storage_item
 );
+
+#[proc_macro_attribute]
+pub fn trait_implementation(attrs: TokenStream, input: TokenStream) -> TokenStream {
+    trait_implementation::generate(attrs.into(), input.into()).into()
+}

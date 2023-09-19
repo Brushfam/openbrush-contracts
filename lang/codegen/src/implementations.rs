@@ -1728,7 +1728,7 @@ pub(crate) fn impl_ownable(impl_args: &mut ImplArgs) {
             }
 
             #[ink(message)]
-            fn transfer_ownership(&mut self, new_owner: AccountId) -> Result<(), OwnableError> {
+            fn transfer_ownership(&mut self, new_owner: Option<AccountId>) -> Result<(), OwnableError> {
                 OwnableImpl::transfer_ownership(self, new_owner)
             }
         }

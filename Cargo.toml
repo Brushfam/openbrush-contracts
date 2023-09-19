@@ -42,7 +42,7 @@ crate-type = [
 ]
 
 [dev-dependencies]
-ink_env = "4.3.0"
+ink_env = "5.0.0-alpha"
 trybuild = "1.0.80"
 ink_e2e = "5.0.0-alpha"
 
@@ -56,7 +56,6 @@ std = [
     "openbrush_lang/std",
 ]
 psp22 = ["openbrush_contracts/psp22"]
-psp22_pallet = ["openbrush_contracts/psp22_pallet"]
 psp34 = ["openbrush_contracts/psp34"]
 psp37 = ["openbrush_contracts/psp37"]
 access_control = ["openbrush_contracts/access_control"]

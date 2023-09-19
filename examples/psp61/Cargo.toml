@@ -22,7 +22,7 @@ openbrush = { path = "../..", default-features = false, features = [
 ] }
 
 [dev-dependencies]
-ink_e2e = "4.2.1"
+ink_e2e = "5.0.0-alpha"
 test_helpers = { path = "../test_helpers", default-features = false }
 
 [lib]

@@ -50,7 +50,7 @@ pub use psp22::{
 pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Internal {
     fn max_flashloan(&mut self, token: AccountId) -> Balance {
         if token == Self::env().account_id() {
-            Balance::MAX - self.total_supply()
+            psp22::Internal::_max_supply(self) - self.total_supply()
         } else {
             0
         }

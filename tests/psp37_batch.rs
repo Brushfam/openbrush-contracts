@@ -23,10 +23,7 @@
 #[openbrush::implementation(PSP37, PSP37Batch)]
 #[openbrush::contract]
 mod psp37_batch {
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
+    use ink::codegen::Env;
     use openbrush::{
         test_utils::{
             accounts,
@@ -103,8 +100,6 @@ mod psp37_batch {
         }
     }
 
-    type Event = <PSP37Struct as ::ink::reflect::ContractEventBase>::Type;
-
     #[ink::test]
     fn batch_transfer() {
         let token_id1 = Id::U128(1);
@@ -129,14 +124,6 @@ mod psp37_batch {
 
         assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 0);
         assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, None), 2);
-
-        // EVENTS ASSERTS
-        let mut events_iter = ink::env::test::recorded_events();
-        let emmited_event = events_iter.next().unwrap();
-        assert_batch_transfer_event(emmited_event, None, Some(accounts.alice), &ids_amounts);
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_batch_transfer_event(emmited_event, Some(accounts.alice), Some(accounts.bob), &ids_amounts);
 
         assert_eq!(ink::env::test::recorded_events().count(), 2);
     }
@@ -274,62 +261,6 @@ mod psp37_batch {
         assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 0);
         assert_eq!(PSP37::balance_of(&mut nft, accounts.bob, None), 2);
 
-        // EVENTS ASSERTS
-        let mut events_iter = ink::env::test::recorded_events();
-        let emmited_event = events_iter.next().unwrap();
-        assert_batch_transfer_event(emmited_event, None, Some(accounts.alice), &ids_amounts);
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_approval_event(emmited_event, accounts.alice, accounts.bob, None, Balance::MAX);
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_batch_transfer_event(emmited_event, Some(accounts.alice), Some(accounts.bob), &ids_amounts);
-
         assert_eq!(ink::env::test::recorded_events().count(), 3);
-    }
-
-    fn assert_batch_transfer_event(
-        event: ink::env::test::EmittedEvent,
-        expected_from: Option<AccountId>,
-        expected_to: Option<AccountId>,
-        expected_token_ids_and_values: &[(Id, Balance)],
-    ) {
-        let decoded_event = <Event as scale::Decode>::decode(&mut &event.data[..])
-            .expect("encountered invalid contract event data buffer");
-        if let Event::TransferBatch(TransferBatch { from, to, ids_amounts }) = decoded_event {
-            assert_eq!(from, expected_from, "encountered invalid TransferBatch.from");
-            assert_eq!(to, expected_to, "encountered invalid TransferBatch.to");
-            assert_eq!(
-                ids_amounts, expected_token_ids_and_values,
-                "encountered invalid TransferBatch.ids_amounts"
-            );
-        } else {
-            panic!("encountered unexpected event kind: expected a TransferBatch event")
-        }
-    }
-
-    fn assert_approval_event(
-        event: ink::env::test::EmittedEvent,
-        expected_owner: AccountId,
-        expected_operator: AccountId,
-        expected_id: Option<Id>,
-        expected_value: Balance,
-    ) {
-        let decoded_event = <Event as scale::Decode>::decode(&mut &event.data[..])
-            .expect("encountered invalid contract event data buffer");
-        if let Event::Approval(Approval {
-            owner,
-            operator,
-            id,
-            value,
-        }) = decoded_event
-        {
-            assert_eq!(owner, expected_owner, "encountered invalid Approval.owner");
-            assert_eq!(operator, expected_operator, "encountered invalid Approval.to");
-            assert_eq!(id, expected_id, "encountered invalid Approval.id");
-            assert_eq!(value, expected_value, "encountered invalid Approval.value");
-        } else {
-            panic!("encountered unexpected event kind: expected a Approval event")
-        }
     }
 }

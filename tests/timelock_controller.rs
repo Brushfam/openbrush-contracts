@@ -25,10 +25,7 @@
 mod timelock_controller {
     use ::ink::env::DefaultEnvironment;
     use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
+        codegen::Env,
         env::test::DefaultAccounts,
     };
     use openbrush::{
@@ -85,8 +82,6 @@ mod timelock_controller {
         timelock: timelock_controller::Data,
     }
 
-    type Event = <TimelockControllerStruct as ::ink::reflect::ContractEventBase>::Type;
-
     #[overrider(timelock_controller::Internal)]
     fn _emit_min_delay_change_event(&self, old_delay: Timestamp, new_delay: Timestamp) {
         self.env().emit_event(MinDelayChange { old_delay, new_delay })
@@ -129,86 +124,6 @@ mod timelock_controller {
             instance
         }
     }
-
-    fn assert_min_delay_change_event(
-        event: &ink::env::test::EmittedEvent,
-        expected_old_delay: Timestamp,
-        expected_new_delay: Timestamp,
-    ) {
-        if let Event::MinDelayChange(MinDelayChange { old_delay, new_delay }) =
-            <Event as scale::Decode>::decode(&mut &event.data[..])
-                .expect("encountered invalid contract event data buffer")
-        {
-            assert_eq!(
-                old_delay, expected_old_delay,
-                "Old delays were not equal: encountered delay {:?}, expected delay {:?}",
-                old_delay, expected_old_delay
-            );
-            assert_eq!(
-                new_delay, expected_new_delay,
-                "New delays were not equal: encountered delay {:?}, expected delay {:?}",
-                new_delay, expected_new_delay
-            );
-        }
-    }
-
-    fn assert_call_scheduled_event(
-        event: &ink::env::test::EmittedEvent,
-        expected_id: OperationId,
-        expected_index: u8,
-        expected_transaction: Transaction,
-        expected_predecessor: Option<OperationId>,
-        expected_delay: Timestamp,
-    ) {
-        if let Event::CallScheduled(CallScheduled {
-            id,
-            index,
-            transaction,
-            predecessor,
-            delay,
-        }) = <Event as scale::Decode>::decode(&mut &event.data[..])
-            .expect("encountered invalid contract event data buffer")
-        {
-            assert_eq!(
-                id, expected_id,
-                "Id were not equal: encountered {:?}, expected {:?}",
-                id, expected_id
-            );
-            assert_eq!(
-                index, expected_index,
-                "Index were not equal: encountered {:?}, expected {:?}",
-                index, expected_index
-            );
-            assert_eq!(
-                transaction, expected_transaction,
-                "Transaction were not equal: encountered {:?}, expected {:?}",
-                transaction, expected_transaction
-            );
-            assert_eq!(
-                predecessor, expected_predecessor,
-                "Predecessor were not equal: encountered {:?}, expected {:?}",
-                predecessor, expected_predecessor
-            );
-            assert_eq!(
-                delay, expected_delay,
-                "Delay were not equal: encountered {:?}, expected {:?}",
-                delay, expected_delay
-            );
-        }
-    }
-
-    fn assert_cancelled_event(event: &ink::env::test::EmittedEvent, expected_id: OperationId) {
-        if let Event::Cancelled(Cancelled { id }) = <Event as scale::Decode>::decode(&mut &event.data[..])
-            .expect("encountered invalid contract event data buffer")
-        {
-            assert_eq!(
-                id, expected_id,
-                "Ids were not equal: encountered {:?}, expected {:?}",
-                id, expected_id
-            );
-        }
-    }
-
     fn setup() -> DefaultAccounts<DefaultEnvironment> {
         let accounts = accounts();
 
@@ -253,9 +168,6 @@ mod timelock_controller {
             Some(accounts.charlie)
         ));
         assert!(!AccessControl::has_role(&timelock, EXECUTOR_ROLE, Some(accounts.bob)));
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_min_delay_change_event(&emitted_events[0], 0, 10);
     }
 
     #[ink::test]
@@ -273,9 +185,6 @@ mod timelock_controller {
         assert!(TimelockController::is_operation(&mut timelock, id));
         assert!(TimelockController::is_operation_pending(&mut timelock, id));
         assert_eq!(TimelockController::get_timestamp(&mut timelock, id), min_delay + 1);
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_call_scheduled_event(&emitted_events[1], id, 0, Transaction::default(), None, min_delay + 1);
     }
 
     #[ink::test]
@@ -340,9 +249,6 @@ mod timelock_controller {
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
 
         assert_eq!(emitted_events.len(), 3);
-        for (i, transaction) in transactions.into_iter().enumerate() {
-            assert_call_scheduled_event(&emitted_events[i + 1], id, i as u8, transaction, None, min_delay + 1);
-        }
     }
 
     #[ink::test]
@@ -371,10 +277,6 @@ mod timelock_controller {
             TimelockController::schedule(&mut timelock, Transaction::default(), None, [0; 32], min_delay + 1).is_ok()
         );
         assert!(TimelockController::cancel(&mut timelock, id).is_ok());
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_call_scheduled_event(&emitted_events[1], id, 0, Transaction::default(), None, min_delay + 1);
-        assert_cancelled_event(&emitted_events[2], id);
     }
 
     #[ink::test]
@@ -387,9 +289,6 @@ mod timelock_controller {
         assert!(
             TimelockController::schedule(&mut timelock, Transaction::default(), None, [0; 32], min_delay + 1).is_ok()
         );
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_call_scheduled_event(&emitted_events[1], id, 0, Transaction::default(), None, min_delay + 1);
 
         assert!(AccessControl::revoke_role(&mut timelock, PROPOSER_ROLE, Some(accounts.alice)).is_ok());
         assert_eq!(

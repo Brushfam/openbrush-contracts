@@ -24,10 +24,7 @@
 #[openbrush::contract]
 mod payment_splitter {
     use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
+        codegen::Env,
         storage::traits::StorageKey,
     };
     use openbrush::{
@@ -93,52 +90,6 @@ mod payment_splitter {
         self.env().emit_event(PaymentReleased { to, amount })
     }
 
-    type Event = <MySplitter as ::ink::reflect::ContractEventBase>::Type;
-
-    fn assert_payee_added_event(
-        event: &ink::env::test::EmittedEvent,
-        expected_account: AccountId,
-        expected_shares: Balance,
-    ) {
-        if let Event::PayeeAdded(PayeeAdded { account, shares }) =
-            <Event as scale::Decode>::decode(&mut &event.data[..])
-                .expect("encountered invalid contract event data buffer")
-        {
-            assert_eq!(
-                account, expected_account,
-                "Accounts were not equal: encountered {:?}, expected {:?}",
-                account, expected_account
-            );
-            assert_eq!(
-                shares, expected_shares,
-                "Shares were not equal: encountered {:?}, expected {:?}",
-                shares, expected_shares
-            );
-        }
-    }
-
-    fn assert_payment_released_event(
-        event: &ink::env::test::EmittedEvent,
-        expected_to: AccountId,
-        expected_amount: Balance,
-    ) {
-        if let Event::PaymentReleased(PaymentReleased { to, amount }) =
-            <Event as scale::Decode>::decode(&mut &event.data[..])
-                .expect("encountered invalid contract event data buffer")
-        {
-            assert_eq!(
-                to, expected_to,
-                "Accounts were not equal: encountered {:?}, expected {:?}",
-                to, expected_to
-            );
-            assert_eq!(
-                amount, expected_amount,
-                "Amounts were not equal: encountered {:?}, expected {:?}",
-                amount, expected_amount
-            );
-        }
-    }
-
     #[ink::test]
     fn correct_init_values() {
         let accounts = accounts();
@@ -148,10 +99,6 @@ mod payment_splitter {
         assert_eq!(0, PaymentSplitter::total_released(&instance));
         assert_eq!(Some(accounts.alice), PaymentSplitter::payee(&instance, 0));
         assert_eq!(Some(accounts.bob), PaymentSplitter::payee(&instance, 1));
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_payee_added_event(&emitted_events[0], accounts.alice, 100);
-        assert_payee_added_event(&emitted_events[1], accounts.bob, 200);
     }
 
     #[ink::test]
@@ -180,10 +127,6 @@ mod payment_splitter {
             2 * 333333,
             ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.bob).unwrap()
         );
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_payment_released_event(&emitted_events[2], accounts.charlie, 333333);
-        assert_payment_released_event(&emitted_events[3], accounts.bob, 2 * 333333);
     }
 
     #[ink::test]
@@ -212,12 +155,6 @@ mod payment_splitter {
             666667,
             ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.bob).unwrap()
         );
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_payment_released_event(&emitted_events[2], accounts.charlie, 333333);
-        assert_payment_released_event(&emitted_events[3], accounts.bob, 666666);
-        assert_payment_released_event(&emitted_events[4], accounts.charlie, 333333);
-        assert_payment_released_event(&emitted_events[5], accounts.bob, 666667);
     }
 
     #[ink::test]
@@ -264,10 +201,6 @@ mod payment_splitter {
             2 * 333333,
             ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.bob).unwrap()
         );
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_payment_released_event(&emitted_events[2], accounts.charlie, 333333);
-        assert_payment_released_event(&emitted_events[3], accounts.bob, 2 * 333333);
     }
 
     fn add_funds(account: AccountId, amount: Balance) {

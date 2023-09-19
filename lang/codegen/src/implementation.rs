@@ -88,10 +88,6 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "PSP22Votes" => impl_psp22_votes(&mut impl_args),
             "Flashmint" => impl_flashmint(&mut impl_args),
             "PSP22TokenTimelock" => impl_token_timelock(&mut impl_args),
-            "PSP22Pallet" => impl_psp22_pallet(&mut impl_args),
-            "PSP22PalletBurnable" => impl_psp22_pallet_burnable(&mut impl_args),
-            "PSP22PalletMetadata" => impl_psp22_pallet_metadata(&mut impl_args),
-            "PSP22PalletMintable" => impl_psp22_pallet_mintable(&mut impl_args),
             "PSP34" => impl_psp34(&mut impl_args),
             "PSP34Burnable" => impl_psp34_burnable(&mut impl_args),
             "PSP34Mintable" => impl_psp34_mintable(&mut impl_args),
@@ -155,9 +151,6 @@ fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
         "Flashmint",
     ];
     check_and_remove_import("PSP22", psp22_impls, imports);
-
-    let psp22_pallet_impls = vec!["PSP22PalletMintable", "PSP22PalletBurnable", "PSP22PalletMetadata"];
-    check_and_remove_import("PSP22Pallet", psp22_pallet_impls, imports);
 
     let psp34_impls = vec!["PSP34Mintable", "PSP34Burnable", "PSP34Metadata", "PSP34Enumerable"];
     check_and_remove_import("PSP34", psp34_impls, imports);

@@ -32,26 +32,25 @@ pub mod my_psp22_mintable {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
             balance_of,
         };
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
         async fn assigns_initial_balance(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(1000);
-            let address = client
+            let contract = client
                 .instantiate("my_psp22_mintable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert!(matches!(balance_of!(client, address, Alice), 1000));
+            assert!(matches!(balance_of!(client, call, Alice), 1000));
 
             Ok(())
         }
@@ -59,22 +58,21 @@ pub mod my_psp22_mintable {
         #[ink_e2e::test]
         async fn minting_requested_amount(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(1000);
-            let address = client
+            let contract = client
                 .instantiate("my_psp22_mintable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
             assert!(
-                matches!(balance_of!(client, address, Bob), 0),
+                matches!(balance_of!(client, call, Bob), 0),
                 "Bob's balance should be 0"
             );
 
             let mint_tx = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Bob), 1000));
+                let _msg = call.mint(address_of!(Bob), 1000);
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("transfer failed")
             };
@@ -82,7 +80,7 @@ pub mod my_psp22_mintable {
             assert!(matches!(mint_tx.return_value(), Ok(())), "Minting should be successful");
 
             assert!(
-                matches!(balance_of!(client, address, Bob), 1000),
+                matches!(balance_of!(client, call, Bob), 1000),
                 "Bob's balance should be 1000"
             );
 
@@ -92,14 +90,14 @@ pub mod my_psp22_mintable {
         #[ink_e2e::test]
         async fn increases_total_supply_after_minting(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(0);
-            let address = client
+            let contract = client
                 .instantiate("my_psp22_mintable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -107,10 +105,9 @@ pub mod my_psp22_mintable {
             assert!(matches!(total_supply, 0), "Total supply should be 0");
 
             let mint_tx = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Bob), 1000));
+                let _msg = call.mint(address_of!(Bob), 1000);
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("transfer failed")
             };
@@ -118,7 +115,7 @@ pub mod my_psp22_mintable {
             assert!(matches!(mint_tx.return_value(), Ok(())), "Minting should be successful");
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();

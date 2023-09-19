@@ -23,10 +23,7 @@
 #[openbrush::implementation(PSP37)]
 #[openbrush::contract]
 mod psp37 {
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
+    use ink::codegen::Env;
     use openbrush::{
         test_utils::{
             accounts,
@@ -135,8 +132,6 @@ mod psp37 {
         }
     }
 
-    type Event = <PSP37Struct as ::ink::reflect::ContractEventBase>::Type;
-
     #[ink::test]
     fn before_token_transfer_should_fail_transfer() {
         let token_id_1 = Id::U128(1);
@@ -239,25 +234,6 @@ mod psp37 {
 
         assert_eq!(PSP37::balance_of(&mut nft, accounts.alice, None), 2);
 
-        let mut events_iter = ink::env::test::recorded_events();
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            None,
-            Some(accounts.alice),
-            token_id1.clone(),
-            token_amount1,
-        );
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            None,
-            Some(accounts.alice),
-            token_id2.clone(),
-            token_amount2,
-        );
-
         assert_eq!(ink::env::test::recorded_events().count(), 2);
     }
 
@@ -325,18 +301,6 @@ mod psp37 {
             Balance::MAX
         );
 
-        // EVENTS ASSERTS
-        let mut events_iter = ink::env::test::recorded_events();
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_approval_event(emmited_event, accounts.alice, accounts.bob, Some(token_id.clone()), 1);
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_approval_event(emmited_event, accounts.alice, accounts.bob, Some(token_id.clone()), 0);
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_approval_event(emmited_event, accounts.alice, accounts.bob, None, Balance::MAX);
-
         assert_eq!(ink::env::test::recorded_events().count(), 3);
     }
 
@@ -362,26 +326,6 @@ mod psp37 {
         assert_eq!(
             PSP37::balance_of(&mut nft, accounts.bob, Some(token_id.clone())),
             transfer_amount
-        );
-
-        // EVENTS ASSERTS
-        let mut events_iter = ink::env::test::recorded_events();
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            None,
-            Some(accounts.alice),
-            token_id.clone(),
-            transfer_amount,
-        );
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            Some(accounts.alice),
-            Some(accounts.bob),
-            token_id.clone(),
-            transfer_amount,
         );
 
         assert_eq!(ink::env::test::recorded_events().count(), 2);
@@ -448,23 +392,6 @@ mod psp37 {
         assert_eq!(
             PSP37::allowance(&mut nft, accounts.alice, accounts.bob, Some(token_id.clone())),
             1
-        );
-
-        // EVENTS ASSERTS
-        let mut events_iter = ink::env::test::recorded_events();
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(emmited_event, None, Some(accounts.alice), token_id.clone(), 2);
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_approval_event(emmited_event, accounts.alice, accounts.bob, Some(token_id.clone()), 2);
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            Some(accounts.alice),
-            Some(accounts.bob),
-            token_id.clone(),
-            1,
         );
 
         assert_eq!(ink::env::test::recorded_events().count(), 3);
@@ -535,71 +462,6 @@ mod psp37 {
         assert_eq!(PSP37::total_supply(&mut nft, Some(token_id3.clone())), token_amount3);
         assert_eq!(PSP37::total_supply(&mut nft, None), 3);
 
-        // EVENTS ASSERTS
-        let mut events_iter = ink::env::test::recorded_events();
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            None,
-            Some(accounts.alice),
-            token_id1.clone(),
-            token_amount1,
-        );
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            None,
-            Some(accounts.alice),
-            token_id2.clone(),
-            token_amount2,
-        );
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            None,
-            Some(accounts.alice),
-            token_id3.clone(),
-            token_amount3,
-        );
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            Some(accounts.alice),
-            Some(accounts.bob),
-            token_id2.clone(),
-            10,
-        );
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            Some(accounts.alice),
-            Some(accounts.bob),
-            token_id3.clone(),
-            10,
-        );
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            Some(accounts.alice),
-            Some(accounts.charlie),
-            token_id3.clone(),
-            10,
-        );
-
-        let emmited_event = events_iter.next().unwrap();
-        assert_transfer_event(
-            emmited_event,
-            Some(accounts.alice),
-            Some(accounts.charlie),
-            token_id3.clone(),
-            10,
-        );
-
         assert_eq!(ink::env::test::recorded_events().count(), 7);
     }
 
@@ -631,49 +493,5 @@ mod psp37 {
             PSP37::transfer(&mut nft, accounts.bob, token_id.clone(), transfer_amount, vec![]),
             Err(PSP37Error::InsufficientBalance),
         );
-    }
-
-    fn assert_transfer_event(
-        event: ink::env::test::EmittedEvent,
-        expected_from: Option<AccountId>,
-        expected_to: Option<AccountId>,
-        expected_token_id: Id,
-        expected_value: Balance,
-    ) {
-        let decoded_event = <Event as scale::Decode>::decode(&mut &event.data[..])
-            .expect("encountered invalid contract event data buffer");
-        if let Event::Transfer(Transfer { from, to, id, value }) = decoded_event {
-            assert_eq!(from, expected_from, "encountered invalid Transfer.from");
-            assert_eq!(to, expected_to, "encountered invalid Transfer.to");
-            assert_eq!(id, expected_token_id, "encountered invalid Transfer.id");
-            assert_eq!(value, expected_value, "encountered invalid Transfer.value");
-        } else {
-            panic!("encountered unexpected event kind: expected a Transfer event")
-        }
-    }
-
-    fn assert_approval_event(
-        event: ink::env::test::EmittedEvent,
-        expected_owner: AccountId,
-        expected_operator: AccountId,
-        expected_id: Option<Id>,
-        expected_value: Balance,
-    ) {
-        let decoded_event = <Event as scale::Decode>::decode(&mut &event.data[..])
-            .expect("encountered invalid contract event data buffer");
-        if let Event::Approval(Approval {
-            owner,
-            operator,
-            id,
-            value,
-        }) = decoded_event
-        {
-            assert_eq!(owner, expected_owner, "encountered invalid Approval.owner");
-            assert_eq!(operator, expected_operator, "encountered invalid Approval.to");
-            assert_eq!(id, expected_id, "encountered invalid Approval.id");
-            assert_eq!(value, expected_value, "encountered invalid Approval.value");
-        } else {
-            panic!("encountered unexpected event kind: expected a Approval event")
-        }
     }
 }

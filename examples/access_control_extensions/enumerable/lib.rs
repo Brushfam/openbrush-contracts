@@ -42,8 +42,6 @@ pub mod my_access_control {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
@@ -54,72 +52,74 @@ pub mod my_access_control {
             revoke_role,
         };
 
+        use ink_e2e::ContractsBackend;
+
+
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn should_have_not_member(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_have_not_member<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(get_role_member!(client, address, MINTER, 1), None);
+            assert_eq!(get_role_member!(client, call, MINTER, 1), None);
 
             Ok(())
         }
 
         #[ink_e2e::test]
-        async fn should_get_role_member(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_get_role_member<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(get_role_member!(client, address, MINTER, 0), Some(address_of!(Alice)));
+            assert_eq!(get_role_member!(client, call, MINTER, 0), Some(address_of!(Alice)));
 
             Ok(())
         }
 
         #[ink_e2e::test]
-        async fn should_grant_roles_and_get_role_members(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn should_grant_roles_and_get_role_members<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), false);
+            assert_eq!(has_role!(client, call, MINTER, Bob), false);
 
-            assert_eq!(grant_role!(client, address, MINTER, Bob), Ok(()));
+            assert_eq!(grant_role!(client, call, MINTER, Bob), Ok(()));
 
-            assert_eq!(get_role_member!(client, address, MINTER, 1), Some(address_of!(Bob)));
+            assert_eq!(get_role_member!(client, call, MINTER, 1), Some(address_of!(Bob)));
 
             Ok(())
         }
 
         #[ink_e2e::test]
-        async fn should_revoker_and_count_roles(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new();
-            let address = client
+        async fn should_revoker_and_count_roles<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
+           let constructor = ContractRef::new();            let contract = client
                 .instantiate("my_access_control_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(has_role!(client, address, MINTER, Bob), false);
+            assert_eq!(has_role!(client, call, MINTER, Bob), false);
 
-            assert_eq!(has_role!(client, address, MINTER, Alice), true);
+            assert_eq!(has_role!(client, call, MINTER, Alice), true);
 
-            assert_eq!(get_role_member_count!(client, address, MINTER), 1);
+            assert_eq!(get_role_member_count!(client, call, MINTER), 1);
 
-            assert_eq!(revoke_role!(client, address, MINTER, Alice), Ok(()));
+            assert_eq!(revoke_role!(client, call, MINTER, Alice), Ok(()));
 
-            assert_eq!(get_role_member_count!(client, address, MINTER), 0);
+            assert_eq!(get_role_member_count!(client, call, MINTER), 0);
 
             Ok(())
         }

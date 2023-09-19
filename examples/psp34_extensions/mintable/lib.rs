@@ -29,36 +29,34 @@ pub mod my_psp34_mintable {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
             balance_of,
         };
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn mint_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn mint_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp34_mintable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(balance_of!(client, address, Alice), 0);
-            assert_eq!(balance_of!(client, address, Bob), 0);
+            assert_eq!(balance_of!(client, call, Alice), 0);
+            assert_eq!(balance_of!(client, call, Bob), 0);
 
             let id_1 = Id::U8(1);
             let id_2 = Id::U8(2);
 
             let mint_1 = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Alice), id_1.clone()));
+                let _msg = call.mint(address_of!(Alice), id_1.clone());
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -67,10 +65,9 @@ pub mod my_psp34_mintable {
             assert_eq!(mint_1, Ok(()));
 
             let mint_2 = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Bob), id_2.clone()));
+                let _msg = call.mint(address_of!(Bob), id_2.clone());
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -78,31 +75,30 @@ pub mod my_psp34_mintable {
 
             assert_eq!(mint_2, Ok(()));
 
-            assert_eq!(balance_of!(client, address, Alice), 1);
-            assert_eq!(balance_of!(client, address, Bob), 1);
+            assert_eq!(balance_of!(client, call, Alice), 1);
+            assert_eq!(balance_of!(client, call, Bob), 1);
 
             Ok(())
         }
 
         #[ink_e2e::test]
-        async fn mint_existing_should_fail(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn mint_existing_should_fail<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp34_mintable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert_eq!(balance_of!(client, address, Alice), 0);
-            assert_eq!(balance_of!(client, address, Bob), 0);
+            assert_eq!(balance_of!(client, call, Alice), 0);
+            assert_eq!(balance_of!(client, call, Bob), 0);
 
             let id_1 = Id::U8(1);
 
             let mint_1 = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Alice), id_1.clone()));
+                let _msg = call.mint(address_of!(Alice), id_1.clone());
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -111,16 +107,15 @@ pub mod my_psp34_mintable {
             assert_eq!(mint_1, Ok(()));
 
             let mint_2 = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Bob), id_1.clone()));
+                let _msg = call.mint(address_of!(Bob), id_1.clone());
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             assert!(matches!(mint_2, Err(_)));
 
-            assert_eq!(balance_of!(client, address, Alice), 1);
-            assert_eq!(balance_of!(client, address, Bob), 0);
+            assert_eq!(balance_of!(client, call, Alice), 1);
+            assert_eq!(balance_of!(client, call, Bob), 0);
 
             Ok(())
         }

@@ -23,10 +23,7 @@
 #[openbrush::implementation(PSP22, PSP22Burnable)]
 #[openbrush::contract]
 mod psp22_burnable {
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
+    use ink::codegen::Env;
     use openbrush::{
         contracts::psp22::extensions::burnable::*,
         test_utils::*,
@@ -57,8 +54,6 @@ mod psp22_burnable {
         // field for testing _after_token_transfer
         return_err_on_after: bool,
     }
-
-    type Event = <PSP22Struct as ::ink::reflect::ContractEventBase>::Type;
 
     #[overrider(psp22::Internal)]
     fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, amount: Balance) {
@@ -112,49 +107,6 @@ mod psp22_burnable {
             self.return_err_on_after = !self.return_err_on_after;
         }
     }
-
-    fn assert_transfer_event(
-        event: &ink::env::test::EmittedEvent,
-        expected_from: Option<AccountId>,
-        expected_to: Option<AccountId>,
-        expected_value: Balance,
-    ) {
-        let decoded_event = <Event as scale::Decode>::decode(&mut &event.data[..])
-            .expect("encountered invalid contract event data buffer");
-
-        let Event::Transfer(Transfer { from, to, value }) = decoded_event;
-        assert_eq!(from, expected_from, "encountered invalid Transfer.from");
-        assert_eq!(to, expected_to, "encountered invalid Transfer.to");
-        assert_eq!(value, expected_value, "encountered invalid Trasfer.value");
-
-        let expected_topics = vec![
-            encoded_into_hash(&PrefixedValue {
-                value: b"PSP22Struct::Transfer",
-                prefix: b"",
-            }),
-            encoded_into_hash(&PrefixedValue {
-                prefix: b"PSP22Struct::Transfer::from",
-                value: &expected_from,
-            }),
-            encoded_into_hash(&PrefixedValue {
-                prefix: b"PSP22Struct::Transfer::to",
-                value: &expected_to,
-            }),
-            encoded_into_hash(&PrefixedValue {
-                prefix: b"PSP22Struct::Transfer::value",
-                value: &expected_value,
-            }),
-        ];
-        for (n, (actual_topic, expected_topic)) in event.topics.iter().zip(expected_topics).enumerate() {
-            assert_eq!(
-                &actual_topic[..],
-                expected_topic.as_ref(),
-                "encountered invalid topic at {}",
-                n
-            );
-        }
-    }
-
     // Testing burnable extension
 
     #[ink::test]
@@ -183,20 +135,6 @@ mod psp22_burnable {
 
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(emitted_events.len(), 2);
-        // Check first transfer event related to PSP-20 instantiation.
-        assert_transfer_event(
-            &emitted_events[0],
-            None,
-            Some(AccountId::from([0x01; 32])),
-            initial_amount,
-        );
-        // Check the second transfer event relating to the actual transfer.
-        assert_transfer_event(
-            &emitted_events[1],
-            Some(AccountId::from([0x01; 32])),
-            None,
-            amount_to_burn,
-        );
     }
 
     #[ink::test]

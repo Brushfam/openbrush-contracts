@@ -36,26 +36,24 @@ pub mod my_psp37 {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message};
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn metadata_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn metadata_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp37_metadata", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
             let id = Id::U8(0);
             let attr = String::from("https://www.727.ventures/");
 
             let attribute = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.get_attribute(id.clone(), attr.clone()));
+                let _msg = call.get_attribute(id.clone(), attr.clone());
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -63,11 +61,9 @@ pub mod my_psp37 {
             assert_eq!(attribute, None);
 
             let set_attribute_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.set_attribute(id.clone(), attr.clone(), String::from("https://www.727.ventures/"))
-                });
+                let _msg = call.set_attribute(id.clone(), attr.clone(), String::from("https://www.727.ventures/"));
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("call failed")
             }
@@ -76,8 +72,7 @@ pub mod my_psp37 {
             assert_eq!(set_attribute_tx, Ok(()));
 
             let attribute = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.get_attribute(id.clone(), attr.clone()));
+                let _msg = call.get_attribute(id.clone(), attr.clone());
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();

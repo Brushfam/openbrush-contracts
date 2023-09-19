@@ -5,7 +5,7 @@ authors = ["Brushfam <green@727.ventures>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.3.0", default-features = false}
+ink = { version = "5.0.0-alpha", default-features = false}
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
@@ -14,7 +14,7 @@ scale-info = { version = "2.6", default-features = false, features = ["derive"],
 openbrush = { path = "../..", default-features = false, features = ["access_control", "psp34"] }
 
 [dev-dependencies]
-ink_e2e = "4.3.0"
+ink_e2e = "5.0.0-alpha"
 test_helpers = { path = "../test_helpers", default-features = false }
 
 [lib]

@@ -34,25 +34,23 @@ pub mod my_psp37_enumerable {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::address_of;
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn enumerable_should_fail(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn enumerable_should_fail<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Alice), 0));
+                let _msg = call.owners_token_by_index(address_of!(Alice), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -60,8 +58,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(owners_token_by_index, None);
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
+                let _msg = call.owners_token_by_index(address_of!(Bob), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -72,17 +69,16 @@ pub mod my_psp37_enumerable {
         }
 
         #[ink_e2e::test]
-        async fn enumerable_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn enumerable_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Alice), 0));
+                let _msg = call.owners_token_by_index(address_of!(Alice), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -90,8 +86,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(owners_token_by_index, None);
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
+                let _msg = call.owners_token_by_index(address_of!(Bob), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -105,14 +100,12 @@ pub mod my_psp37_enumerable {
             let amount_2 = 2;
 
             let mint_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.mint(
+                let _msg = call.mint(
                         address_of!(Alice),
                         vec![(token_1.clone(), amount_1), (token_2.clone(), amount_2)],
-                    )
-                });
+                    );
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -121,7 +114,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(mint_tx, Ok(()));
 
             let token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_by_index(0));
+                let _msg = call.token_by_index(0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -129,7 +122,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(token_by_index, Some(token_1.clone()));
 
             let token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_by_index(1));
+                let _msg = call.token_by_index(1);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -137,8 +130,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(token_by_index, Some(token_2.clone()));
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Alice), 0));
+                let _msg = call.owners_token_by_index(address_of!(Alice), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -146,8 +138,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(owners_token_by_index, Some(token_1.clone()));
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
+                let _msg = call.owners_token_by_index(address_of!(Bob), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -158,17 +149,16 @@ pub mod my_psp37_enumerable {
         }
 
         #[ink_e2e::test]
-        async fn enumerable_works_after_burn(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn enumerable_works_after_burn<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Alice), 0));
+                let _msg = call.owners_token_by_index(address_of!(Alice), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -176,8 +166,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(owners_token_by_index, None);
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
+                let _msg = call.owners_token_by_index(address_of!(Bob), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -191,14 +180,12 @@ pub mod my_psp37_enumerable {
             let amount_2 = 2;
 
             let mint_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.mint(
+               let _msg = call.mint(
                         address_of!(Alice),
                         vec![(token_1.clone(), amount_1), (token_2.clone(), amount_2)],
-                    )
-                });
+                    );
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -207,7 +194,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(mint_tx, Ok(()));
 
             let token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_by_index(0));
+                let _msg = call.token_by_index(0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -215,7 +202,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(token_by_index, Some(token_1.clone()));
 
             let token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_by_index(1));
+                let _msg = call.token_by_index(1);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -223,10 +210,9 @@ pub mod my_psp37_enumerable {
             assert_eq!(token_by_index, Some(token_2.clone()));
 
             let burn_tx = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(Alice), vec![(token_2.clone(), amount_2)]));
+                let _msg = call.burn(address_of!(Alice), vec![(token_2.clone(), amount_2)]);
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("burn failed")
             }
@@ -235,8 +221,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(burn_tx, Ok(()));
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Alice), 0));
+                let _msg = call.owners_token_by_index(address_of!(Alice), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -244,8 +229,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(owners_token_by_index, Some(token_1.clone()));
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
+                let _msg = call.owners_token_by_index(address_of!(Bob), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -256,17 +240,16 @@ pub mod my_psp37_enumerable {
         }
 
         #[ink_e2e::test]
-        async fn enumerable_transfer_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn enumerable_transfer_works<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("my_psp37_enumerable", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Alice), 0));
+                let _msg = call.owners_token_by_index(address_of!(Alice), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -274,8 +257,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(owners_token_by_index, None);
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
+                let _msg = call.owners_token_by_index(address_of!(Bob), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -289,14 +271,12 @@ pub mod my_psp37_enumerable {
             let amount_2 = 20;
 
             let mint_tx = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| {
-                    contract.mint(
+               let _msg = call.mint(
                         address_of!(Alice),
                         vec![(token_1.clone(), amount_1), (token_2.clone(), amount_2)],
-                    )
-                });
+                    );
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
@@ -305,7 +285,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(mint_tx, Ok(()));
 
             let token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_by_index(0));
+                let _msg = call.token_by_index(0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -313,7 +293,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(token_by_index, Some(token_1.clone()));
 
             let token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.token_by_index(1));
+                let _msg = call.token_by_index(1);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -321,10 +301,9 @@ pub mod my_psp37_enumerable {
             assert_eq!(token_by_index, Some(token_2.clone()));
 
             let transfer_tx = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(Bob), token_2.clone(), amount_2, vec![]));
+                let _msg = call.transfer(address_of!(Bob), token_2.clone(), amount_2, vec![]);
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("transfer failed")
             }
@@ -333,8 +312,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(transfer_tx, Ok(()));
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Alice), 0));
+                let _msg = call.owners_token_by_index(address_of!(Alice), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -342,8 +320,7 @@ pub mod my_psp37_enumerable {
             assert_eq!(owners_token_by_index, Some(token_1.clone()));
 
             let owners_token_by_index = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.owners_token_by_index(address_of!(Bob), 0));
+                let _msg = call.owners_token_by_index(address_of!(Bob), 0);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();

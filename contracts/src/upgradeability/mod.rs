@@ -20,6 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #[cfg(feature = "diamond")]
 pub mod diamond;
+
 #[cfg(feature = "proxy")]
 pub mod proxy;
 

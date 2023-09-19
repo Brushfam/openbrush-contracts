@@ -53,48 +53,29 @@ pub mod accessors_attr {
     pub mod tests {
         use super::*;
         use crate::accessdataaccessors_external::AccessDataAccessors;
-        use ink_e2e::build_message;
+        use test_helpers::{
+            method_call_dry_run,
+            method_call,
+        };
+        use ink_e2e::ContractsBackend;
+
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
         async fn get_and_set() -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("accessors_attr", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_read_write());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("get_read_write failed")
-            };
+            assert!(matches!(method_call_dry_run!(client, call, get_read_write()), 0));
 
-            assert!(matches!(result.return_value(), 0));
+            method_call!(client, call, set_read_write(10));
 
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.set_read_write(10));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("update_read_only failed")
-            };
-
-            assert!(matches!(result.return_value(), ()));
-
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_read_write());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("get_read_only failed")
-            };
-
-            assert!(matches!(result.return_value(), 10));
+            assert!(matches!(method_call_dry_run!(client, call, get_read_write()), 10));
 
             Ok(())
         }
@@ -102,41 +83,17 @@ pub mod accessors_attr {
         #[ink_e2e::test]
         async fn only_set() -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("accessors_attr", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_write_only());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("get_write_only failed")
-            };
+            assert!(matches!(method_call_dry_run!(client, call, get_write_only()), 0));
 
-            assert!(matches!(result.return_value(), 0));
+            method_call!(client, call, set_write_only(10));
 
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.set_write_only(10));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("set_write_only failed")
-            };
-
-            assert!(matches!(result.return_value(), ()));
-
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_write_only());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("get_write_only failed")
-            };
-
-            assert!(matches!(result.return_value(), 10));
+            assert!(matches!(method_call_dry_run!(client, call, get_write_only()), 10));
 
             Ok(())
         }
@@ -144,41 +101,17 @@ pub mod accessors_attr {
         #[ink_e2e::test]
         async fn only_get() -> E2EResult<()> {
             let constructor = ContractRef::new();
-            let address = client
+            let contract = client
                 .instantiate("accessors_attr", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_read_only());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("get_read_only failed")
-            };
+            assert!(matches!(method_call_dry_run!(client, call, get_read_only()), 0));
 
-            assert!(matches!(result.return_value(), 0));
+            method_call!(client, call, set_read_only(10));
 
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.set_read_only(10));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("set_read_only failed")
-            };
-
-            assert!(matches!(result.return_value(), ()));
-
-            let result = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.get_read_only());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("get_read_only failed")
-            };
-
-            assert!(matches!(result.return_value(), 10));
+            assert!(matches!(method_call_dry_run!(client, call, get_read_only()), 10));
 
             Ok(())
         }

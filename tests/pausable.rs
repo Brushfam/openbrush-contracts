@@ -23,18 +23,8 @@
 #[openbrush::implementation(Pausable)]
 #[openbrush::contract]
 mod pausable {
-    use ::ink::env::DefaultEnvironment;
-    use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
-        env::test::DefaultAccounts,
-    };
-    use openbrush::{
-        test_utils::accounts,
-        traits::Storage,
-    };
+    use ink::codegen::Env;
+    use openbrush::traits::Storage;
 
     /// Emitted when the pause is triggered by `account`.
     #[ink(event)]
@@ -82,47 +72,11 @@ mod pausable {
         self.env().emit_event(Unpaused { account })
     }
 
-    type Event = <MyFlipper as ::ink::reflect::ContractEventBase>::Type;
-
-    fn assert_paused_event(event: &ink::env::test::EmittedEvent, expected_account: AccountId) {
-        if let Event::Paused(Paused { account }) = <Event as scale::Decode>::decode(&mut &event.data[..])
-            .expect("encountered invalid contract event data buffer")
-        {
-            assert_eq!(
-                account, expected_account,
-                "Accounts were not equal: encountered {:?}, expected {:?}",
-                account, expected_account
-            );
-        }
-    }
-
-    fn assert_unpaused_event(event: &ink::env::test::EmittedEvent, expected_account: AccountId) {
-        if let Event::Unpaused(Unpaused { account }) = <Event as scale::Decode>::decode(&mut &event.data[..])
-            .expect("encountered invalid contract event data buffer")
-        {
-            assert_eq!(
-                account, expected_account,
-                "Accounts were not equal: encountered {:?}, expected {:?}",
-                account, expected_account
-            );
-        }
-    }
-
-    fn setup() -> DefaultAccounts<DefaultEnvironment> {
-        let accounts = accounts();
-
-        accounts
-    }
-
     #[ink::test]
     fn pause_works() {
-        let accounts = setup();
         let mut inst = MyFlipper::new();
         assert!(pausable::Internal::_pause(&mut inst).is_ok());
         assert!(inst.pause.paused.get_or_default());
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_paused_event(&emitted_events[0], accounts.alice);
     }
 
     #[ink::test]
@@ -158,27 +112,19 @@ mod pausable {
 
     #[ink::test]
     fn unpause_works() {
-        let accounts = setup();
         let mut inst = MyFlipper::new();
 
         assert!(pausable::Internal::_pause(&mut inst).is_ok());
         assert!(pausable::Internal::_unpause(&mut inst).is_ok());
         assert!(!inst.pause.paused.get_or_default());
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_unpaused_event(&emitted_events[0], accounts.alice);
     }
 
     #[ink::test]
     fn switch_pause_works() {
-        let accounts = setup();
         let mut inst = MyFlipper::new();
 
         assert!(pausable::Internal::_pause(&mut inst).is_ok());
         assert!(pausable::Internal::_switch_pause(&mut inst).is_ok());
         assert!(!inst.pause.paused.get_or_default());
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_unpaused_event(&emitted_events[0], accounts.alice);
     }
 }

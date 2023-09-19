@@ -7,9 +7,8 @@ macro_rules! address_of {
 
 #[macro_export]
 macro_rules! balance_of {
-    ($client:ident, $address:ident, $account:ident) => {{
-        let _msg =
-            build_message::<ContractRef>($address.clone()).call(|contract| contract.balance_of(address_of!($account)));
+    ($client:ident, $call:ident, $account:ident) => {{
+        let _msg = $call.balance_of(address_of!($account));
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await
@@ -19,8 +18,8 @@ macro_rules! balance_of {
 
 #[macro_export]
 macro_rules! owner_of {
-    ($client:ident, $address:ident, $id:expr) => {{
-        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.owner_of($id));
+    ($client:ident, $call:ident, $id:expr) => {{
+        let _msg = $call.owner_of($id);
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await
@@ -30,9 +29,8 @@ macro_rules! owner_of {
 
 #[macro_export]
 macro_rules! balance_of_37 {
-    ($client:ident, $address:ident, $account:ident, $token:expr) => {{
-        let _msg = build_message::<ContractRef>($address.clone())
-            .call(|contract| contract.balance_of(address_of!($account), $token));
+    ($client:ident, $call:ident, $account:ident, $token:expr) => {{
+        let _msg = $call.balance_of(address_of!($account), $token);
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await
@@ -42,9 +40,8 @@ macro_rules! balance_of_37 {
 
 #[macro_export]
 macro_rules! has_role {
-    ($client:ident, $address:ident, $role:expr, $account:ident) => {{
-        let _msg = build_message::<ContractRef>($address.clone())
-            .call(|contract| contract.has_role($role, Some(address_of!($account))));
+    ($client:ident, $call:ident, $role:expr, $account:ident) => {{
+        let _msg = $call.has_role($role, Some(address_of!($account)));
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await
@@ -54,24 +51,21 @@ macro_rules! has_role {
 
 #[macro_export]
 macro_rules! grant_role {
-    ($client:ident, $address:ident, $role:expr, $account:ident) => {{
-        let _msg = build_message::<ContractRef>($address.clone())
-            .call(|contract| contract.grant_role($role, Some(address_of!($account))));
+    ($client:ident, $call:ident, $role:expr, $account:ident) => {{
+        let _msg = $call.grant_role($role, Some(address_of!($account)));
         $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
-            .await
-            .expect("grant_role failed")
+            .call(&ink_e2e::alice(), &_msg, 0, None)
+            .await.expect("grant_role failed")
             .return_value()
     }};
 }
 
 #[macro_export]
 macro_rules! revoke_role {
-    ($client:ident, $address:ident, $role:expr, $account:ident) => {{
-        let _msg = build_message::<ContractRef>($address.clone())
-            .call(|contract| contract.revoke_role($role, Some(address_of!($account))));
+    ($client:ident, $call:ident, $role:expr, $account:ident) => {{
+        let _msg = $call.revoke_role($role, Some(address_of!($account)));
         $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
+            .call(&ink_e2e::alice(), &_msg, 0, None)
             .await
             .expect("revoke_role failed")
             .return_value()
@@ -80,17 +74,15 @@ macro_rules! revoke_role {
 
 #[macro_export]
 macro_rules! mint_dry_run {
-    ($client:ident, $address:ident, $account:ident, $id:expr) => {{
-        let _msg =
-            build_message::<ContractRef>($address.clone()).call(|contract| contract.mint(address_of!($account), $id));
+    ($client:ident, $call:ident, $account:ident, $id:expr) => {{
+        let _msg = $call.mint(address_of!($account), $id);
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await
             .return_value()
     }};
-    ($client:ident, $address:ident, $signer:ident, $account:ident, $id:expr) => {{
-        let _msg =
-            build_message::<ContractRef>($address.clone()).call(|contract| contract.mint(address_of!($account), $id));
+    ($client:ident, $call:ident, $signer:ident, $account:ident, $id:expr) => {{
+        let _msg = $call.mint(address_of!($account), $id);
         $client
             .call_dry_run(&ink_e2e::$signer(), &_msg, 0, None)
             .await
@@ -100,20 +92,18 @@ macro_rules! mint_dry_run {
 
 #[macro_export]
 macro_rules! mint {
-    ($client:ident, $address:ident, $account:ident, $id:expr) => {{
-        let _msg =
-            build_message::<ContractRef>($address.clone()).call(|contract| contract.mint(address_of!($account), $id));
+    ($client:ident, $call:ident, $account:ident, $id:expr) => {{
+        let _msg = $call.mint(address_of!($account), $id);
         $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
+            .call(&ink_e2e::alice(), &_msg, 0, None)
             .await
             .expect("mint failed")
             .return_value()
     }};
-    ($client:ident, $address:ident, $signer:ident, $account:ident, $id:expr) => {{
-        let _msg =
-            build_message::<ContractRef>($address.clone()).call(|contract| contract.mint(address_of!($account), $id));
+    ($client:ident, $call:ident, $signer:ident, $account:ident, $id:expr) => {{
+        let _msg = $call.mint(address_of!($account), $id);
         $client
-            .call(&ink_e2e::$signer(), _msg, 0, None)
+            .call(&ink_e2e::$signer(), &_msg, 0, None)
             .await
             .expect("mint failed")
             .return_value()
@@ -122,9 +112,8 @@ macro_rules! mint {
 
 #[macro_export]
 macro_rules! get_role_member_count {
-    ($client:ident, $address:ident, $role:expr) => {{
-        let _msg =
-            build_message::<ContractRef>($address.clone()).call(|contract| contract.get_role_member_count($role));
+    ($client:ident, $call:ident, $role:expr) => {{
+        let _msg = $call.get_role_member_count($role);
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await
@@ -134,9 +123,8 @@ macro_rules! get_role_member_count {
 
 #[macro_export]
 macro_rules! get_role_member {
-    ($client:ident, $address:ident, $role:expr, $index:expr) => {{
-        let _msg =
-            build_message::<ContractRef>($address.clone()).call(|contract| contract.get_role_member($role, $index));
+    ($client:ident, $call:ident, $role:expr, $index:expr) => {{
+        let _msg = $call.get_role_member($role, $index);
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await
@@ -146,8 +134,8 @@ macro_rules! get_role_member {
 
 #[macro_export]
 macro_rules! get_shares {
-    ($client:ident, $address:ident, $user:ident) => {{
-        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.shares(address_of!($user)));
+    ($client:ident, $call:ident, $user:ident) => {{
+        let _msg = $call.shares(address_of!($user));
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await
@@ -157,65 +145,65 @@ macro_rules! get_shares {
 
 #[macro_export]
 macro_rules! method_call {
-    ($client:ident, $address:ident, $method:ident) => {{
-        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.$method());
+    ($client:ident, $call:ident, $method:ident) => {{
+        let _msg = $call.$method();
         $client
             .call(&ink_e2e::alice(), _msg, 0, None)
             .await
-            .expect("method_call failed")
+            .expect("call failed")
             .return_value()
     }};
-    ($client:ident, $address:ident, $signer:ident, $method:ident) => {{
-        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.$method());
+    ($client:ident, $call:ident, $signer:ident, $method:ident) => {{
+        let _msg = $call.$method();
         $client
             .call(&ink_e2e::$signer(), _msg, 0, None)
             .await
-            .expect("method_call failed")
+            .expect("call failed")
             .return_value()
     }};
-    ($client:ident, $address:ident, $method:ident($($args:expr),*)) => {{
-        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.$method($($args),*));
+    ($client:ident, $call:ident, $method:ident($($args:expr),*)) => {{
+        let _msg = $call.$method($($args),*);
         $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
+            .call(&ink_e2e::alice(), &_msg, 0, None)
             .await
-            .expect("method_call failed")
+            .expect("call failed")
             .return_value()
     }};
-    ($client:ident, $address:ident, $signer:ident, $method:ident($($args:expr),*)) => {{
-        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.$method($($args),*));
+    ($client:ident, $call:ident, $signer:ident, $method:ident($($args:expr),*)) => {{
+        let _msg = $call.$method($($args),*);
         $client
-            .call(&ink_e2e::$signer(), _msg, 0, None)
+            .call(&ink_e2e::$signer(), &_msg, 0, None)
             .await
-            .expect("method_call failed")
+            .expect("call failed")
             .return_value()
     }};
 }
 
 #[macro_export]
 macro_rules! method_call_dry_run {
-    ($client:ident, $address:ident, $method:ident) => {{
-        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.$method());
+    ($client:ident, $call:ident, $method:ident) => {{
+        let msg = $call.$method;
+        $client
+            .call_dry_run(&ink_e2e::alice(), &msg, 0, None)
+            .await
+            .return_value()
+    }};
+    ($client:ident, $call:ident, $method:ident($($args:expr),*)) => {{
+        let _msg = $call.$method($($args),*);
         $client
             .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
             .await
             .return_value()
     }};
-    ($client:ident, $address:ident, $method:ident($($args:expr),*)) => {{
-        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.$method($($args),*));
-        $client
-            .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
-            .await
-            .return_value()
-    }};
-    ($client:ident, $address:ident, $signer:ident, $method:ident) => {{
-        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.$method());
+    ($client:ident, $call:ident, $signer:ident, $method:ident) => {{
+        let _msg = $call.$method();
         $client
             .call_dry_run(&ink_e2e::$signer(), &_msg, 0, None)
             .await
             .return_value()
     }};
-    ($client:ident, $address:ident, $signer:ident, $method:ident($($args:expr),*)) => {{
-        let _msg = build_message::<ContractRef>($address.clone()).call(|contract| contract.$method($($args),*));
+    ($client:ident, $call:ident, $signer:ident, $method:ident($($args:expr),*)) => {{
+        let _msg = $call.$method($($args),*);
         $client
             .call_dry_run(&ink_e2e::$signer(), &_msg, 0, None)
             .await

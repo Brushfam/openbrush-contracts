@@ -57,29 +57,28 @@ pub mod my_psp22_capped {
 
         #[rustfmt::skip]
         use super::*;
-        #[rustfmt::skip]
-        use ink_e2e::{build_message, PolkadotConfig};
 
         use test_helpers::{
             address_of,
             balance_of,
         };
+        use ink_e2e::ContractsBackend;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
         async fn new_works(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(1000, 2000);
-            let address = client
+            let contract = client
                 .instantiate("my_psp22_capped", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert!(matches!(balance_of!(client, address, Alice), 1000));
+            assert!(matches!(balance_of!(client, call, Alice), 1000));
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -87,7 +86,7 @@ pub mod my_psp22_capped {
             assert!(matches!(total_supply, 1000));
 
             let cap = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.cap());
+                let _msg = call.cap();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -100,16 +99,16 @@ pub mod my_psp22_capped {
         #[ink_e2e::test]
         async fn can_mint_when_total_supply_is_lower_then_cap(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(1000, 2000);
-            let address = client
+            let contract = client
                 .instantiate("my_psp22_capped", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert!(matches!(balance_of!(client, address, Alice), 1000));
+            assert!(matches!(balance_of!(client, call, Alice), 1000));
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -117,20 +116,19 @@ pub mod my_psp22_capped {
             assert!(matches!(total_supply, 1000));
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Alice), 1000));
+                let _msg = call.mint(address_of!(Alice), 1000);
                 client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .call(&ink_e2e::alice(), &_msg, 0, None)
                     .await
                     .expect("mint failed")
             }
             .return_value();
 
             assert!(matches!(result, Ok(())));
-            assert!(matches!(balance_of!(client, address, Alice), 2000));
+            assert!(matches!(balance_of!(client, call, Alice), 2000));
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -143,16 +141,16 @@ pub mod my_psp22_capped {
         #[ink_e2e::test]
         async fn cannot_mint_if_total_supply_will_exceed_the_cap(client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = ContractRef::new(1000, 2000);
-            let address = client
+            let contract = client
                 .instantiate("my_psp22_capped", &ink_e2e::alice(), constructor, 0, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+            let mut call = contract.call::<Contract>();
 
-            assert!(matches!(balance_of!(client, address, Alice), 1000));
+            assert!(matches!(balance_of!(client, call, Alice), 1000));
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
@@ -160,17 +158,16 @@ pub mod my_psp22_capped {
             assert!(matches!(total_supply, 1000));
 
             let result = {
-                let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Alice), 1001));
+                let _msg = call.mint(address_of!(Alice), 1001);
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             assert!(matches!(result, Err(PSP22Error::Custom(_))));
-            assert!(matches!(balance_of!(client, address, Alice), 1000));
+            assert!(matches!(balance_of!(client, call, Alice), 1000));
 
             let total_supply = {
-                let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
+                let _msg = call.total_supply();
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();

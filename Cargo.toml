@@ -27,7 +27,7 @@ categories = ["no-std", "embedded"]
 include = ["Cargo.toml", "src/**/*.rs"]
 
 [dependencies]
-ink = { version = "4.3.0", default-features = false }
+ink = { version = "5.0.0-alpha", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"] }
 
@@ -42,9 +42,9 @@ crate-type = [
 ]
 
 [dev-dependencies]
-ink_env = "4.3.0"
+ink_env = "5.0.0-alpha"
 trybuild = "1.0.80"
-ink_e2e = "4.3.0"
+ink_e2e = "5.0.0-alpha"
 
 [features]
 default = ["std"]
@@ -56,7 +56,6 @@ std = [
     "openbrush_lang/std",
 ]
 psp22 = ["openbrush_contracts/psp22"]
-psp22_pallet = ["openbrush_contracts/psp22_pallet"]
 psp34 = ["openbrush_contracts/psp34"]
 psp37 = ["openbrush_contracts/psp37"]
 access_control = ["openbrush_contracts/access_control"]
@@ -76,7 +75,6 @@ psp61 = ["openbrush_contracts/psp61"]
 
 test-all = [
     "psp22",
-    # "psp22_pallet", we ignore it during testing. It requries it own run of tests
     "psp34",
     "psp37",
     "access_control",

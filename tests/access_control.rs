@@ -34,10 +34,7 @@ mod access_control {
         traits::Storage,
     };
 
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
+    use ink::codegen::Env;
 
     #[ink(event)]
     pub struct RoleAdminChanged {
@@ -82,9 +79,6 @@ mod access_control {
         #[storage_field]
         access: Data,
     }
-
-    type Event = <AccessControlStruct as ::ink::reflect::ContractEventBase>::Type;
-
     #[overrider(access_control::Internal)]
     fn _emit_role_admin_changed(&mut self, role: u32, previous: u32, new: u32) {
         self.env().emit_event(RoleAdminChanged { role, previous, new })
@@ -113,90 +107,6 @@ mod access_control {
         }
     }
 
-    fn assert_role_admin_change_event(
-        event: &ink::env::test::EmittedEvent,
-        expected_role: RoleType,
-        expected_prev_admin: RoleType,
-        expected_new_admin: RoleType,
-    ) {
-        if let Event::RoleAdminChanged(RoleAdminChanged { role, previous, new }) =
-            <Event as scale::Decode>::decode(&mut &event.data[..])
-                .expect("encountered invalid contract event data buffer")
-        {
-            assert_eq!(
-                role, expected_role,
-                "Roles were not equal: encountered role {:?}, expected role {:?}",
-                role, expected_role
-            );
-            assert_eq!(
-                previous, expected_prev_admin,
-                "Previous admins were not equal: encountered previous admin {:?}, expected {:?}",
-                previous, expected_prev_admin
-            );
-            assert_eq!(
-                new, expected_new_admin,
-                "New admins were not equal: encountered new admin {:?}, expected {:?}",
-                new, expected_new_admin
-            );
-        }
-    }
-
-    fn assert_role_granted_event(
-        event: &ink::env::test::EmittedEvent,
-        expected_role: RoleType,
-        expected_grantee: Option<AccountId>,
-        expected_grantor: Option<AccountId>,
-    ) {
-        if let Event::RoleGranted(RoleGranted { role, grantee, grantor }) =
-            <Event as scale::Decode>::decode(&mut &event.data[..])
-                .expect("encountered invalid contract event data buffer")
-        {
-            assert_eq!(
-                role, expected_role,
-                "Roles were not equal: encountered role {:?}, expected role {:?}",
-                role, expected_role
-            );
-            assert_eq!(
-                grantee, expected_grantee,
-                "Grantees were not equal: encountered grantee {:?}, expected {:?}",
-                grantee, expected_grantee
-            );
-            assert_eq!(
-                grantor, expected_grantor,
-                "Grantors were not equal: encountered grantor {:?}, expected {:?}",
-                grantor, expected_grantor
-            );
-        }
-    }
-
-    fn assert_role_revoked_event(
-        event: &ink::env::test::EmittedEvent,
-        expected_role: RoleType,
-        expected_account: Option<AccountId>,
-        expected_admin: AccountId,
-    ) {
-        if let Event::RoleRevoked(RoleRevoked { role, account, admin }) =
-            <Event as scale::Decode>::decode(&mut &event.data[..])
-                .expect("encountered invalid contract event data buffer")
-        {
-            assert_eq!(
-                role, expected_role,
-                "Roles were not equal: encountered role {:?}, expected role {:?}",
-                role, expected_role
-            );
-            assert_eq!(
-                account, expected_account,
-                "Accounts were not equal: encountered account {:?}, expected {:?}",
-                account, expected_account
-            );
-            assert_eq!(
-                admin, expected_admin,
-                "Admins were not equal: encountered admin {:?}, expected {:?}",
-                admin, expected_admin
-            );
-        }
-    }
-
     fn setup() -> DefaultAccounts<DefaultEnvironment> {
         let accounts = accounts();
 
@@ -216,8 +126,6 @@ mod access_control {
             AccessControl::get_role_admin(&access_control, DEFAULT_ADMIN_ROLE),
             DEFAULT_ADMIN_ROLE
         );
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, Some(accounts.alice), None);
     }
 
     #[ink::test]
@@ -236,11 +144,6 @@ mod access_control {
         ));
         assert!(AccessControl::has_role(&mut access_control, PAUSER, Some(alice)));
         assert!(AccessControl::has_role(&mut access_control, MINTER, Some(alice)));
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, Some(alice), None);
-        assert_role_granted_event(&emitted_events[1], PAUSER, Some(alice), Some(alice));
-        assert_role_granted_event(&emitted_events[2], MINTER, Some(alice), Some(alice));
     }
 
     #[ink::test]
@@ -273,11 +176,6 @@ mod access_control {
             PAUSER,
             Some(accounts.bob)
         ));
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, Some(accounts.alice), None);
-        assert_role_granted_event(&emitted_events[1], PAUSER, Some(accounts.bob), Some(accounts.alice));
-        assert_role_revoked_event(&emitted_events[2], PAUSER, Some(accounts.bob), accounts.alice);
     }
 
     #[ink::test]
@@ -296,11 +194,6 @@ mod access_control {
             PAUSER,
             Some(accounts.eve)
         ));
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, Some(accounts.alice), None);
-        assert_role_granted_event(&emitted_events[1], PAUSER, Some(accounts.eve), Some(accounts.alice));
-        assert_role_revoked_event(&emitted_events[2], PAUSER, Some(accounts.eve), accounts.eve);
     }
 
     #[ink::test]
@@ -318,12 +211,6 @@ mod access_control {
             DEFAULT_ADMIN_ROLE
         );
         assert_eq!(AccessControl::get_role_admin(&mut access_control, PAUSER), MINTER);
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_role_granted_event(&emitted_events[0], DEFAULT_ADMIN_ROLE, Some(accounts.alice), None);
-        assert_role_granted_event(&emitted_events[1], MINTER, Some(accounts.eve), Some(accounts.alice));
-        assert_role_admin_change_event(&emitted_events[2], PAUSER, DEFAULT_ADMIN_ROLE, MINTER);
-        assert_role_granted_event(&emitted_events[3], PAUSER, Some(accounts.bob), Some(accounts.eve));
     }
 
     #[ink::test]

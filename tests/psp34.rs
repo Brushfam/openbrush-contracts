@@ -24,10 +24,7 @@
 #[openbrush::contract]
 mod psp34 {
     use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
+        codegen::Env,
         env::DefaultEnvironment,
     };
     use openbrush::{

@@ -51,10 +51,13 @@ pub trait OwnableImpl: Storage<Data> + Internal {
     }
 
     #[modifiers(only_owner)]
-    fn transfer_ownership(&mut self, new_owner: AccountId) -> Result<(), OwnableError> {
+    fn transfer_ownership(&mut self, new_owner: Option<AccountId>) -> Result<(), OwnableError> {
         let old_owner = self.data().owner.get_or_default();
-        self.data().owner.set(&Some(new_owner));
-        self._emit_ownership_transferred_event(old_owner, Some(new_owner));
+        if new_owner == None {
+            return Err(OwnableError::NewOwnerIsNotSet)
+        }
+        self.data().owner.set(&new_owner);
+        self._emit_ownership_transferred_event(old_owner, new_owner);
         Ok(())
     }
 }

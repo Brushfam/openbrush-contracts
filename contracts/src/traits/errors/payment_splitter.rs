@@ -18,7 +18,7 @@ pub enum PaymentSplitterError {
     NoPayees,
     AccountHasNoShares,
     AccountIsNotDuePayment,
-    AccountZeroAddress,
+    AccountIsNotSet,
     SharesAreZero,
     AlreadyHasShares,
     TransferFailed,
@@ -38,7 +38,7 @@ impl From<OwnableError> for PaymentSplitterError {
     fn from(ownable: OwnableError) -> Self {
         match ownable {
             OwnableError::CallerIsNotOwner => PaymentSplitterError::Custom(String::from("O::CallerIsNotOwner")),
-            OwnableError::NewOwnerIsZero => PaymentSplitterError::Custom(String::from("O::NewOwnerIsZero")),
+            OwnableError::NewOwnerIsNotSet => PaymentSplitterError::Custom(String::from("O::NewOwnerIsNotSet")),
         }
     }
 }

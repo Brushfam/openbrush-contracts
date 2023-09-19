@@ -42,5 +42,5 @@ pub trait Ownable {
     ///
     /// Panics with `NewOwnerIsZero` error if new owner's address is zero.
     #[ink(message)]
-    fn transfer_ownership(&mut self, new_owner: AccountId) -> Result<(), OwnableError>;
+    fn transfer_ownership(&mut self, new_owner: Option<AccountId>) -> Result<(), OwnableError>;
 }

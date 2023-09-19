@@ -103,10 +103,10 @@ pub trait InternalImpl: Storage<Data> + Internal {
                     .unwrap()?;
                 Ok(())
             } else {
-                Err(PSP22TokenTimelockError::TokenZeroAddress)
+                Err(PSP22TokenTimelockError::TokenIsNotSet)
             }
         } else {
-            Err(PSP22TokenTimelockError::BeneficiaryZeroAddress)
+            Err(PSP22TokenTimelockError::BeneficiaryIsNotSet)
         }
     }
 

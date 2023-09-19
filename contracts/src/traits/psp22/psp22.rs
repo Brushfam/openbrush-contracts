@@ -78,21 +78,6 @@ pub trait PSP22 {
         data: Vec<u8>,
     ) -> Result<(), PSP22Error>;
 
-    /// Allows `spender` to withdraw from the caller's account multiple times, up to
-    /// the `value` amount.
-    ///
-    /// If this function is called again it overwrites the current allowance with `value`.
-    ///
-    /// An `Approval` event is emitted.
-    ///
-    /// # Errors
-    ///
-    /// Returns `ZeroSenderAddress` error if sender's address is zero.
-    ///
-    /// Returns `ZeroRecipientAddress` error if recipient's address is zero.
-    #[ink(message)]
-    fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error>;
-
     /// Atomically increases the allowance granted to `spender` by the caller.
     ///
     /// An `Approval` event is emitted.

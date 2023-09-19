@@ -2,8 +2,6 @@
 // Copyright (c) 2023 Brushfam. All Rights Reserved.
 // SPDX-License-Identifier: MIT
 
-#[cfg(feature = "diamond")]
-pub mod diamond;
 #[cfg(feature = "proxy")]
 pub mod proxy;
 

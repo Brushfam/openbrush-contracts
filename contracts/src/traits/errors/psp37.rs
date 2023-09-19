@@ -18,8 +18,8 @@ pub enum PSP37Error {
     Custom(String),
     /// Returned if the account doesn't contain enough funds.
     InsufficientBalance,
-    /// Returned if recipient is zero account.
-    TransferToZeroAddress,
+    /// Returned if recipient address is not set.
+    TransferToNonSetAddress,
     /// Returned if token doesn't exist
     TokenNotExists,
     /// Returned if the caller is not allowed.
@@ -34,7 +34,7 @@ impl From<OwnableError> for PSP37Error {
     fn from(ownable: OwnableError) -> Self {
         match ownable {
             OwnableError::CallerIsNotOwner => PSP37Error::Custom(String::from("O::CallerIsNotOwner")),
-            OwnableError::NewOwnerIsZero => PSP37Error::Custom(String::from("O::NewOwnerIsZero")),
+            OwnableError::NewOwnerIsNotSet => PSP37Error::Custom(String::from("O::NewOwnerIsNotSet")),
         }
     }
 }

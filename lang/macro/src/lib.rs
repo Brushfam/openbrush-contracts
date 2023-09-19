@@ -44,8 +44,8 @@ use openbrush_lang_codegen::{
 ///
 /// This macro consumes impl section for traits defined with [`#[openbrush::trait_definition]`](`macro@crate::trait_definition`).
 #[proc_macro_attribute]
-pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
-    contract::generate(_attrs.into(), ink_module.into()).into()
+pub fn contract(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
+    contract::generate(attrs.into(), ink_module.into()).into()
 }
 
 /// Defines extensible trait in the scope of `openbrush::contract`.
@@ -166,8 +166,8 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 /// }
 /// ```
 #[proc_macro_attribute]
-pub fn trait_definition(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
-    trait_definition::generate(_attrs.into(), _input.into()).into()
+pub fn trait_definition(attrs: TokenStream, input: TokenStream) -> TokenStream {
+    trait_definition::generate(attrs.into(), input.into()).into()
 }
 
 /// This macro only checks that some free-standing function satisfies a set of rules.
@@ -338,8 +338,8 @@ pub fn modifier_definition(_attrs: TokenStream, _input: TokenStream) -> TokenStr
 /// }
 /// ```
 #[proc_macro_attribute]
-pub fn modifiers(_attrs: TokenStream, method: TokenStream) -> TokenStream {
-    modifiers::generate(_attrs.into(), method.into()).into()
+pub fn modifiers(attrs: TokenStream, method: TokenStream) -> TokenStream {
+    modifiers::generate(attrs.into(), method.into()).into()
 }
 
 /// This macro allows you to define a wrapper type for traits defined via

@@ -21,7 +21,6 @@
 #[cfg(feature = "diamond")]
 pub mod diamond;
 
-#[deprecated(since = "4.0.0-beta.1", note = "please use set_code_hash pattern instead")]
 #[cfg(feature = "proxy")]
 pub mod proxy;
 

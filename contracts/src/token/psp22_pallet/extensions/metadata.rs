@@ -29,6 +29,7 @@ pub use crate::{
 };
 pub use ink::env::DefaultEnvironment;
 use openbrush::traits::Storage;
+use ink::prelude::vec::*;
 pub use openbrush::traits::String;
 pub use pallet_assets_chain_extension::traits::{
     Error,
@@ -41,13 +42,9 @@ pub use psp22_pallet::{
     PSP22PalletImpl,
 };
 
-pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
+pub trait PSP22PalletMetadataImpl: PSP22PalletMetadataInternal {
     fn token_name(&self) -> Option<String> {
-        let self_ = self.data();
-        let name = self_
-            .pallet_assets
-            .get_or_default()
-            .metadata_name(self_.asset_id.get_or_default());
+        let name = self._name();
 
         if name.is_empty() {
             None
@@ -57,11 +54,7 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
     }
 
     fn token_symbol(&self) -> Option<String> {
-        let self_ = self.data();
-        let symbol = self_
-            .pallet_assets
-            .get_or_default()
-            .metadata_symbol(self_.asset_id.get_or_default());
+        let symbol = self._symbol();
 
         if symbol.is_empty() {
             None
@@ -71,10 +64,29 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
     }
 
     fn token_decimals(&self) -> u8 {
-        let self_ = self.data();
-        self_
+        self._decimals()
+    }
+}
+
+pub trait PSP22PalletMetadataInternal: Storage<psp22_pallet::Data> {
+    fn _name(&self) -> Vec<u8> {
+        self.data()
             .pallet_assets
             .get_or_default()
-            .metadata_decimals(self_.asset_id.get_or_default())
+            .metadata_name(self.data().asset_id.get_or_default())
+    }
+
+    fn _symbol(&self) -> Vec<u8> {
+        self.data()
+            .pallet_assets
+            .get_or_default()
+            .metadata_symbol(self.data().asset_id.get_or_default())
+    }
+
+    fn _decimals(&self) -> u8 {
+        self.data()
+            .pallet_assets
+            .get_or_default()
+            .metadata_decimals(self.data().asset_id.get_or_default())
     }
 }

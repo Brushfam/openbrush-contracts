@@ -94,12 +94,6 @@ pub trait PSP22Impl: Storage<Data> + Internal {
         Ok(())
     }
 
-    fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
-        let owner = Self::env().caller();
-        self._approve_from_to(owner, spender, value)?;
-        Ok(())
-    }
-
     fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         let owner = Self::env().caller();
         self._approve_from_to(owner, spender, self._allowance(&owner, &spender) + delta_value)
@@ -125,6 +119,8 @@ pub trait Internal {
 
     fn _total_supply(&self) -> Balance;
 
+    fn _max_supply(&self) -> Balance;
+
     fn _balance_of(&self, owner: &AccountId) -> Balance;
 
     fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance;
@@ -142,29 +138,19 @@ pub trait Internal {
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error>;
 
     fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error>;
-
-    fn _before_token_transfer(
-        &mut self,
-        _from: Option<&AccountId>,
-        _to: Option<&AccountId>,
-        _amount: &Balance,
-    ) -> Result<(), PSP22Error>;
-
-    fn _after_token_transfer(
-        &mut self,
-        _from: Option<&AccountId>,
-        _to: Option<&AccountId>,
-        _amount: &Balance,
-    ) -> Result<(), PSP22Error>;
 }
 
-pub trait InternalImpl: Storage<Data> + Internal {
+pub trait InternalImpl: Storage<Data> + Internal + PSP22Transfer {
     fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {}
 
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {}
 
     fn _total_supply(&self) -> Balance {
         self.data().supply.get_or_default()
+    }
+
+    fn _max_supply(&self) -> Balance {
+        Balance::MAX
     }
 
     fn _balance_of(&self, owner: &AccountId) -> Balance {
@@ -188,14 +174,14 @@ pub trait InternalImpl: Storage<Data> + Internal {
             return Err(PSP22Error::InsufficientBalance)
         }
 
-        Internal::_before_token_transfer(self, Some(&from), Some(&to), &amount)?;
+        PSP22Transfer::_before_token_transfer(self, Some(&from), Some(&to), &amount)?;
 
         self.data().balances.insert(&from, &(from_balance - amount));
 
         let to_balance = Internal::_balance_of(self, &to);
         self.data().balances.insert(&to, &(to_balance + amount));
 
-        Internal::_after_token_transfer(self, Some(&from), Some(&to), &amount)?;
+        PSP22Transfer::_after_token_transfer(self, Some(&from), Some(&to), &amount)?;
         Internal::_emit_transfer_event(self, Some(from), Some(to), amount);
 
         Ok(())
@@ -208,7 +194,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
     }
 
     fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-        Internal::_before_token_transfer(self, None, Some(&account), &amount)?;
+        PSP22Transfer::_before_token_transfer(self, None, Some(&account), &amount)?;
         let mut new_balance = Internal::_balance_of(self, &account);
         new_balance += amount;
         self.data().balances.insert(&account, &new_balance);
@@ -216,7 +202,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
         let new_supply = self.data().supply.get_or_default() + amount;
         self.data().supply.set(&new_supply);
 
-        Internal::_after_token_transfer(self, None, Some(&account), &amount)?;
+        PSP22Transfer::_after_token_transfer(self, None, Some(&account), &amount)?;
         Internal::_emit_transfer_event(self, None, Some(account), amount);
 
         Ok(())
@@ -229,7 +215,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
             return Err(PSP22Error::InsufficientBalance)
         }
 
-        Internal::_before_token_transfer(self, Some(&account), None, &amount)?;
+        PSP22Transfer::_before_token_transfer(self, Some(&account), None, &amount)?;
 
         from_balance -= amount;
         self.data().balances.insert(&account, &from_balance);
@@ -237,12 +223,30 @@ pub trait InternalImpl: Storage<Data> + Internal {
         let new_supply = self.data().supply.get_or_default() - amount;
         self.data().supply.set(&new_supply);
 
-        Internal::_after_token_transfer(self, Some(&account), None, &amount)?;
+        PSP22Transfer::_after_token_transfer(self, Some(&account), None, &amount)?;
         Internal::_emit_transfer_event(self, Some(account), None, amount);
 
         Ok(())
     }
+}
 
+pub trait PSP22Transfer {
+    fn _before_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error>;
+
+    fn _after_token_transfer(
+        &mut self,
+        _from: Option<&AccountId>,
+        _to: Option<&AccountId>,
+        _amount: &Balance,
+    ) -> Result<(), PSP22Error>;
+}
+
+pub trait PSP22TransferImpl {
     fn _before_token_transfer(
         &mut self,
         _from: Option<&AccountId>,

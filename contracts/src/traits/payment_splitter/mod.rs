@@ -49,6 +49,10 @@ pub trait PaymentSplitter {
     #[ink(message)]
     fn total_released(&self) -> Balance;
 
+    /// Getter for the amount of tokens that can be released for account
+    #[ink(message)]
+    fn releasable(&self, account: AccountId) -> Balance;
+
     /// Getter for the amount of shares held by an account.
     #[ink(message)]
     fn shares(&self, account: AccountId) -> Balance;
@@ -66,7 +70,7 @@ pub trait PaymentSplitter {
     /// without triggering this function. This only affects the reliability of the events
     /// and not the actual splitting of the native token.
     ///
-    /// On success a `PayeeAdded` event is emitted.
+    /// On success a `PaymentReceived` event is emitted.
     #[ink(message, payable)]
     fn receive(&mut self);
 

@@ -12,9 +12,7 @@ use syn::{
     Fields,
 };
 
-pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
-    let trait_ident = attrs;
-
+pub fn accessors(trait_ident: TokenStream, s: synstructure::Structure) -> TokenStream {
     let struct_ident = s.ast().ident.clone();
 
     let item = match s.ast().data.clone() {
@@ -22,7 +20,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
         _ => panic!("Only structs are supported"),
     };
 
-    let fields: Vec<_> = extract_get_fields(s.clone());
+    let fields: Vec<_> = extract_fields(s.clone(), "get");
 
     let get_impls = fields.iter().map(|field| {
         let field_ident = field.ident.clone().unwrap();
@@ -38,7 +36,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
         }
     });
 
-    let fields: Vec<_> = extract_set_fields(s.clone());
+    let fields: Vec<_> = extract_fields(s.clone(), "set");
 
     let set_impls = fields.iter().map(|field| {
         let field_ident = field.ident.clone().unwrap();
@@ -54,7 +52,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
         }
     });
 
-    let result = quote! {
+    quote! {
         #item
 
         #[openbrush::trait_definition]
@@ -62,9 +60,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
             #(#get_impls)*
             #(#set_impls)*
         }
-    };
-
-    result
+    }
 }
 
 fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct) -> TokenStream {
@@ -113,7 +109,7 @@ fn consume_attrs(field: &mut syn::Field) -> Field {
     field.clone()
 }
 
-fn extract_get_fields(s: synstructure::Structure) -> Vec<Field> {
+fn extract_fields(s: synstructure::Structure, attr: &str) -> Vec<Field> {
     let struct_item = match s.ast().data.clone() {
         Data::Struct(struct_item) => struct_item,
         _ => panic!("Only structs are supported"),
@@ -122,21 +118,7 @@ fn extract_get_fields(s: synstructure::Structure) -> Vec<Field> {
     struct_item
         .fields
         .iter()
-        .filter(|field| field.attrs.iter().any(|a| a.path.is_ident("get")))
-        .cloned()
-        .collect::<Vec<_>>()
-}
-
-fn extract_set_fields(s: synstructure::Structure) -> Vec<Field> {
-    let struct_item = match s.ast().data.clone() {
-        Data::Struct(struct_item) => struct_item,
-        _ => panic!("Only structs are supported"),
-    };
-
-    struct_item
-        .fields
-        .iter()
-        .filter(|field| field.attrs.iter().any(|a| a.path.is_ident("set")))
+        .filter(|field| field.attrs.iter().any(|a| a.path.is_ident(attr)))
         .cloned()
         .collect::<Vec<_>>()
 }

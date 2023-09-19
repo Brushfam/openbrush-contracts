@@ -31,8 +31,8 @@ use syn::{
     ItemFn,
 };
 
-pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
-    let fn_item: ItemFn = parse2(_input).unwrap();
+pub fn generate(_: TokenStream, input: TokenStream) -> TokenStream {
+    let fn_item: ItemFn = parse2(input).unwrap();
 
     if fn_item.sig.inputs.len() < 2 {
         return quote_spanned! {
@@ -172,7 +172,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
                 }
             }
         }
-    } else if let syn::FnArg::Receiver(rec) = first {
+    } else if let syn::FnArg::Receiver(rec) = second {
         return quote_spanned! {
             rec.span() =>
                 compile_error!("Second argument of modifier can't be `self`");

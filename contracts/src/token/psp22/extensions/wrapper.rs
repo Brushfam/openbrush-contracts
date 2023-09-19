@@ -53,11 +53,19 @@ pub struct Data {
 
 pub trait PSP22WrapperImpl: Storage<Data> + Internal + psp22::Internal {
     fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+        if Some(account) == self.data().underlying.get_or_default() {
+            return Err(PSP22Error::Custom(String::from("Cannot deposit to underlying")))
+        }
+
         self._deposit(amount)?;
         psp22::Internal::_mint_to(self, account, amount)
     }
 
     fn withdraw_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+        if Some(account) == self.data().underlying.get_or_default() {
+            return Err(PSP22Error::Custom(String::from("Cannot withdraw to underlying")))
+        }
+
         psp22::Internal::_burn_from(self, Self::env().caller(), amount)?;
         self._withdraw(account, amount)
     }

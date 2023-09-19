@@ -35,12 +35,10 @@ use syn::{
     Path,
 };
 
-pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
+pub fn generate(attrs: TokenStream, input: TokenStream) -> TokenStream {
     if internal::skip() {
         return quote! {}
     }
-    let input: TokenStream = ink_module;
-
     // map attribute args to default contract names
     let args = syn::parse2::<AttributeArgs>(attrs)
         .expect("No default contracts to implement provided")
@@ -48,7 +46,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
         .map(|arg| {
             match arg {
                 NestedMeta::Path(method) => method.to_token_stream().to_string().replace(' ', ""),
-                _ => panic!("Expected names of OpenBrush traits to implement in the contract!"),
+                _ => panic!("Can't parse naming of default contract to implement"),
             }
         })
         .collect::<Vec<String>>();
@@ -75,10 +73,9 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     let mut overriden_traits = HashMap::<&str, syn::Item>::default();
 
     let mut impl_args = ImplArgs::new(&map, &mut items, &mut imports, &mut overriden_traits, ident);
-
     let is_capped = args.contains(&"PSP22Capped".to_string());
 
-    for to_implement in args {
+    for to_implement in args.clone() {
         match to_implement.as_str() {
             "PSP22" => impl_psp22(&mut impl_args, is_capped),
             "PSP22Mintable" => impl_psp22_mintable(&mut impl_args),
@@ -115,6 +112,10 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "Upgradeable" => impl_upgradeable(&mut impl_args),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
+    }
+
+    if args.contains(&String::from("PSP22")) {
+        impl_psp22_transfer(&mut impl_args, is_capped));
     }
 
     cleanup_imports(impl_args.imports);

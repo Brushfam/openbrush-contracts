@@ -172,7 +172,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
                 }
             }
         }
-    } else if let syn::FnArg::Receiver(rec) = first {
+    } else if let syn::FnArg::Receiver(rec) = second {
         return quote_spanned! {
             rec.span() =>
                 compile_error!("Second argument of modifier can't be `self`");

@@ -21,7 +21,6 @@ pub struct HatedStorage {
 #[openbrush::contract]
 pub mod my_psp22 {
     use crate::*;
-    use openbrush::traits::String;
 
     #[ink(storage)]
     #[derive(Storage)]

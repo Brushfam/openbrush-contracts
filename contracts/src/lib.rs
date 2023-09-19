@@ -30,6 +30,9 @@ mod upgradeability;
 
 pub mod traits;
 
+#[cfg(feature = "diamond")]
+pub mod diamond;
+
 // Modules with implementation of traits above
 #[cfg(feature = "access_control")]
 pub use access::access_control;
@@ -51,8 +54,6 @@ pub use token::psp22_pallet;
 pub use token::psp34;
 #[cfg(feature = "psp37")]
 pub use token::psp37;
-#[cfg(feature = "diamond")]
-pub use upgradeability::diamond;
 #[cfg(feature = "proxy")]
 pub use upgradeability::proxy;
 #[cfg(feature = "upgradeable")]

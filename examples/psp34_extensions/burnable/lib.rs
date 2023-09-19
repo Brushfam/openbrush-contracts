@@ -57,11 +57,11 @@ pub mod my_psp34_burnable {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(balance_of!(client, address, alice), 3);
+            assert_eq!(balance_of!(client, address, Alice), 3);
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(alice), Id::U8(0u8)));
+                    .call(|contract| contract.burn(address_of!(Alice), Id::U8(0u8)));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -69,7 +69,7 @@ pub mod my_psp34_burnable {
             };
 
             assert_eq!(result.return_value(), Ok(()));
-            assert_eq!(balance_of!(client, address, alice), 2);
+            assert_eq!(balance_of!(client, address, Alice), 2);
 
             Ok(())
         }
@@ -83,16 +83,16 @@ pub mod my_psp34_burnable {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert_eq!(balance_of!(client, address, alice), 3);
+            assert_eq!(balance_of!(client, address, Alice), 3);
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.burn(address_of!(alice), Id::U8(0u8)));
+                    .call(|contract| contract.burn(address_of!(Alice), Id::U8(0u8)));
                 client.call(&ink_e2e::bob(), _msg, 0, None).await.expect("call failed")
             };
 
             assert_eq!(result.return_value(), Ok(()));
-            assert_eq!(balance_of!(client, address, alice), 2);
+            assert_eq!(balance_of!(client, address, Alice), 2);
 
             Ok(())
         }

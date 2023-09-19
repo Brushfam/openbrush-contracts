@@ -6,6 +6,8 @@ pub mod access_control;
 pub mod diamond;
 pub mod errors;
 pub mod flashloan;
+pub mod governance;
+pub mod nonces;
 pub mod ownable;
 pub mod pausable;
 pub mod payment_splitter;
@@ -13,7 +15,7 @@ pub mod proxy;
 pub mod psp22;
 pub mod psp34;
 pub mod psp37;
-pub mod timelock_controller;
+pub mod psp61;
 pub mod upgradeable;
 
-mod types;
+pub mod types;

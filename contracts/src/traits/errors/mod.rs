@@ -5,6 +5,8 @@
 mod access_control;
 mod diamond;
 mod flashloan;
+mod governance;
+mod nonces;
 mod ownable;
 mod pausable;
 mod payment_splitter;
@@ -21,6 +23,8 @@ pub use flashloan::{
     FlashBorrowerError,
     FlashLenderError,
 };
+pub use governance::GovernanceError;
+pub use nonces::NoncesError;
 pub use ownable::OwnableError;
 pub use pausable::PausableError;
 pub use payment_splitter::PaymentSplitterError;

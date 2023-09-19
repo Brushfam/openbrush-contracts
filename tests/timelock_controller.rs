@@ -38,8 +38,6 @@ mod timelock_controller {
         },
         traits::Storage,
     };
-    use openbrush_contracts::traits::timelock_controller::AccessControlError;
-
     /// Emitted when a call is scheduled as part of operation `id`.
     #[ink(event)]
     pub struct CallScheduled {

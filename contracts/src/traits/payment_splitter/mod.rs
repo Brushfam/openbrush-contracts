@@ -21,7 +21,6 @@ pub type PaymentSplitterRef = dyn PaymentSplitter;
 /// `PaymentSplitter` follows a pull payment model. This means that payments are not automatically forwarded to the
 /// accounts but kept in this contract, and the actual transfer is triggered as a separate step by calling the `release`
 /// function.
-// TODO: Support payments in PSP22
 #[openbrush::trait_definition]
 pub trait PaymentSplitter {
     /// Getter for the total shares held by payees.

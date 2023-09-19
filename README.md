@@ -12,7 +12,6 @@
 <br/>
 So, in other words,  <a href="https://patron.works/">Patron</a> is an all-in-one contracts platform, which allows you to build and verify ink! smart contracts inside of an isolated environment, explore contract verification details.
 
-## Important!
 ![OpenBrush](https://user-images.githubusercontent.com/88630083/218825486-accc2d8c-bc5c-4b92-a278-a5b9009fd6f5.png)
 
 [![Docs](https://img.shields.io/badge/docs-%F0%9F%93%84-blue)](https://Brushfam.github.io/openbrush-contracts)
@@ -120,7 +119,7 @@ to simplify unit testing of you code.
 functionality for your code.
 - Read our **documentation** in [doc](https://learn.brushfam.io/docs/openbrush).
 - Go through our **examples** in [examples](examples) to check hot to use the library and ink!.
-- Check the [**example of project struct**](https://github.com/Brushfam/openbrush-contracts/tree/main/example_project_structure) and [according documentation](https://docs.openbrush.io/smart-contracts/example/overview).
+- Check the [**example of project struct**](https://github.com/Brushfam/openbrush-contracts/tree/main/example_project_structure) and [according documentation](https://learn.brushfam.io/docs/OpenBrush/smart-contracts/example/overview).
 
 Not sure where to start? Use [the interactive generator](https://openbrush.io) to bootstrap your contract and learn about the components offered in OpenBrush.
 

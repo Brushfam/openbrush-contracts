@@ -30,28 +30,24 @@ pub mod my_payment_splitter {
         #[rustfmt::skip]
         use ink_e2e::{build_message, PolkadotConfig};
 
-        use test_helpers::{
-            address_of,
-            get_shares,
-            method_call,
-        };
+        use test_helpers::{address_of, get_shares, method_call};
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
         async fn init_values(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new(vec![(address_of!(bob), 40), (address_of!(alice), 60)]);
+            let constructor = ContractRef::new(vec![(address_of!(Bob), 40), (address_of!(Alice), 60)]);
             let address = client
                 .instantiate("my_payment_splitter", &ink_e2e::alice(), constructor, 0, None)
                 .await
                 .expect("instantiate failed")
                 .account_id;
 
-            let bob_shares = get_shares!(client, address, bob);
+            let bob_shares = get_shares!(client, address, Bob);
 
             assert_eq!(bob_shares, 40);
 
-            let alice_shares = get_shares!(client, address, alice);
+            let alice_shares = get_shares!(client, address, Alice);
 
             assert_eq!(alice_shares, 60);
 
@@ -67,7 +63,7 @@ pub mod my_payment_splitter {
                     .return_value()
             };
 
-            assert_eq!(payee_0, Some(address_of!(bob)));
+            assert_eq!(payee_0, Some(address_of!(Bob)));
 
             let payee_1 = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.payee(1));
@@ -77,14 +73,14 @@ pub mod my_payment_splitter {
                     .return_value()
             };
 
-            assert_eq!(payee_1, Some(address_of!(alice)));
+            assert_eq!(payee_1, Some(address_of!(Alice)));
 
             Ok(())
         }
 
         #[ink_e2e::test]
         async fn release_native_token(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new(vec![(address_of!(bob), 40), (address_of!(alice), 60)]);
+            let constructor = ContractRef::new(vec![(address_of!(Bob), 40), (address_of!(Alice), 60)]);
             let address = client
                 .instantiate("my_payment_splitter", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -106,7 +102,7 @@ pub mod my_payment_splitter {
 
             let release_bob = {
                 let _msg =
-                    build_message::<ContractRef>(address.clone()).call(|contract| contract.release(address_of!(bob)));
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.release(address_of!(Bob)));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -118,7 +114,7 @@ pub mod my_payment_splitter {
 
             let release_alice = {
                 let _msg =
-                    build_message::<ContractRef>(address.clone()).call(|contract| contract.release(address_of!(alice)));
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.release(address_of!(Alice)));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -132,7 +128,7 @@ pub mod my_payment_splitter {
 
             let bob_released = {
                 let _msg =
-                    build_message::<ContractRef>(address.clone()).call(|contract| contract.released(address_of!(bob)));
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.released(address_of!(Bob)));
                 client
                     .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
                     .await
@@ -141,7 +137,7 @@ pub mod my_payment_splitter {
 
             let alice_released = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.released(address_of!(alice)));
+                    .call(|contract| contract.released(address_of!(Alice)));
                 client
                     .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
                     .await
@@ -161,7 +157,7 @@ pub mod my_payment_splitter {
 
         #[ink_e2e::test]
         async fn release_native_token_using_release_all(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new(vec![(address_of!(bob), 40), (address_of!(alice), 60)]);
+            let constructor = ContractRef::new(vec![(address_of!(Bob), 40), (address_of!(Alice), 60)]);
             let address = client
                 .instantiate("my_payment_splitter", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -189,7 +185,7 @@ pub mod my_payment_splitter {
 
             let bob_released = {
                 let _msg =
-                    build_message::<ContractRef>(address.clone()).call(|contract| contract.released(address_of!(bob)));
+                    build_message::<ContractRef>(address.clone()).call(|contract| contract.released(address_of!(Bob)));
                 client
                     .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
                     .await
@@ -198,7 +194,7 @@ pub mod my_payment_splitter {
 
             let alice_released = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.released(address_of!(alice)));
+                    .call(|contract| contract.released(address_of!(Alice)));
                 client
                     .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
                     .await

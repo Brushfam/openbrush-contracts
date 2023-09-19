@@ -25,14 +25,14 @@
 #[macro_export]
 macro_rules! storage_unique_key {
     ($struct:ident) => {{
-        $crate::utils::ConstHasher::hash($crate::utils::const_format::concatcp!(
+        $crate::traits::ConstHasher::hash($crate::traits::const_format::concatcp!(
             ::core::module_path!(),
             "::",
             ::core::stringify!($struct)
         ))
     }};
     ($struct:literal, $field:literal) => {{
-        $crate::utils::ConstHasher::hash($crate::utils::const_format::concatcp!(
+        $crate::traits::ConstHasher::hash($crate::traits::const_format::concatcp!(
             ::core::module_path!(),
             "::",
             $struct,
@@ -44,7 +44,7 @@ macro_rules! storage_unique_key {
 
 #[test]
 fn correct_storage_key() {
-    use crate::utils::ConstHasher;
+    use crate::traits::ConstHasher;
     use ink::storage::traits::StorageKey;
 
     mod contracts {

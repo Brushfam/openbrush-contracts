@@ -3,10 +3,7 @@
 #[openbrush::implementation(Ownable, PSP22, PSP22Metadata)]
 #[openbrush::contract]
 pub mod my_psp22 {
-    use openbrush::{
-        modifiers,
-        traits::Storage,
-    };
+    use openbrush::{modifiers, traits::Storage};
 
     #[ink(storage)]
     #[derive(Default, Storage)]

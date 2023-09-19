@@ -24,3 +24,5 @@ impl Default for Id {
         Self::U8(0)
     }
 }
+
+pub use openbrush::utils::crypto::Signature;

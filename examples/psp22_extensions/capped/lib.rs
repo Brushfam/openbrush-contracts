@@ -73,7 +73,7 @@ pub mod my_psp22_capped {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert!(matches!(balance_of!(client, address, alice), 1000));
+            assert!(matches!(balance_of!(client, address, Alice), 1000));
 
             let total_supply = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
@@ -103,7 +103,7 @@ pub mod my_psp22_capped {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert!(matches!(balance_of!(client, address, alice), 1000));
+            assert!(matches!(balance_of!(client, address, Alice), 1000));
 
             let total_supply = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
@@ -115,7 +115,7 @@ pub mod my_psp22_capped {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(alice), 1000));
+                    .call(|contract| contract.mint(address_of!(Alice), 1000));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
@@ -124,7 +124,7 @@ pub mod my_psp22_capped {
             .return_value();
 
             assert!(matches!(result, Ok(())));
-            assert!(matches!(balance_of!(client, address, alice), 2000));
+            assert!(matches!(balance_of!(client, address, Alice), 2000));
 
             let total_supply = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
@@ -146,7 +146,7 @@ pub mod my_psp22_capped {
                 .expect("instantiate failed")
                 .account_id;
 
-            assert!(matches!(balance_of!(client, address, alice), 1000));
+            assert!(matches!(balance_of!(client, address, Alice), 1000));
 
             let total_supply = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());
@@ -158,13 +158,13 @@ pub mod my_psp22_capped {
 
             let result = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(alice), 1001));
+                    .call(|contract| contract.mint(address_of!(Alice), 1001));
                 client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
             }
             .return_value();
 
             assert!(matches!(result, Err(PSP22Error::Custom(_))));
-            assert!(matches!(balance_of!(client, address, alice), 1000));
+            assert!(matches!(balance_of!(client, address, Alice), 1000));
 
             let total_supply = {
                 let _msg = build_message::<ContractRef>(address.clone()).call(|contract| contract.total_supply());

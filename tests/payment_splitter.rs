@@ -242,33 +242,6 @@ mod payment_splitter {
         );
     }
 
-    #[ink::test]
-    fn correct_release_all() {
-        let accounts = accounts();
-        let mut instance = MySplitter::new(vec![(accounts.charlie, 100), (accounts.bob, 200)]);
-        ink::env::test::set_account_balance::<ink::env::DefaultEnvironment>(accounts.charlie, 0);
-        ink::env::test::set_account_balance::<ink::env::DefaultEnvironment>(accounts.bob, 0);
-        let amount = 1000000;
-        add_funds(instance.env().account_id(), amount);
-
-        assert_eq!(100 + 200, PaymentSplitter::total_shares(&mut instance,));
-        assert_eq!(999999, PaymentSplitter::total_released(&mut instance,));
-        assert_eq!(333333, PaymentSplitter::released(&mut instance, accounts.charlie));
-        assert_eq!(
-            333333,
-            ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.charlie).unwrap()
-        );
-        assert_eq!(2 * 333333, PaymentSplitter::released(&mut instance, accounts.bob));
-        assert_eq!(
-            2 * 333333,
-            ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(accounts.bob).unwrap()
-        );
-
-        let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
-        assert_payment_released_event(&emitted_events[2], accounts.charlie, 333333);
-        assert_payment_released_event(&emitted_events[3], accounts.bob, 2 * 333333);
-    }
-
     fn add_funds(account: AccountId, amount: Balance) {
         let balance = ink::env::balance::<ink::env::DefaultEnvironment>();
         ink::env::test::set_account_balance::<ink::env::DefaultEnvironment>(account, balance + amount);

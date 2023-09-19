@@ -102,9 +102,6 @@ pub trait Internal {
 
     fn _releasable(&self, account: AccountId) -> Balance;
 
-    /// Calls the `release` method for each `AccountId` in the `payees` vec.
-    fn _release_all(&mut self) -> Result<(), PaymentSplitterError>;
-
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError>;
 }
 
@@ -147,17 +144,6 @@ pub trait InternalImpl: Storage<Data> + Internal {
         Ok(())
     }
 
-    fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
-        let payees = self.data().payees.get_or_default();
-        let len = payees.len();
-
-        for account in payees.iter().take(len) {
-            Internal::_release(self, *account)?;
-        }
-
-        Ok(())
-    }
-
     fn _releasable(&self, account: AccountId) -> Balance {
         let total_received = Self::env()
             .balance()
@@ -171,7 +157,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
         payment
     }
-
+  
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
         if self.data().shares.get(&account).is_none() {
             return Err(PaymentSplitterError::AccountHasNoShares)

@@ -94,12 +94,6 @@ pub trait PSP22Impl: Storage<Data> + Internal {
         Ok(())
     }
 
-    fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
-        let owner = Self::env().caller();
-        self._approve_from_to(owner, spender, value)?;
-        Ok(())
-    }
-
     fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
         let owner = Self::env().caller();
         self._approve_from_to(owner, spender, self._allowance(&owner, &spender) + delta_value)

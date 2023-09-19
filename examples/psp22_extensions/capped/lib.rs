@@ -3,10 +3,7 @@
 #[openbrush::implementation(PSP22, PSP22Capped, PSP22Mintable)]
 #[openbrush::contract]
 pub mod my_psp22_capped {
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]

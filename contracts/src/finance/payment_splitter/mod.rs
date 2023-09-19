@@ -56,6 +56,10 @@ pub trait PaymentSplitterImpl: Storage<Data> + Internal {
         self.data().total_released.get_or_default()
     }
 
+    fn releasable(&self, account: AccountId) -> Balance {
+        self._releasable(account)
+    }
+
     fn shares(&self, account: AccountId) -> Balance {
         self.data().shares.get(&account).unwrap_or(0)
     }
@@ -69,7 +73,7 @@ pub trait PaymentSplitterImpl: Storage<Data> + Internal {
     }
 
     fn receive(&mut self) {
-        self._emit_payee_added_event(Self::env().caller(), Self::env().transferred_value())
+        self._emit_payment_received_event(Self::env().caller(), Self::env().transferred_value())
     }
 
     fn release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
@@ -88,13 +92,15 @@ pub trait Internal {
     /// Inits an instance of `PaymentSplitter` where each account in `payees` is assigned the number of shares at
     /// the matching position in the `shares` array.
     ///
-    /// All addresses in `payees` must be non-zero. Both arrays must have the same non-zero length, and there must be no
+    /// All addresses in `payees` must be set. Both arrays must have the same non-zero length, and there must be no
     /// duplicates in `payees`.
     ///
     /// Emits `PayeeAdded` on each account.
     fn _init(&mut self, payees_and_shares: Vec<(AccountId, Balance)>) -> Result<(), PaymentSplitterError>;
 
     fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError>;
+
+    fn _releasable(&self, account: AccountId) -> Balance;
 
     /// Calls the `release` method for each `AccountId` in the `payees` vec.
     fn _release_all(&mut self) -> Result<(), PaymentSplitterError>;
@@ -150,6 +156,20 @@ pub trait InternalImpl: Storage<Data> + Internal {
         }
 
         Ok(())
+    }
+
+    fn _releasable(&self, account: AccountId) -> Balance {
+        let total_received = Self::env()
+            .balance()
+            .checked_sub(Self::env().minimum_balance())
+            .unwrap_or_default();
+        let total_shares = self.data().total_shares.get_or_default();
+        let released = self.data().released.get(&account).unwrap_or_default();
+        let shares = self.data().shares.get(&account).unwrap_or_default();
+
+        let payment = total_received * shares / total_shares - released;
+
+        payment
     }
 
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {

@@ -30,7 +30,10 @@ pub use crate::{
 pub use flashmint::Internal as _;
 use ink::{
     env::CallFlags,
-    prelude::vec::Vec,
+    prelude::{
+        vec,
+        vec::Vec,
+    },
 };
 use openbrush::traits::{
     AccountId,
@@ -47,7 +50,7 @@ pub use psp22::{
 pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Internal {
     fn max_flashloan(&mut self, token: AccountId) -> Balance {
         if token == Self::env().account_id() {
-            Balance::MAX - self.total_supply()
+            psp22::Internal::_max_supply(self) - self.total_supply()
         } else {
             0
         }
@@ -76,7 +79,18 @@ pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Inte
             return Err(FlashLenderError::AllowanceDoesNotAllowRefund)
         }
         psp22::Internal::_approve_from_to(self, receiver_account, this, current_allowance - amount - fee)?;
-        psp22::Internal::_burn_from(self, receiver_account, amount + fee)?;
+
+        let flash_fee_receiver = self._flash_fee_receiver();
+
+        if let Some(fee_receiver) = flash_fee_receiver {
+            if fee == 0 {
+                psp22::Internal::_burn_from(self, receiver_account, amount + fee)?;
+            } else {
+                psp22::Internal::_burn_from(self, receiver_account, amount)?;
+                psp22::Internal::_transfer_from_to(self, receiver_account, fee_receiver, fee, vec![])?;
+            }
+        }
+
         Ok(())
     }
 }
@@ -92,6 +106,8 @@ pub trait Internal {
         amount: Balance,
         data: Vec<u8>,
     ) -> Result<(), FlashLenderError>;
+
+    fn _flash_fee_receiver(&self) -> Option<AccountId>;
 }
 
 pub trait InternalImpl: Storage<psp22::Data> + Internal {
@@ -127,5 +143,9 @@ pub trait InternalImpl: Storage<psp22::Data> + Internal {
         };
 
         result
+    }
+
+    fn _flash_fee_receiver(&self) -> Option<AccountId> {
+        None
     }
 }

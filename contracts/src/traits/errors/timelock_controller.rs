@@ -40,7 +40,7 @@ pub enum TimelockControllerError {
     MissingDependency,
     UnderlyingTransactionReverted,
     CallerMustBeTimeLock,
-    CalleeZeroAddress,
+    CalleeIsNotSet,
 }
 
 impl From<AccessControlError> for TimelockControllerError {
@@ -63,7 +63,7 @@ impl From<OwnableError> for TimelockControllerError {
     fn from(ownable: OwnableError) -> Self {
         match ownable {
             OwnableError::CallerIsNotOwner => TimelockControllerError::Custom(String::from("O::CallerIsNotOwner")),
-            OwnableError::NewOwnerIsZero => TimelockControllerError::Custom(String::from("O::NewOwnerIsZero")),
+            OwnableError::NewOwnerIsNotSet => TimelockControllerError::Custom(String::from("O::NewOwnerIsNotSet")),
         }
     }
 }

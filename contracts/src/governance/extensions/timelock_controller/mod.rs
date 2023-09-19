@@ -423,20 +423,14 @@ pub trait InternalImpl: Internal + Storage<Data> + access_control::Internal {
                 .returns::<()>()
                 .call_flags(CallFlags::default().set_allow_reentry(true))
                 .try_invoke()
-<<<<<<< HEAD:contracts/src/governance/timelock_controller/mod.rs
-                .map_err(|_| TimelockControllerError::UnderlyingTransactionReverted)
-        } else {
-            Err(TimelockControllerError::CalleeAddressIsNotSet)
-        };
-=======
                 .map_err(|_| TimelockControllerError::UnderlyingTransactionReverted);
->>>>>>> main:contracts/src/governance/extensions/timelock_controller/mod.rs
 
             result?.unwrap();
             Internal::_emit_call_executed_event(self, id, i, transaction);
             return Ok(())
+        } else {
+            Err(TimelockControllerError::CalleeIsNotSet)
         }
-        Err(TimelockControllerError::CalleeMustExist)
     }
 
     fn _timelock_admin_role() -> RoleType {

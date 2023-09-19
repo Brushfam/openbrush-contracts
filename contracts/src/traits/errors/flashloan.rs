@@ -41,7 +41,7 @@ impl From<OwnableError> for FlashBorrowerError {
             OwnableError::CallerIsNotOwner => {
                 FlashBorrowerError::FlashloanRejected(String::from("O::CallerIsNotOwner"))
             }
-            OwnableError::NewOwnerIsZero => FlashBorrowerError::FlashloanRejected(String::from("O::NewOwnerIsZero")),
+            OwnableError::NewOwnerIsNotSet => FlashBorrowerError::FlashloanRejected(String::from("O::NewOwnerIsNotSet")),
         }
     }
 }
@@ -107,8 +107,8 @@ impl From<PSP22Error> for FlashLenderError {
             PSP22Error::InsufficientAllowance => {
                 FlashLenderError::Custom(String::from("PSP22: Insufficient Allowance"))
             }
-            PSP22Error::ZeroRecipientAddress => FlashLenderError::Custom(String::from("PSP22: Zero Recipient Address")),
-            PSP22Error::ZeroSenderAddress => FlashLenderError::Custom(String::from("PSP22: Zero Sender Address")),
+            PSP22Error::RecipientIsNotSet => FlashLenderError::Custom(String::from("PSP22: Recipient Address is not set")),
+            PSP22Error::SenderIsNotSet => FlashLenderError::Custom(String::from("PSP22: Sender Address in not set")),
             PSP22Error::SafeTransferCheckFailed(message) => FlashLenderError::Custom(message),
         }
     }
@@ -126,7 +126,7 @@ impl From<OwnableError> for FlashLenderError {
     fn from(ownable: OwnableError) -> Self {
         match ownable {
             OwnableError::CallerIsNotOwner => FlashLenderError::Custom(String::from("O::CallerIsNotOwner")),
-            OwnableError::NewOwnerIsZero => FlashLenderError::Custom(String::from("O::NewOwnerIsZero")),
+            OwnableError::NewOwnerIsNotSet => FlashLenderError::Custom(String::from("O::NewOwnerIsNotSet")),
         }
     }
 }

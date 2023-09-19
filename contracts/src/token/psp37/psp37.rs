@@ -128,7 +128,7 @@ pub trait Internal {
     ///
     /// # Errors
     ///
-    /// Returns with `TransferToZeroAddress` error if `to` is zero account.
+    /// Returns with `TransferToNonSetAddress` error if `to` is non set address.
     fn _mint_to(&mut self, to: AccountId, ids_amounts: Vec<(Id, Balance)>) -> Result<(), PSP37Error>;
 
     /// Destroys `amount` tokens of token type `id` from `from`.

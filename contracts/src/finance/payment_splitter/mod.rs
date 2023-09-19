@@ -140,7 +140,7 @@ pub trait InternalImpl: Storage<Data> + Internal {
 
         payment
     }
-  
+
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
         if self.data().shares.get(&account).is_none() {
             return Err(PaymentSplitterError::AccountHasNoShares)

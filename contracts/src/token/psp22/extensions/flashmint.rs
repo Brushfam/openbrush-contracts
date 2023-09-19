@@ -65,13 +65,11 @@ pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Inte
 
         let flash_fee_receiver = self._flash_fee_receiver();
 
-        if let Some(fee_receiver) = flash_fee_receiver {
-            if fee == 0 {
-                psp22::Internal::_burn_from(self, receiver_account, amount + fee)?;
-            } else {
-                psp22::Internal::_burn_from(self, receiver_account, amount)?;
-                psp22::Internal::_transfer_from_to(self, receiver_account, fee_receiver, fee, vec![])?;
-            }
+        if fee == 0 || flash_fee_receiver.is_none() {
+            psp22::Internal::_burn_from(self, receiver_account, amount + fee)?;
+        } else {
+            psp22::Internal::_burn_from(self, receiver_account, amount)?;
+            psp22::Internal::_transfer_from_to(self, receiver_account, flash_fee_receiver.unwrap(), fee, vec![])?;
         }
 
         Ok(())

@@ -132,10 +132,6 @@ but it must be fixed with this [issue](https://github.com/paritytech/ink/issues/
 ### Issues to be resolved before the library becomes production-ready:
 * [Event's identifiers are based on the naming of the storage structure](https://github.com/Brushfam/openbrush-contracts/issues/2)
 
-## Roadmap 🚗
-
-Current OpenBrush Roadmap includes: https://docs.google.com/document/d/1b49juyKJN0W-UBHoJ4iS3P_I0Z5a94YoNLxylIf-As8
-
 ## Installation & Testing
 To work with project you need to install ink! toolchain and NodeJS's dependencies.
 
@@ -165,8 +161,7 @@ After you can run tests by `npm run test` command. It will build all contracts r
 
 ### Was it audited?
 
-Contracts in this repository have not yet been audited and contain several vulnerabilities due to the specific of the ink!. 
-Since ink! is audited now, OpenBrush is going to be audited after major breaking changes regarding switching to stable toolchain and adapting to latest ink! will be released.
+OpenBrush was audited by OpenZeppelin team.
 
 ## License
 

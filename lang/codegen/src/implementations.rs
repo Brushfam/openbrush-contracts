@@ -219,7 +219,7 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs, capped: bool) {
         quote! {psp22::PSP22TransferImpl}
     };
 
-    let transfer = syn::parse2::<syn::ItemImpl>(quote!(
+    let mut transfer = syn::parse2::<syn::ItemImpl>(quote!(
         impl psp22::PSP22Transfer for #storage_struct_name {
             fn _before_token_transfer(
                 &mut self,
@@ -241,6 +241,8 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs, capped: bool) {
         }
     ))
     .expect("Should parse");
+
+    override_functions("psp22::PSP22Transfer", &mut transfer, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(implementation));
     impl_args.items.push(syn::Item::Impl(transfer));
@@ -313,7 +315,7 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
 
-    let permit_internal = syn::parse2::<syn::ItemImpl>(quote!(
+    let mut permit_internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl permit::Internal for #storage_struct_name {
             fn _permit(
                 &mut self,
@@ -337,7 +339,7 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
 
-    let permit = syn::parse2::<syn::ItemImpl>(quote!(
+    let mut permit = syn::parse2::<syn::ItemImpl>(quote!(
         impl permit::PSP22Permit for #storage_struct_name {
             #[ink(message)]
             fn permit(
@@ -368,8 +370,8 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
     impl_args.signature_import();
     impl_args.vec_import();
 
-    // TODO
-    // override_functions("PSP22Permit", &mut burnable, impl_args.map);
+    override_functions("PSP22Permit", &mut permit, impl_args.map);
+    override_functions("permit::Internal", &mut permit_internal, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(permit_internal_impl));
     impl_args.items.push(syn::Item::Impl(permit_internal));

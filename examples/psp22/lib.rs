@@ -1,7 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 // pub use my_psp22::*;
-pub use openbrush::traits::{AccountId, Storage};
+pub use openbrush::traits::{
+    AccountId,
+    Storage,
+};
 
 // we need to expand this struct before the contract macro is expanded
 // that is why we declare it here for this example
@@ -28,7 +31,7 @@ pub mod my_psp22 {
         hated_storage: HatedStorage,
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(psp22::PSP22Transfer)]
     fn _before_token_transfer(
         &mut self,
         _from: Option<&AccountId>,
@@ -36,7 +39,7 @@ pub mod my_psp22 {
         _amount: &Balance,
     ) -> Result<(), PSP22Error> {
         if to == Some(&self.hated_storage.hated_account) {
-            return Err(PSP22Error::Custom(String::from("I hate this account!")));
+            return Err(PSP22Error::Custom(String::from("I hate this account!")))
         }
         Ok(())
     }
@@ -63,9 +66,15 @@ pub mod my_psp22 {
     pub mod tests {
         use super::*;
         use crate::hatedstorageaccessors_external::HatedStorageAccessors;
-        use ink_e2e::{build_message, PolkadotConfig};
+        use ink_e2e::{
+            build_message,
+            PolkadotConfig,
+        };
         use openbrush::contracts::psp22::psp22_external::PSP22;
-        use test_helpers::{address_of, balance_of};
+        use test_helpers::{
+            address_of,
+            balance_of,
+        };
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 

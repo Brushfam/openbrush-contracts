@@ -89,7 +89,7 @@ mod psp22_test {
         });
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(psp22::PSP22Transfer)]
     fn _before_token_transfer(
         &mut self,
         _from: Option<&AccountId>,
@@ -102,7 +102,7 @@ mod psp22_test {
         Ok(())
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(psp22::PSP22Transfer)]
     fn _after_token_transfer(
         &mut self,
         _from: Option<&AccountId>,

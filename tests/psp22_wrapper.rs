@@ -79,12 +79,12 @@ mod psp22_wrapper {
     #[ink::test]
     fn deposit_for_works() {
         let accounts = accounts();
-        let mut wrapper = PSP22WrapperStruct::new(AccountId::from([0x1; 32]));
+        let mut wrapper = PSP22WrapperStruct::new(AccountId::from([0x0; 32]));
 
         assert_eq!(PSP22::balance_of(&mut wrapper, accounts.alice), 0);
         assert_eq!(PSP22::total_supply(&mut wrapper), 0);
 
-        assert!(PSP22Wrapper::deposit_for(&mut wrapper, accounts.alice, 100).is_ok());
+        assert_eq!(PSP22Wrapper::deposit_for(&mut wrapper, accounts.alice, 100), Ok(()));
 
         assert_eq!(PSP22::balance_of(&mut wrapper, accounts.alice), 100);
         assert_eq!(PSP22::total_supply(&mut wrapper), 100);
@@ -93,9 +93,9 @@ mod psp22_wrapper {
     #[ink::test]
     fn withdraw_to_works() {
         let accounts = accounts();
-        let mut wrapper = PSP22WrapperStruct::new(AccountId::from([0x1; 32]));
+        let mut wrapper = PSP22WrapperStruct::new(AccountId::from([0x0; 32]));
 
-        assert!(PSP22Wrapper::deposit_for(&mut wrapper, accounts.alice, 100).is_ok());
+        assert_eq!(PSP22Wrapper::deposit_for(&mut wrapper, accounts.alice, 100), Ok(()));
         assert_eq!(PSP22::balance_of(&mut wrapper, accounts.alice), 100);
         assert_eq!(PSP22::total_supply(&mut wrapper), 100);
         assert!(PSP22Wrapper::withdraw_to(&mut wrapper, accounts.alice, 100).is_ok());
@@ -107,9 +107,9 @@ mod psp22_wrapper {
     #[ink::test]
     fn recover_works() {
         let accounts = accounts();
-        let mut wrapper = PSP22WrapperStruct::new(AccountId::from([0x1; 32]));
+        let mut wrapper = PSP22WrapperStruct::new(AccountId::from([0x0; 32]));
 
-        assert!(PSP22Wrapper::deposit_for(&mut wrapper, accounts.alice, 100).is_ok());
+        assert_eq!(PSP22Wrapper::deposit_for(&mut wrapper, accounts.alice, 100), Ok(()));
         assert!(wrapper.burn(100).is_ok());
         assert_eq!(PSP22::balance_of(&mut wrapper, accounts.alice), 0);
         assert_eq!(PSP22::total_supply(&mut wrapper), 0);

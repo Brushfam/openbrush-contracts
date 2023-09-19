@@ -133,7 +133,7 @@ mod ownable {
         let creator = Ownable::owner(&mut my_ownable);
         assert_eq!(creator, Some(caller));
         let new_owner = AccountId::from([5u8; 32]);
-        assert!(Ownable::transfer_ownership(&mut my_ownable, new_owner).is_ok());
+        assert!(Ownable::transfer_ownership(&mut my_ownable, Some(new_owner)).is_ok());
         assert_eq!(Ownable::owner(&mut my_ownable), Some(new_owner));
         let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
         assert_eq!(2, emitted_events.len());
@@ -148,7 +148,7 @@ mod ownable {
         change_caller(AccountId::from([0x13; 32]));
         let new_owner = AccountId::from([5u8; 32]);
         assert_eq!(
-            Ownable::transfer_ownership(&mut my_ownable, new_owner),
+            Ownable::transfer_ownership(&mut my_ownable, Some(new_owner)),
             Err(OwnableError::CallerIsNotOwner)
         );
     }

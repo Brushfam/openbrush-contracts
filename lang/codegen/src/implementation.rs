@@ -123,10 +123,6 @@ pub fn generate(attrs: TokenStream, input: TokenStream) -> TokenStream {
         }
     }
 
-    if args.contains(&String::from("PSP22")) {
-        impl_psp22_transfer(&mut impl_args, is_capped);
-    }
-
     cleanup_imports(impl_args.imports);
 
     // add the imports

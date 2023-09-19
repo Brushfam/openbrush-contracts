@@ -152,9 +152,6 @@ fn cleanup_imports(imports: &mut HashMap<&str, syn::ItemUse>) {
     ];
     check_and_remove_import("PSP22", psp22_impls, imports);
 
-    let psp22_pallet_impls = vec!["PSP22PalletMintable", "PSP22PalletBurnable", "PSP22PalletMetadata"];
-    check_and_remove_import("PSP22Pallet", psp22_pallet_impls, imports);
-
     let psp34_impls = vec!["PSP34Mintable", "PSP34Burnable", "PSP34Metadata", "PSP34Enumerable"];
     check_and_remove_import("PSP34", psp34_impls, imports);
 

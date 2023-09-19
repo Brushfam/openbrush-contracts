@@ -75,7 +75,6 @@ psp61 = ["openbrush_contracts/psp61"]
 
 test-all = [
     "psp22",
-    # "psp22_pallet", we ignore it during testing. It requries it own run of tests
     "psp34",
     "psp37",
     "access_control",

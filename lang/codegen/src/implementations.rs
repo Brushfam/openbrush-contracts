@@ -1793,6 +1793,10 @@ pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {
                 payment_splitter::InternalImpl::_release_all(self)
             }
 
+            fn _releasable(&self, account: AccountId) -> Balance {
+                payment_splitter::InternalImpl::_releasable(self, account)
+            }
+
             fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
                 payment_splitter::InternalImpl::_release(self, account)
             }
@@ -1815,6 +1819,11 @@ pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {
             #[ink(message)]
             fn total_released(&self) -> Balance {
                 PaymentSplitterImpl::total_released(self)
+            }
+
+            #[ink(message)]
+            fn releasable(&self, account: AccountId) -> Balance {
+                PaymentSplitterImpl::releasable(self, account)
             }
 
             #[ink(message)]

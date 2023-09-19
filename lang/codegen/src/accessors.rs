@@ -1,3 +1,7 @@
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
+
 use proc_macro2::TokenStream;
 use quote::{
     format_ident,

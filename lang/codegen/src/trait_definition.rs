@@ -43,11 +43,10 @@ use syn::{
     ItemTrait,
 };
 
-pub fn generate(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
+pub fn generate(attrs: TokenStream, _input: TokenStream) -> TokenStream {
     if crate::internal::skip() {
         return quote! {}
     }
-    let attrs: proc_macro2::TokenStream = _attrs;
     let mut trait_item: ItemTrait = parse2(_input).unwrap();
     let trait_without_ink_attrs;
     let ink_code;

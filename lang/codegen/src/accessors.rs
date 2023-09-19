@@ -12,9 +12,7 @@ use syn::{
     Fields,
 };
 
-pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream {
-    let trait_ident = attrs;
-
+pub fn accessors(trait_ident: TokenStream, s: synstructure::Structure) -> TokenStream {
     let struct_ident = s.ast().ident.clone();
 
     let item = match s.ast().data.clone() {
@@ -54,7 +52,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
         }
     });
 
-    let result = quote! {
+    quote! {
         #item
 
         #[openbrush::trait_definition]
@@ -62,9 +60,7 @@ pub fn accessors(attrs: TokenStream, s: synstructure::Structure) -> TokenStream 
             #(#get_impls)*
             #(#set_impls)*
         }
-    };
-
-    result
+    }
 }
 
 fn generate_struct(s: &synstructure::Structure, struct_item: DataStruct) -> TokenStream {

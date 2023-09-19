@@ -76,7 +76,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 
     let mut impl_args = ImplArgs::new(&map, &mut items, &mut imports, &mut overriden_traits, ident);
 
-    for to_implement in args {
+    for to_implement in args.clone() {
         match to_implement.as_str() {
             "PSP22" => impl_psp22(&mut impl_args),
             "PSP22Mintable" => impl_psp22_mintable(&mut impl_args),
@@ -113,6 +113,10 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "Upgradeable" => impl_upgradeable(&mut impl_args),
             _ => panic!("openbrush::implementation({to_implement}) not implemented!"),
         }
+    }
+
+    if args.contains(&String::from("PSP22")) {
+        impl_psp22_transfer(&mut impl_args, args.contains(&String::from("PSP22Capped")));
     }
 
     cleanup_imports(impl_args.imports);

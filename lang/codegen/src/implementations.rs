@@ -464,6 +464,10 @@ pub(crate) fn impl_flashmint(impl_args: &mut ImplArgs) {
             ) -> Result<(), FlashLenderError> {
                 flashmint::InternalImpl::_on_flashloan(self, receiver_account, token, fee, amount, data)
             }
+
+            fn _flash_fee_receiver(&self) -> Option<AccountId> {
+                flashmint::InternalImpl::_flash_fee_receiver(self)
+            }
         }
     ))
     .expect("Should parse");

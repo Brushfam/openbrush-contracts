@@ -1,3 +1,7 @@
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
+
 use quote::{
     format_ident,
     quote,
@@ -54,12 +58,23 @@ impl<'a> ImplArgs<'a> {
     }
 }
 
-pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
+pub(crate) fn impl_psp22(impl_args: &mut ImplArgs, capped: bool) {
     let storage_struct_name = impl_args.contract_name();
-    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
-        impl psp22::InternalImpl for #storage_struct_name {}
-    ))
-    .expect("Should parse");
+    let internal_impl = if capped {
+        syn::parse2::<syn::ItemImpl>(quote!(
+            impl psp22::InternalImpl for #storage_struct_name {
+                fn _max_supply(&self) -> Balance {
+                    capped::Internal::_cap(self)
+                }
+            }
+        ))
+        .expect("Should parse")
+    } else {
+        syn::parse2::<syn::ItemImpl>(quote!(
+            impl psp22::InternalImpl for #storage_struct_name {}
+        ))
+        .expect("Should parse")
+    };
 
     let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl psp22::Internal for #storage_struct_name {
@@ -73,6 +88,10 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
 
             fn _total_supply(&self) -> Balance {
                 psp22::InternalImpl::_total_supply(self)
+            }
+
+            fn _max_supply(&self) -> Balance {
+                psp22::InternalImpl::_max_supply(self)
             }
 
             fn _balance_of(&self, owner: &AccountId) -> Balance {
@@ -108,24 +127,6 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
 
             fn _burn_from(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
                 psp22::InternalImpl::_burn_from(self, account, amount)
-            }
-
-            fn _before_token_transfer(
-                &mut self,
-                from: Option<&AccountId>,
-                to: Option<&AccountId>,
-                amount: &Balance,
-            ) -> Result<(), PSP22Error> {
-                psp22::InternalImpl::_before_token_transfer(self, from, to, amount)
-            }
-
-            fn _after_token_transfer(
-                &mut self,
-                from: Option<&AccountId>,
-                to: Option<&AccountId>,
-                amount: &Balance,
-            ) -> Result<(), PSP22Error> {
-                psp22::InternalImpl::_after_token_transfer(self, from, to, amount)
             }
         }
     ))
@@ -170,11 +171,6 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
             }
 
             #[ink(message)]
-            fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
-                PSP22Impl::approve(self, spender, value)
-            }
-
-            #[ink(message)]
             fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
                 PSP22Impl::increase_allowance(self, spender, delta_value)
             }
@@ -191,6 +187,7 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
         use openbrush::contracts::psp22::*;
     ))
     .expect("Should parse");
+
     impl_args.imports.insert("PSP22", import);
     impl_args.vec_import();
 
@@ -201,6 +198,54 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(internal));
     impl_args.items.push(syn::Item::Impl(psp22_impl));
     impl_args.items.push(syn::Item::Impl(psp22));
+
+    // Implement PSP22Transfer
+
+    let implementation = if capped {
+        syn::parse2::<syn::ItemImpl>(quote!(
+            impl capped::PSP22TransferImpl for #storage_struct_name {}
+        ))
+        .expect("Should parse")
+    } else {
+        syn::parse2::<syn::ItemImpl>(quote!(
+            impl psp22::PSP22TransferImpl for #storage_struct_name {}
+        ))
+        .expect("Should parse")
+    };
+
+    let trait_ident = if capped {
+        quote! {capped::PSP22TransferImpl}
+    } else {
+        quote! {psp22::PSP22TransferImpl}
+    };
+
+    let mut transfer = syn::parse2::<syn::ItemImpl>(quote!(
+        impl psp22::PSP22Transfer for #storage_struct_name {
+            fn _before_token_transfer(
+                &mut self,
+                _from: Option<&AccountId>,
+                _to: Option<&AccountId>,
+                _amount: &Balance,
+            ) -> Result<(), PSP22Error> {
+                #trait_ident::_before_token_transfer(self, _from, _to, _amount)
+            }
+
+            fn _after_token_transfer(
+                &mut self,
+                _from: Option<&AccountId>,
+                _to: Option<&AccountId>,
+                _amount: &Balance,
+            ) -> Result<(), PSP22Error> {
+                #trait_ident::_after_token_transfer(self, _from, _to, _amount)
+            }
+        }
+    ))
+    .expect("Should parse");
+
+    override_functions("psp22::PSP22Transfer", &mut transfer, impl_args.map);
+
+    impl_args.items.push(syn::Item::Impl(implementation));
+    impl_args.items.push(syn::Item::Impl(transfer));
 }
 
 pub(crate) fn impl_psp22_mintable(impl_args: &mut ImplArgs) {
@@ -270,7 +315,7 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
 
-    let permit_internal = syn::parse2::<syn::ItemImpl>(quote!(
+    let mut permit_internal = syn::parse2::<syn::ItemImpl>(quote!(
         impl permit::Internal for #storage_struct_name {
             fn _permit(
                 &mut self,
@@ -294,7 +339,7 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
 
-    let permit = syn::parse2::<syn::ItemImpl>(quote!(
+    let mut permit = syn::parse2::<syn::ItemImpl>(quote!(
         impl permit::PSP22Permit for #storage_struct_name {
             #[ink(message)]
             fn permit(
@@ -325,8 +370,8 @@ pub(crate) fn impl_psp22_permit(impl_args: &mut ImplArgs) {
     impl_args.signature_import();
     impl_args.vec_import();
 
-    // TODO
-    // override_functions("PSP22Permit", &mut burnable, impl_args.map);
+    override_functions("PSP22Permit", &mut permit, impl_args.map);
+    override_functions("permit::Internal", &mut permit_internal, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(permit_internal_impl));
     impl_args.items.push(syn::Item::Impl(permit_internal));
@@ -524,6 +569,10 @@ pub(crate) fn impl_flashmint(impl_args: &mut ImplArgs) {
                 data: Vec<u8>,
             ) -> Result<(), FlashLenderError> {
                 flashmint::InternalImpl::_on_flashloan(self, receiver_account, token, fee, amount, data)
+            }
+
+            fn _flash_fee_receiver(&self) -> Option<AccountId> {
+                flashmint::InternalImpl::_flash_fee_receiver(self)
             }
         }
     ))
@@ -843,11 +892,6 @@ pub(crate) fn impl_psp22_pallet(impl_args: &mut ImplArgs) {
             }
 
             #[ink(message)]
-            fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
-                PSP22PalletImpl::approve(self, spender, value)
-            }
-
-            #[ink(message)]
             fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
                 PSP22PalletImpl::increase_allowance(self, spender, delta_value)
             }
@@ -913,7 +957,12 @@ pub(crate) fn impl_psp22_pallet_metadata(impl_args: &mut ImplArgs) {
     ))
     .expect("Should parse");
 
-    let mut burnable = syn::parse2::<syn::ItemImpl>(quote!(
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl PSP22PalletMetadataInternal for #storage_struct_name {}
+    ))
+    .expect("Should parse");
+
+    let mut metadata = syn::parse2::<syn::ItemImpl>(quote!(
         impl PSP22Metadata for #storage_struct_name {
             #[ink(message)]
             fn token_name(&self) -> Option<String> {
@@ -940,10 +989,11 @@ pub(crate) fn impl_psp22_pallet_metadata(impl_args: &mut ImplArgs) {
     impl_args.imports.insert("PSP22PalletMetadata", import);
     impl_args.vec_import();
 
-    override_functions("PSP22Metadata", &mut burnable, impl_args.map);
+    override_functions("PSP22Metadata", &mut metadata, impl_args.map);
 
     impl_args.items.push(syn::Item::Impl(metadata_impl));
-    impl_args.items.push(syn::Item::Impl(burnable));
+    impl_args.items.push(syn::Item::Impl(metadata));
+    impl_args.items.push(syn::Item::Impl(internal_impl));
 }
 
 pub(crate) fn impl_psp22_pallet_mintable(impl_args: &mut ImplArgs) {
@@ -1917,7 +1967,7 @@ pub(crate) fn impl_ownable(impl_args: &mut ImplArgs) {
             }
 
             #[ink(message)]
-            fn transfer_ownership(&mut self, new_owner: AccountId) -> Result<(), OwnableError> {
+            fn transfer_ownership(&mut self, new_owner: Option<AccountId>) -> Result<(), OwnableError> {
                 OwnableImpl::transfer_ownership(self, new_owner)
             }
         }
@@ -1968,8 +2018,8 @@ pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {
                 payment_splitter::InternalImpl::_add_payee(self, payee, share)
             }
 
-            fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
-                payment_splitter::InternalImpl::_release_all(self)
+            fn _releasable(&self, account: AccountId) -> Balance {
+                payment_splitter::InternalImpl::_releasable(self, account)
             }
 
             fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
@@ -1994,6 +2044,11 @@ pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {
             #[ink(message)]
             fn total_released(&self) -> Balance {
                 PaymentSplitterImpl::total_released(self)
+            }
+
+            #[ink(message)]
+            fn releasable(&self, account: AccountId) -> Balance {
+                PaymentSplitterImpl::releasable(self, account)
             }
 
             #[ink(message)]

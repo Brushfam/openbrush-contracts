@@ -553,7 +553,7 @@ describe('DIAMOND_PSP22', () => {
     await expect(diamondCaller.query.balanceOf(diamondContract.address, defaultSigner.address)).to.bnToNumber(1000)
 
     // we will give allowance to caller contract
-    await proxy.withSigner(defaultSigner).tx.approve(diamondCaller.address, 1000)
+    await proxy.withSigner(defaultSigner).tx.increaseAllowance(diamondCaller.address, 1000)
     // calling transfer via diamondCaller should transfer balance
     await expect(diamondCaller.withSigner(defaultSigner).tx.transfer(diamondContract.address, alice.address, 1000)).to.eventually.be.fulfilled
 

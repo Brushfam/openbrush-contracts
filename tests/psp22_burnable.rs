@@ -69,7 +69,7 @@ mod psp22_burnable {
         });
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(psp22::PSP22Transfer)]
     fn _before_token_transfer(
         &mut self,
         _from: Option<&AccountId>,
@@ -82,7 +82,7 @@ mod psp22_burnable {
         Ok(())
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(psp22::PSP22Transfer)]
     fn _after_token_transfer(
         &mut self,
         _from: Option<&AccountId>,

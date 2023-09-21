@@ -1,23 +1,6 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
 
 pub use crate::traits::errors::PaymentSplitterError;
 use openbrush::traits::{
@@ -48,6 +31,10 @@ pub trait PaymentSplitter {
     #[ink(message)]
     fn total_released(&self) -> Balance;
 
+    /// Getter for the amount of tokens that can be released for account
+    #[ink(message)]
+    fn releasable(&self, account: AccountId) -> Balance;
+
     /// Getter for the amount of shares held by an account.
     #[ink(message)]
     fn shares(&self, account: AccountId) -> Balance;
@@ -65,7 +52,7 @@ pub trait PaymentSplitter {
     /// without triggering this function. This only affects the reliability of the events
     /// and not the actual splitting of the native token.
     ///
-    /// On success a `PayeeAdded` event is emitted.
+    /// On success a `PaymentReceived` event is emitted.
     #[ink(message, payable)]
     fn receive(&mut self);
 

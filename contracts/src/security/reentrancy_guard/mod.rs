@@ -1,23 +1,6 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
 
 pub use crate::{
     reentrancy_guard,
@@ -33,11 +16,8 @@ use openbrush::{
 #[openbrush::storage_item]
 pub struct Data {
     #[lazy]
-    pub status: u8,
+    pub status: bool,
 }
-
-const NOT_ENTERED: u8 = 0;
-const ENTERED: u8 = 1;
 
 /// Prevents a contract from calling itself, directly or indirectly.
 /// Calling a `non_reentrant` function from another `non_reentrant`
@@ -45,7 +25,7 @@ const ENTERED: u8 = 1;
 /// by making the `non_reentrant` function external, and make it call a
 /// `private` function that does the actual work.
 ///
-/// This modifier flushes the struct into storage with `ENTERED`
+/// This modifier flushes the struct into storage with `true`
 /// status before calling the original method.
 #[modifier_definition]
 pub fn non_reentrant<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
@@ -54,14 +34,15 @@ where
     F: FnOnce(&mut T) -> Result<R, E>,
     E: From<ReentrancyGuardError>,
 {
-    if instance.data().status.get_or_default() == ENTERED {
+    if instance.data().status.get_or_default() {
         return Err(From::from(ReentrancyGuardError::ReentrantCall))
     }
     // Any calls to nonReentrant after this point will fail
-    instance.data().status.set(&ENTERED);
+    instance.data().status.set(&true);
 
     let result = body(instance);
-    instance.data().status.set(&NOT_ENTERED);
+
+    instance.data().status.set(&false);
 
     result
 }

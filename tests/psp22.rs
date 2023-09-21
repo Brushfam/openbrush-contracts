@@ -89,7 +89,7 @@ mod psp22_test {
         });
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(psp22::PSP22Transfer)]
     fn _before_token_transfer(
         &mut self,
         _from: Option<&AccountId>,
@@ -102,7 +102,7 @@ mod psp22_test {
         Ok(())
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(psp22::PSP22Transfer)]
     fn _after_token_transfer(
         &mut self,
         _from: Option<&AccountId>,
@@ -278,7 +278,7 @@ mod psp22_test {
         let accounts = accounts();
 
         // Alice approves Bob for token transfers on her behalf.
-        assert!(PSP22::approve(&mut psp22, accounts.bob, 10).is_ok());
+        assert!(PSP22::increase_allowance(&mut psp22, accounts.bob, 10).is_ok());
 
         // The approve event takes place.
         assert_eq!(ink::env::test::recorded_events().count(), 2);
@@ -312,7 +312,7 @@ mod psp22_test {
         // Alice approves Bob for token transfers on her behalf.
         let alice_balance = PSP22::balance_of(&psp22, accounts.alice);
         let initial_allowance = alice_balance + 2;
-        assert!(PSP22::approve(&mut psp22, accounts.bob, initial_allowance).is_ok());
+        assert!(PSP22::increase_allowance(&mut psp22, accounts.bob, initial_allowance).is_ok());
         change_caller(accounts.bob);
 
         assert_eq!(

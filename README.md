@@ -157,6 +157,21 @@ To run integration test you need to start the node with contract-pallet.
 
 After you can run tests by `npm run test` command. It will build all contracts required for integration tests and run them.
 
+### End-to-End (E2E) Tests
+To run   e2e-tests in   the contract we  recoment to use   this versions of   tools:
+- rustc: 1.71.1
+- cargo: 1.71.1
+- rustup toolchain: stable
+ - cargo-contract: 3.2.0
+- ink!: 4.3.0
+- ink_e2e: 4.3.0
+- substrate-contracts-node: 0.27.0
+
+To run e2e-tests you need to  write this command in the root of the directory:
+```
+$ cargo test --features e2e-tests
+```
+
 ## FAQ
 
 ### Was it audited?

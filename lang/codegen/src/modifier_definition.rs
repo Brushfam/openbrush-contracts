@@ -1,23 +1,6 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
 
 use proc_macro2::TokenStream;
 use quote::{
@@ -31,8 +14,8 @@ use syn::{
     ItemFn,
 };
 
-pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
-    let fn_item: ItemFn = parse2(_input).unwrap();
+pub fn generate(_: TokenStream, input: TokenStream) -> TokenStream {
+    let fn_item: ItemFn = parse2(input).unwrap();
 
     if fn_item.sig.inputs.len() < 2 {
         return quote_spanned! {
@@ -172,7 +155,7 @@ pub fn generate(_: TokenStream, _input: TokenStream) -> TokenStream {
                 }
             }
         }
-    } else if let syn::FnArg::Receiver(rec) = first {
+    } else if let syn::FnArg::Receiver(rec) = second {
         return quote_spanned! {
             rec.span() =>
                 compile_error!("Second argument of modifier can't be `self`");

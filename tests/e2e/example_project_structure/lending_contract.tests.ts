@@ -181,20 +181,20 @@ describe('LENDING_CONTRACT', () => {
     price
   ) {
     // collateralToken approves amount of tokens for lending contact
-    await collateralToken.tx.approve(lendingContract.address, approveAmount)
+    await collateralToken.tx.increaseAllowance(lendingContract.address, approveAmount)
 
     // Allow collateral
     await lendingContract.withSigner(user).tx.allowCollateral(collateralToken.address)
 
     // user approves amount of tokens for lending contact
-    await borrowedToken.withSigner(user).tx.approve(lendingContract.address, approveAmount)
+    await borrowedToken.withSigner(user).tx.increaseAllowance(lendingContract.address, approveAmount)
     // Allow new asset
     await lendingContract.tx.allowAsset(borrowedToken.address)
     // Alice lends tokens into lending
     await lendingContract.withSigner(user).tx.lendAssets(borrowedToken.address, approveAmount)
 
     // user approves amount of tokens for lending contact
-    await borrowedToken.withSigner(user).tx.approve(lendingContract.address, approveAmount)
+    await borrowedToken.withSigner(user).tx.increaseAllowance(lendingContract.address, approveAmount)
     // Set the price of collateralToken for borrowedToken
     await lendingContract.withSigner(user).tx.setAssetPrice(collateralToken.address, borrowedToken.address, price)
 
@@ -285,7 +285,7 @@ describe('LENDING_CONTRACT', () => {
     assert(alice_balance.gte(new BN(amount)))
 
     // Act - Stablecoin contract approves amount for lending contact
-    await stablecoin.tx.approve(lending.address, amount)
+    await stablecoin.tx.increaseAllowance(lending.address, amount)
 
     // Act - Allow stablecoin for lending
     await lending.tx.allowAsset(stablecoin.address)
@@ -360,7 +360,7 @@ describe('LENDING_CONTRACT', () => {
     const amount = 100
 
     // Act - Stablecoin contract approves amount for lending contact
-    await stablecoin.tx.approve(lending.address, amount)
+    await stablecoin.tx.increaseAllowance(lending.address, amount)
     // Act - Allow stablecoin for lending
     await lending.tx.allowAsset(stablecoin.address)
     // Act - Alice lends the amount of stablecoin tokens

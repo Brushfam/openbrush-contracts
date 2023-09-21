@@ -100,7 +100,7 @@ mod psp22_flashmint {
         let loan_amount = 100;
         let fee = flashmint::Internal::_get_fee(&instance, loan_amount);
 
-        assert!(PSP22::approve(&mut instance, token, loan_amount + fee).is_ok());
+        assert!(PSP22::increase_allowance(&mut instance, token, loan_amount + fee).is_ok());
         assert!(FlashLender::flashloan(&mut instance, receiver, token, loan_amount, Vec::<u8>::new()).is_ok());
         assert_eq!(PSP22::total_supply(&instance), total_supply - fee);
         assert_eq!(PSP22::balance_of(&instance, accounts().alice), total_supply - fee);

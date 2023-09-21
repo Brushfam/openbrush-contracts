@@ -1,23 +1,6 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
 
 use super::{
     AccessControlError,
@@ -38,10 +21,10 @@ pub enum PSP22Error {
     InsufficientBalance,
     /// Returned if not enough allowance to fulfill a request is available.
     InsufficientAllowance,
-    /// Returned if recipient's address is zero.
-    ZeroRecipientAddress,
-    /// Returned if sender's address is zero.
-    ZeroSenderAddress,
+    /// Returned if recipient's address is not set.
+    RecipientIsNotSet,
+    /// Returned if sender's address is not set.
+    SenderIsNotSet,
     /// Returned if safe transfer check fails
     SafeTransferCheckFailed(String),
     /// Returned if permit signature is invalid
@@ -56,7 +39,7 @@ impl From<OwnableError> for PSP22Error {
     fn from(ownable: OwnableError) -> Self {
         match ownable {
             OwnableError::CallerIsNotOwner => PSP22Error::Custom(String::from("O::CallerIsNotOwner")),
-            OwnableError::NewOwnerIsZero => PSP22Error::Custom(String::from("O::NewOwnerIsZero")),
+            OwnableError::NewOwnerIsNotSet => PSP22Error::Custom(String::from("O::NewOwnerIsNotSet")),
         }
     }
 }
@@ -113,9 +96,9 @@ pub enum PSP22TokenTimelockError {
     /// Returned if the timestamp provided is before the current time
     ReleaseTimeIsBeforeCurrentTime,
     /// Returned if the token is not initialized
-    TokenZeroAddress,
+    TokenIsNotSet,
     /// Returned if the beneficiary is not initialized
-    BeneficiaryZeroAddress,
+    BeneficiaryIsNotSet,
 }
 
 impl From<PSP22Error> for PSP22TokenTimelockError {

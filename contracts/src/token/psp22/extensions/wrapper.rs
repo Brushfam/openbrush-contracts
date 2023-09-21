@@ -1,23 +1,6 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
 
 pub use crate::{
     psp22,
@@ -53,11 +36,19 @@ pub struct Data {
 
 pub trait PSP22WrapperImpl: Storage<Data> + Internal + psp22::Internal {
     fn deposit_for(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+        if Some(account) == self.data().underlying.get_or_default() {
+            return Err(PSP22Error::Custom(String::from("Cannot deposit to underlying")))
+        }
+
         self._deposit(amount)?;
         psp22::Internal::_mint_to(self, account, amount)
     }
 
     fn withdraw_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+        if Some(account) == self.data().underlying.get_or_default() {
+            return Err(PSP22Error::Custom(String::from("Cannot withdraw to underlying")))
+        }
+
         psp22::Internal::_burn_from(self, Self::env().caller(), amount)?;
         self._withdraw(account, amount)
     }

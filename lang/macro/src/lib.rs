@@ -1,23 +1,6 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
@@ -44,8 +27,8 @@ use openbrush_lang_codegen::{
 ///
 /// This macro consumes impl section for traits defined with [`#[openbrush::trait_definition]`](`macro@crate::trait_definition`).
 #[proc_macro_attribute]
-pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
-    contract::generate(_attrs.into(), ink_module.into()).into()
+pub fn contract(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
+    contract::generate(attrs.into(), ink_module.into()).into()
 }
 
 /// Defines extensible trait in the scope of `openbrush::contract`.
@@ -166,8 +149,8 @@ pub fn contract(_attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
 /// }
 /// ```
 #[proc_macro_attribute]
-pub fn trait_definition(_attrs: TokenStream, _input: TokenStream) -> TokenStream {
-    trait_definition::generate(_attrs.into(), _input.into()).into()
+pub fn trait_definition(attrs: TokenStream, input: TokenStream) -> TokenStream {
+    trait_definition::generate(attrs.into(), input.into()).into()
 }
 
 /// This macro only checks that some free-standing function satisfies a set of rules.
@@ -338,8 +321,8 @@ pub fn modifier_definition(_attrs: TokenStream, _input: TokenStream) -> TokenStr
 /// }
 /// ```
 #[proc_macro_attribute]
-pub fn modifiers(_attrs: TokenStream, method: TokenStream) -> TokenStream {
-    modifiers::generate(_attrs.into(), method.into()).into()
+pub fn modifiers(attrs: TokenStream, method: TokenStream) -> TokenStream {
+    modifiers::generate(attrs.into(), method.into()).into()
 }
 
 /// This macro allows you to define a wrapper type for traits defined via

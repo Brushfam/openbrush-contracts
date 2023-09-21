@@ -1,23 +1,6 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
 
 pub use crate::{
     payment_splitter,
@@ -56,6 +39,10 @@ pub trait PaymentSplitterImpl: Storage<Data> + Internal {
         self.data().total_released.get_or_default()
     }
 
+    fn releasable(&self, account: AccountId) -> Balance {
+        self._releasable(account)
+    }
+
     fn shares(&self, account: AccountId) -> Balance {
         self.data().shares.get(&account).unwrap_or(0)
     }
@@ -69,7 +56,7 @@ pub trait PaymentSplitterImpl: Storage<Data> + Internal {
     }
 
     fn receive(&mut self) {
-        self._emit_payee_added_event(Self::env().caller(), Self::env().transferred_value())
+        self._emit_payment_received_event(Self::env().caller(), Self::env().transferred_value())
     }
 
     fn release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {
@@ -88,7 +75,7 @@ pub trait Internal {
     /// Inits an instance of `PaymentSplitter` where each account in `payees` is assigned the number of shares at
     /// the matching position in the `shares` array.
     ///
-    /// All addresses in `payees` must be non-zero. Both arrays must have the same non-zero length, and there must be no
+    /// All addresses in `payees` must be set. Both arrays must have the same non-zero length, and there must be no
     /// duplicates in `payees`.
     ///
     /// Emits `PayeeAdded` on each account.
@@ -96,8 +83,7 @@ pub trait Internal {
 
     fn _add_payee(&mut self, payee: AccountId, share: Balance) -> Result<(), PaymentSplitterError>;
 
-    /// Calls the `release` method for each `AccountId` in the `payees` vec.
-    fn _release_all(&mut self) -> Result<(), PaymentSplitterError>;
+    fn _releasable(&self, account: AccountId) -> Balance;
 
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError>;
 }
@@ -141,15 +127,18 @@ pub trait InternalImpl: Storage<Data> + Internal {
         Ok(())
     }
 
-    fn _release_all(&mut self) -> Result<(), PaymentSplitterError> {
-        let payees = self.data().payees.get_or_default();
-        let len = payees.len();
+    fn _releasable(&self, account: AccountId) -> Balance {
+        let total_received = Self::env()
+            .balance()
+            .checked_sub(Self::env().minimum_balance())
+            .unwrap_or_default();
+        let total_shares = self.data().total_shares.get_or_default();
+        let released = self.data().released.get(&account).unwrap_or_default();
+        let shares = self.data().shares.get(&account).unwrap_or_default();
 
-        for account in payees.iter().take(len) {
-            Internal::_release(self, *account)?;
-        }
+        let payment = total_received * shares / total_shares - released;
 
-        Ok(())
+        payment
     }
 
     fn _release(&mut self, account: AccountId) -> Result<(), PaymentSplitterError> {

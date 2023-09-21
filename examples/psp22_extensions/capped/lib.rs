@@ -3,10 +3,7 @@
 #[openbrush::implementation(PSP22, PSP22Capped, PSP22Mintable)]
 #[openbrush::contract]
 pub mod my_psp22_capped {
-    use openbrush::traits::{
-        Storage,
-        String,
-    };
+    use openbrush::traits::Storage;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -15,20 +12,6 @@ pub mod my_psp22_capped {
         psp22: psp22::Data,
         #[storage_field]
         cap: capped::Data,
-    }
-
-    #[overrider(psp22::Internal)]
-    fn _before_token_transfer(
-        &mut self,
-        from: Option<&AccountId>,
-        _: Option<&AccountId>,
-        amount: &Balance,
-    ) -> Result<(), PSP22Error> {
-        // `is_none` means that it is minting
-        if from.is_none() && capped::Internal::_is_cap_exceeded(self, amount) {
-            return Err(PSP22Error::Custom(String::from("Cap exceeded")))
-        }
-        Ok(())
     }
 
     impl Contract {

@@ -38,7 +38,7 @@ pub mod contract_v2 {
             return Err(PSP22Error::InsufficientBalance)
         }
 
-        psp22::Internal::_before_token_transfer(self, Some(&from), Some(&to), &amount)?;
+        psp22::PSP22Transfer::_before_token_transfer(self, Some(&from), Some(&to), &amount)?;
 
         self.psp22.balances.insert(&from, &(from_balance - amount));
 
@@ -57,7 +57,7 @@ pub mod contract_v2 {
         let to_balance = psp22::Internal::_balance_of(self, &to);
         self.psp22.balances.insert(&to, &(to_balance + new_amount));
 
-        psp22::Internal::_after_token_transfer(self, Some(&from), Some(&to), &amount)?;
+        psp22::PSP22Transfer::_after_token_transfer(self, Some(&from), Some(&to), &amount)?;
         psp22::Internal::_emit_transfer_event(self, Some(from), Some(to), new_amount);
 
         Ok(())

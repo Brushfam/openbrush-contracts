@@ -25,6 +25,7 @@ use super::{
     PausableError,
     ReentrancyGuardError,
 };
+use crate::traits::errors::MathError;
 use openbrush::traits::String;
 
 /// The PSP37 error type. Contract will throw one of this errors.
@@ -45,6 +46,16 @@ pub enum PSP37Error {
     SelfApprove,
     /// Returned if safe transfer check fails
     SafeTransferCheckFailed(String),
+}
+
+impl From<MathError> for PSP37Error {
+    fn from(math: MathError) -> Self {
+        match math {
+            MathError::Overflow => PSP37Error::Custom(String::from("M::Overflow")),
+            MathError::Underflow => PSP37Error::Custom(String::from("M::Underflow")),
+            MathError::DivByZero => PSP37Error::Custom(String::from("M::DivByZero")),
+        }
+    }
 }
 
 impl From<OwnableError> for PSP37Error {

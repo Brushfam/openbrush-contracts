@@ -27,6 +27,7 @@ use super::{
     PausableError,
     ReentrancyGuardError,
 };
+use crate::traits::errors::MathError;
 use openbrush::traits::String;
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
@@ -97,6 +98,16 @@ pub enum FlashLenderError {
     AllowanceDoesNotAllowRefund,
     /// Callee contract rejected the flashloan
     BorrowerRejected(String),
+}
+
+impl From<MathError> for FlashLenderError {
+    fn from(error: MathError) -> Self {
+        match error {
+            MathError::Overflow => FlashLenderError::Custom(String::from("Math::Overflow")),
+            MathError::Underflow => FlashLenderError::Custom(String::from("Math::Underflow")),
+            MathError::DivByZero => FlashLenderError::Custom(String::from("Math::DivideByZero")),
+        }
+    }
 }
 
 impl From<PSP22Error> for FlashLenderError {

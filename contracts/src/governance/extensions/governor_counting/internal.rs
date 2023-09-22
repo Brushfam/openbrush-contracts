@@ -29,7 +29,10 @@ use crate::{
         governor::GovernorStorageGetters,
     },
     traits::{
-        errors::GovernanceError,
+        errors::{
+            GovernanceError,
+            MathError,
+        },
         governance::{
             ProposalId,
             VoteType,
@@ -49,7 +52,7 @@ pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters 
         let num_votes = proposal_vote
             .for_votes
             .checked_add(proposal_vote.abstain_votes)
-            .ok_or(GovernanceError::Overflow)?;
+            .ok_or(MathError::Overflow)?;
 
         Ok(self.quorum(self._proposal_snapshot(proposal_id)?)? <= num_votes)
     }
@@ -85,19 +88,16 @@ pub trait CountingInternal: Storage<Data> + QuorumImpl + GovernorStorageGetters 
                 proposal_vote.against_votes = proposal_vote
                     .against_votes
                     .checked_add(weight)
-                    .ok_or(GovernanceError::Overflow)?;
+                    .ok_or(MathError::Overflow)?;
             }
             VoteType::For => {
-                proposal_vote.for_votes = proposal_vote
-                    .for_votes
-                    .checked_add(weight)
-                    .ok_or(GovernanceError::Overflow)?;
+                proposal_vote.for_votes = proposal_vote.for_votes.checked_add(weight).ok_or(MathError::Overflow)?;
             }
             VoteType::Abstain => {
                 proposal_vote.abstain_votes = proposal_vote
                     .abstain_votes
                     .checked_add(weight)
-                    .ok_or(GovernanceError::Overflow)?;
+                    .ok_or(MathError::Overflow)?;
             }
         }
 

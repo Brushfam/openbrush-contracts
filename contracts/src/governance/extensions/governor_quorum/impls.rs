@@ -40,7 +40,10 @@ use crate::{
             TimestampProvider,
         },
     },
-    traits::governance::utils::votes::*,
+    traits::{
+        errors::MathError,
+        governance::utils::votes::*,
+    },
 };
 use openbrush::traits::{
     Storage,
@@ -105,11 +108,13 @@ pub trait QuorumImpl:
 
         let past_total_supply = VotesRef::get_past_total_supply(&mut token, timestamp)?;
 
-        past_total_supply
+        let result = past_total_supply
             .checked_mul(self.quorum_numerator_at(timestamp))
-            .ok_or(GovernanceError::Overflow)?
+            .ok_or(MathError::Overflow)?
             .checked_div(self.quorum_denominator())
-            .ok_or(GovernanceError::Overflow)
+            .ok_or(MathError::Overflow)?;
+
+        Ok(result)
     }
 
     /// Updates the quorum numerator

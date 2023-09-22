@@ -71,9 +71,14 @@ pub trait InternalImpl: Storage<Data> + Internal + PSP22 {
     }
 
     fn _is_cap_exceeded(&self, amount: &Balance) -> bool {
-        if self.total_supply() + amount > Internal::_cap(self) {
-            return true
+        let supply = self.total_supply().checked_add(*amount);
+
+        if let Some(supply) = supply {
+            if supply > Internal::_cap(self) {
+                return true
+            }
         }
+
         false
     }
 

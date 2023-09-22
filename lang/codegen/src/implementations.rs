@@ -886,11 +886,11 @@ pub(crate) fn impl_psp34(impl_args: &mut ImplArgs) {
                 psp34::BalancesManagerImpl::_balance_of(self, owner)
             }
 
-            fn _increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool) {
+            fn _increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool) -> Result<(), PSP34Error> {
                 psp34::BalancesManagerImpl::_increase_balance(self, owner, id, increase_supply)
             }
 
-            fn _decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool) {
+            fn _decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool) -> Result<(), PSP34Error> {
                 psp34::BalancesManagerImpl::_decrease_balance(self, owner, id, decrease_supply)
             }
 

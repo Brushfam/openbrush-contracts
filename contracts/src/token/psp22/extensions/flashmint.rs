@@ -19,6 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::traits::errors::MathError;
 pub use crate::{
     psp22,
     psp22::extensions::flashmint,
@@ -72,11 +73,26 @@ pub trait FlashLenderImpl: Storage<psp22::Data> + psp22::Internal + PSP22 + Inte
         Internal::_on_flashloan(self, receiver_account, token, fee, amount, data)?;
         let this = Self::env().account_id();
         let current_allowance = self.allowance(receiver_account, this);
-        if current_allowance < amount + fee {
+
+        if current_allowance < amount.checked_add(fee).ok_or(MathError::Overflow)? {
+            // amount + fee
             return Err(FlashLenderError::AllowanceDoesNotAllowRefund)
         }
-        psp22::Internal::_approve_from_to(self, receiver_account, this, current_allowance - amount - fee)?;
-        psp22::Internal::_burn_from(self, receiver_account, amount + fee)?;
+        psp22::Internal::_approve_from_to(
+            self,
+            receiver_account,
+            this,
+            current_allowance
+                .checked_sub(amount)
+                .ok_or(MathError::Underflow)?
+                .checked_sub(fee)
+                .ok_or(MathError::Underflow)?, // current_allowance - amount - fee
+        )?;
+        psp22::Internal::_burn_from(
+            self,
+            receiver_account,
+            amount.checked_add(fee).ok_or(MathError::Overflow)?, // amount + fee
+        )?;
         Ok(())
     }
 }

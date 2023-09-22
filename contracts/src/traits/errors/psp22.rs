@@ -26,6 +26,7 @@ use super::{
     PausableError,
     ReentrancyGuardError,
 };
+use crate::traits::errors::MathError;
 use openbrush::traits::String;
 
 /// The PSP22 error type. Contract will throw one of this errors.
@@ -50,6 +51,16 @@ pub enum PSP22Error {
     PermitExpired,
     /// Returned if permit nonce is invalid
     NoncesError(NoncesError),
+}
+
+impl From<MathError> for PSP22Error {
+    fn from(math: MathError) -> Self {
+        match math {
+            MathError::Overflow => PSP22Error::Custom(String::from("Math::Overflow")),
+            MathError::Underflow => PSP22Error::Custom(String::from("Math::Underflow")),
+            MathError::DivByZero => PSP22Error::Custom(String::from("Math::DivideByZero")),
+        }
+    }
 }
 
 impl From<OwnableError> for PSP22Error {

@@ -19,6 +19,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+use crate::traits::errors::MathError;
 pub use crate::{
     psp34,
     psp34::{
@@ -178,10 +179,10 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
         Internal::_before_token_transfer(self, Some(&owner), Some(&to), &id)?;
 
         self._remove_operator_approvals(&owner, &caller, &Some(&id));
-        BalancesManager::_decrease_balance(self, &owner, &id, false);
+        BalancesManager::_decrease_balance(self, &owner, &id, false)?;
         self._remove_token_owner(&id);
 
-        BalancesManager::_increase_balance(self, &to, &id, false);
+        BalancesManager::_increase_balance(self, &to, &id, false)?;
         self._insert_token_owner(&id, &to);
         Internal::_after_token_transfer(self, Some(&owner), Some(&to), &id)?;
         Internal::_emit_transfer_event(self, Some(owner), Some(to), id);
@@ -195,7 +196,7 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
         }
         Internal::_before_token_transfer(self, None, Some(&to), &id)?;
 
-        BalancesManager::_increase_balance(self, &to, &id, true);
+        BalancesManager::_increase_balance(self, &to, &id, true)?;
         self._insert_token_owner(&id, &to);
         Internal::_after_token_transfer(self, None, Some(&to), &id)?;
         Internal::_emit_transfer_event(self, None, Some(to), id);
@@ -209,7 +210,7 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
         Internal::_before_token_transfer(self, Some(&from), None, &id)?;
 
         self._remove_token_owner(&id);
-        BalancesManager::_decrease_balance(self, &from, &id, true);
+        BalancesManager::_decrease_balance(self, &from, &id, true)?;
         Internal::_after_token_transfer(self, Some(&from), None, &id)?;
         Internal::_emit_transfer_event(self, Some(from), None, id);
         Ok(())
@@ -246,9 +247,9 @@ pub trait InternalImpl: Internal + BalancesManager + Sized {
 pub trait BalancesManager {
     fn _balance_of(&self, owner: &Owner) -> u32;
 
-    fn _increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool);
+    fn _increase_balance(&mut self, owner: &Owner, id: &Id, increase_supply: bool) -> Result<(), PSP34Error>;
 
-    fn _decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool);
+    fn _decrease_balance(&mut self, owner: &Owner, id: &Id, decrease_supply: bool) -> Result<(), PSP34Error>;
 
     fn _total_supply(&self) -> u128;
 
@@ -270,25 +271,41 @@ pub trait BalancesManagerImpl: BalancesManager + Storage<Data> {
         self.data().owned_tokens_count.get(owner).unwrap_or(0)
     }
 
-    fn _increase_balance(&mut self, owner: &Owner, _id: &Id, increase_supply: bool) {
+    fn _increase_balance(&mut self, owner: &Owner, _id: &Id, increase_supply: bool) -> Result<(), PSP34Error> {
         let to_balance = self.data().owned_tokens_count.get(owner).unwrap_or(0);
-        self.data().owned_tokens_count.insert(owner, &(to_balance + 1));
+        self.data()
+            .owned_tokens_count
+            .insert(owner, &(to_balance.checked_add(1).ok_or(MathError::Overflow)?)); // to_balance + 1
         if increase_supply {
-            let new_supply = self.data().total_supply.get_or_default() + 1;
+            let new_supply = self
+                .data()
+                .total_supply
+                .get_or_default()
+                .checked_add(1)
+                .ok_or(MathError::Overflow)?; // total_supply + 1
             self.data().total_supply.set(&new_supply);
         }
+
+        Ok(())
     }
 
-    fn _decrease_balance(&mut self, owner: &Owner, _id: &Id, decrease_supply: bool) {
+    fn _decrease_balance(&mut self, owner: &Owner, _id: &Id, decrease_supply: bool) -> Result<(), PSP34Error> {
         let from_balance = self.data().owned_tokens_count.get(owner).unwrap_or(0);
         self.data()
             .owned_tokens_count
-            .insert(owner, &(from_balance.checked_sub(1).unwrap()));
+            .insert(owner, &(from_balance.checked_sub(1).expect("Underflow"))); // from_balance - 1
 
         if decrease_supply {
-            let new_supply = self.data().total_supply.get_or_default() - 1;
+            let new_supply = self
+                .data()
+                .total_supply
+                .get_or_default()
+                .checked_sub(1)
+                .expect("Underflow"); // total_supply - 1
             self.data().total_supply.set(&new_supply);
         }
+
+        Ok(())
     }
 
     fn _total_supply(&self) -> u128 {

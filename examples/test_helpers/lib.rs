@@ -148,7 +148,7 @@ macro_rules! method_call {
     ($client:ident, $call:ident, $method:ident) => {{
         let _msg = $call.$method();
         $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
+            .call(&ink_e2e::alice(), &_msg, 0, None)
             .await
             .expect("call failed")
             .return_value()
@@ -156,7 +156,7 @@ macro_rules! method_call {
     ($client:ident, $call:ident, $signer:ident, $method:ident) => {{
         let _msg = $call.$method();
         $client
-            .call(&ink_e2e::$signer(), _msg, 0, None)
+            .call(&ink_e2e::$signer(), &_msg, 0, None)
             .await
             .expect("call failed")
             .return_value()

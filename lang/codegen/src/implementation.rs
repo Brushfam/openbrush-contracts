@@ -1,23 +1,6 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
 
 use crate::{
     implementations::*,
@@ -35,12 +18,10 @@ use syn::{
     Path,
 };
 
-pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
+pub fn generate(attrs: TokenStream, input: TokenStream) -> TokenStream {
     if internal::skip() {
         return quote! {}
     }
-    let input: TokenStream = ink_module;
-
     // map attribute args to default contract names
     let args = syn::parse2::<AttributeArgs>(attrs)
         .expect("No default contracts to implement provided")
@@ -48,7 +29,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
         .map(|arg| {
             match arg {
                 NestedMeta::Path(method) => method.to_token_stream().to_string().replace(' ', ""),
-                _ => panic!("Expected names of OpenBrush traits to implement in the contract!"),
+                _ => panic!("Can't parse naming of default contract to implement"),
             }
         })
         .collect::<Vec<String>>();
@@ -75,10 +56,11 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
     let mut overriden_traits = HashMap::<&str, syn::Item>::default();
 
     let mut impl_args = ImplArgs::new(&map, &mut items, &mut imports, &mut overriden_traits, ident);
+    let is_capped = args.contains(&"PSP22Capped".to_string());
 
-    for to_implement in &args {
+    for to_implement in args.clone() {
         match to_implement.as_str() {
-            "PSP22" => impl_psp22(&mut impl_args),
+            "PSP22" => impl_psp22(&mut impl_args, is_capped),
             "PSP22Mintable" => impl_psp22_mintable(&mut impl_args),
             "PSP22Burnable" => impl_psp22_burnable(&mut impl_args),
             "PSP22Permit" => impl_psp22_permit(&mut impl_args),

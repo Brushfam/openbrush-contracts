@@ -12,7 +12,6 @@
 <br/>
 So, in other words,  <a href="https://patron.works/">Patron</a> is an all-in-one contracts platform, which allows you to build and verify ink! smart contracts inside of an isolated environment, explore contract verification details.
 
-## Important!
 ![OpenBrush](https://user-images.githubusercontent.com/88630083/218825486-accc2d8c-bc5c-4b92-a278-a5b9009fd6f5.png)
 
 [![Docs](https://img.shields.io/badge/docs-%F0%9F%93%84-blue)](https://Brushfam.github.io/openbrush-contracts)
@@ -133,10 +132,6 @@ but it must be fixed with this [issue](https://github.com/paritytech/ink/issues/
 ### Issues to be resolved before the library becomes production-ready:
 * [Event's identifiers are based on the naming of the storage structure](https://github.com/Brushfam/openbrush-contracts/issues/2)
 
-## Roadmap 🚗
-
-Current OpenBrush Roadmap includes: https://docs.google.com/document/d/1b49juyKJN0W-UBHoJ4iS3P_I0Z5a94YoNLxylIf-As8
-
 ## Installation & Testing
 To work with project you need to install ink! toolchain and NodeJS's dependencies.
 
@@ -162,12 +157,26 @@ To run integration test you need to start the node with contract-pallet.
 
 After you can run tests by `npm run test` command. It will build all contracts required for integration tests and run them.
 
+### End-to-End (E2E) Tests
+To run   e2e-tests in   the contract we  recoment to use   this versions of   tools:
+- rustc: 1.71.1
+- cargo: 1.71.1
+- rustup toolchain: stable
+ - cargo-contract: 3.2.0
+- ink!: 4.3.0
+- ink_e2e: 4.3.0
+- substrate-contracts-node: 0.27.0
+
+To run e2e-tests you need to  write this command in the root of the directory:
+```
+$ cargo test --features e2e-tests
+```
+
 ## FAQ
 
 ### Was it audited?
 
-Contracts in this repository have not yet been audited and contain several vulnerabilities due to the specific of the ink!. 
-Since ink! is audited now, OpenBrush is going to be audited after major breaking changes regarding switching to stable toolchain and adapting to latest ink! will be released.
+OpenBrush was audited by OpenZeppelin team.
 
 ## License
 

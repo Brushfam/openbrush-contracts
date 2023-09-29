@@ -145,7 +145,7 @@ pub mod ownable {
 
             let transfer_ownership_tx = {
                 let _msg = build_message::<ContractRef>(address.clone())
-                    .call(|contract| contract.transfer_ownership(address_of!(Bob)));
+                    .call(|contract| contract.transfer_ownership(Some(address_of!(Bob))));
                 client
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await

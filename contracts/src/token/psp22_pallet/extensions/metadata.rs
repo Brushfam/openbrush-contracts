@@ -1,23 +1,6 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
 
 pub use crate::{
     psp22_pallet,
@@ -28,6 +11,7 @@ pub use crate::{
     },
 };
 pub use ink::env::DefaultEnvironment;
+use ink::prelude::vec::*;
 use openbrush::traits::Storage;
 pub use openbrush::traits::String;
 pub use pallet_assets_chain_extension::traits::{
@@ -41,13 +25,9 @@ pub use psp22_pallet::{
     PSP22PalletImpl,
 };
 
-pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
+pub trait PSP22PalletMetadataImpl: PSP22PalletMetadataInternal {
     fn token_name(&self) -> Option<String> {
-        let self_ = self.data();
-        let name = self_
-            .pallet_assets
-            .get_or_default()
-            .metadata_name(self_.asset_id.get_or_default());
+        let name = self._name();
 
         if name.is_empty() {
             None
@@ -57,11 +37,7 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
     }
 
     fn token_symbol(&self) -> Option<String> {
-        let self_ = self.data();
-        let symbol = self_
-            .pallet_assets
-            .get_or_default()
-            .metadata_symbol(self_.asset_id.get_or_default());
+        let symbol = self._symbol();
 
         if symbol.is_empty() {
             None
@@ -71,10 +47,29 @@ pub trait PSP22PalletMetadataImpl: Storage<psp22_pallet::Data> {
     }
 
     fn token_decimals(&self) -> u8 {
-        let self_ = self.data();
-        self_
+        self._decimals()
+    }
+}
+
+pub trait PSP22PalletMetadataInternal: Storage<psp22_pallet::Data> {
+    fn _name(&self) -> Vec<u8> {
+        self.data()
             .pallet_assets
             .get_or_default()
-            .metadata_decimals(self_.asset_id.get_or_default())
+            .metadata_name(self.data().asset_id.get_or_default())
+    }
+
+    fn _symbol(&self) -> Vec<u8> {
+        self.data()
+            .pallet_assets
+            .get_or_default()
+            .metadata_symbol(self.data().asset_id.get_or_default())
+    }
+
+    fn _decimals(&self) -> u8 {
+        self.data()
+            .pallet_assets
+            .get_or_default()
+            .metadata_decimals(self.data().asset_id.get_or_default())
     }
 }

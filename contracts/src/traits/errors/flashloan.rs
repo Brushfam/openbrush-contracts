@@ -1,23 +1,6 @@
-// Copyright (c) 2012-2022 Supercolony
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the"Software"),
-// to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Copyright (c) 2012-2022 Supercolony. All Rights Reserved.
+// Copyright (c) 2023 Brushfam. All Rights Reserved.
+// SPDX-License-Identifier: MIT
 
 use super::{
     AccessControlError,
@@ -41,9 +24,8 @@ impl From<OwnableError> for FlashBorrowerError {
             OwnableError::CallerIsNotOwner => {
                 FlashBorrowerError::FlashloanRejected(String::from("O::CallerIsNotOwner"))
             }
-            OwnableError::NewOwnerIsZero => FlashBorrowerError::FlashloanRejected(String::from("O::NewOwnerIsZero")),
-            OwnableError::OwnableUnauthorizedAccount => {
-                FlashBorrowerError::FlashloanRejected(String::from("O::OwnableUnauthorizedAccount"))
+            OwnableError::NewOwnerIsNotSet => {
+                FlashBorrowerError::FlashloanRejected(String::from("O::NewOwnerIsNotSet"))
             }
         }
     }
@@ -110,8 +92,10 @@ impl From<PSP22Error> for FlashLenderError {
             PSP22Error::InsufficientAllowance => {
                 FlashLenderError::Custom(String::from("PSP22: Insufficient Allowance"))
             }
-            PSP22Error::ZeroRecipientAddress => FlashLenderError::Custom(String::from("PSP22: Zero Recipient Address")),
-            PSP22Error::ZeroSenderAddress => FlashLenderError::Custom(String::from("PSP22: Zero Sender Address")),
+            PSP22Error::RecipientIsNotSet => {
+                FlashLenderError::Custom(String::from("PSP22: Recipient Address is not set"))
+            }
+            PSP22Error::SenderIsNotSet => FlashLenderError::Custom(String::from("PSP22: Sender Address in not set")),
             PSP22Error::SafeTransferCheckFailed(message) => FlashLenderError::Custom(message),
             PSP22Error::PermitInvalidSignature => {
                 FlashLenderError::Custom(String::from("PSP22: Permit Invalid Signature"))
@@ -134,10 +118,7 @@ impl From<OwnableError> for FlashLenderError {
     fn from(ownable: OwnableError) -> Self {
         match ownable {
             OwnableError::CallerIsNotOwner => FlashLenderError::Custom(String::from("O::CallerIsNotOwner")),
-            OwnableError::NewOwnerIsZero => FlashLenderError::Custom(String::from("O::NewOwnerIsZero")),
-            OwnableError::OwnableUnauthorizedAccount => {
-                FlashLenderError::Custom(String::from("O::OwnableUnauthorizedAccount"))
-            }
+            OwnableError::NewOwnerIsNotSet => FlashLenderError::Custom(String::from("O::NewOwnerIsNotSet")),
         }
     }
 }

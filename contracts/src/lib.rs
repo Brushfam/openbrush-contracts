@@ -37,6 +37,8 @@ pub mod traits;
 pub use access::access_control;
 #[cfg(feature = "ownable")]
 pub use access::ownable;
+#[cfg(feature = "ownable_2_step")]
+pub use access::ownable_2_step;
 #[cfg(feature = "payment_splitter")]
 pub use finance::payment_splitter;
 #[cfg(feature = "timelock_controller")]

@@ -42,6 +42,9 @@ impl From<OwnableError> for FlashBorrowerError {
                 FlashBorrowerError::FlashloanRejected(String::from("O::CallerIsNotOwner"))
             }
             OwnableError::NewOwnerIsZero => FlashBorrowerError::FlashloanRejected(String::from("O::NewOwnerIsZero")),
+            OwnableError::OwnableUnauthorizedAccount => {
+                FlashBorrowerError::FlashloanRejected(String::from("O::OwnableUnauthorizedAccount"))
+            }
         }
     }
 }
@@ -132,6 +135,9 @@ impl From<OwnableError> for FlashLenderError {
         match ownable {
             OwnableError::CallerIsNotOwner => FlashLenderError::Custom(String::from("O::CallerIsNotOwner")),
             OwnableError::NewOwnerIsZero => FlashLenderError::Custom(String::from("O::NewOwnerIsZero")),
+            OwnableError::OwnableUnauthorizedAccount => {
+                FlashLenderError::Custom(String::from("O::OwnableUnauthorizedAccount"))
+            }
         }
     }
 }

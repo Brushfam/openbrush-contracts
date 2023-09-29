@@ -104,6 +104,7 @@ pub fn generate(attrs: TokenStream, ink_module: TokenStream) -> TokenStream {
             "PSP37Mintable" => impl_psp37_mintable(&mut impl_args),
             "PSP37Enumerable" => impl_psp37_enumerable(&mut impl_args),
             "Ownable" => impl_ownable(&mut impl_args),
+            "Ownable2Step" => impl_ownable_2_step(&mut impl_args),
             "PaymentSplitter" => impl_payment_splitter(&mut impl_args),
             "AccessControl" => impl_access_control(&mut impl_args),
             "AccessControlEnumerable" => impl_access_control_enumerable(&mut impl_args),

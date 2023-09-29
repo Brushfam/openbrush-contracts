@@ -56,6 +56,9 @@ impl From<OwnableError> for PaymentSplitterError {
         match ownable {
             OwnableError::CallerIsNotOwner => PaymentSplitterError::Custom(String::from("O::CallerIsNotOwner")),
             OwnableError::NewOwnerIsZero => PaymentSplitterError::Custom(String::from("O::NewOwnerIsZero")),
+            OwnableError::OwnableUnauthorizedAccount => {
+                PaymentSplitterError::Custom(String::from("O::OwnableUnauthorizedAccount"))
+            }
         }
     }
 }

@@ -40,6 +40,9 @@ impl From<OwnableError> for PSP22Error {
         match ownable {
             OwnableError::CallerIsNotOwner => PSP22Error::Custom(String::from("O::CallerIsNotOwner")),
             OwnableError::NewOwnerIsNotSet => PSP22Error::Custom(String::from("O::NewOwnerIsNotSet")),
+            OwnableError::OwnableUnauthorizedAccount => {
+                PSP22Error::Custom(String::from("O::OwnableUnauthorizedAccount"))
+            }
         }
     }
 }

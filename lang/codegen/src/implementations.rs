@@ -1945,6 +1945,10 @@ pub(crate) fn impl_ownable(impl_args: &mut ImplArgs) {
             fn _init_with_owner(&mut self, owner: AccountId) {
                 ownable::InternalImpl::_init_with_owner(self, owner)
             }
+
+            fn _transfer_ownership(&mut self, new_owner: Option<AccountId>) -> Result<(), OwnableError> {
+                ownable::InternalImpl::_transfer_ownership(self, new_owner)
+            }
         }
     ))
     .expect("Should parse");
@@ -1987,6 +1991,68 @@ pub(crate) fn impl_ownable(impl_args: &mut ImplArgs) {
     impl_args.items.push(syn::Item::Impl(internal));
     impl_args.items.push(syn::Item::Impl(ownable_impl));
     impl_args.items.push(syn::Item::Impl(ownable));
+}
+
+pub(crate) fn impl_ownable_2_step(impl_args: &mut ImplArgs) {
+    let storage_struct_name = impl_args.contract_name();
+    let internal_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl ownable_2_step::InternalImpl for #storage_struct_name {}
+    ))
+        .expect("Should parse");
+
+    let mut internal = syn::parse2::<syn::ItemImpl>(quote!(
+        impl ownable_2_step::Internal for #storage_struct_name {
+            fn _transfer_ownership(&mut self, new_owner: Option<AccountId>) -> Result<(), OwnableError> {
+                ownable_2_step::InternalImpl::_transfer_ownership(self, new_owner)
+            }
+
+            fn _emit_ownership_transferred_started_event(&self, previous: Option<AccountId>, new: Option<AccountId>) {
+                ownable_2_step::InternalImpl::_emit_ownership_transferred_started_event(self, previous, new)
+            }
+        }
+    ))
+        .expect("Should parse");
+
+    let ownable_2_step_impl = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Ownable2StepImpl for #storage_struct_name {}
+    ))
+        .expect("Should parse");
+
+    let mut ownable_2_step = syn::parse2::<syn::ItemImpl>(quote!(
+        impl Ownable2Step for #storage_struct_name {
+            #[ink(message)]
+            fn pending_owner(&self) -> Option<AccountId> {
+                ownable_2_step::Ownable2StepImpl::pending_owner(self)
+            }
+
+            #[ink(message)]
+            fn transfer_ownership(&mut self, new_owner: AccountId) -> Result<(), OwnableError> {
+                ownable_2_step::Ownable2StepImpl::transfer_ownership(self, new_owner)
+            }
+
+            #[ink(message)]
+            fn accept_ownership(&mut self) -> Result<(), OwnableError> {
+                ownable_2_step::Ownable2StepImpl::accept_ownership(self)
+            }
+        }
+    ))
+        .expect("Should parse");
+
+
+
+    let import = syn::parse2::<syn::ItemUse>(quote!(
+        use openbrush::contracts::ownable_2_step::*;
+    ))
+    .expect("Should parse");
+    impl_args.imports.insert("Ownable2Step", import);
+
+    override_functions("Ownable2Step", &mut ownable_2_step, impl_args.map);
+    override_functions("ownable_2_step::Internal", &mut internal, impl_args.map);
+
+    impl_args.items.push(syn::Item::Impl(internal_impl));
+    impl_args.items.push(syn::Item::Impl(internal));
+    impl_args.items.push(syn::Item::Impl(ownable_2_step_impl));
+    impl_args.items.push(syn::Item::Impl(ownable_2_step));
 }
 
 pub(crate) fn impl_payment_splitter(impl_args: &mut ImplArgs) {

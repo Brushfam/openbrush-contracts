@@ -38,6 +38,9 @@ impl From<OwnableError> for PaymentSplitterError {
     fn from(ownable: OwnableError) -> Self {
         match ownable {
             OwnableError::CallerIsNotOwner => PaymentSplitterError::Custom(String::from("O::CallerIsNotOwner")),
+            OwnableError::OwnableUnauthorizedAccount => {
+                PaymentSplitterError::Custom(String::from("O::OwnableUnauthorizedAccount"))
+            },
             OwnableError::NewOwnerIsNotSet => PaymentSplitterError::Custom(String::from("O::NewOwnerIsNotSet")),
         }
     }

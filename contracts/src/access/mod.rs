@@ -6,3 +6,5 @@
 pub mod access_control;
 #[cfg(feature = "ownable")]
 pub mod ownable;
+#[cfg(feature = "ownable_2_step")]
+pub mod ownable_2_step;

@@ -9,4 +9,5 @@
 pub enum OwnableError {
     CallerIsNotOwner,
     NewOwnerIsNotSet,
+    OwnableUnauthorizedAccount,
 }

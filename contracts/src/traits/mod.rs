@@ -9,6 +9,7 @@ pub mod flashloan;
 pub mod governance;
 pub mod nonces;
 pub mod ownable;
+pub mod ownable_2_step;
 pub mod pausable;
 pub mod payment_splitter;
 pub mod proxy;

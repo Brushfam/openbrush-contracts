@@ -47,6 +47,9 @@ impl From<OwnableError> for TimelockControllerError {
         match ownable {
             OwnableError::CallerIsNotOwner => TimelockControllerError::Custom(String::from("O::CallerIsNotOwner")),
             OwnableError::NewOwnerIsNotSet => TimelockControllerError::Custom(String::from("O::NewOwnerIsNotSet")),
+            OwnableError::OwnableUnauthorizedAccount => {
+                TimelockControllerError::Custom(String::from("O::OwnableUnauthorizedAccount"))
+            }
         }
     }
 }

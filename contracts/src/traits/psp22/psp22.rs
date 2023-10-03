@@ -78,6 +78,21 @@ pub trait PSP22 {
         data: Vec<u8>,
     ) -> Result<(), PSP22Error>;
 
+    /// Allows `spender` to withdraw from the caller's account multiple times, up to
+    /// the `value` amount.
+    ///
+    /// If this function is called again it overwrites the current allowance with `value`.
+    ///
+    /// An `Approval` event is emitted.
+    ///
+    /// # Important
+    ///
+    /// This function is vulnerable to the double spending attack.
+    /// Based on the OpenZeppelin security review of OpenBrush, we recommend using the
+    /// `increase_allowance` and `decrease_allowance` functions.
+    #[ink(message)]
+    fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error>;
+
     /// Atomically increases the allowance granted to `spender` by the caller.
     ///
     /// An `Approval` event is emitted.

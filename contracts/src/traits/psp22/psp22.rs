@@ -87,7 +87,7 @@ pub trait PSP22 {
     ///
     /// # Important
     ///
-    /// This function is vulnerable to the double spending attack. 
+    /// This function is vulnerable to the double spending attack.
     /// Based on the OpenZeppelin security review of OpenBrush, we recommend using the
     /// `increase_allowance` and `decrease_allowance` functions.
     #[ink(message)]

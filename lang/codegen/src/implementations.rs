@@ -171,6 +171,11 @@ pub(crate) fn impl_psp22(impl_args: &mut ImplArgs, capped: bool) {
             }
 
             #[ink(message)]
+            fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
+                PSP22Impl::approve(self, spender, value)
+            }
+
+            #[ink(message)]
             fn increase_allowance(&mut self, spender: AccountId, delta_value: Balance) -> Result<(), PSP22Error> {
                 PSP22Impl::increase_allowance(self, spender, delta_value)
             }
@@ -889,6 +894,11 @@ pub(crate) fn impl_psp22_pallet(impl_args: &mut ImplArgs) {
                 data: Vec<u8>,
             ) -> Result<(), PSP22Error> {
                 PSP22PalletImpl::transfer_from(self, from, to, value, data)
+            }
+
+            #[ink(message)]
+            fn approve(&mut self, spender: AccountId, value: Balance) -> Result<(), PSP22Error> {
+                PSP22PalletImpl::approve(self, spender, value)
             }
 
             #[ink(message)]
